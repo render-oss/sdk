@@ -38,6 +38,75 @@ func GetFunctionName(t Task) (string, error) {
 	return shortName, nil
 }
 
+// CallTask invokes the given Task (a function) with the provided arguments.
+func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
+	v := reflect.ValueOf(t)
+	if v.Kind() != reflect.Func {
+		return nil, fmt.Errorf("task is not a function")
+	}
+
+	tType := v.Type()
+
+	// We receive arguments in the form of []interface{}, but we want to pass
+	// each argument as a separate argument to the function.
+	if len(args) > 0 {
+		if slice, ok := args[0].([]interface{}); ok && (1+len(slice) == tType.NumIn()) {
+			args = append([]interface{}{args[0]}, slice...)
+		}
+	}
+
+	if len(args) != tType.NumIn() {
+		return nil, fmt.Errorf("expected %d arguments, got %d", tType.NumIn(), len(args))
+	}
+
+	// Prepare arguments for reflection
+	in := make([]reflect.Value, len(args))
+	for i, arg := range args {
+		expectedType := tType.In(i)
+
+		if arg == nil {
+			// Accept nil only for interface or pointer types
+			if expectedType.Kind() != reflect.Interface && expectedType.Kind() != reflect.Ptr {
+				return nil, fmt.Errorf("argument %d is nil, but expected non-nil type %s", i, expectedType)
+			}
+			in[i] = reflect.Zero(expectedType)
+			continue
+		}
+
+		argValue := reflect.ValueOf(arg)
+
+		// Auto-cast float64 to int if the target type is int and float is an integer
+		// JSON unmarshals all numbers as float64, so we need to check for this
+		if expectedType.Kind() == reflect.Int && argValue.Kind() == reflect.Float64 {
+			floatVal := argValue.Float()
+			if floatVal == float64(int(floatVal)) {
+				argValue = reflect.ValueOf(int(floatVal))
+			}
+		}
+
+		if !argValue.Type().AssignableTo(expectedType) {
+			return nil, fmt.Errorf("argument %d has type %s, expected %s", i, argValue.Type(), expectedType)
+		}
+
+		in[i] = argValue
+	}
+
+	// Call the function
+	out := v.Call(in)
+
+	// Convert results to []interface{}
+	results := make([]interface{}, len(out))
+	for i, val := range out {
+		results[i] = val.Interface()
+	}
+
+	return results, nil
+}
+
+type TaskContext interface {
+	ExecuteTask(task Task, input ...interface{}) *TaskResult
+}
+
 func NewTasks() *Tasks {
 	return &Tasks{
 		Tasks: make(map[string]Task),
@@ -67,4 +136,15 @@ func (t *Tasks) GetTaskNames() []string {
 		names = append(names, name)
 	}
 	return names
+}
+
+func (t *Tasks) ExecuteTaskByName(name string, tctx TaskContext, input ...interface{}) (interface{}, error) {
+	task, err := t.GetTaskByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	input = append([]interface{}{tctx}, input...)
+
+	return CallTask(task, input...)
 }
