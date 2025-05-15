@@ -13,6 +13,29 @@ type Tasks struct {
 
 type Task interface{}
 
+func VerifySignature(t Task) error {
+	// Step 1: Check that t is a function
+	tType := reflect.TypeOf(t)
+	if tType.Kind() != reflect.Func {
+		return fmt.Errorf("task must be a function")
+	}
+
+	// Step 2: Check the function has at least one input
+	if tType.NumIn() == 0 {
+		return fmt.Errorf("task function must have at least one input parameter")
+	}
+
+	// Step 3: Check that the first argument implements TaskContext
+	firstParam := tType.In(0)
+	taskCtxType := reflect.TypeOf((*TaskContext)(nil)).Elem()
+
+	if !firstParam.Implements(taskCtxType) {
+		return fmt.Errorf("first argument must implement TaskContext interface")
+	}
+
+	return nil
+}
+
 // GetFunctionName returns the short name of the given Task (function).
 func GetFunctionName(t Task) (string, error) {
 	v := reflect.ValueOf(t)
@@ -114,6 +137,10 @@ func NewTasks() *Tasks {
 }
 
 func (t *Tasks) RegisterTask(task Task) error {
+	err := VerifySignature(task)
+	if err != nil {
+		return err
+	}
 	name, err := GetFunctionName(task)
 	if err != nil {
 		return err
