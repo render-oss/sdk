@@ -1,0 +1,79 @@
+---
+openapi: 3.0.0
+info:
+  title: User API
+  version: 1.0.0
+paths:
+  /start:
+    post:
+      summary: Start a task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartRequest'
+      responses:
+        '202':
+          description: Task started
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+  /continue:
+    post:
+      summary: Continue a task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContinueRequest'
+      responses:
+        '200':
+          description: Task continued
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Task not found
+        '500':
+          description: Internal server error
+components:
+  schemas:
+    StartRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        input: {}
+        response_url:
+          type: string
+        task_id:
+          type: string
+      required:
+      - name
+      - input
+      - response_url
+      - task_id
+
+    ContinueRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        input: {}
+        task_id:
+          type: string
+        response_url:
+          type: string
+      required:
+      - name
+      - input
+      - task_id
+      - response_url
