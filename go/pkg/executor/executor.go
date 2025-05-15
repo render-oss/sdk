@@ -44,7 +44,7 @@ func (e *Executor) Execute(ctx context.Context, taskName string, taskID string, 
 
 		log.Printf("Executing task: %s, input: %v", taskName, input)
 
-		result, err := e.tasks.ExecuteTaskByName(taskName, input...)
+		result, err := e.tasks.ExecuteTaskByName(taskName, e, input...)
 		if err == nil {
 			log.Printf("Task completed: %s", taskName)
 			e.orchestrator.CompleteTask(context.Background(), taskName, result)
@@ -53,4 +53,22 @@ func (e *Executor) Execute(ctx context.Context, taskName string, taskID string, 
 	}()
 
 	return nil
+}
+
+func (e *Executor) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {
+	taskName, err := task.GetFunctionName(t)
+	if err != nil {
+		return &task.TaskResult{Error: err}
+	}
+
+	log.Printf("Calling task: %s", taskName)
+
+	result, err := e.orchestrator.ExecuteTask(taskName, input...)
+	if err != nil {
+		return &task.TaskResult{Error: err}
+	}
+
+	log.Printf("Task completed: %s", taskName)
+
+	return &task.TaskResult{Result: result}
 }
