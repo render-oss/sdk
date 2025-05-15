@@ -126,6 +126,64 @@ func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
 	return results, nil
 }
 
+type TaskResult struct {
+	Result []interface{}
+	Error  error
+}
+
+func isIntKind(kind reflect.Kind) bool {
+	return kind == reflect.Int || kind == reflect.Int8 || kind == reflect.Int16 ||
+		kind == reflect.Int32 || kind == reflect.Int64
+}
+
+func (t *TaskResult) Get(input ...interface{}) error {
+	if t.Error != nil {
+		return t.Error
+	}
+
+	if input == nil {
+		return fmt.Errorf("input cannot be nil")
+	}
+
+	if len(input) != len(t.Result) {
+		return fmt.Errorf("expected %d output arguments, got %d", len(t.Result), len(input))
+	}
+
+	for i, arg := range input {
+		if arg == nil {
+			return fmt.Errorf("output argument %d is nil", i)
+		}
+
+		argVal := reflect.ValueOf(arg)
+		if argVal.Kind() != reflect.Ptr || argVal.IsNil() {
+			return fmt.Errorf("output argument %d must be a non-nil pointer", i)
+		}
+
+		targetElem := argVal.Elem()
+		expectedType := targetElem.Type()
+		resultVal := reflect.ValueOf(t.Result[i])
+
+		// Handle float64 -> int coercion
+		if resultVal.Kind() == reflect.Float64 && isIntKind(expectedType.Kind()) {
+			floatVal := resultVal.Float()
+			if floatVal == float64(int64(floatVal)) {
+				intVal := reflect.ValueOf(int64(floatVal)).Convert(expectedType)
+				targetElem.Set(intVal)
+				continue
+			}
+			return fmt.Errorf("cannot assign non-integer float %v to int type %s at index %d", floatVal, expectedType, i)
+		}
+
+		if !resultVal.Type().AssignableTo(expectedType) {
+			return fmt.Errorf("result value at index %d has type %s, expected %s", i, resultVal.Type(), expectedType)
+		}
+
+		targetElem.Set(resultVal)
+	}
+
+	return nil
+}
+
 type TaskContext interface {
 	ExecuteTask(task Task, input ...interface{}) *TaskResult
 }
