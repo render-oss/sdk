@@ -16,7 +16,7 @@ import (
 	"render.com/pkg/executor"
 	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/server"
-	sdkserver "render.com/pkg/server"
+	sdkserver2 "render.com/pkg/server"
 	"render.com/pkg/task"
 )
 
@@ -94,7 +94,7 @@ func TestServer(t *testing.T) {
 
 					require.NoError(t, json.NewEncoder(w).Encode(response))
 
-					request := sdkserver.StartRequest{
+					request := sdkserver2.StartRequest{
 						Name:        "square",
 						TaskId:      taskID,
 						Input:       body.Subtask.Input,
@@ -119,7 +119,7 @@ func TestServer(t *testing.T) {
 						response := client.CallbackResponse{}
 						require.NoError(t, json.NewEncoder(w).Encode(response))
 
-						request := sdkserver.ContinueRequest{
+						request := sdkserver2.ContinueRequest{
 							Name:        "square",
 							TaskId:      body.TaskId,
 							Input:       body.Complete.Result,
@@ -138,7 +138,7 @@ func TestServer(t *testing.T) {
 
 		testServerURL = remoteServer.URL
 
-		request := sdkserver.StartRequest{
+		request := sdkserver2.StartRequest{
 			Name:        "addSquares",
 			TaskId:      addSquaresTaskID,
 			Input:       []interface{}{2, 3},

@@ -1,0 +1,24 @@
+repos:
+  - repo: local
+    hooks:
+      - id: go-lint
+        name: Run golangci-lint in go/
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            echo "Running go lint on go/..."
+            cd go && golangci-lint run ./...
+        types: [go]
+        files: ^go/
+      - id: go-fmt
+        name: go fmt
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            echo "Running go fmt on go/..."
+            cd go && go fmt ./...
+        types: [go]
