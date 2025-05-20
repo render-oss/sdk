@@ -37,7 +37,14 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 		return PostStart400Response{}, err
 	}
 
-	err = executor.Execute(ctx, request.Body.Name, request.Body.TaskId, request.Body.Input)
+	var input []interface{}
+	if i, ok := request.Body.Input.([]interface{}); ok {
+		input = i
+	} else {
+		input = []interface{}{request.Body.Input}
+	}
+
+	err = executor.Execute(ctx, request.Body.Name, request.Body.TaskId, input...)
 	if err != nil {
 		return PostStart400Response{}, err
 	}

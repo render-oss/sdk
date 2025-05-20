@@ -153,7 +153,8 @@ func TestServer(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Eventually(t, func() bool {
+			fmt.Println("finalResult", finalResult)
 			return finalResult == 13
-		}, time.Second*5, time.Millisecond*100)
+		}, time.Second*1, time.Millisecond*100)
 	})
 }
