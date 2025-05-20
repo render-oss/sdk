@@ -16,7 +16,6 @@ import (
 	"render.com/pkg/executor"
 	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/server"
-	sdkserver2 "render.com/pkg/server"
 	"render.com/pkg/task"
 )
 
@@ -51,7 +50,9 @@ func TestServer(t *testing.T) {
 		go func() {
 			srv, err := handler.Start(port)
 			require.NoError(t, err)
-			defer srv.Close()
+			defer func() {
+				_ = srv.Close()
+			}()
 		}()
 
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
@@ -77,14 +78,16 @@ func TestServer(t *testing.T) {
 				err := json.NewDecoder(r.Body).Decode(&body)
 				require.NoError(t, err)
 
-				if body.Status == client.CallbackRequestStatusSubtask {
+				switch body.Status {
+				case client.CallbackRequestStatusSubtask:
 					require.Equal(t, "square", body.Subtask.Name)
 					var taskID string
-					if body.Subtask.Input.([]interface{})[0].(float64) == 2 {
+					switch body.Subtask.Input.([]interface{})[0].(float64) {
+					case 2:
 						taskID = squareATaskID
-					} else if body.Subtask.Input.([]interface{})[0].(float64) == 3 {
+					case 3:
 						taskID = squareBTaskID
-					} else {
+					default:
 						require.Fail(t, "invalid input")
 					}
 
@@ -94,7 +97,7 @@ func TestServer(t *testing.T) {
 
 					require.NoError(t, json.NewEncoder(w).Encode(response))
 
-					request := sdkserver2.StartRequest{
+					request := server.StartRequest{
 						Name:        "square",
 						TaskId:      taskID,
 						Input:       body.Subtask.Input,
@@ -105,7 +108,7 @@ func TestServer(t *testing.T) {
 
 					_, err = http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
 					require.NoError(t, err)
-				} else if body.Status == client.CallbackRequestStatusComplete {
+				case client.CallbackRequestStatusComplete:
 					if body.Name == "addSquares" {
 						require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
 						finalResult = int(body.Complete.Result.([]interface{})[0].(float64))
@@ -119,7 +122,7 @@ func TestServer(t *testing.T) {
 						response := client.CallbackResponse{}
 						require.NoError(t, json.NewEncoder(w).Encode(response))
 
-						request := sdkserver2.ContinueRequest{
+						request := server.ContinueRequest{
 							Name:        "square",
 							TaskId:      body.TaskId,
 							Input:       body.Complete.Result,
@@ -138,7 +141,7 @@ func TestServer(t *testing.T) {
 
 		testServerURL = remoteServer.URL
 
-		request := sdkserver2.StartRequest{
+		request := server.StartRequest{
 			Name:        "addSquares",
 			TaskId:      addSquaresTaskID,
 			Input:       []interface{}{2, 3},
