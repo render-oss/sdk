@@ -89,11 +89,11 @@ func TestNewServerAdapter(t *testing.T) {
 
 		result, err := orchestrator.ExecuteTask("test", 1)
 		require.NoError(t, err)
-		require.Equal(t, "test result", result)
+		require.Equal(t, []interface{}{"test result"}, result)
 
 		result, err = orchestrator.ExecuteTask("test", 2)
 		require.NoError(t, err)
-		require.Equal(t, "test result 2", result)
+		require.Equal(t, []interface{}{"test result 2"}, result)
 	})
 
 	t.Run("can complete task", func(t *testing.T) {
