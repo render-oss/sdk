@@ -1,7 +1,6 @@
 package task_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,8 +14,10 @@ func add(_ task.TaskContext, a int, b int) int {
 type fakeTaskContext struct {
 }
 
-func (f *fakeTaskContext) ExecuteTask(ctx context.Context, taskName string, input interface{}) (interface{}, error) {
-	return nil, nil
+func (f *fakeTaskContext) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {
+	return &task.TaskResult{
+		Result: []interface{}{1},
+	}
 }
 
 func TestTaskGetTaskNames(t *testing.T) {
