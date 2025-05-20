@@ -38,7 +38,7 @@ func TestNewServerAdapter(t *testing.T) {
 					ResponseURL: url + "?token=second",
 					SubtaskResult: orchestratoradapter.SubtaskResult{
 						Name:   "test",
-						Result: "test result",
+						Result: []interface{}{"test result"},
 						TaskID: taskID,
 					},
 				}
@@ -46,7 +46,7 @@ func TestNewServerAdapter(t *testing.T) {
 				response := &client.CallbackResponse{
 					TaskId: &taskID,
 				}
-				json.NewEncoder(w).Encode(response)
+				require.NoError(t, json.NewEncoder(w).Encode(response))
 			} else if r.Method == "POST" && token == "second" {
 				var body client.CallbackRequest
 				err := json.NewDecoder(r.Body).Decode(&body)
@@ -63,7 +63,7 @@ func TestNewServerAdapter(t *testing.T) {
 					ResponseURL: url,
 					SubtaskResult: orchestratoradapter.SubtaskResult{
 						Name:   "test",
-						Result: "test result 2",
+						Result: []interface{}{"test result 2"},
 						TaskID: taskID,
 					},
 				}
@@ -71,7 +71,7 @@ func TestNewServerAdapter(t *testing.T) {
 				response := &client.CallbackResponse{
 					TaskId: &taskID,
 				}
-				json.NewEncoder(w).Encode(response)
+				require.NoError(t, json.NewEncoder(w).Encode(response))
 			} else {
 				require.Fail(t, "unexpected request")
 			}
@@ -89,11 +89,11 @@ func TestNewServerAdapter(t *testing.T) {
 
 		result, err := orchestrator.ExecuteTask("test", 1)
 		require.NoError(t, err)
-		require.Equal(t, "test result", result)
+		require.Equal(t, []interface{}{"test result"}, result)
 
 		result, err = orchestrator.ExecuteTask("test", 2)
 		require.NoError(t, err)
-		require.Equal(t, "test result 2", result)
+		require.Equal(t, []interface{}{"test result 2"}, result)
 	})
 
 	t.Run("can complete task", func(t *testing.T) {
@@ -118,7 +118,7 @@ func TestNewServerAdapter(t *testing.T) {
 				response := &client.CallbackResponse{
 					TaskId: &taskID,
 				}
-				json.NewEncoder(w).Encode(response)
+				require.NoError(t, json.NewEncoder(w).Encode(response))
 			}
 		}))
 		defer server.Close()

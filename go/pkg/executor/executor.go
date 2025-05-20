@@ -47,7 +47,10 @@ func (e *Executor) Execute(ctx context.Context, taskName string, taskID string, 
 		result, err := e.tasks.ExecuteTaskByName(taskName, e, input...)
 		if err == nil {
 			log.Printf("Task completed: %s", taskName)
-			e.orchestrator.CompleteTask(context.Background(), taskName, result)
+			taskErr := e.orchestrator.CompleteTask(context.Background(), taskName, result)
+			if taskErr != nil {
+				log.Printf("Error completing task: %s", taskErr)
+			}
 			e.executorDone(taskID)
 		}
 	}()

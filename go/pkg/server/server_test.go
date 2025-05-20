@@ -16,7 +16,6 @@ import (
 	"render.com/pkg/executor"
 	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/server"
-	sdkserver "render.com/pkg/server"
 	"render.com/pkg/task"
 )
 
@@ -24,8 +23,8 @@ func addSquares(ctx task.TaskContext, a int, b int) int {
 	var result1 int
 	var result2 int
 
-	ctx.ExecuteTask(square, a).Get(&result1)
-	ctx.ExecuteTask(square, b).Get(&result2)
+	_ = ctx.ExecuteTask(square, a).Get(&result1)
+	_ = ctx.ExecuteTask(square, b).Get(&result2)
 	return result1 + result2
 }
 
@@ -51,7 +50,9 @@ func TestServer(t *testing.T) {
 		go func() {
 			srv, err := handler.Start(port)
 			require.NoError(t, err)
-			defer srv.Close()
+			defer func() {
+				_ = srv.Close()
+			}()
 		}()
 
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
@@ -77,14 +78,16 @@ func TestServer(t *testing.T) {
 				err := json.NewDecoder(r.Body).Decode(&body)
 				require.NoError(t, err)
 
-				if body.Status == client.CallbackRequestStatusSubtask {
+				switch body.Status {
+				case client.CallbackRequestStatusSubtask:
 					require.Equal(t, "square", body.Subtask.Name)
 					var taskID string
-					if body.Subtask.Input.([]interface{})[0].(float64) == 2 {
+					switch body.Subtask.Input.([]interface{})[0].(float64) {
+					case 2:
 						taskID = squareATaskID
-					} else if body.Subtask.Input.([]interface{})[0].(float64) == 3 {
+					case 3:
 						taskID = squareBTaskID
-					} else {
+					default:
 						require.Fail(t, "invalid input")
 					}
 
@@ -92,9 +95,9 @@ func TestServer(t *testing.T) {
 						TaskId: &taskID,
 					}
 
-					json.NewEncoder(w).Encode(response)
+					require.NoError(t, json.NewEncoder(w).Encode(response))
 
-					request := sdkserver.StartRequest{
+					request := server.StartRequest{
 						Name:        "square",
 						TaskId:      taskID,
 						Input:       body.Subtask.Input,
@@ -103,8 +106,9 @@ func TestServer(t *testing.T) {
 					startBytes, err := json.Marshal(request)
 					require.NoError(t, err)
 
-					http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
-				} else if body.Status == client.CallbackRequestStatusComplete {
+					_, err = http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
+					require.NoError(t, err)
+				case client.CallbackRequestStatusComplete:
 					if body.Name == "addSquares" {
 						require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
 						finalResult = int(body.Complete.Result.([]interface{})[0].(float64))
@@ -112,13 +116,13 @@ func TestServer(t *testing.T) {
 						response := client.CallbackResponse{
 							TaskId: &body.TaskId,
 						}
-						json.NewEncoder(w).Encode(response)
+						require.NoError(t, json.NewEncoder(w).Encode(response))
 					}
 					if body.Name == "square" {
 						response := client.CallbackResponse{}
-						json.NewEncoder(w).Encode(response)
+						require.NoError(t, json.NewEncoder(w).Encode(response))
 
-						request := sdkserver.ContinueRequest{
+						request := server.ContinueRequest{
 							Name:        "square",
 							TaskId:      body.TaskId,
 							Input:       body.Complete.Result,
@@ -126,7 +130,8 @@ func TestServer(t *testing.T) {
 						}
 						continueBytes, err := json.Marshal(request)
 						require.NoError(t, err)
-						http.DefaultClient.Post(serverURL+"/continue", "application/json", bytes.NewBuffer(continueBytes))
+						_, err = http.DefaultClient.Post(serverURL+"/continue", "application/json", bytes.NewBuffer(continueBytes))
+						require.NoError(t, err)
 					}
 				}
 
@@ -136,7 +141,7 @@ func TestServer(t *testing.T) {
 
 		testServerURL = remoteServer.URL
 
-		request := sdkserver.StartRequest{
+		request := server.StartRequest{
 			Name:        "addSquares",
 			TaskId:      addSquaresTaskID,
 			Input:       []interface{}{2, 3},

@@ -61,6 +61,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer srv.Close()
+	defer func() {
+		_ = srv.Close()
+	}()
 
 }

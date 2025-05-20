@@ -19,7 +19,6 @@ func testTask(_ task.TaskContext) (interface{}, error) {
 type parentTask struct {
 	t        *testing.T
 	executor *executor.Executor
-	ctx      context.Context
 }
 
 func (p *parentTask) ParentTask(_ task.TaskContext) (interface{}, error) {
