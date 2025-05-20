@@ -136,20 +136,20 @@ func isIntKind(kind reflect.Kind) bool {
 		kind == reflect.Int32 || kind == reflect.Int64
 }
 
-func (t *TaskResult) Get(input ...interface{}) error {
+func (t *TaskResult) Get(output ...interface{}) error {
 	if t.Error != nil {
 		return t.Error
 	}
 
-	if input == nil {
-		return fmt.Errorf("input cannot be nil")
+	if output == nil {
+		return fmt.Errorf("output cannot be nil")
 	}
 
-	if len(input) != len(t.Result) {
-		return fmt.Errorf("expected %d output arguments, got %d", len(t.Result), len(input))
+	if len(output) != len(t.Result) {
+		return fmt.Errorf("expected %d output arguments, got %d", len(t.Result), len(output))
 	}
 
-	for i, arg := range input {
+	for i, arg := range output {
 		if arg == nil {
 			return fmt.Errorf("output argument %d is nil", i)
 		}
