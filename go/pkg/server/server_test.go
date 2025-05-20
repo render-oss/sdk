@@ -24,8 +24,8 @@ func addSquares(ctx task.TaskContext, a int, b int) int {
 	var result1 int
 	var result2 int
 
-	ctx.ExecuteTask(square, a).Get(&result1)
-	ctx.ExecuteTask(square, b).Get(&result2)
+	_ = ctx.ExecuteTask(square, a).Get(&result1)
+	_ = ctx.ExecuteTask(square, b).Get(&result2)
 	return result1 + result2
 }
 
@@ -92,7 +92,7 @@ func TestServer(t *testing.T) {
 						TaskId: &taskID,
 					}
 
-					json.NewEncoder(w).Encode(response)
+					require.NoError(t, json.NewEncoder(w).Encode(response))
 
 					request := sdkserver.StartRequest{
 						Name:        "square",
@@ -103,7 +103,8 @@ func TestServer(t *testing.T) {
 					startBytes, err := json.Marshal(request)
 					require.NoError(t, err)
 
-					http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
+					_, err = http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
+					require.NoError(t, err)
 				} else if body.Status == client.CallbackRequestStatusComplete {
 					if body.Name == "addSquares" {
 						require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
@@ -112,11 +113,11 @@ func TestServer(t *testing.T) {
 						response := client.CallbackResponse{
 							TaskId: &body.TaskId,
 						}
-						json.NewEncoder(w).Encode(response)
+						require.NoError(t, json.NewEncoder(w).Encode(response))
 					}
 					if body.Name == "square" {
 						response := client.CallbackResponse{}
-						json.NewEncoder(w).Encode(response)
+						require.NoError(t, json.NewEncoder(w).Encode(response))
 
 						request := sdkserver.ContinueRequest{
 							Name:        "square",
@@ -126,7 +127,8 @@ func TestServer(t *testing.T) {
 						}
 						continueBytes, err := json.Marshal(request)
 						require.NoError(t, err)
-						http.DefaultClient.Post(serverURL+"/continue", "application/json", bytes.NewBuffer(continueBytes))
+						_, err = http.DefaultClient.Post(serverURL+"/continue", "application/json", bytes.NewBuffer(continueBytes))
+						require.NoError(t, err)
 					}
 				}
 
