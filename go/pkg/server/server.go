@@ -9,15 +9,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"render.com/pkg/executor"
 	"render.com/pkg/executor/orchestratoradapter"
+	"render.com/pkg/task"
 )
 
 type ServerHandler struct {
+	tasks              *task.Tasks
 	executors          *executor.Executors
 	serverOrchestrator *orchestratoradapter.ServerAdapterFactory
 }
 
-func NewServerHandler(executors *executor.Executors, serverOrchestrator *orchestratoradapter.ServerAdapterFactory) *ServerHandler {
+func NewServerHandler(tasks *task.Tasks, executors *executor.Executors, serverOrchestrator *orchestratoradapter.ServerAdapterFactory) *ServerHandler {
 	return &ServerHandler{
+		tasks:              tasks,
 		executors:          executors,
 		serverOrchestrator: serverOrchestrator,
 	}
@@ -50,6 +53,17 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 	}
 
 	return PostStart202Response{}, nil
+}
+
+func (h *ServerHandler) GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error) {
+	taskSlice := make([]Task, 0, len(h.tasks.Tasks))
+	for name := range h.tasks.Tasks {
+		taskSlice = append(taskSlice, Task{Name: &name})
+	}
+
+	return GetTasks200JSONResponse{
+		Tasks: taskSlice,
+	}, nil
 }
 
 func recoverMiddleware(next http.Handler) http.Handler {

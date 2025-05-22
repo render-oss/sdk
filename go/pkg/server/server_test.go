@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -44,7 +45,7 @@ func TestServer(t *testing.T) {
 
 		serverOrchestrator := orchestratoradapter.NewServerAdapterFactory()
 		executors := executor.NewExecutors(tasks, 3)
-		handler := server.NewServerHandler(executors, serverOrchestrator)
+		handler := server.NewServerHandler(tasks, executors, serverOrchestrator)
 
 		port := 8083
 		go func() {
@@ -161,5 +162,28 @@ func TestServer(t *testing.T) {
 			fmt.Println("finalResult", finalResult)
 			return finalResult == 13
 		}, time.Second*1, time.Millisecond*100)
+	})
+
+	t.Run("get tasks", func(t *testing.T) {
+		tasks := task.NewTasks()
+		err := tasks.RegisterTask(addSquares)
+		require.NoError(t, err)
+		err = tasks.RegisterTask(square)
+		require.NoError(t, err)
+
+		srv := server.NewServerHandler(tasks, nil, nil)
+
+		writer := httptest.NewRecorder()
+		response, err := srv.GetTasks(context.Background(), server.GetTasksRequestObject{})
+		require.NoError(t, err)
+		err = response.VisitGetTasksResponse(writer)
+		require.NoError(t, err)
+		result := writer.Result()
+		require.Equal(t, http.StatusOK, result.StatusCode)
+
+		var ts server.Tasks
+		err = json.NewDecoder(result.Body).Decode(&ts)
+		require.NoError(t, err)
+		require.Equal(t, 2, len(ts.Tasks))
 	})
 }

@@ -49,7 +49,7 @@ func main() {
 
 	orchestrator := orchestratoradapter.NewServerAdapterFactory()
 	executors := executor.NewExecutors(tasks, 1)
-	handler := server.NewServerHandler(executors, orchestrator)
+	handler := server.NewServerHandler(tasks, executors, orchestrator)
 
 	port := os.Getenv("SIDECAR_PORT")
 	intPort, err := strconv.Atoi(port)
