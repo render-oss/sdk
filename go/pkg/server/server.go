@@ -58,7 +58,7 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 func (h *ServerHandler) GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error) {
 	taskSlice := make([]Task, 0, len(h.tasks.Tasks))
 	for name := range h.tasks.Tasks {
-		taskSlice = append(taskSlice, Task{Name: &name})
+		taskSlice = append(taskSlice, Task{Name: name})
 	}
 
 	return GetTasks200JSONResponse{

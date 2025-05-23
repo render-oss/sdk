@@ -31,7 +31,7 @@ type StartRequest struct {
 
 // Task defines model for Task.
 type Task struct {
-	Name *string `json:"name,omitempty"`
+	Name string `json:"name"`
 }
 
 // Tasks defines model for Tasks.
