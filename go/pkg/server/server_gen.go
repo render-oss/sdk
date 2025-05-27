@@ -29,6 +29,16 @@ type StartRequest struct {
 	TaskId      string      `json:"task_id"`
 }
 
+// Task defines model for Task.
+type Task struct {
+	Name string `json:"name"`
+}
+
+// Tasks defines model for Tasks.
+type Tasks struct {
+	Tasks []Task `json:"tasks"`
+}
+
 // PostContinueJSONRequestBody defines body for PostContinue for application/json ContentType.
 type PostContinueJSONRequestBody = ContinueRequest
 
@@ -43,6 +53,9 @@ type ServerInterface interface {
 	// Start a task
 	// (POST /start)
 	PostStart(w http.ResponseWriter, r *http.Request)
+	// Get all defined tasks
+	// (GET /tasks)
+	GetTasks(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -58,6 +71,12 @@ func (_ Unimplemented) PostContinue(w http.ResponseWriter, r *http.Request) {
 // Start a task
 // (POST /start)
 func (_ Unimplemented) PostStart(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get all defined tasks
+// (GET /tasks)
+func (_ Unimplemented) GetTasks(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -89,6 +108,20 @@ func (siw *ServerInterfaceWrapper) PostStart(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostStart(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTasks operation middleware
+func (siw *ServerInterfaceWrapper) GetTasks(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTasks(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -217,6 +250,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/start", wrapper.PostStart)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/tasks", wrapper.GetTasks)
+	})
 
 	return r
 }
@@ -325,6 +361,30 @@ func (response PostStart500Response) VisitPostStartResponse(w http.ResponseWrite
 	return nil
 }
 
+type GetTasksRequestObject struct {
+}
+
+type GetTasksResponseObject interface {
+	VisitGetTasksResponse(w http.ResponseWriter) error
+}
+
+type GetTasks200JSONResponse Tasks
+
+func (response GetTasks200JSONResponse) VisitGetTasksResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetTasks500Response struct {
+}
+
+func (response GetTasks500Response) VisitGetTasksResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Continue a task
@@ -333,6 +393,9 @@ type StrictServerInterface interface {
 	// Start a task
 	// (POST /start)
 	PostStart(ctx context.Context, request PostStartRequestObject) (PostStartResponseObject, error)
+	// Get all defined tasks
+	// (GET /tasks)
+	GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -419,6 +482,30 @@ func (sh *strictHandler) PostStart(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostStartResponseObject); ok {
 		if err := validResponse.VisitPostStartResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTasks operation middleware
+func (sh *strictHandler) GetTasks(w http.ResponseWriter, r *http.Request) {
+	var request GetTasksRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTasks(ctx, request.(GetTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTasksResponseObject); ok {
+		if err := validResponse.VisitGetTasksResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

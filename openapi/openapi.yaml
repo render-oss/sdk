@@ -44,6 +44,18 @@ paths:
           description: Task not found
         '500':
           description: Internal server error
+  /tasks:
+    get:
+      summary: Get all defined tasks
+      responses:
+        '200':
+          description: All defined tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tasks'
+        '500':
+          description: Internal server error
 components:
   schemas:
     StartRequest:
@@ -77,3 +89,19 @@ components:
       - input
       - task_id
       - response_url
+    Tasks:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      required:
+      - tasks
+    Task:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+      - name
