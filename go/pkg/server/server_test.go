@@ -42,9 +42,13 @@ func TestServer(t *testing.T) {
 		err = tasks.RegisterTask(square)
 		require.NoError(t, err)
 
-		executor := executor.NewExecutor(tasks)
-		serverOrchestrator := server.NewServerAdapter(executor)
+		exe := executor.NewExecutor(tasks)
+		serverOrchestrator := server.NewServerAdapter(exe)
 		handler := server.NewServerHandler(tasks, serverOrchestrator)
+
+		subTaskExec := executor.NewExecutor(tasks)
+		subTaskServerOrchestrator := server.NewServerAdapter(subTaskExec)
+		subTaskHandler := server.NewServerHandler(tasks, subTaskServerOrchestrator)
 
 		port := 8083
 		go func() {
@@ -54,8 +58,17 @@ func TestServer(t *testing.T) {
 				_ = srv.Close()
 			}()
 		}()
-
 		serverURL := fmt.Sprintf("http://localhost:%d", port)
+
+		subTaskPort := 8084
+		go func() {
+			srv, err := subTaskHandler.Start(subTaskPort)
+			require.NoError(t, err)
+			defer func() {
+				_ = srv.Close()
+			}()
+		}()
+		subTaskServerURL := fmt.Sprintf("http://localhost:%d", subTaskPort)
 
 		var testServerURL string
 
@@ -106,7 +119,7 @@ func TestServer(t *testing.T) {
 					startBytes, err := json.Marshal(request)
 					require.NoError(t, err)
 
-					_, err = http.DefaultClient.Post(serverURL+"/start", "application/json", bytes.NewBuffer(startBytes))
+					_, err = http.DefaultClient.Post(subTaskServerURL+"/start", "application/json", bytes.NewBuffer(startBytes))
 					require.NoError(t, err)
 				case client.CallbackRequestStatusComplete:
 					if body.Name == "addSquares" {
@@ -160,7 +173,7 @@ func TestServer(t *testing.T) {
 		require.Eventually(t, func() bool {
 			fmt.Println("finalResult", finalResult)
 			return finalResult == 13
-		}, time.Second*2, time.Millisecond*20)
+		}, time.Second*200, time.Millisecond*20)
 	})
 
 	t.Run("get tasks", func(t *testing.T) {

@@ -2,8 +2,10 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"render.com/pkg/client"
 	"render.com/pkg/executor"
@@ -18,6 +20,8 @@ type ServerAdapter struct {
 	taskID      string
 	ch          chan SubtaskResultWithResponseURL
 	executor    exec
+
+	mu sync.Mutex
 }
 
 func NewServerAdapter(executor exec) *ServerAdapter {
@@ -27,9 +31,32 @@ func NewServerAdapter(executor exec) *ServerAdapter {
 	}
 }
 
-func (s *ServerAdapter) StartTask(responseURL string, taskName string, taskID string, input ...interface{}) error {
+func (s *ServerAdapter) setTaskState(responseURL string, taskID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.taskID != "" {
+		return fmt.Errorf("task already started")
+	}
+
 	s.responseURL = responseURL
 	s.taskID = taskID
+	return nil
+}
+
+func (s *ServerAdapter) clearTaskState() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.responseURL = ""
+	s.taskID = ""
+}
+
+func (s *ServerAdapter) StartTask(responseURL string, taskName string, taskID string, input ...interface{}) error {
+	err := s.setTaskState(responseURL, taskID)
+	if err != nil {
+		return err
+	}
 
 	return s.executor.Execute(context.Background(), s.completeTask, s.executeTask, taskName, input...)
 }
@@ -62,7 +89,12 @@ func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, resul
 			Result: result,
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	s.clearTaskState()
+	return nil
 }
 
 func (s *ServerAdapter) executeTask(taskName string, input ...interface{}) ([]interface{}, error) {
