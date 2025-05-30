@@ -1,4 +1,4 @@
-package orchestratoradapter
+package server
 
 import (
 	"context"
