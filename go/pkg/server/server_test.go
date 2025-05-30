@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"render.com/pkg/client"
 	"render.com/pkg/executor"
-	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/server"
 	"render.com/pkg/task"
 )
@@ -43,9 +42,9 @@ func TestServer(t *testing.T) {
 		err = tasks.RegisterTask(square)
 		require.NoError(t, err)
 
-		serverOrchestrator := orchestratoradapter.NewServerAdapterFactory()
-		executors := executor.NewExecutors(tasks, 3)
-		handler := server.NewServerHandler(tasks, executors, serverOrchestrator)
+		executor := executor.NewExecutor(tasks)
+		serverOrchestrator := server.NewServerAdapter(executor)
+		handler := server.NewServerHandler(tasks, serverOrchestrator)
 
 		port := 8083
 		go func() {
@@ -161,7 +160,7 @@ func TestServer(t *testing.T) {
 		require.Eventually(t, func() bool {
 			fmt.Println("finalResult", finalResult)
 			return finalResult == 13
-		}, time.Second*1, time.Millisecond*100)
+		}, time.Second*2, time.Millisecond*20)
 	})
 
 	t.Run("get tasks", func(t *testing.T) {
@@ -171,7 +170,7 @@ func TestServer(t *testing.T) {
 		err = tasks.RegisterTask(square)
 		require.NoError(t, err)
 
-		srv := server.NewServerHandler(tasks, nil, nil)
+		srv := server.NewServerHandler(tasks, nil)
 
 		writer := httptest.NewRecorder()
 		response, err := srv.GetTasks(context.Background(), server.GetTasksRequestObject{})

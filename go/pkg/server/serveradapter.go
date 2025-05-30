@@ -4,23 +4,34 @@ import (
 	"context"
 	"log"
 	"strings"
-	"sync"
 
 	"render.com/pkg/client"
+	"render.com/pkg/executor"
 )
 
-type ServerAdapter struct {
-	responseURL   string
-	taskID        string
-	waitForResult waitForResult
+type exec interface {
+	Execute(ctx context.Context, completeTask executor.CompleteTask, executeTask executor.ExecuteTask, taskName string, input ...interface{}) error
 }
 
-func NewServerAdapter(responseURL string, taskID string, waitForResult waitForResult) *ServerAdapter {
+type ServerAdapter struct {
+	responseURL string
+	taskID      string
+	ch          chan SubtaskResultWithResponseURL
+	executor    exec
+}
+
+func NewServerAdapter(executor exec) *ServerAdapter {
 	return &ServerAdapter{
-		responseURL:   responseURL,
-		taskID:        taskID,
-		waitForResult: waitForResult,
+		ch:       make(chan SubtaskResultWithResponseURL, 1),
+		executor: executor,
 	}
+}
+
+func (s *ServerAdapter) StartTask(responseURL string, taskName string, taskID string, input ...interface{}) error {
+	s.responseURL = responseURL
+	s.taskID = taskID
+
+	return s.executor.Execute(context.Background(), s.completeTask, s.executeTask, taskName, input...)
 }
 
 func (s *ServerAdapter) tokenFromURL(url string) string {
@@ -36,7 +47,7 @@ func (s *ServerAdapter) tokenFromURL(url string) string {
 	return parts[1]
 }
 
-func (s *ServerAdapter) CompleteTask(ctx context.Context, taskName string, result interface{}) error {
+func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, result interface{}) error {
 	c, err := client.NewClientWithResponses(s.responseURL)
 	if err != nil {
 		return err
@@ -54,12 +65,12 @@ func (s *ServerAdapter) CompleteTask(ctx context.Context, taskName string, resul
 	return err
 }
 
-func (s *ServerAdapter) ExecuteTask(taskName string, input ...interface{}) ([]interface{}, error) {
+func (s *ServerAdapter) executeTask(taskName string, input ...interface{}) ([]interface{}, error) {
 	c, err := client.NewClientWithResponses(s.responseURL)
 	if err != nil {
 		return nil, err
 	}
-	rsp, err := c.PostCallbackWithResponse(context.Background(), &client.PostCallbackParams{
+	_, err = c.PostCallbackWithResponse(context.Background(), &client.PostCallbackParams{
 		Token: s.tokenFromURL(s.responseURL),
 	}, client.PostCallbackJSONRequestBody{
 		Name:   taskName,
@@ -73,21 +84,23 @@ func (s *ServerAdapter) ExecuteTask(taskName string, input ...interface{}) ([]in
 	if err != nil {
 		return nil, err
 	}
-	subTaskID := *rsp.JSON200.TaskId
-	result := s.waitForResult(subTaskID)
+	result := s.WaitForTaskResult()
 	s.responseURL = result.ResponseURL
 
 	return result.Result, nil
 }
 
-type ServerAdapterFactory struct {
-	mu            sync.Mutex
-	waitForResult map[string]chan SubtaskResultWithResponseURL
+func (s *ServerAdapter) WaitForTaskResult() SubtaskResultWithResponseURL {
+	log.Printf("Waiting for task result")
+	return <-s.ch
 }
 
-func NewServerAdapterFactory() *ServerAdapterFactory {
-	return &ServerAdapterFactory{
-		waitForResult: make(map[string]chan SubtaskResultWithResponseURL),
+func (s *ServerAdapter) SubtaskComplete(result []interface{}, responseURL string) {
+	s.ch <- SubtaskResultWithResponseURL{
+		SubtaskResult: SubtaskResult{
+			Result: result,
+		},
+		ResponseURL: responseURL,
 	}
 }
 
@@ -100,35 +113,4 @@ type SubtaskResult struct {
 	Name   string
 	Result []interface{}
 	TaskID string
-}
-
-type waitForResult func(taskID string) SubtaskResultWithResponseURL
-
-func (f *ServerAdapterFactory) NewOrchestratorAdapter(responseURL string, taskID string) *ServerAdapter {
-	return NewServerAdapter(responseURL, taskID, f.WaitForTaskResult)
-}
-
-func (f *ServerAdapterFactory) GetChannel(taskID string) chan SubtaskResultWithResponseURL {
-	f.mu.Lock()
-	defer f.mu.Unlock()
-	channel, ok := f.waitForResult[taskID]
-	if !ok {
-		channel = make(chan SubtaskResultWithResponseURL, 1)
-		f.waitForResult[taskID] = channel
-	}
-	return channel
-}
-
-func (f *ServerAdapterFactory) WaitForTaskResult(taskID string) SubtaskResultWithResponseURL {
-	log.Printf("Waiting for task result: %s", taskID)
-	return <-f.GetChannel(taskID)
-}
-
-func (f *ServerAdapterFactory) SubtaskComplete(taskID string, result []interface{}, responseURL string) {
-	f.GetChannel(taskID) <- SubtaskResultWithResponseURL{
-		SubtaskResult: SubtaskResult{
-			Result: result,
-		},
-		ResponseURL: responseURL,
-	}
 }
