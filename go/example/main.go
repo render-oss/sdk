@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"render.com/pkg/executor"
-	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/server"
 	"render.com/pkg/task"
 )
@@ -47,9 +46,9 @@ func main() {
 		panic(err)
 	}
 
-	orchestrator := orchestratoradapter.NewServerAdapterFactory()
-	executors := executor.NewExecutors(tasks, 1)
-	handler := server.NewServerHandler(tasks, executors, orchestrator)
+	executor := executor.NewExecutor(tasks)
+	serverAdapter := server.NewServerAdapter(executor)
+	handler := server.NewServerHandler(tasks, serverAdapter)
 
 	port := os.Getenv("SIDECAR_PORT")
 	intPort, err := strconv.Atoi(port)

@@ -9,25 +9,19 @@ import (
 )
 
 type Executor struct {
-	tasks        *task.Tasks
-	orchestrator OrchestratorAdapter
-	executorDone func(taskID string)
+	tasks *task.Tasks
 }
 
-type OrchestratorAdapter interface {
-	CompleteTask(ctx context.Context, taskName string, result interface{}) error
-	ExecuteTask(taskName string, input ...interface{}) ([]interface{}, error)
-}
+type CompleteTask func(ctx context.Context, taskName string, result interface{}) error
+type ExecuteTask func(taskName string, input ...interface{}) ([]interface{}, error)
 
-func NewExecutor(tasks *task.Tasks, orchestrator OrchestratorAdapter, executorDone func(taskID string)) *Executor {
+func NewExecutor(tasks *task.Tasks) *Executor {
 	return &Executor{
-		tasks:        tasks,
-		orchestrator: orchestrator,
-		executorDone: executorDone,
+		tasks: tasks,
 	}
 }
 
-func (e *Executor) Execute(ctx context.Context, taskName string, taskID string, input ...interface{}) error {
+func (e *Executor) Execute(ctx context.Context, completeTask CompleteTask, executeTask ExecuteTask, taskName string, input ...interface{}) error {
 	// Ensure the task is registered
 	_, err := e.tasks.GetTaskByName(taskName)
 	if err != nil {
@@ -44,21 +38,30 @@ func (e *Executor) Execute(ctx context.Context, taskName string, taskID string, 
 
 		log.Printf("Executing task: %s, input: %v", taskName, input)
 
-		result, err := e.tasks.ExecuteTaskByName(taskName, e, input...)
+		result, err := e.tasks.ExecuteTaskByName(taskName, newExecutorContext(executeTask), input...)
 		if err == nil {
 			log.Printf("Task completed: %s", taskName)
-			taskErr := e.orchestrator.CompleteTask(context.Background(), taskName, result)
+			taskErr := completeTask(context.Background(), taskName, result)
 			if taskErr != nil {
 				log.Printf("Error completing task: %s", taskErr)
 			}
-			e.executorDone(taskID)
 		}
 	}()
 
 	return nil
 }
 
-func (e *Executor) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {
+type executorContext struct {
+	executeTask ExecuteTask
+}
+
+func newExecutorContext(executeTask ExecuteTask) *executorContext {
+	return &executorContext{
+		executeTask: executeTask,
+	}
+}
+
+func (e *executorContext) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {
 	taskName, err := task.GetFunctionName(t)
 	if err != nil {
 		return &task.TaskResult{Error: err}
@@ -66,7 +69,7 @@ func (e *Executor) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResu
 
 	log.Printf("Calling task: %s", taskName)
 
-	result, err := e.orchestrator.ExecuteTask(taskName, input...)
+	result, err := e.executeTask(taskName, input...)
 	if err != nil {
 		return &task.TaskResult{Error: err}
 	}

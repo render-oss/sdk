@@ -7,39 +7,29 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"render.com/pkg/executor"
-	"render.com/pkg/executor/orchestratoradapter"
 	"render.com/pkg/task"
 )
 
 type ServerHandler struct {
 	tasks              *task.Tasks
-	executors          *executor.Executors
-	serverOrchestrator *orchestratoradapter.ServerAdapterFactory
+	serverOrchestrator *ServerAdapter
 }
 
-func NewServerHandler(tasks *task.Tasks, executors *executor.Executors, serverOrchestrator *orchestratoradapter.ServerAdapterFactory) *ServerHandler {
+func NewServerHandler(tasks *task.Tasks, serverOrchestrator *ServerAdapter) *ServerHandler {
 	return &ServerHandler{
 		tasks:              tasks,
-		executors:          executors,
 		serverOrchestrator: serverOrchestrator,
 	}
 }
 
 func (h *ServerHandler) PostContinue(ctx context.Context, request PostContinueRequestObject) (PostContinueResponseObject, error) {
 	log.Printf("Subtask complete: %s, input: %v", request.Body.TaskId, request.Body.Input)
-	h.serverOrchestrator.SubtaskComplete(request.Body.TaskId, request.Body.Input.([]interface{}), request.Body.ResponseUrl)
+	h.serverOrchestrator.SubtaskComplete(request.Body.Input.([]interface{}), request.Body.ResponseUrl)
 
 	return PostContinue200Response{}, nil
 }
 
 func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestObject) (PostStartResponseObject, error) {
-	orchestratorAdapter := h.serverOrchestrator.NewOrchestratorAdapter(request.Body.ResponseUrl, request.Body.TaskId)
-	executor, err := h.executors.NewExecutor(request.Body.TaskId, orchestratorAdapter)
-	if err != nil {
-		return PostStart400Response{}, err
-	}
-
 	var input []interface{}
 	if i, ok := request.Body.Input.([]interface{}); ok {
 		input = i
@@ -47,7 +37,7 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 		input = []interface{}{request.Body.Input}
 	}
 
-	err = executor.Execute(ctx, request.Body.Name, request.Body.TaskId, input...)
+	err := h.serverOrchestrator.StartTask(request.Body.ResponseUrl, request.Body.Name, request.Body.TaskId, input...)
 	if err != nil {
 		return PostStart400Response{}, err
 	}
