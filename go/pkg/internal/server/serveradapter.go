@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"render.com/pkg/client"
-	"render.com/pkg/executor"
+	"render.com/pkg/internal/client"
+	"render.com/pkg/internal/executor"
 )
 
 type exec interface {

@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"render.com/pkg/task"
+	"render.com/pkg/internal/task"
 )
 
 type ServerHandler struct {
