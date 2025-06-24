@@ -45,6 +45,15 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 	return PostStart202Response{}, nil
 }
 
+func (h *ServerHandler) PostCancel(ctx context.Context, request PostCancelRequestObject) (PostCancelResponseObject, error) {
+	err := h.serverOrchestrator.CancelTask(request.Body.TaskId)
+	if err != nil {
+		return PostCancel400Response{}, err
+	}
+
+	return PostCancel200Response{}, nil
+}
+
 func (h *ServerHandler) GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error) {
 	taskSlice := make([]Task, 0, len(h.tasks.Tasks))
 	for name := range h.tasks.Tasks {

@@ -13,6 +13,11 @@ import (
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
+// CancelRequest defines model for CancelRequest.
+type CancelRequest struct {
+	TaskId string `json:"task_id"`
+}
+
 // ContinueRequest defines model for ContinueRequest.
 type ContinueRequest struct {
 	Input       interface{} `json:"input"`
@@ -39,6 +44,9 @@ type Tasks struct {
 	Tasks []Task `json:"tasks"`
 }
 
+// PostCancelJSONRequestBody defines body for PostCancel for application/json ContentType.
+type PostCancelJSONRequestBody = CancelRequest
+
 // PostContinueJSONRequestBody defines body for PostContinue for application/json ContentType.
 type PostContinueJSONRequestBody = ContinueRequest
 
@@ -47,6 +55,9 @@ type PostStartJSONRequestBody = StartRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Cancel a task
+	// (POST /cancel)
+	PostCancel(w http.ResponseWriter, r *http.Request)
 	// Continue a task
 	// (POST /continue)
 	PostContinue(w http.ResponseWriter, r *http.Request)
@@ -61,6 +72,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// Cancel a task
+// (POST /cancel)
+func (_ Unimplemented) PostCancel(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // Continue a task
 // (POST /continue)
@@ -88,6 +105,20 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(http.Handler) http.Handler
+
+// PostCancel operation middleware
+func (siw *ServerInterfaceWrapper) PostCancel(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostCancel(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
 
 // PostContinue operation middleware
 func (siw *ServerInterfaceWrapper) PostContinue(w http.ResponseWriter, r *http.Request) {
@@ -245,6 +276,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/cancel", wrapper.PostCancel)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/continue", wrapper.PostContinue)
 	})
 	r.Group(func(r chi.Router) {
@@ -255,6 +289,30 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 
 	return r
+}
+
+type PostCancelRequestObject struct {
+	Body *PostCancelJSONRequestBody
+}
+
+type PostCancelResponseObject interface {
+	VisitPostCancelResponse(w http.ResponseWriter) error
+}
+
+type PostCancel200Response struct {
+}
+
+func (response PostCancel200Response) VisitPostCancelResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type PostCancel400Response struct {
+}
+
+func (response PostCancel400Response) VisitPostCancelResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
 }
 
 type PostContinueRequestObject struct {
@@ -387,6 +445,9 @@ func (response GetTasks500Response) VisitGetTasksResponse(w http.ResponseWriter)
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// Cancel a task
+	// (POST /cancel)
+	PostCancel(ctx context.Context, request PostCancelRequestObject) (PostCancelResponseObject, error)
 	// Continue a task
 	// (POST /continue)
 	PostContinue(ctx context.Context, request PostContinueRequestObject) (PostContinueResponseObject, error)
@@ -425,6 +486,37 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// PostCancel operation middleware
+func (sh *strictHandler) PostCancel(w http.ResponseWriter, r *http.Request) {
+	var request PostCancelRequestObject
+
+	var body PostCancelJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostCancel(ctx, request.(PostCancelRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostCancel")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostCancelResponseObject); ok {
+		if err := validResponse.VisitPostCancelResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // PostContinue operation middleware
