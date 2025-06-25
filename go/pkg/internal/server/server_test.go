@@ -13,10 +13,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/client"
-	"render.com/pkg/executor"
-	"render.com/pkg/server"
-	"render.com/pkg/task"
+	"render.com/pkg/internal/client"
+	"render.com/pkg/internal/executor"
+	"render.com/pkg/internal/server"
+	"render.com/pkg/internal/task"
 )
 
 func addSquares(ctx task.TaskContext, a int, b int) int {

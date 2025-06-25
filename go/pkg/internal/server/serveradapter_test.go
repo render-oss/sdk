@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/client"
-	"render.com/pkg/executor"
-	"render.com/pkg/server"
+	"render.com/pkg/internal/client"
+	"render.com/pkg/internal/executor"
+	"render.com/pkg/internal/server"
 )
 
 type testExecutor struct {

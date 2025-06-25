@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/executor"
-	"render.com/pkg/task"
+	"render.com/pkg/internal/executor"
+	"render.com/pkg/internal/task"
 )
 
 func testTask(_ task.TaskContext) (interface{}, error) {

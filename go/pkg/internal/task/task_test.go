@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/task"
+	"render.com/pkg/internal/task"
 )
 
 func add(_ task.TaskContext, a int, b int) int {

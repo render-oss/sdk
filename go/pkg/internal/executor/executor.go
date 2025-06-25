@@ -5,7 +5,7 @@ import (
 	"log"
 	"runtime/debug"
 
-	"render.com/pkg/task"
+	"render.com/pkg/internal/task"
 )
 
 type Executor struct {
