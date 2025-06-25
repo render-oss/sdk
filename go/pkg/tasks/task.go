@@ -20,7 +20,10 @@ func Start() {
 	serverAdapter := server.NewServerAdapter(executor)
 	handler := server.NewServerHandler(taskSingleton, serverAdapter)
 
-	port := os.Getenv("SIDECAR_PORT")
+	port, ok := os.LookupEnv("SIDECAR_PORT")
+	if !ok {
+		panic("SIDECAR_PORT must be set")
+	}
 	intPort, err := strconv.Atoi(port)
 	if err != nil {
 		panic(err)
