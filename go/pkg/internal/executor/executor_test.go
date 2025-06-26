@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/internal/executor"
-	"render.com/pkg/internal/task"
 )
 
 func testTask(_ task.TaskContext) (interface{}, error) {

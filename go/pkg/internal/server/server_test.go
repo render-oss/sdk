@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/client"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/internal/client"
-	"render.com/pkg/internal/executor"
-	"render.com/pkg/internal/server"
-	"render.com/pkg/internal/task"
 )
 
 func addSquares(ctx task.TaskContext, a int, b int) int {

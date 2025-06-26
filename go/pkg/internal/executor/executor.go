@@ -5,7 +5,7 @@ import (
 	"log"
 	"runtime/debug"
 
-	"render.com/pkg/internal/task"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 )
 
 type Executor struct {

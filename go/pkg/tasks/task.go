@@ -1,12 +1,31 @@
+// Package tasks provides a workflow SDK for defining and executing tasks in a workflow system.
+//
+// This package allows you to register task functions and start a task execution server.
+// Tasks are functions that accept a TaskContext as their first parameter, followed by
+// any number of additional parameters.
+//
+// Example usage:
+//
+//	func myTask(ctx tasks.TaskContext, input string) string {
+//		return "processed: " + input
+//	}
+//
+//	func main() {
+//		err := tasks.RegisterTask(myTask)
+//		if err != nil {
+//			panic(err)
+//		}
+//		tasks.Start()
+//	}
 package tasks
 
 import (
 	"os"
 	"strconv"
 
-	"render.com/pkg/internal/executor"
-	"render.com/pkg/internal/server"
-	"render.com/pkg/internal/task"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 )
 
 var taskSingleton = task.NewTasks()

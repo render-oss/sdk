@@ -3,8 +3,8 @@ package task_test
 import (
 	"testing"
 
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/internal/task"
 )
 
 func add(_ task.TaskContext, a int, b int) int {
