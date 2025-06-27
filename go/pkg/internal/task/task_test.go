@@ -2,6 +2,7 @@ package task_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/stretchr/testify/require"
@@ -49,4 +50,47 @@ func TestTaskExecuteTask(t *testing.T) {
 		_, err := tasks.ExecuteTaskByName("testTask", nil)
 		require.Error(t, err)
 	})
+}
+
+func TestRegisterTaskWithOptions(t *testing.T) {
+	tasks := task.NewTasks()
+
+	options := &task.Options{
+		Retry: &task.Retry{
+			MaxRetries:   3,
+			WaitDuration: time.Second,
+			Factor:       2.0,
+			Jitter:       0.5,
+		},
+	}
+
+	err := tasks.RegisterTaskWithOptions(add, options)
+	require.NoError(t, err)
+
+	// Verify task is registered
+	names := tasks.GetTaskNames()
+	require.Len(t, names, 1)
+	require.Equal(t, names[0], "add")
+
+	// Verify options are stored
+	taskInfo, err := tasks.GetTaskInfoByName("add")
+	require.NoError(t, err)
+	require.NotNil(t, taskInfo.Options)
+	require.NotNil(t, taskInfo.Options.Retry)
+	require.Equal(t, 3, taskInfo.Options.Retry.MaxRetries)
+	require.Equal(t, time.Second, taskInfo.Options.Retry.WaitDuration)
+	require.Equal(t, float32(2.0), taskInfo.Options.Retry.Factor)
+	require.Equal(t, float32(0.5), taskInfo.Options.Retry.Jitter)
+}
+
+func TestRegisterTaskWithNilOptions(t *testing.T) {
+	tasks := task.NewTasks()
+
+	err := tasks.RegisterTaskWithOptions(add, nil)
+	require.NoError(t, err)
+
+	// Verify options are nil
+	taskInfo, err := tasks.GetTaskInfoByName("add")
+	require.NoError(t, err)
+	require.Nil(t, taskInfo.Options)
 }

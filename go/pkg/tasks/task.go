@@ -34,6 +34,11 @@ func RegisterTask(task task.Task) error {
 	return taskSingleton.RegisterTask(task)
 }
 
+// RegisterTaskWithOptions registers a task with configuration options
+func RegisterTaskWithOptions(t task.Task, options *Options) error {
+	return taskSingleton.RegisterTaskWithOptions(t, options)
+}
+
 func Start() {
 	executor := executor.NewExecutor(taskSingleton)
 	serverAdapter := server.NewServerAdapter(executor)
@@ -58,3 +63,5 @@ func Start() {
 }
 
 type TaskContext = task.TaskContext
+type Options = task.Options
+type Retry = task.Retry

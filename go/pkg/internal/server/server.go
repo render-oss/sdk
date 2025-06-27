@@ -46,10 +46,33 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 	return PostStart202Response{}, nil
 }
 
+// convertToTaskOptions converts internal task options to API task options
+func convertToTaskOptions(opts *task.Options) *TaskOptions {
+	if opts == nil {
+		return nil
+	}
+
+	result := &TaskOptions{}
+	if opts.Retry != nil {
+		waitDurationMs := opts.Retry.WaitDuration.Milliseconds()
+		result.Retry = &RetryConfig{
+			MaxRetries:   &opts.Retry.MaxRetries,
+			WaitDuration: &waitDurationMs,
+			Factor:       &opts.Retry.Factor,
+			Jitter:       &opts.Retry.Jitter,
+		}
+	}
+	return result
+}
+
 func (h *ServerHandler) GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error) {
 	taskSlice := make([]Task, 0, len(h.tasks.Tasks))
-	for name := range h.tasks.Tasks {
-		taskSlice = append(taskSlice, Task{Name: name})
+	for name, taskInfo := range h.tasks.Tasks {
+		task := Task{
+			Name:    name,
+			Options: convertToTaskOptions(taskInfo.Options),
+		}
+		taskSlice = append(taskSlice, task)
 	}
 
 	return GetTasks200JSONResponse{

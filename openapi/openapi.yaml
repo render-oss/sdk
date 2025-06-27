@@ -103,5 +103,29 @@ components:
       properties:
         name:
           type: string
+        options:
+          $ref: '#/components/schemas/TaskOptions'
       required:
       - name
+    TaskOptions:
+      type: object
+      properties:
+        retry:
+          $ref: '#/components/schemas/RetryConfig'
+    RetryConfig:
+      type: object
+      properties:
+        max_retries:
+          type: integer
+          description: Maximum number of retry attempts
+        wait_duration:
+          type: integer
+          format: int64
+          description: Initial wait duration between retries (in milliseconds)
+        factor:
+          type: number
+          description: Backoff factor for exponential retry
+        jitter:
+          type: number
+          description: A number between 0 and 1 that represents the amount of jitter to add to the retry delays.
+            Each retry delay will be multiplied by a random number between 1 and 1 + jitter.

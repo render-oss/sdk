@@ -21,6 +21,21 @@ type ContinueRequest struct {
 	TaskId      string      `json:"task_id"`
 }
 
+// RetryConfig defines model for RetryConfig.
+type RetryConfig struct {
+	// Factor Backoff factor for exponential retry
+	Factor *float32 `json:"factor,omitempty"`
+
+	// Jitter A number between 0 and 1 that represents the amount of jitter to add to the retry delays. Each retry delay will be multiplied by a random number between 1 and 1 + jitter.
+	Jitter *float32 `json:"jitter,omitempty"`
+
+	// MaxRetries Maximum number of retry attempts
+	MaxRetries *int `json:"max_retries,omitempty"`
+
+	// WaitDuration Initial wait duration between retries (in milliseconds)
+	WaitDuration *int64 `json:"wait_duration,omitempty"`
+}
+
 // StartRequest defines model for StartRequest.
 type StartRequest struct {
 	Input       interface{} `json:"input"`
@@ -31,7 +46,13 @@ type StartRequest struct {
 
 // Task defines model for Task.
 type Task struct {
-	Name string `json:"name"`
+	Name    string       `json:"name"`
+	Options *TaskOptions `json:"options,omitempty"`
+}
+
+// TaskOptions defines model for TaskOptions.
+type TaskOptions struct {
+	Retry *RetryConfig `json:"retry,omitempty"`
 }
 
 // Tasks defines model for Tasks.

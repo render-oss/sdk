@@ -5,10 +5,30 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"time"
 )
 
+// Retry contains retry configuration for a task
+type Retry struct {
+	MaxRetries   int           `json:"max_retries"`
+	WaitDuration time.Duration `json:"wait_duration"`
+	Factor       float32       `json:"factor"`
+	Jitter       float32       `json:"jitter"`
+}
+
+// Options contains configuration options for a task
+type Options struct {
+	Retry *Retry `json:"retry,omitempty"`
+}
+
+// TaskInfo contains a task function and its options
+type TaskInfo struct {
+	Task    Task     `json:"-"`
+	Options *Options `json:"options,omitempty"`
+}
+
 type Tasks struct {
-	Tasks map[string]Task
+	Tasks map[string]*TaskInfo
 }
 
 type Task interface{}
@@ -190,11 +210,15 @@ type TaskContext interface {
 
 func NewTasks() *Tasks {
 	return &Tasks{
-		Tasks: make(map[string]Task),
+		Tasks: make(map[string]*TaskInfo),
 	}
 }
 
 func (t *Tasks) RegisterTask(task Task) error {
+	return t.RegisterTaskWithOptions(task, nil)
+}
+
+func (t *Tasks) RegisterTaskWithOptions(task Task, options *Options) error {
 	err := VerifySignature(task)
 	if err != nil {
 		return err
@@ -203,16 +227,27 @@ func (t *Tasks) RegisterTask(task Task) error {
 	if err != nil {
 		return err
 	}
-	t.Tasks[name] = task
+	t.Tasks[name] = &TaskInfo{
+		Task:    task,
+		Options: options,
+	}
 	return nil
 }
 
 func (t *Tasks) GetTaskByName(name string) (Task, error) {
-	task, ok := t.Tasks[name]
+	taskInfo, ok := t.Tasks[name]
 	if !ok {
 		return nil, fmt.Errorf("task %s not found", name)
 	}
-	return task, nil
+	return taskInfo.Task, nil
+}
+
+func (t *Tasks) GetTaskInfoByName(name string) (*TaskInfo, error) {
+	taskInfo, ok := t.Tasks[name]
+	if !ok {
+		return nil, fmt.Errorf("task %s not found", name)
+	}
+	return taskInfo, nil
 }
 
 func (t *Tasks) GetTaskNames() []string {
