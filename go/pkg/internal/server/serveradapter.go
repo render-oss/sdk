@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"render.com/pkg/internal/client"
-	"render.com/pkg/internal/executor"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/client"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 )
 
 type exec interface {

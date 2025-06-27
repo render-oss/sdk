@@ -8,10 +8,10 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/client"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
 	"github.com/stretchr/testify/require"
-	"render.com/pkg/internal/client"
-	"render.com/pkg/internal/executor"
-	"render.com/pkg/internal/server"
 )
 
 type testExecutor struct {
