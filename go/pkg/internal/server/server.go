@@ -39,6 +39,7 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 
 	err := h.serverOrchestrator.StartTask(request.Body.ResponseUrl, request.Body.Name, request.Body.TaskId, input...)
 	if err != nil {
+		log.Printf("Error starting task: %v", err)
 		return PostStart400Response{}, err
 	}
 
