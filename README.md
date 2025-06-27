@@ -10,3 +10,10 @@ pre-commit install
 pre-commit autoupdate
 ```
 
+## API Documentation
+
+To view API documentation from the OpenAPI spec:
+
+```bash
+npx @redocly/cli preview-docs openapi/openapi.yaml
+```
