@@ -273,7 +273,7 @@ func (t *Tasks) GetTaskNames() []string {
 	return names
 }
 
-func (t *Tasks) ExecuteTaskByName(name string, tctx TaskContext, input ...interface{}) (interface{}, error) {
+func (t *Tasks) ExecuteTaskByName(name string, tctx TaskContext, input ...interface{}) ([]interface{}, error) {
 	task, err := t.GetTaskByName(name)
 	if err != nil {
 		return nil, err

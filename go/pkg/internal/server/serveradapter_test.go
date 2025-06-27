@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -34,7 +35,7 @@ func TestNewServerAdapter(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, []interface{}{"test result 2"}, result)
 
-				require.NoError(t, completeTask(ctx, taskName, "test result 3"))
+				require.NoError(t, completeTask(ctx, taskName, []interface{}{"test result 3"}, nil))
 				return nil
 			},
 		}
@@ -57,7 +58,7 @@ func TestNewServerAdapter(t *testing.T) {
 				require.Equal(t, "taskID", body.TaskId)
 				require.Equal(t, client.CallbackRequestStatusSubtask, body.Status)
 				require.Equal(t, "test", body.Subtask.Name)
-				require.Equal(t, 1, int(body.Subtask.Input.([]interface{})[0].(float64)))
+				require.Equal(t, 1, int(body.Subtask.Input[0].(float64)))
 
 				taskID := "subtaskID"
 
@@ -75,7 +76,7 @@ func TestNewServerAdapter(t *testing.T) {
 				require.Equal(t, "taskID", body.TaskId)
 				require.Equal(t, client.CallbackRequestStatusSubtask, body.Status)
 				require.Equal(t, "test", body.Subtask.Name)
-				require.Equal(t, 2, int(body.Subtask.Input.([]interface{})[0].(float64)))
+				require.Equal(t, 2, int(body.Subtask.Input[0].(float64)))
 
 				taskID := "subtaskID2"
 
@@ -92,7 +93,8 @@ func TestNewServerAdapter(t *testing.T) {
 				require.Equal(t, "test", body.Name)
 				require.Equal(t, "taskID", body.TaskId)
 				require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
-				require.Equal(t, "test result 3", body.Complete.Result)
+				require.Equal(t, []interface{}{"test result 3"}, body.Complete.Result)
+				require.Nil(t, body.Complete.Error)
 
 				taskID := body.TaskId
 
@@ -123,7 +125,7 @@ func TestNewServerAdapter(t *testing.T) {
 
 		executor := &testExecutor{
 			execute: func(ctx context.Context, completeTask executor.CompleteTask, executeTask executor.ExecuteTask, taskName string, input ...interface{}) error {
-				require.NoError(t, completeTask(ctx, taskName, "test result"))
+				require.NoError(t, completeTask(ctx, taskName, []interface{}{"test result"}, nil))
 				return nil
 			},
 		}
@@ -140,7 +142,52 @@ func TestNewServerAdapter(t *testing.T) {
 				require.Equal(t, "test", body.Name)
 				require.Equal(t, "taskID", body.TaskId)
 				require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
-				require.Equal(t, "test result", body.Complete.Result)
+				require.Equal(t, []interface{}{"test result"}, body.Complete.Result)
+				require.Nil(t, body.Complete.Error)
+
+				taskID := body.TaskId
+
+				response := &client.CallbackResponse{
+					TaskId: &taskID,
+				}
+				require.NoError(t, json.NewEncoder(w).Encode(response))
+			}
+		}))
+		defer server.Close()
+
+		err := orchestrator.StartTask(server.URL, "test", "taskID")
+		require.NoError(t, err)
+
+		waitGroup.Wait()
+	})
+
+	t.Run("can complete task with error", func(t *testing.T) {
+		waitGroup := sync.WaitGroup{}
+		waitGroup.Add(1)
+
+		taskError := errors.New("task execution failed")
+		executor := &testExecutor{
+			execute: func(ctx context.Context, completeTask executor.CompleteTask, executeTask executor.ExecuteTask, taskName string, input ...interface{}) error {
+				require.NoError(t, completeTask(ctx, taskName, []interface{}{"partial result"}, taskError))
+				return nil
+			},
+		}
+		orchestrator := server.NewServerAdapter(executor)
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+
+			if r.Method == "POST" && r.URL.Path == "/callback" {
+				waitGroup.Done()
+				var body client.CallbackRequest
+				err := json.NewDecoder(r.Body).Decode(&body)
+				require.NoError(t, err)
+				require.Equal(t, "test", body.Name)
+				require.Equal(t, "taskID", body.TaskId)
+				require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
+				require.Equal(t, []interface{}{"partial result"}, body.Complete.Result)
+				require.NotNil(t, body.Complete.Error)
+				require.Equal(t, "task execution failed", (*body.Complete.Error).(string))
 
 				taskID := body.TaskId
 

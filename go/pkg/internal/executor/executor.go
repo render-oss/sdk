@@ -12,7 +12,7 @@ type Executor struct {
 	tasks *task.Tasks
 }
 
-type CompleteTask func(ctx context.Context, taskName string, result interface{}) error
+type CompleteTask func(ctx context.Context, taskName string, result []interface{}, err error) error
 type ExecuteTask func(taskName string, input ...interface{}) ([]interface{}, error)
 
 func NewExecutor(tasks *task.Tasks) *Executor {
@@ -39,12 +39,10 @@ func (e *Executor) Execute(ctx context.Context, completeTask CompleteTask, execu
 		log.Printf("Executing task: %s, input: %v", taskName, input)
 
 		result, err := e.tasks.ExecuteTaskByName(taskName, newExecutorContext(executeTask), input...)
-		if err == nil {
-			log.Printf("Task completed: %s", taskName)
-			taskErr := completeTask(context.Background(), taskName, result)
-			if taskErr != nil {
-				log.Printf("Error completing task: %s", taskErr)
-			}
+		log.Printf("Task completed: %s", taskName)
+		taskErr := completeTask(context.Background(), taskName, result, err)
+		if taskErr != nil {
+			log.Printf("Error completing task: %s", taskErr)
 		}
 	}()
 

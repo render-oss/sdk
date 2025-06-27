@@ -55,7 +55,7 @@ func TestTaskExecuteTask(t *testing.T) {
 		result, err := tasks.ExecuteTaskByName("add", &fakeTaskContext{}, 1, 2)
 		require.NoError(t, err)
 
-		resultInt := result.([]interface{})[0].(int)
+		resultInt := result[0].(int)
 
 		require.Equal(t, resultInt, 3)
 	})
