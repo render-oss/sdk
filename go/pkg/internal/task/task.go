@@ -143,6 +143,21 @@ func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
 		results[i] = val.Interface()
 	}
 
+	// Check if the last return value is an error type
+	if len(out) > 0 {
+		lastValue := out[len(out)-1]
+		if lastValue.Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+			// The last return value implements the error interface
+			if !lastValue.IsNil() {
+				// Return the error and the results (excluding the error)
+				errorResults := results[:len(results)-1]
+				return errorResults, lastValue.Interface().(error)
+			}
+			// Error is nil, so exclude it from results
+			results = results[:len(results)-1]
+		}
+	}
+
 	return results, nil
 }
 

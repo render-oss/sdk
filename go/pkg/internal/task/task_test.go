@@ -1,6 +1,7 @@
 package task_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -10,6 +11,20 @@ import (
 
 func add(_ task.TaskContext, a int, b int) int {
 	return a + b
+}
+
+func addWithError(_ task.TaskContext, a int, b int) (int, error) {
+	if a < 0 || b < 0 {
+		return 0, errors.New("negative numbers not allowed")
+	}
+	return a + b, nil
+}
+
+func taskWithOnlyError(_ task.TaskContext, shouldFail bool) error {
+	if shouldFail {
+		return errors.New("task failed")
+	}
+	return nil
 }
 
 type fakeTaskContext struct {
@@ -93,4 +108,41 @@ func TestRegisterTaskWithNilOptions(t *testing.T) {
 	taskInfo, err := tasks.GetTaskInfoByName("add")
 	require.NoError(t, err)
 	require.Nil(t, taskInfo.Options)
+}
+
+func TestCallTaskWithError(t *testing.T) {
+	t.Run("should return error when task function returns error", func(t *testing.T) {
+		result, err := task.CallTask(addWithError, &fakeTaskContext{}, -1, 5)
+		require.Error(t, err)
+		require.Equal(t, "negative numbers not allowed", err.Error())
+		require.Len(t, result, 1)
+		require.Equal(t, 0, result[0])
+	})
+
+	t.Run("should return results without error when task succeeds", func(t *testing.T) {
+		result, err := task.CallTask(addWithError, &fakeTaskContext{}, 3, 5)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, 8, result[0])
+	})
+
+	t.Run("should handle task that only returns error", func(t *testing.T) {
+		result, err := task.CallTask(taskWithOnlyError, &fakeTaskContext{}, true)
+		require.Error(t, err)
+		require.Equal(t, "task failed", err.Error())
+		require.Len(t, result, 0)
+	})
+
+	t.Run("should handle task that returns nil error", func(t *testing.T) {
+		result, err := task.CallTask(taskWithOnlyError, &fakeTaskContext{}, false)
+		require.NoError(t, err)
+		require.Len(t, result, 0)
+	})
+
+	t.Run("should handle task without error return", func(t *testing.T) {
+		result, err := task.CallTask(add, &fakeTaskContext{}, 3, 5)
+		require.NoError(t, err)
+		require.Len(t, result, 1)
+		require.Equal(t, 8, result[0])
+	})
 }
