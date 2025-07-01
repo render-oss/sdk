@@ -118,7 +118,7 @@ components:
         max_retries:
           type: integer
           description: Maximum number of retry attempts
-        wait_duration:
+        wait_duration_ms:
           type: integer
           format: int64
           description: Initial wait duration between retries (in milliseconds)

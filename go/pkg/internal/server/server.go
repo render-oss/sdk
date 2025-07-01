@@ -56,10 +56,10 @@ func convertToTaskOptions(opts *task.Options) *TaskOptions {
 	if opts.Retry != nil {
 		waitDurationMs := opts.Retry.WaitDuration.Milliseconds()
 		result.Retry = &RetryConfig{
-			MaxRetries:   &opts.Retry.MaxRetries,
-			WaitDuration: &waitDurationMs,
-			Factor:       &opts.Retry.Factor,
-			Jitter:       &opts.Retry.Jitter,
+			MaxRetries:     &opts.Retry.MaxRetries,
+			WaitDurationMs: &waitDurationMs,
+			Factor:         &opts.Retry.Factor,
+			Jitter:         &opts.Retry.Jitter,
 		}
 	}
 	return result

@@ -32,8 +32,8 @@ type RetryConfig struct {
 	// MaxRetries Maximum number of retry attempts
 	MaxRetries *int `json:"max_retries,omitempty"`
 
-	// WaitDuration Initial wait duration between retries (in milliseconds)
-	WaitDuration *int64 `json:"wait_duration,omitempty"`
+	// WaitDurationMs Initial wait duration between retries (in milliseconds)
+	WaitDurationMs *int64 `json:"wait_duration_ms,omitempty"`
 }
 
 // StartRequest defines model for StartRequest.
