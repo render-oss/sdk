@@ -75,7 +75,6 @@ func TestRegisterTaskWithOptions(t *testing.T) {
 			MaxRetries:   3,
 			WaitDuration: time.Second,
 			Factor:       2.0,
-			Jitter:       0.5,
 		},
 	}
 
@@ -95,7 +94,6 @@ func TestRegisterTaskWithOptions(t *testing.T) {
 	require.Equal(t, 3, taskInfo.Options.Retry.MaxRetries)
 	require.Equal(t, time.Second, taskInfo.Options.Retry.WaitDuration)
 	require.Equal(t, float32(2.0), taskInfo.Options.Retry.Factor)
-	require.Equal(t, float32(0.5), taskInfo.Options.Retry.Jitter)
 }
 
 func TestRegisterTaskWithNilOptions(t *testing.T) {

@@ -26,9 +26,6 @@ type RetryConfig struct {
 	// Factor Backoff factor for exponential retry
 	Factor *float32 `json:"factor,omitempty"`
 
-	// Jitter A number between 0 and 1 that represents the amount of jitter to add to the retry delays. Each retry delay will be multiplied by a random number between 1 and 1 + jitter.
-	Jitter *float32 `json:"jitter,omitempty"`
-
 	// MaxRetries Maximum number of retry attempts
 	MaxRetries *int `json:"max_retries,omitempty"`
 

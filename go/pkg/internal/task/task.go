@@ -13,7 +13,6 @@ type Retry struct {
 	MaxRetries   int           `json:"max_retries"`
 	WaitDuration time.Duration `json:"wait_duration"`
 	Factor       float32       `json:"factor"`
-	Jitter       float32       `json:"jitter"`
 }
 
 // Options contains configuration options for a task

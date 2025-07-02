@@ -59,7 +59,6 @@ func convertToTaskOptions(opts *task.Options) *TaskOptions {
 			MaxRetries:     &opts.Retry.MaxRetries,
 			WaitDurationMs: &waitDurationMs,
 			Factor:         &opts.Retry.Factor,
-			Jitter:         &opts.Retry.Jitter,
 		}
 	}
 	return result
