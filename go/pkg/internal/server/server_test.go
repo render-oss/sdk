@@ -95,7 +95,7 @@ func TestServer(t *testing.T) {
 				case client.CallbackRequestStatusSubtask:
 					require.Equal(t, "square", body.Subtask.Name)
 					var taskID string
-					switch body.Subtask.Input.([]interface{})[0].(float64) {
+					switch body.Subtask.Input[0].(float64) {
 					case 2:
 						taskID = squareATaskID
 					case 3:
@@ -124,7 +124,7 @@ func TestServer(t *testing.T) {
 				case client.CallbackRequestStatusComplete:
 					if body.Name == "addSquares" {
 						require.Equal(t, client.CallbackRequestStatusComplete, body.Status)
-						finalResult = int(body.Complete.Result.([]interface{})[0].(float64))
+						finalResult = int(body.Complete.Result[0].(float64))
 
 						response := client.CallbackResponse{
 							TaskId: &body.TaskId,

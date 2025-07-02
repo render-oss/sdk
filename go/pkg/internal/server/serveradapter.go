@@ -74,11 +74,19 @@ func (s *ServerAdapter) tokenFromURL(url string) string {
 	return parts[1]
 }
 
-func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, result interface{}) error {
+func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, result []interface{}, taskErr error) error {
 	c, err := client.NewClientWithResponses(s.responseURL)
 	if err != nil {
 		return err
 	}
+
+	// Handle error conversion
+	var errorPtr *interface{}
+	if taskErr != nil {
+		var errorInterface interface{} = taskErr.Error()
+		errorPtr = &errorInterface
+	}
+
 	_, err = c.PostCallback(ctx, &client.PostCallbackParams{
 		Token: s.tokenFromURL(s.responseURL),
 	}, client.PostCallbackJSONRequestBody{
@@ -87,6 +95,7 @@ func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, resul
 		TaskId: s.taskID,
 		Complete: &client.TaskComplete{
 			Result: result,
+			Error:  errorPtr,
 		},
 	})
 	if err != nil {

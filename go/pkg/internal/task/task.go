@@ -5,10 +5,29 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"time"
 )
 
+// Retry contains retry configuration for a task
+type Retry struct {
+	MaxRetries   int           `json:"max_retries"`
+	WaitDuration time.Duration `json:"wait_duration"`
+	Factor       float32       `json:"factor"`
+}
+
+// Options contains configuration options for a task
+type Options struct {
+	Retry *Retry `json:"retry,omitempty"`
+}
+
+// TaskInfo contains a task function and its options
+type TaskInfo struct {
+	Task    Task     `json:"-"`
+	Options *Options `json:"options,omitempty"`
+}
+
 type Tasks struct {
-	Tasks map[string]Task
+	Tasks map[string]*TaskInfo
 }
 
 type Task interface{}
@@ -123,6 +142,21 @@ func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
 		results[i] = val.Interface()
 	}
 
+	// Check if the last return value is an error type
+	if len(out) > 0 {
+		lastValue := out[len(out)-1]
+		if lastValue.Type().Implements(reflect.TypeOf((*error)(nil)).Elem()) {
+			// The last return value implements the error interface
+			if !lastValue.IsNil() {
+				// Return the error and the results (excluding the error)
+				errorResults := results[:len(results)-1]
+				return errorResults, lastValue.Interface().(error)
+			}
+			// Error is nil, so exclude it from results
+			results = results[:len(results)-1]
+		}
+	}
+
 	return results, nil
 }
 
@@ -190,11 +224,15 @@ type TaskContext interface {
 
 func NewTasks() *Tasks {
 	return &Tasks{
-		Tasks: make(map[string]Task),
+		Tasks: make(map[string]*TaskInfo),
 	}
 }
 
 func (t *Tasks) RegisterTask(task Task) error {
+	return t.RegisterTaskWithOptions(task, nil)
+}
+
+func (t *Tasks) RegisterTaskWithOptions(task Task, options *Options) error {
 	err := VerifySignature(task)
 	if err != nil {
 		return err
@@ -203,16 +241,27 @@ func (t *Tasks) RegisterTask(task Task) error {
 	if err != nil {
 		return err
 	}
-	t.Tasks[name] = task
+	t.Tasks[name] = &TaskInfo{
+		Task:    task,
+		Options: options,
+	}
 	return nil
 }
 
 func (t *Tasks) GetTaskByName(name string) (Task, error) {
-	task, ok := t.Tasks[name]
+	taskInfo, ok := t.Tasks[name]
 	if !ok {
 		return nil, fmt.Errorf("task %s not found", name)
 	}
-	return task, nil
+	return taskInfo.Task, nil
+}
+
+func (t *Tasks) GetTaskInfoByName(name string) (*TaskInfo, error) {
+	taskInfo, ok := t.Tasks[name]
+	if !ok {
+		return nil, fmt.Errorf("task %s not found", name)
+	}
+	return taskInfo, nil
 }
 
 func (t *Tasks) GetTaskNames() []string {
@@ -223,7 +272,7 @@ func (t *Tasks) GetTaskNames() []string {
 	return names
 }
 
-func (t *Tasks) ExecuteTaskByName(name string, tctx TaskContext, input ...interface{}) (interface{}, error) {
+func (t *Tasks) ExecuteTaskByName(name string, tctx TaskContext, input ...interface{}) ([]interface{}, error) {
 	task, err := t.GetTaskByName(name)
 	if err != nil {
 		return nil, err
