@@ -26,6 +26,18 @@ type ContinueRequest struct {
 	TaskId      string      `json:"task_id"`
 }
 
+// RetryConfig defines model for RetryConfig.
+type RetryConfig struct {
+	// Factor Backoff factor for exponential retry
+	Factor *float32 `json:"factor,omitempty"`
+
+	// MaxRetries Maximum number of retry attempts
+	MaxRetries *int `json:"max_retries,omitempty"`
+
+	// WaitDurationMs Initial wait duration between retries (in milliseconds)
+	WaitDurationMs *int64 `json:"wait_duration_ms,omitempty"`
+}
+
 // StartRequest defines model for StartRequest.
 type StartRequest struct {
 	Input       interface{} `json:"input"`
@@ -36,7 +48,13 @@ type StartRequest struct {
 
 // Task defines model for Task.
 type Task struct {
-	Name string `json:"name"`
+	Name    string       `json:"name"`
+	Options *TaskOptions `json:"options,omitempty"`
+}
+
+// TaskOptions defines model for TaskOptions.
+type TaskOptions struct {
+	Retry *RetryConfig `json:"retry,omitempty"`
 }
 
 // Tasks defines model for Tasks.

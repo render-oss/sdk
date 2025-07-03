@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"render.com/pkg/tasks"
+	"github.com/renderinc/workflow-sdk/go/pkg/tasks"
 )
 
 func square(ctx tasks.TaskContext, a int) int {

@@ -41,13 +41,14 @@ type CallbackResponse struct {
 
 // Subtask defines model for Subtask.
 type Subtask struct {
-	Input interface{} `json:"input"`
-	Name  string      `json:"name"`
+	Input []interface{} `json:"input"`
+	Name  string        `json:"name"`
 }
 
 // TaskComplete defines model for TaskComplete.
 type TaskComplete struct {
-	Result interface{} `json:"result"`
+	Error  *interface{}  `json:"error,omitempty"`
+	Result []interface{} `json:"result"`
 }
 
 // PostCallbackParams defines parameters for PostCallback.

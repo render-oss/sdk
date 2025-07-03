@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"render.com/pkg/internal/task"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 )
 
 type ServerHandler struct {
@@ -39,6 +39,7 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 
 	err := h.serverOrchestrator.StartTask(request.Body.ResponseUrl, request.Body.Name, request.Body.TaskId, input...)
 	if err != nil {
+		log.Printf("Error starting task: %v", err)
 		return PostStart400Response{}, err
 	}
 
@@ -54,10 +55,32 @@ func (h *ServerHandler) PostCancel(ctx context.Context, request PostCancelReques
 	return PostCancel200Response{}, nil
 }
 
+// convertToTaskOptions converts internal task options to API task options
+func convertToTaskOptions(opts *task.Options) *TaskOptions {
+	if opts == nil {
+		return nil
+	}
+
+	result := &TaskOptions{}
+	if opts.Retry != nil {
+		waitDurationMs := opts.Retry.WaitDuration.Milliseconds()
+		result.Retry = &RetryConfig{
+			MaxRetries:     &opts.Retry.MaxRetries,
+			WaitDurationMs: &waitDurationMs,
+			Factor:         &opts.Retry.Factor,
+		}
+	}
+	return result
+}
+
 func (h *ServerHandler) GetTasks(ctx context.Context, request GetTasksRequestObject) (GetTasksResponseObject, error) {
 	taskSlice := make([]Task, 0, len(h.tasks.Tasks))
-	for name := range h.tasks.Tasks {
-		taskSlice = append(taskSlice, Task{Name: name})
+	for name, taskInfo := range h.tasks.Tasks {
+		task := Task{
+			Name:    name,
+			Options: convertToTaskOptions(taskInfo.Options),
+		}
+		taskSlice = append(taskSlice, task)
 	}
 
 	return GetTasks200JSONResponse{
