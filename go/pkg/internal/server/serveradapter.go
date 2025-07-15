@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 
@@ -59,6 +60,11 @@ func (s *ServerAdapter) StartTask(responseURL string, taskName string, taskID st
 	}
 
 	return s.executor.Execute(context.Background(), s.completeTask, s.executeTask, taskName, input...)
+}
+
+func (s *ServerAdapter) CancelTask(taskID string) error {
+	os.Exit(0)
+	return nil
 }
 
 func (s *ServerAdapter) tokenFromURL(url string) string {

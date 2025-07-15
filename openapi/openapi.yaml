@@ -44,6 +44,19 @@ paths:
           description: Task not found
         '500':
           description: Internal server error
+  /cancel:
+    post:
+      summary: Cancel a task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelRequest'
+      responses:
+        '200':
+          description: Task canceled
+        '400':
+          description: Bad request
   /tasks:
     get:
       summary: Get all defined tasks
@@ -73,7 +86,13 @@ components:
       - input
       - response_url
       - task_id
-
+    CancelRequest:
+      type: object
+      properties:
+        task_id:
+          type: string
+      required:
+      - task_id
     ContinueRequest:
       type: object
       properties:

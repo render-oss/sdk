@@ -46,6 +46,15 @@ func (h *ServerHandler) PostStart(ctx context.Context, request PostStartRequestO
 	return PostStart202Response{}, nil
 }
 
+func (h *ServerHandler) PostCancel(ctx context.Context, request PostCancelRequestObject) (PostCancelResponseObject, error) {
+	err := h.serverOrchestrator.CancelTask(request.Body.TaskId)
+	if err != nil {
+		return PostCancel400Response{}, err
+	}
+
+	return PostCancel200Response{}, nil
+}
+
 // convertToTaskOptions converts internal task options to API task options
 func convertToTaskOptions(opts *task.Options) *TaskOptions {
 	if opts == nil {
