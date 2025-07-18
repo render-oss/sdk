@@ -69,6 +69,12 @@ paths:
                 $ref: '#/components/schemas/Tasks'
         '500':
           description: Internal server error
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is healthy
 components:
   schemas:
     StartRequest:
