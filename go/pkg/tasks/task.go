@@ -20,6 +20,7 @@
 package tasks
 
 import (
+	"log"
 	"os"
 	"strconv"
 
@@ -53,6 +54,7 @@ func Start() {
 		panic(err)
 	}
 
+	log.Printf("Listening on :%d", intPort)
 	srv, err := handler.Start(intPort)
 	if err != nil {
 		panic(err)
