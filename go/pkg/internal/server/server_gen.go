@@ -79,6 +79,9 @@ type ServerInterface interface {
 	// Continue a task
 	// (POST /continue)
 	PostContinue(w http.ResponseWriter, r *http.Request)
+	// Health check endpoint
+	// (GET /health)
+	GetHealth(w http.ResponseWriter, r *http.Request)
 	// Start a task
 	// (POST /start)
 	PostStart(w http.ResponseWriter, r *http.Request)
@@ -100,6 +103,12 @@ func (_ Unimplemented) PostCancel(w http.ResponseWriter, r *http.Request) {
 // Continue a task
 // (POST /continue)
 func (_ Unimplemented) PostContinue(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Health check endpoint
+// (GET /health)
+func (_ Unimplemented) GetHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -143,6 +152,20 @@ func (siw *ServerInterfaceWrapper) PostContinue(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostContinue(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetHealth operation middleware
+func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetHealth(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -300,6 +323,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/continue", wrapper.PostContinue)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/health", wrapper.GetHealth)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/start", wrapper.PostStart)
 	})
 	r.Group(func(r chi.Router) {
@@ -389,6 +415,21 @@ func (response PostContinue500Response) VisitPostContinueResponse(w http.Respons
 	return nil
 }
 
+type GetHealthRequestObject struct {
+}
+
+type GetHealthResponseObject interface {
+	VisitGetHealthResponse(w http.ResponseWriter) error
+}
+
+type GetHealth200Response struct {
+}
+
+func (response GetHealth200Response) VisitGetHealthResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
 type PostStartRequestObject struct {
 	Body *PostStartJSONRequestBody
 }
@@ -469,6 +510,9 @@ type StrictServerInterface interface {
 	// Continue a task
 	// (POST /continue)
 	PostContinue(ctx context.Context, request PostContinueRequestObject) (PostContinueResponseObject, error)
+	// Health check endpoint
+	// (GET /health)
+	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
 	// Start a task
 	// (POST /start)
 	PostStart(ctx context.Context, request PostStartRequestObject) (PostStartResponseObject, error)
@@ -561,6 +605,30 @@ func (sh *strictHandler) PostContinue(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PostContinueResponseObject); ok {
 		if err := validResponse.VisitPostContinueResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetHealth operation middleware
+func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
+	var request GetHealthRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetHealth(ctx, request.(GetHealthRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetHealth")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
+		if err := validResponse.VisitGetHealthResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

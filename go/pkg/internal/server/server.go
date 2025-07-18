@@ -22,6 +22,10 @@ func NewServerHandler(tasks *task.Tasks, serverOrchestrator *ServerAdapter) *Ser
 	}
 }
 
+func (h *ServerHandler) GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error) {
+	return GetHealth200Response{}, nil
+}
+
 func (h *ServerHandler) PostContinue(ctx context.Context, request PostContinueRequestObject) (PostContinueResponseObject, error) {
 	log.Printf("Subtask complete: %s, input: %v", request.Body.TaskId, request.Body.Input)
 	h.serverOrchestrator.SubtaskComplete(request.Body.Input.([]interface{}), request.Body.ResponseUrl)
