@@ -10,6 +10,10 @@ repos:
     rev: v2.4.0
     hooks:
       - id: golangci-lint
+        entry: bash -c 'cd go && golangci-lint run'
+        files: ^go/.*$
+        pass_filenames: false
+
   - repo: local
     hooks:
       - id: go-fmt
