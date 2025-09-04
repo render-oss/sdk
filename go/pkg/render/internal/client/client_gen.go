@@ -687,6 +687,9 @@ type ClientInterface interface {
 
 	CreateTask(ctx context.Context, body CreateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// StreamTaskRunsEvents request
+	StreamTaskRunsEvents(ctx context.Context, params *StreamTaskRunsEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteTaskRun request
 	DeleteTaskRun(ctx context.Context, taskRunId externalRef12.TaskRunIDParam, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -3263,6 +3266,18 @@ func (c *Client) CreateTaskWithBody(ctx context.Context, contentType string, bod
 
 func (c *Client) CreateTask(ctx context.Context, body CreateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateTaskRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) StreamTaskRunsEvents(ctx context.Context, params *StreamTaskRunsEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewStreamTaskRunsEventsRequest(c.Server, params)
 	if err != nil {
 		return nil, err
 	}
@@ -14888,6 +14903,66 @@ func NewCreateTaskRequestWithBody(server string, contentType string, body io.Rea
 	return req, nil
 }
 
+// NewStreamTaskRunsEventsRequest generates requests for StreamTaskRunsEvents
+func NewStreamTaskRunsEventsRequest(server string, params *StreamTaskRunsEventsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/task-runs/events")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		queryValues := queryURL.Query()
+
+		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskRunIds", runtime.ParamLocationQuery, params.TaskRunIds); err != nil {
+			return nil, err
+		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
+			return nil, err
+		} else {
+			for k, v := range parsed {
+				for _, v2 := range v {
+					queryValues.Add(k, v2)
+				}
+			}
+		}
+
+		queryURL.RawQuery = queryValues.Encode()
+	}
+
+	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+
+		if params.Accept != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithLocation("simple", false, "Accept", runtime.ParamLocationHeader, *params.Accept)
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Accept", headerParam0)
+		}
+
+	}
+
+	return req, nil
+}
+
 // NewDeleteTaskRunRequest generates requests for DeleteTaskRun
 func NewDeleteTaskRunRequest(server string, taskRunId externalRef12.TaskRunIDParam) (*http.Request, error) {
 	var err error
@@ -14904,7 +14979,7 @@ func NewDeleteTaskRunRequest(server string, taskRunId externalRef12.TaskRunIDPar
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/tasks-runs/%s", pathParam0)
+	operationPath := fmt.Sprintf("/task-runs/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -14938,7 +15013,7 @@ func NewGetTaskRunRequest(server string, taskRunId externalRef12.TaskRunIDParam)
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/tasks-runs/%s", pathParam0)
+	operationPath := fmt.Sprintf("/task-runs/%s", pathParam0)
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -16446,6 +16521,9 @@ type ClientWithResponsesInterface interface {
 	CreateTaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateTaskResponse, error)
 
 	CreateTaskWithResponse(ctx context.Context, body CreateTaskJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateTaskResponse, error)
+
+	// StreamTaskRunsEventsWithResponse request
+	StreamTaskRunsEventsWithResponse(ctx context.Context, params *StreamTaskRunsEventsParams, reqEditors ...RequestEditorFn) (*StreamTaskRunsEventsResponse, error)
 
 	// DeleteTaskRunWithResponse request
 	DeleteTaskRunWithResponse(ctx context.Context, taskRunId externalRef12.TaskRunIDParam, reqEditors ...RequestEditorFn) (*DeleteTaskRunResponse, error)
@@ -21148,6 +21226,34 @@ func (r CreateTaskResponse) StatusCode() int {
 	return 0
 }
 
+type StreamTaskRunsEventsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON400      *N400BadRequest
+	JSON401      *N401Unauthorized
+	JSON403      *N403Forbidden
+	JSON404      *N404NotFound
+	JSON429      *N429RateLimit
+	JSON500      *N500InternalServerError
+	JSON503      *N503ServiceUnavailable
+}
+
+// Status returns HTTPResponse.Status
+func (r StreamTaskRunsEventsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r StreamTaskRunsEventsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
 type DeleteTaskRunResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -23514,6 +23620,15 @@ func (c *ClientWithResponses) CreateTaskWithResponse(ctx context.Context, body C
 		return nil, err
 	}
 	return ParseCreateTaskResponse(rsp)
+}
+
+// StreamTaskRunsEventsWithResponse request returning *StreamTaskRunsEventsResponse
+func (c *ClientWithResponses) StreamTaskRunsEventsWithResponse(ctx context.Context, params *StreamTaskRunsEventsParams, reqEditors ...RequestEditorFn) (*StreamTaskRunsEventsResponse, error) {
+	rsp, err := c.StreamTaskRunsEvents(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseStreamTaskRunsEventsResponse(rsp)
 }
 
 // DeleteTaskRunWithResponse request returning *DeleteTaskRunResponse
@@ -35228,6 +35343,74 @@ func ParseCreateTaskResponse(rsp *http.Response) (*CreateTaskResponse, error) {
 			return nil, err
 		}
 		response.JSON202 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest N401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest N403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest N404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest N429RateLimit
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest N500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest N503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseStreamTaskRunsEventsResponse parses an HTTP response from a StreamTaskRunsEventsWithResponse call
+func ParseStreamTaskRunsEventsResponse(rsp *http.Response) (*StreamTaskRunsEventsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &StreamTaskRunsEventsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest N401Unauthorized

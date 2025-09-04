@@ -377,6 +377,11 @@ const (
 	ListRoutesParamsTypeRewrite  ListRoutesParamsType = "rewrite"
 )
 
+// Defines values for StreamTaskRunsEventsParamsAccept.
+const (
+	TexteventStream StreamTaskRunsEventsParamsAccept = "text/event-stream"
+)
+
 // AddUpdateEnvVarInput defines model for addUpdateEnvVarInput.
 type AddUpdateEnvVarInput struct {
 	union json.RawMessage
@@ -3360,6 +3365,18 @@ type ListTaskRunsParams struct {
 	// OwnerId The ID of the workspaces to return resources for
 	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 }
+
+// StreamTaskRunsEventsParams defines parameters for StreamTaskRunsEvents.
+type StreamTaskRunsEventsParams struct {
+	// TaskRunIds Filter to a subset of task run IDs.
+	TaskRunIds []string `form:"taskRunIds" json:"taskRunIds"`
+
+	// Accept Must be `text/event-stream`.
+	Accept *StreamTaskRunsEventsParamsAccept `json:"Accept,omitempty"`
+}
+
+// StreamTaskRunsEventsParamsAccept defines parameters for StreamTaskRunsEvents.
+type StreamTaskRunsEventsParamsAccept string
 
 // ListWebhooksParams defines parameters for ListWebhooks.
 type ListWebhooksParams struct {
