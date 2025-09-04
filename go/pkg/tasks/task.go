@@ -22,6 +22,7 @@ package tasks
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
@@ -34,6 +35,13 @@ var taskSingleton = task.NewTasks()
 
 func RegisterTask(task task.Task) error {
 	return taskSingleton.RegisterTask(task)
+}
+
+func MustRegister(task task.Task) {
+	err := RegisterTask(task)
+	if err != nil {
+		panic(fmt.Errorf("failed to register task: %w", err))
+	}
 }
 
 // RegisterTaskWithOptions registers a task with configuration options

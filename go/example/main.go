@@ -40,5 +40,9 @@ func main() {
 		panic(err)
 	}
 
+	tasks.MustRegister(burn_cpu_1m)
+	tasks.MustRegister(sleep)
+	tasks.MustRegister(measure_latency)
+
 	tasks.Start()
 }
