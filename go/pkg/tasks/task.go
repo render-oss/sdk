@@ -20,13 +20,14 @@
 package tasks
 
 import (
-	"log"
-	"os"
-	"strconv"
+	"context"
+	"encoding/json"
+	"log/slog"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/uds"
 )
 
 var taskSingleton = task.NewTasks()
@@ -40,30 +41,49 @@ func RegisterTaskWithOptions(t task.Task, options *Options) error {
 	return taskSingleton.RegisterTaskWithOptions(t, options)
 }
 
-func Start() {
-	executor := executor.NewExecutor(taskSingleton)
-	serverAdapter := server.NewServerAdapter(executor)
-	handler := server.NewServerHandler(taskSingleton, serverAdapter)
-
-	port, ok := os.LookupEnv("SIDECAR_PORT")
-	if !ok {
-		panic("SIDECAR_PORT must be set")
-	}
-	intPort, err := strconv.Atoi(port)
-	if err != nil {
-		panic(err)
-	}
-
-	log.Printf("Listening on :%d", intPort)
-	srv, err := handler.Start(intPort)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		_ = srv.Close()
-	}()
-}
-
 type TaskContext = task.TaskContext
 type Options = task.Options
 type Retry = task.Retry
+
+func Start() {
+	ctx := context.Background()
+
+	executor := executor.NewExecutor(taskSingleton)
+
+	callbackerClient, err := uds.NewCallbackClient()
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to create callbacker", "error", err)
+		return
+	}
+	serverAdapter := server.NewServerAdapter(executor, callbackerClient)
+
+	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to get input", "error", err)
+		return
+	}
+	if inputResp.StatusCode() != 200 || inputResp.JSON200 == nil {
+		slog.ErrorContext(ctx, "unexpected response", "status", inputResp.StatusCode())
+		return
+	}
+	taskName := inputResp.JSON200.TaskName
+	rawInput := inputResp.JSON200.Input
+	var input []interface{}
+	err = json.Unmarshal(rawInput, &input)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to unmarshal input", "error", err, "rawInput", string(rawInput))
+		return
+	}
+	slog.InfoContext(ctx, "Received input", "taskName", taskName, "rawInput", string(rawInput), "input", input)
+
+	// We use this to avoid idempotency checks by the server adapter
+	emptyTaskRunID := ""
+	err = serverAdapter.StartTask("some response url", taskName, emptyTaskRunID, input...)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to start task", "error", err)
+		return
+	}
+	slog.InfoContext(ctx, "Started task successfully")
+
+	serverAdapter.WaitForTaskComplete()
+}

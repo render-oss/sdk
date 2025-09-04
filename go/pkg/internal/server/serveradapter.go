@@ -2,13 +2,15 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
-	"strings"
 	"sync"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/client"
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 )
 
@@ -17,18 +19,22 @@ type exec interface {
 }
 
 type ServerAdapter struct {
-	responseURL string
-	taskID      string
-	ch          chan SubtaskResultWithResponseURL
-	executor    exec
+	responseURL  string
+	taskID       string
+	ch           chan SubtaskResultWithResponseURL
+	executor     exec
+	taskComplete chan struct{}
 
-	mu sync.Mutex
+	callbacker *callbackapi.ClientWithResponses
+	mu         sync.Mutex
 }
 
-func NewServerAdapter(executor exec) *ServerAdapter {
+func NewServerAdapter(executor exec, callbacker *callbackapi.ClientWithResponses) *ServerAdapter {
 	return &ServerAdapter{
-		ch:       make(chan SubtaskResultWithResponseURL, 1),
-		executor: executor,
+		ch:           make(chan SubtaskResultWithResponseURL, 1),
+		executor:     executor,
+		taskComplete: make(chan struct{}),
+		callbacker:   callbacker,
 	}
 }
 
@@ -67,74 +73,42 @@ func (s *ServerAdapter) CancelTask(taskID string) error {
 	return nil
 }
 
-func (s *ServerAdapter) tokenFromURL(url string) string {
-	parts := strings.Split(url, "?")
-	if len(parts) != 2 {
-		return ""
-	}
-	token := parts[1]
-	parts = strings.Split(token, "=")
-	if len(parts) != 2 {
-		return ""
-	}
-	return parts[1]
-}
-
 func (s *ServerAdapter) completeTask(ctx context.Context, taskName string, result []interface{}, taskErr error) error {
-	c, err := client.NewClientWithResponses(s.responseURL)
+	defer close(s.taskComplete)
+	output, err := json.Marshal(result)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal output: %w", err)
 	}
 
-	// Handle error conversion
-	var errorPtr *interface{}
-	if taskErr != nil {
-		var errorInterface interface{} = taskErr.Error()
-		errorPtr = &errorInterface
-	}
-
-	_, err = c.PostCallback(ctx, &client.PostCallbackParams{
-		Token: s.tokenFromURL(s.responseURL),
-	}, client.PostCallbackJSONRequestBody{
-		Name:   taskName,
-		Status: client.CallbackRequestStatusComplete,
-		TaskId: s.taskID,
-		Complete: &client.TaskComplete{
-			Result: result,
-			Error:  errorPtr,
+	resp, err := s.callbacker.PostCallbackWithResponse(ctx, callbackapi.CallbackRequest{
+		Complete: &callbackapi.TaskComplete{
+			Output: output,
 		},
+		Metadata: &callbackapi.TaskMetadata{
+			TaskName: taskName,
+		},
+		Status: callbackapi.Complete,
 	})
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("callback failed with status code %d", resp.StatusCode())
 	}
 
 	s.clearTaskState()
 	return nil
 }
 
-func (s *ServerAdapter) executeTask(taskName string, input ...interface{}) ([]interface{}, error) {
-	c, err := client.NewClientWithResponses(s.responseURL)
-	if err != nil {
-		return nil, err
-	}
-	_, err = c.PostCallbackWithResponse(context.Background(), &client.PostCallbackParams{
-		Token: s.tokenFromURL(s.responseURL),
-	}, client.PostCallbackJSONRequestBody{
-		Name:   taskName,
-		TaskId: s.taskID,
-		Status: client.CallbackRequestStatusSubtask,
-		Subtask: &client.Subtask{
-			Name:  taskName,
-			Input: input,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-	result := s.WaitForTaskResult()
-	s.responseURL = result.ResponseURL
+func (s *ServerAdapter) WaitForTaskComplete() {
+	slog.Info("waiting for task complete")
+	<-s.taskComplete
+	slog.Info("finished waiting for task complete")
+}
 
-	return result.Result, nil
+func (s *ServerAdapter) executeTask(taskName string, input ...interface{}) ([]interface{}, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (s *ServerAdapter) WaitForTaskResult() SubtaskResultWithResponseURL {
