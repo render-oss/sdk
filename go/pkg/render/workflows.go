@@ -15,7 +15,7 @@ type WorkflowsService struct {
 
 // RunTask executes a task using the workflows API
 // POST /task-runs
-func (w *WorkflowsService) RunTask(taskIdentifier TaskIdentifier, input TaskData) (*TaskRun, error) {
+func (w *WorkflowsService) RunTask(taskIdentifier TaskIdentifier, input TaskData) (*TaskRunWithGet, error) {
 	runTask := workflows.RunTask{
 		Task:  workflows.TaskIdentifier(taskIdentifier),
 		Input: workflows.TaskData(input),
@@ -34,7 +34,11 @@ func (w *WorkflowsService) RunTask(taskIdentifier TaskIdentifier, input TaskData
 		return nil, fmt.Errorf("unexpected response format")
 	}
 
-	return (*TaskRun)(resp.JSON202), nil
+	taskRun := (*TaskRun)(resp.JSON202)
+	return &TaskRunWithGet{
+		TaskRun: taskRun,
+		client:  w,
+	}, nil
 }
 
 // GetTaskRun gets details about a specific task run
