@@ -26,7 +26,7 @@ func NewClient(hostURL, token string) (*Client, error) {
 
 	// Create the internal generated client with auth
 	internalClient, err := client.NewClientWithResponses(
-		strings.TrimSuffix(hostURL, "/"),
+		fmt.Sprintf("%s/v1", strings.TrimSuffix(hostURL, "/")),
 		client.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("Authorization", "Bearer "+token)
 			return nil
