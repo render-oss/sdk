@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// Example usage of the render client
-	client, err := render.NewClient("https://api.render.com", "your-api-token")
+	client, err := render.NewClient("your-api-token")
 	if err != nil {
 		log.Fatalf("Failed to create render client: %v", err)
 	}
