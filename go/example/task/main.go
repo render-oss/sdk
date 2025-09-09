@@ -44,5 +44,8 @@ func main() {
 	tasks.MustRegister(sleep)
 	tasks.MustRegister(measure_latency)
 
-	tasks.Start()
+	err = tasks.Start()
+	if err != nil {
+		panic(err)
+	}
 }

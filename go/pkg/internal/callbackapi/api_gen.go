@@ -46,6 +46,24 @@ type InputResponse struct {
 	TaskName string `json:"task_name"`
 }
 
+// RetryConfig defines model for RetryConfig.
+type RetryConfig struct {
+	// Factor Backoff factor for exponential retry
+	Factor *float32 `json:"factor,omitempty"`
+
+	// MaxRetries Maximum number of retry attempts
+	MaxRetries *int `json:"max_retries,omitempty"`
+
+	// WaitDurationMs Initial wait duration between retries (in milliseconds)
+	WaitDurationMs *int64 `json:"wait_duration_ms,omitempty"`
+}
+
+// Task defines model for Task.
+type Task struct {
+	Name    string       `json:"name"`
+	Options *TaskOptions `json:"options,omitempty"`
+}
+
 // TaskComplete defines model for TaskComplete.
 type TaskComplete struct {
 	Output []byte `json:"output"`
@@ -68,9 +86,19 @@ type TaskMetadata struct {
 	TaskRunId string `json:"task_run_id"`
 }
 
+// TaskOptions defines model for TaskOptions.
+type TaskOptions struct {
+	Retry *RetryConfig `json:"retry,omitempty"`
+}
+
 // TaskResultResponse defines model for TaskResultResponse.
 type TaskResultResponse struct {
 	Complete TaskComplete `json:"complete"`
+}
+
+// Tasks defines model for Tasks.
+type Tasks struct {
+	Tasks []Task `json:"tasks"`
 }
 
 // GetTaskResultParams defines parameters for GetTaskResult.
@@ -80,6 +108,9 @@ type GetTaskResultParams struct {
 
 // PostCallbackJSONRequestBody defines body for PostCallback for application/json ContentType.
 type PostCallbackJSONRequestBody = CallbackRequest
+
+// PostRegisterTasksJSONRequestBody defines body for PostRegisterTasks for application/json ContentType.
+type PostRegisterTasksJSONRequestBody = Tasks
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -162,6 +193,11 @@ type ClientInterface interface {
 	// GetInput request
 	GetInput(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostRegisterTasksWithBody request with any body
+	PostRegisterTasksWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostRegisterTasks(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetTaskResult request
 	GetTaskResult(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
@@ -192,6 +228,30 @@ func (c *Client) PostCallback(ctx context.Context, body PostCallbackJSONRequestB
 
 func (c *Client) GetInput(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewGetInputRequest(c.Server)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRegisterTasksWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRegisterTasksRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRegisterTasks(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRegisterTasksRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -277,6 +337,46 @@ func NewGetInputRequest(server string) (*http.Request, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	return req, nil
+}
+
+// NewPostRegisterTasksRequest calls the generic PostRegisterTasks builder with application/json body
+func NewPostRegisterTasksRequest(server string, body PostRegisterTasksJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostRegisterTasksRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostRegisterTasksRequestWithBody generates requests for PostRegisterTasks with any type of body
+func NewPostRegisterTasksRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/register-tasks")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -377,6 +477,11 @@ type ClientWithResponsesInterface interface {
 	// GetInputWithResponse request
 	GetInputWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInputResponse, error)
 
+	// PostRegisterTasksWithBodyWithResponse request with any body
+	PostRegisterTasksWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRegisterTasksResponse, error)
+
+	PostRegisterTasksWithResponse(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRegisterTasksResponse, error)
+
 	// GetTaskResultWithResponse request
 	GetTaskResultWithResponse(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*GetTaskResultResponse, error)
 }
@@ -419,6 +524,27 @@ func (r GetInputResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r GetInputResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostRegisterTasksResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+}
+
+// Status returns HTTPResponse.Status
+func (r PostRegisterTasksResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostRegisterTasksResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -471,6 +597,23 @@ func (c *ClientWithResponses) GetInputWithResponse(ctx context.Context, reqEdito
 		return nil, err
 	}
 	return ParseGetInputResponse(rsp)
+}
+
+// PostRegisterTasksWithBodyWithResponse request with arbitrary body returning *PostRegisterTasksResponse
+func (c *ClientWithResponses) PostRegisterTasksWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRegisterTasksResponse, error) {
+	rsp, err := c.PostRegisterTasksWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRegisterTasksResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostRegisterTasksWithResponse(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRegisterTasksResponse, error) {
+	rsp, err := c.PostRegisterTasks(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRegisterTasksResponse(rsp)
 }
 
 // GetTaskResultWithResponse request returning *GetTaskResultResponse
@@ -534,6 +677,22 @@ func ParseGetInputResponse(rsp *http.Response) (*GetInputResponse, error) {
 	return response, nil
 }
 
+// ParsePostRegisterTasksResponse parses an HTTP response from a PostRegisterTasksWithResponse call
+func ParsePostRegisterTasksResponse(rsp *http.Response) (*PostRegisterTasksResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostRegisterTasksResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	return response, nil
+}
+
 // ParseGetTaskResultResponse parses an HTTP response from a GetTaskResultWithResponse call
 func ParseGetTaskResultResponse(rsp *http.Response) (*GetTaskResultResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -568,6 +727,9 @@ type ServerInterface interface {
 	// Get the task name and input for a task run
 	// (GET /input)
 	GetInput(w http.ResponseWriter, r *http.Request)
+	// Publish registered tasks
+	// (POST /register-tasks)
+	PostRegisterTasks(w http.ResponseWriter, r *http.Request)
 	// Get the result of a task run
 	// (GET /task-result)
 	GetTaskResult(w http.ResponseWriter, r *http.Request, params GetTaskResultParams)
@@ -586,6 +748,12 @@ func (_ Unimplemented) PostCallback(w http.ResponseWriter, r *http.Request) {
 // Get the task name and input for a task run
 // (GET /input)
 func (_ Unimplemented) GetInput(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Publish registered tasks
+// (POST /register-tasks)
+func (_ Unimplemented) PostRegisterTasks(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -623,6 +791,20 @@ func (siw *ServerInterfaceWrapper) GetInput(w http.ResponseWriter, r *http.Reque
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetInput(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostRegisterTasks operation middleware
+func (siw *ServerInterfaceWrapper) PostRegisterTasks(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostRegisterTasks(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -786,6 +968,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/input", wrapper.GetInput)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/register-tasks", wrapper.PostRegisterTasks)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/task-result", wrapper.GetTaskResult)
 	})
 
@@ -865,6 +1050,38 @@ func (response GetInput500Response) VisitGetInputResponse(w http.ResponseWriter)
 	return nil
 }
 
+type PostRegisterTasksRequestObject struct {
+	Body *PostRegisterTasksJSONRequestBody
+}
+
+type PostRegisterTasksResponseObject interface {
+	VisitPostRegisterTasksResponse(w http.ResponseWriter) error
+}
+
+type PostRegisterTasks200Response struct {
+}
+
+func (response PostRegisterTasks200Response) VisitPostRegisterTasksResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type PostRegisterTasks400Response struct {
+}
+
+func (response PostRegisterTasks400Response) VisitPostRegisterTasksResponse(w http.ResponseWriter) error {
+	w.WriteHeader(400)
+	return nil
+}
+
+type PostRegisterTasks500Response struct {
+}
+
+func (response PostRegisterTasks500Response) VisitPostRegisterTasksResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
 type GetTaskResultRequestObject struct {
 	Params GetTaskResultParams
 }
@@ -898,6 +1115,9 @@ type StrictServerInterface interface {
 	// Get the task name and input for a task run
 	// (GET /input)
 	GetInput(ctx context.Context, request GetInputRequestObject) (GetInputResponseObject, error)
+	// Publish registered tasks
+	// (POST /register-tasks)
+	PostRegisterTasks(ctx context.Context, request PostRegisterTasksRequestObject) (PostRegisterTasksResponseObject, error)
 	// Get the result of a task run
 	// (GET /task-result)
 	GetTaskResult(ctx context.Context, request GetTaskResultRequestObject) (GetTaskResultResponseObject, error)
@@ -980,6 +1200,37 @@ func (sh *strictHandler) GetInput(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetInputResponseObject); ok {
 		if err := validResponse.VisitGetInputResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostRegisterTasks operation middleware
+func (sh *strictHandler) PostRegisterTasks(w http.ResponseWriter, r *http.Request) {
+	var request PostRegisterTasksRequestObject
+
+	var body PostRegisterTasksJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostRegisterTasks(ctx, request.(PostRegisterTasksRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostRegisterTasks")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostRegisterTasksResponseObject); ok {
+		if err := validResponse.VisitPostRegisterTasksResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

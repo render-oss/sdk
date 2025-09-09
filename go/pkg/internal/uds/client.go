@@ -10,12 +10,12 @@ import (
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 )
 
-func NewCallbackClient() (*callbackapi.ClientWithResponses, error) {
+func NewCallbackClient(unixSocketPath string) (*callbackapi.ClientWithResponses, error) {
 	// Create HTTP client with Unix domain socket transport
 	httpClient := &http.Client{
 		Transport: &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-				return net.Dial("unix", "/render/render.sock")
+				return net.Dial("unix", unixSocketPath)
 			},
 		},
 	}

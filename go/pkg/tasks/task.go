@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
@@ -53,34 +54,29 @@ type TaskContext = task.TaskContext
 type Options = task.Options
 type Retry = task.Retry
 
-func Start() {
-	ctx := context.Background()
+func Run(ctx context.Context, unixSocketPath string) error {
 
 	executor := executor.NewExecutor(taskSingleton)
 
-	callbackerClient, err := uds.NewCallbackClient()
+	callbackerClient, err := uds.NewCallbackClient(unixSocketPath)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to create callbacker", "error", err)
-		return
+		return fmt.Errorf("failed to create callbacker: %w", err)
 	}
 	serverAdapter := server.NewServerAdapter(executor, callbackerClient)
 
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to get input", "error", err)
-		return
+		return fmt.Errorf("failed to get input: %w", err)
 	}
 	if inputResp.StatusCode() != 200 || inputResp.JSON200 == nil {
-		slog.ErrorContext(ctx, "unexpected response", "status", inputResp.StatusCode())
-		return
+		return fmt.Errorf("failed to get input: status code %d", inputResp.StatusCode())
 	}
 	taskName := inputResp.JSON200.TaskName
 	rawInput := inputResp.JSON200.Input
 	var input []interface{}
 	err = json.Unmarshal(rawInput, &input)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to unmarshal input", "error", err, "rawInput", string(rawInput))
-		return
+		return fmt.Errorf("failed to unmarshal input: %w", err)
 	}
 	slog.InfoContext(ctx, "Received input", "taskName", taskName, "rawInput", string(rawInput), "input", input)
 
@@ -88,10 +84,39 @@ func Start() {
 	emptyTaskRunID := ""
 	err = serverAdapter.StartTask("some response url", taskName, emptyTaskRunID, input...)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to start task", "error", err)
-		return
+		return fmt.Errorf("failed to start task: %w", err)
 	}
 	slog.InfoContext(ctx, "Started task successfully")
 
 	serverAdapter.WaitForTaskComplete()
+	return nil
+}
+
+func Register(ctx context.Context, unixSocketPath string) error {
+	callbackerClient, err := uds.NewCallbackClient(unixSocketPath)
+	if err != nil {
+		return fmt.Errorf("failed to create callbacker: %w", err)
+	}
+
+	tasks := make([]callbackapi.Task, 0, len(taskSingleton.Tasks))
+	for name := range taskSingleton.Tasks {
+		tasks = append(tasks, callbackapi.Task{
+			Name: name,
+		})
+	}
+
+	resp, err := callbackerClient.PostRegisterTasksWithResponse(
+		ctx,
+		callbackapi.PostRegisterTasksJSONRequestBody{
+			Tasks: tasks,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to register tasks: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("failed to register tasks: status code %d", resp.StatusCode())
+	}
+	slog.InfoContext(ctx, "registered tasks successfully")
+	return nil
 }
