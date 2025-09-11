@@ -27,7 +27,6 @@ import (
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/server"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/uds"
 )
@@ -55,14 +54,12 @@ type Options = task.Options
 type Retry = task.Retry
 
 func Run(ctx context.Context, unixSocketPath string) error {
-
-	executor := executor.NewExecutor(taskSingleton)
-
 	callbackerClient, err := uds.NewCallbackClient(unixSocketPath)
 	if err != nil {
 		return fmt.Errorf("failed to create callbacker: %w", err)
 	}
-	serverAdapter := server.NewServerAdapter(executor, callbackerClient)
+
+	executor := executor.NewExecutor(taskSingleton, callbackerClient)
 
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {
@@ -81,14 +78,12 @@ func Run(ctx context.Context, unixSocketPath string) error {
 	slog.InfoContext(ctx, "Received input", "taskName", taskName, "rawInput", string(rawInput), "input", input)
 
 	// We use this to avoid idempotency checks by the server adapter
-	emptyTaskRunID := ""
-	err = serverAdapter.StartTask("some response url", taskName, emptyTaskRunID, input...)
+	err = executor.Execute(ctx, taskName, input...)
 	if err != nil {
 		return fmt.Errorf("failed to start task: %w", err)
 	}
 	slog.InfoContext(ctx, "Started task successfully")
 
-	serverAdapter.WaitForTaskComplete()
 	return nil
 }
 
