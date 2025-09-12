@@ -1,7 +1,7 @@
 """Typed models for API requests and responses."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 from enum import Enum
 
 

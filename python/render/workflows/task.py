@@ -1,10 +1,7 @@
 """Task decorator and related functionality."""
 
-import functools
-import inspect
-import json
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 from dataclasses import dataclass
 
 F = TypeVar('F', bound=Callable[..., Any])

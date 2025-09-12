@@ -2,8 +2,7 @@
 
 import json
 import base64
-import asyncio
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import aiohttp
 from aiohttp import UnixConnector

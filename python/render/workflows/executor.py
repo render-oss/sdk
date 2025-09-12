@@ -1,10 +1,8 @@
 """Task executor for running tasks."""
 
-import json
 import logging
-import asyncio
-from typing import Any, Dict, List
-from .task import TaskContext, TaskRegistry, TaskResult, get_task_registry
+from typing import Any, List
+from .task import TaskRegistry
 from .client import UDSClient
 from .models import CallbackData, CallbackType
 

@@ -4,8 +4,6 @@
 import unittest
 import sys
 import os
-import json
-from unittest.mock import Mock, patch
 
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))

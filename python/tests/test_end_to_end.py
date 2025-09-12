@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
-"""End-to-end tests that simulate the full workflow like the Go SDK example."""
+"""End-to-end tests that simulate the full workflow."""
 
 import sys
 import os
 import unittest
-import asyncio
 from unittest.mock import Mock, patch, AsyncMock
-import json
 import pytest
 
 # Add the parent directory to Python path

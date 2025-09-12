@@ -4,11 +4,11 @@ import json
 import logging
 import os
 import asyncio
-from typing import List, Dict, Any
+from typing import List
 
 from .client import UDSClient
 from .executor import TaskExecutor
-from .task import get_task_registry, Options, Retry
+from .task import get_task_registry
 from .models import TaskDefinition
 
 logger = logging.getLogger(__name__)

@@ -4,9 +4,7 @@
 import sys
 import os
 import unittest
-import asyncio
 from unittest.mock import Mock, patch, AsyncMock
-import json
 import pytest
 
 # Add the parent directory to Python path
