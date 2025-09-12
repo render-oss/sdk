@@ -87,22 +87,6 @@ class TaskRegistry:
         """Register a task function."""
         task_name = name or func.__name__
 
-        # Verify the function signature
-        sig = inspect.signature(func)
-        params = list(sig.parameters.values())
-
-        if len(params) == 0:
-            raise ValueError("Task function must have at least one parameter (TaskContext)")
-
-        first_param = params[0]
-        if first_param.annotation and not issubclass(first_param.annotation, TaskContext):
-            # Check if it's a typing annotation that includes TaskContext
-            if hasattr(first_param.annotation, '__origin__'):
-                # Handle Union, Optional, etc.
-                pass
-            else:
-                raise ValueError("First parameter must be annotated as TaskContext or a subclass")
-
         task_info = TaskInfo(func, task_name, options)
         self._tasks[task_name] = task_info
         return task_name
@@ -115,14 +99,14 @@ class TaskRegistry:
         """Get all task names."""
         return list(self._tasks.keys())
 
-    def execute_task(self, name: str, ctx: TaskContext, *args, **kwargs) -> TaskResult:
+    def execute_task(self, name: str, *args, **kwargs) -> TaskResult:
         """Execute a task by name."""
         task_info = self.get_task(name)
         if not task_info:
             return TaskResult(error=ValueError(f"Task '{name}' not found"))
 
         try:
-            result = task_info.func(ctx, *args, **kwargs)
+            result = task_info.func(*args, **kwargs)
             return TaskResult(result=result)
         except Exception as e:
             return TaskResult(error=e)

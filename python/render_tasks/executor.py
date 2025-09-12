@@ -10,28 +10,6 @@ from .models import CallbackData, CallbackType
 
 logger = logging.getLogger(__name__)
 
-class ExecutorTaskContext(TaskContext):
-    """Task context implementation for the executor."""
-
-    def __init__(self, client: UDSClient, task_registry: TaskRegistry):
-        self.client = client
-        self.task_registry = task_registry
-
-    def execute_task(self, task_func, *args, **kwargs) -> TaskResult:
-        """Execute a task function."""
-        # For the executor context, we execute the task directly
-        # In a full implementation, this might involve calling back to the server
-        # to execute subtasks, but for now we'll execute locally
-
-        # Get the task name from the function
-        if hasattr(task_func, '_task_name'):
-            task_name = task_func._task_name
-        else:
-            task_name = task_func.__name__
-
-        logger.info(f"Executing task: {task_name}")
-        return self.task_registry.execute_task(task_name, self, *args, **kwargs)
-
 class TaskExecutor:
     """Executes tasks received from the SDK server."""
 
@@ -43,12 +21,9 @@ class TaskExecutor:
         """Execute a task by name with the given input."""
         logger.info(f"Starting execution of task: {task_name}")
 
-        # Create a task context
-        ctx = ExecutorTaskContext(self.client, self.task_registry)
-
         try:
             # Execute the task
-            result = self.task_registry.execute_task(task_name, ctx, *input_args)
+            result = self.task_registry.execute_task(task_name, *input_args)
             if result.error:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)

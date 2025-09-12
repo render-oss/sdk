@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks import task, TaskContext, Options, Retry, get_task_registry
+from render_tasks import task, Options, Retry, get_task_registry
 from render_tasks.runner import register
 
 
@@ -25,7 +25,7 @@ class TestTaskRegistration(unittest.TestCase):
     def test_basic_task_registration(self):
         """Test that basic tasks are registered correctly."""
         @task
-        def simple_task(ctx: TaskContext, x: int) -> int:
+        def simple_task(x: int) -> int:
             return x * 2
 
         registry = get_task_registry()
@@ -45,7 +45,7 @@ class TestTaskRegistration(unittest.TestCase):
     def test_custom_name_registration(self):
         """Test task registration with custom name."""
         @task(name="custom_name")
-        def original_function(ctx: TaskContext, data: str) -> str:
+        def original_function(data: str) -> str:
             return data.upper()
 
         registry = get_task_registry()
@@ -60,7 +60,7 @@ class TestTaskRegistration(unittest.TestCase):
     def test_retry_options_registration(self):
         """Test task registration with retry options."""
         @task(options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)))
-        def retry_task(ctx: TaskContext, value: int) -> int:
+        def retry_task(value: int) -> int:
             return value + 1
 
         registry = get_task_registry()

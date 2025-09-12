@@ -12,7 +12,7 @@ import pytest
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks import task, TaskContext, get_task_registry, Options, Retry
+from render_tasks import task, get_task_registry, Options, Retry
 from render_tasks.executor import TaskExecutor
 from render_tasks.client import UDSClient
 from render_tasks.runner import register
@@ -42,15 +42,15 @@ class TestEndToEnd:
 
         # Define tasks with various configurations
         @task
-        def simple_task(ctx: TaskContext, x: int) -> int:
+        def simple_task(x: int) -> int:
             return x * 2
 
         @task(name="custom_name")
-        def renamed_task(ctx: TaskContext, msg: str) -> str:
+        def renamed_task(msg: str) -> str:
             return f"Hello {msg}"
 
         @task(options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)))
-        def retry_task(ctx: TaskContext, data: str) -> str:
+        def retry_task(data: str) -> str:
             return data.upper()
 
         # Call the actual registration function
@@ -103,11 +103,11 @@ class TestEndToEnd:
         """Test that callback payloads are correctly formatted and sent."""
 
         @task
-        def test_task(ctx: TaskContext, value: int) -> int:
+        def test_task(value: int) -> int:
             return value * 10
 
         @task
-        def failing_task(ctx: TaskContext, should_fail: bool) -> str:
+        def failing_task(should_fail: bool) -> str:
             if should_fail:
                 raise ValueError("Test failure")
             return "success"

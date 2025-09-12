@@ -18,11 +18,11 @@ Use the `@task` decorator to define tasks:
 from render_tasks import task, TaskContext
 
 @task
-def square(ctx: TaskContext, a: int) -> int:
+def square(a: int) -> int:
     return a * a
 
 @task
-def add_squares(ctx: TaskContext, a: int, b: int) -> int:
+def add_squares(a: int, b: int) -> int:
     result1 = ctx.execute_task(square, a)
     result2 = ctx.execute_task(square, b)
     return result1 + result2

@@ -12,8 +12,8 @@ import pytest
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks.task import task, TaskContext, TaskRegistry, Options, Retry
-from render_tasks.executor import TaskExecutor, ExecutorTaskContext
+from render_tasks.task import task, TaskRegistry, Options, Retry
+from render_tasks.executor import TaskExecutor
 from render_tasks.client import UDSClient
 
 @pytest.mark.asyncio
@@ -31,7 +31,7 @@ class TestTaskExecution:
         """Test executing a simple task without subtasks."""
         # Define a simple task
         @task
-        def add_numbers(ctx: TaskContext, a: int, b: int) -> int:
+        def add_numbers(a: int, b: int) -> int:
             return a + b
 
         # Register the task manually
@@ -51,7 +51,7 @@ class TestTaskExecution:
     async def test_task_with_string_result(self):
         """Test task that returns a string."""
         @task
-        def greet(ctx: TaskContext, name: str) -> str:
+        def greet(name: str) -> str:
             return f"Hello, {name}!"
 
         self.registry.register(greet)
@@ -64,7 +64,7 @@ class TestTaskExecution:
     async def test_task_execution_error(self):
         """Test task execution that raises an error."""
         @task
-        def failing_task(ctx: TaskContext, x: int) -> int:
+        def failing_task(x: int) -> int:
             if x < 0:
                 raise ValueError("Negative numbers not allowed")
             return x * 2
@@ -93,33 +93,32 @@ class TestTaskExecution:
 
 
 class TestTaskContext(unittest.TestCase):
-    """Test TaskContext functionality and subtask execution."""
+    """Test task execution with direct function calls (preparing for future subtask socket calls)."""
 
     def setUp(self):
         """Set up test fixtures."""
         self.registry = TaskRegistry()
-        self.mock_client = Mock(spec=UDSClient)
-        self.ctx = ExecutorTaskContext(self.mock_client, self.registry)
 
     def test_subtask_execution(self):
-        """Test executing subtasks within a task."""
+        """Test executing subtasks within a task using direct calls."""
         # Define tasks
         @task
-        def square(ctx: TaskContext, x: int) -> int:
+        def square(x: int) -> int:
             return x * x
 
         @task
-        def add_squares(ctx: TaskContext, a: int, b: int) -> int:
-            result1 = ctx.execute_task(square, a)
-            result2 = ctx.execute_task(square, b)
-            return result1.result + result2.result
+        def add_squares(a: int, b: int) -> int:
+            # Direct function calls for now, will become socket calls later
+            result1 = square(a)
+            result2 = square(b)
+            return result1 + result2
 
         # Register tasks
         self.registry.register(square)
         self.registry.register(add_squares)
 
         # Execute the compound task
-        result = self.ctx.execute_task(add_squares, 3, 4)
+        result = self.registry.execute_task("add_squares", 3, 4)
 
         # Should compute 3^2 + 4^2 = 9 + 16 = 25
         self.assertEqual(result.result, 25)
@@ -127,21 +126,22 @@ class TestTaskContext(unittest.TestCase):
     def test_subtask_error_propagation(self):
         """Test that errors in subtasks are properly propagated."""
         @task
-        def divide(ctx: TaskContext, a: int, b: int) -> float:
+        def divide(a: int, b: int) -> float:
             if b == 0:
                 raise ZeroDivisionError("Division by zero")
             return a / b
 
         @task
-        def compute_ratio(ctx: TaskContext, x: int, y: int) -> float:
-            result = ctx.execute_task(divide, x, y)
-            return result.result * 2
+        def compute_ratio(x: int, y: int) -> float:
+            # Direct function call for now, will become socket call later
+            result = divide(x, y)
+            return result * 2
 
         self.registry.register(divide)
         self.registry.register(compute_ratio)
 
         # Test error propagation
-        result = self.ctx.execute_task(compute_ratio, 10, 0)
+        result = self.registry.execute_task("compute_ratio", 10, 0)
 
         self.assertIsNotNone(result.error)
         self.assertIsInstance(result.error, ZeroDivisionError)
@@ -157,7 +157,7 @@ class TestTaskRegistry(unittest.TestCase):
     def test_task_registration(self):
         """Test basic task registration."""
         @task
-        def test_task(ctx: TaskContext, x: int) -> int:
+        def test_task(x: int) -> int:
             return x + 1
 
         name = self.registry.register(test_task)
@@ -172,7 +172,7 @@ class TestTaskRegistry(unittest.TestCase):
     def test_custom_task_name(self):
         """Test registering task with custom name."""
         @task
-        def my_function(ctx: TaskContext, x: str) -> str:
+        def my_function(x: str) -> str:
             return x.upper()
 
         name = self.registry.register(my_function, name="custom_name")
@@ -185,7 +185,7 @@ class TestTaskRegistry(unittest.TestCase):
     def test_task_with_options(self):
         """Test registering task with retry options."""
         @task
-        def retry_task(ctx: TaskContext, x: int) -> int:
+        def retry_task(x: int) -> int:
             return x * 2
 
         retry_options = Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=2.0))
@@ -199,26 +199,24 @@ class TestTaskRegistry(unittest.TestCase):
         self.assertEqual(task_info.options.retry.factor, 2.0)
 
     def test_invalid_task_signature(self):
-        """Test that invalid task signatures are rejected."""
-        # Task without TaskContext parameter
-        def invalid_task(x: int) -> int:
-            return x + 1
+        """Test that task signatures are flexible now (no TaskContext required)."""
+        # Task without any parameters is now valid
+        def no_param_task() -> int:
+            return 42
 
-        with self.assertRaises(ValueError):
-            self.registry.register(invalid_task)
+        # Should not raise an error anymore
+        name = self.registry.register(no_param_task)
+        self.assertEqual(name, "no_param_task")
 
     def test_task_execution_by_name(self):
         """Test executing tasks by name through registry."""
         @task
-        def multiply(ctx: TaskContext, a: int, b: int) -> int:
+        def multiply(a: int, b: int) -> int:
             return a * b
 
         self.registry.register(multiply)
 
-        # Create a mock context
-        mock_ctx = Mock(spec=TaskContext)
-
-        result = self.registry.execute_task("multiply", mock_ctx, 6, 7)
+        result = self.registry.execute_task("multiply", 6, 7)
 
         self.assertEqual(result.result, 42)
         self.assertIsNone(result.error)
@@ -238,20 +236,20 @@ class TestExecutorIntegration:
         """Test a complex chain of task executions."""
         # Define a set of interconnected tasks
         @task
-        def increment(ctx: TaskContext, x: int) -> int:
+        def increment(x: int) -> int:
             return x + 1
 
         @task
-        def double(ctx: TaskContext, x: int) -> int:
+        def double(x: int) -> int:
             return x * 2
 
         @task
-        def complex_calculation(ctx: TaskContext, start: int) -> int:
-            # Increment, then double, then increment again
-            step1 = ctx.execute_task(increment, start)
-            step2 = ctx.execute_task(double, step1.result)
-            step3 = ctx.execute_task(increment, step2.result)
-            return step3.result
+        def complex_calculation(start: int) -> int:
+            # Direct function calls (will become socket calls in future)
+            step1 = increment(start)
+            step2 = double(step1)
+            step3 = increment(step2)
+            return step3
 
         # Register all tasks
         for func in [increment, double, complex_calculation]:
@@ -267,7 +265,7 @@ class TestExecutorIntegration:
     async def test_callback_format(self):
         """Test that callbacks are formatted correctly."""
         @task
-        def simple_task(ctx: TaskContext, value: str) -> str:
+        def simple_task(value: str) -> str:
             return f"processed: {value}"
 
         self.registry.register(simple_task)
