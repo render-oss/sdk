@@ -12,10 +12,10 @@ import pytest
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks import task, get_task_registry, Options, Retry
-from render_tasks.executor import TaskExecutor
-from render_tasks.client import UDSClient
-from render_tasks.runner import register
+from render.workflows import task, get_task_registry, Options, Retry
+from render.workflows.executor import TaskExecutor
+from render.workflows.client import UDSClient
+from render.workflows.runner import register
 
 class TestEndToEnd:
     """End-to-end tests."""
@@ -30,7 +30,7 @@ class TestEndToEnd:
         self.mock_client = Mock(spec=UDSClient)
         self.executor = TaskExecutor(self.registry, self.mock_client)
 
-    @patch('render_tasks.runner.UDSClient')
+    @patch('render.workflows.runner.UDSClient')
     def test_task_registration_network_payload(self, mock_uds_client_class):
         """Test that task registration actually sends the correct payload over the network."""
 

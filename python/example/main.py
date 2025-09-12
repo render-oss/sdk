@@ -4,10 +4,10 @@ import sys
 import os
 import logging
 
-# Add the parent directory to Python path so we can import render_tasks
+# Add the parent directory to Python path so we can import render.workflows
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks import task, start, Options, Retry
+from render.workflows import task, start, Options, Retry
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

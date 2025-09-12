@@ -12,9 +12,9 @@ import pytest
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks.task import task, TaskRegistry, Options, Retry
-from render_tasks.executor import TaskExecutor
-from render_tasks.client import UDSClient
+from render.workflows import task, TaskRegistry, Options, Retry
+from render.workflows.executor import TaskExecutor
+from render.workflows.client import UDSClient
 
 @pytest.mark.asyncio
 class TestTaskExecution:

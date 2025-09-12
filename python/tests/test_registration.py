@@ -10,8 +10,8 @@ from unittest.mock import Mock, patch
 # Add the parent directory to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from render_tasks import task, Options, Retry, get_task_registry
-from render_tasks.runner import register
+from render.workflows import task, Options, Retry, get_task_registry
+from render.workflows.runner import register
 
 
 class TestTaskRegistration(unittest.TestCase):

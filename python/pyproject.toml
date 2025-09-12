@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Python SDK for Render Tasks"
 authors = ["Render <hello@render.com>"]
 readme = "README.md"
-packages = [{include = "render_tasks"}]
+packages = [{include = "render"}]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
