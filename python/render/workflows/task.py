@@ -1,8 +1,9 @@
 """Task decorator and related functionality."""
 
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Callable, Dict, Generator, List, Optional, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -128,48 +129,59 @@ class TaskRegistry:
             return TaskResult(error=e)
 
 
-# Global task registry
-_task_registry = TaskRegistry()
-
-
-def task(
-    func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None
-) -> F:
+def create_task_decorator(registry: TaskRegistry) -> Callable:
     """
-    Decorator to register a function as a task.
+    Create a task decorator bound to a specific registry.
 
     Args:
-        func: The function to decorate
-        name: Optional name for the task (defaults to function name)
-        options: Optional configuration options
+        registry: The TaskRegistry to register tasks with
 
     Returns:
-        The decorated function
+        A task decorator function
 
     Example:
+        registry = TaskRegistry()
+        task = create_task_decorator(registry)
+
         @task
-        def my_task(ctx: TaskContext, value: int) -> int:
+        def my_task(value: int) -> int:
             return value * 2
-
-        @task(name="custom_name", options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000)))
-        def another_task(ctx: TaskContext, value: str) -> str:
-            return value.upper()
     """
+    def task(
+        func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None
+    ) -> F:
+        """
+        Decorator to register a function as a task in the bound registry.
 
-    def decorator(f: F) -> F:
-        task_name = _task_registry.register(f, name, options)
-        # Add the task name as an attribute so we can reference it later
-        f._task_name = task_name
-        return f
+        Args:
+            func: The function to decorate
+            name: Optional name for the task (defaults to function name)
+            options: Optional configuration options
 
-    if func is None:
-        # Called with arguments: @task(name="...", options=...)
-        return decorator
-    else:
-        # Called without arguments: @task
-        return decorator(func)
+        Returns:
+            The decorated function
+        """
+
+        def decorator(f: F) -> F:
+            task_name = registry.register(f, name, options)
+            # Add the task name as an attribute so we can reference it later
+            f._task_name = task_name
+            return f
+
+        if func is None:
+            # Called with arguments: @task(name="...", options=...)
+            return decorator
+        else:
+            # Called without arguments: @task
+            return decorator(func)
+
+    return task
+
+
+_global_registry = TaskRegistry()
+task = create_task_decorator(_global_registry)
 
 
 def get_task_registry() -> TaskRegistry:
     """Get the global task registry."""
-    return _task_registry
+    return _global_registry
