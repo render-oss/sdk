@@ -144,7 +144,3 @@ def test_task_registration_preserves_function_attributes(task_registry, task_dec
     # Verify the original function attributes are preserved
     assert documented_task.__name__ == "documented_task"
     assert documented_task.__doc__ == "This is a documented function."
-
-    # Verify task name attribute was added
-    assert hasattr(documented_task, "_task_name")
-    assert documented_task._task_name == "documented_task"

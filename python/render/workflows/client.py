@@ -45,7 +45,10 @@ class UDSClient:
             self.session = None
 
     async def _send_http_request(
-        self, method: str, path: str, data: dict | None = None,
+        self,
+        method: str,
+        path: str,
+        data: dict | None = None,
     ) -> dict:
         """Send an HTTP request over the Unix domain socket using aiohttp."""
         session = await self._get_session()
@@ -67,7 +70,10 @@ class UDSClient:
 
         try:
             async with session.request(
-                method=method, url=url, json=json_data, headers=headers,
+                method=method,
+                url=url,
+                json=json_data,
+                headers=headers,
             ) as response:
                 # Check for HTTP errors
                 if response.status >= 400:
@@ -144,20 +150,24 @@ class UDSClient:
         )
 
     async def register_tasks(
-        self, tasks: list[TaskDefinition],
+        self,
+        tasks: list[TaskDefinition],
     ) -> TaskRegistrationResponse:
         """Register tasks with the server."""
         request = TaskRegistrationRequest(tasks=tasks)
         payload = asdict(request)
         response_data = await self._send_http_request(
-            "POST", "/register-tasks", payload,
+            "POST",
+            "/register-tasks",
+            payload,
         )
         return TaskRegistrationResponse(status=response_data.get("status", ""))
 
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
         response_data = await self._send_http_request(
-            "GET", f"/task-result?taskRunID={task_run_id}",
+            "GET",
+            f"/task-result?taskRunID={task_run_id}",
         )
         return TaskResultResponse(
             status=response_data.get("status", ""),

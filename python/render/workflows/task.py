@@ -149,8 +149,11 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
     """
 
     def task(
-        func: F = None, *, name: str | None = None, options: Options | None = None,
-    ) -> F:
+        func: F | None = None,
+        *,
+        name: str | None = None,
+        options: Options | None = None,
+    ) -> F |  Callable[[F], F]:
         """
         Decorator to register a function as a task in the bound registry.
 
@@ -164,9 +167,7 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         """
 
         def decorator(f: F) -> F:
-            task_name = registry.register(f, name, options)
-            # Add the task name as an attribute so we can reference it later
-            f._task_name = task_name
+            registry.register(f, name, options)
             return f
 
         if func is None:

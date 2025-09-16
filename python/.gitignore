@@ -4,3 +4,6 @@ __pycache__/
 *$py.class
 
 .tox-info.json
+
+.coverage
+coverage.xml

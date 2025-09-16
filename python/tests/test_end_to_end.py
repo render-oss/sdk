@@ -75,10 +75,10 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     # Import and call register
     from render.workflows.runner import register
 
-    register("/tmp/test.sock") # noqa:S108
+    register("/tmp/test.sock")  # noqa:S108
 
     # Verify that UDSClient was instantiated with correct socket path
-    mock_uds_client_class.assert_called_once_with("/tmp/test.sock") # noqa:S108
+    mock_uds_client_class.assert_called_once_with("/tmp/test.sock")  # noqa:S108
 
     # Verify that register_tasks was called exactly once
     mock_client_instance.register_tasks.assert_called_once()
@@ -122,7 +122,9 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
 
 @pytest.mark.asyncio
 async def test_callback_payloads_with_mocked_client(
-    task_registry, task_decorator, mock_client,
+    task_registry,
+    task_decorator,
+    mock_client,
 ):
     """Test that callback payloads are correctly formatted and sent."""
 
