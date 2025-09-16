@@ -1,13 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end tests that simulate the full workflow."""
 
-import os
-import sys
-
 import pytest
-
-# Add the parent directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from render.workflows import Options, Retry, TaskRegistry, create_task_decorator
 from render.workflows.client import UDSClient
