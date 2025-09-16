@@ -153,7 +153,7 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         *,
         name: str | None = None,
         options: Options | None = None,
-    ) -> F |  Callable[[F], F]:
+    ) -> F | Callable[[F], F]:
         """
         Decorator to register a function as a task in the bound registry.
 
