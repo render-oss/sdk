@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import asyncio
+import base64
 from typing import List
 
 from .client import UDSClient
@@ -40,7 +41,6 @@ async def run_async(socket_path: str) -> None:
         # Parse the input
         if raw_input:
             # The input is base64 encoded JSON
-            import base64
             input_data = json.loads(base64.b64decode(raw_input).decode())
         else:
             input_data = []
@@ -149,9 +149,3 @@ def start() -> None:
         register(socket_path)
     else:
         raise ValueError(f"Unknown mode: {mode}")
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)

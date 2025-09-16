@@ -66,17 +66,10 @@ class UDSClient:
                     error_text = await response.text()
                     raise Exception(f"HTTP {response.status}: {error_text}")
 
-                # Parse JSON response
-                if response.content_type == "application/json":
+                try:
                     return await response.json()
-                else:
-                    text = await response.text()
-                    if text.strip():
-                        try:
-                            return json.loads(text)
-                        except json.JSONDecodeError:
-                            return {"raw": text}
-                    return {}
+                except json.JSONDecodeError as e:
+                    raise Exception(f"Internal error parsing JSON response: {e}")
 
         except aiohttp.ClientError as e:
             raise Exception(f"HTTP request failed: {e}")
