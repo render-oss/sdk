@@ -85,6 +85,10 @@ class TaskRegistry:
         task_name = name or func.__name__
 
         task_info = TaskInfo(func, task_name, options)
+
+        if task_name in self._tasks:
+            raise ValueError(f"Task '{task_name}' already registered")
+
         self._tasks[task_name] = task_info
         return task_name
 

@@ -73,5 +73,16 @@ class TestTaskRegistration(unittest.TestCase):
         self.assertEqual(retry.wait_duration_ms, 1000)
         self.assertEqual(retry.factor, 1.5)
 
+    def test_duplicate_task_registration(self):
+        """Test that duplicate task registration raises an error."""
+        @task
+        def duplicate_task(value: int) -> int:
+            return value + 1
+
+        with self.assertRaises(ValueError):
+            @task
+            def duplicate_task(value: int) -> int:
+                return value + 1
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
