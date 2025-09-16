@@ -1,9 +1,9 @@
 """Task decorator and related functionality."""
 
 from abc import ABC, abstractmethod
-from contextlib import contextmanager
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Generator, List, Optional, TypeVar
+from typing import Any, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -21,13 +21,13 @@ class Retry:
 class Options:
     """Configuration options for a task."""
 
-    retry: Optional[Retry] = None
+    retry: Retry | None = None
 
 
 class TaskResult:
     """Represents the result of a task execution."""
 
-    def __init__(self, result: Any = None, error: Optional[Exception] = None):
+    def __init__(self, result: Any = None, error: Exception | None = None):
         self._result = result
         self._error = error
 
@@ -38,7 +38,7 @@ class TaskResult:
         return self._result
 
     @property
-    def error(self) -> Optional[Exception]:
+    def error(self) -> Exception | None:
         return self._error
 
     def get(self, *output_vars):
@@ -49,7 +49,7 @@ class TaskResult:
         if isinstance(self._result, (list, tuple)):
             if len(output_vars) != len(self._result):
                 raise ValueError(
-                    f"Expected {len(self._result)} output variables, got {len(output_vars)}"
+                    f"Expected {len(self._result)} output variables, got {len(output_vars)}",
                 )
             for i, var in enumerate(output_vars):
                 if hasattr(var, "__setitem__"):
@@ -73,13 +73,12 @@ class TaskContext(ABC):
     @abstractmethod
     def execute_task(self, task_func: Callable, *args, **kwargs) -> TaskResult:
         """Execute a task and return the result."""
-        pass
 
 
 class TaskInfo:
     """Information about a registered task."""
 
-    def __init__(self, func: Callable, name: str, options: Optional[Options] = None):
+    def __init__(self, func: Callable, name: str, options: Options | None = None):
         self.func = func
         self.name = name
         self.options = options or Options()
@@ -89,13 +88,13 @@ class TaskRegistry:
     """Registry for managing tasks."""
 
     def __init__(self):
-        self._tasks: Dict[str, TaskInfo] = {}
+        self._tasks: dict[str, TaskInfo] = {}
 
     def register(
         self,
         func: Callable,
-        name: Optional[str] = None,
-        options: Optional[Options] = None,
+        name: str | None = None,
+        options: Options | None = None,
     ) -> str:
         """Register a task function."""
         task_name = name or func.__name__
@@ -108,11 +107,11 @@ class TaskRegistry:
         self._tasks[task_name] = task_info
         return task_name
 
-    def get_task(self, name: str) -> Optional[TaskInfo]:
+    def get_task(self, name: str) -> TaskInfo | None:
         """Get a task by name."""
         return self._tasks.get(name)
 
-    def get_task_names(self) -> List[str]:
+    def get_task_names(self) -> list[str]:
         """Get all task names."""
         return list(self._tasks.keys())
 
@@ -149,7 +148,7 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
     """
 
     def task(
-        func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None
+        func: F = None, *, name: str | None = None, options: Options | None = None,
     ) -> F:
         """
         Decorator to register a function as a task in the bound registry.
@@ -172,9 +171,8 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         if func is None:
             # Called with arguments: @task(name="...", options=...)
             return decorator
-        else:
-            # Called without arguments: @task
-            return decorator(func)
+        # Called without arguments: @task
+        return decorator(func)
 
     return task
 

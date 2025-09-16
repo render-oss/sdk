@@ -3,7 +3,6 @@
 import base64
 import json
 from dataclasses import asdict
-from typing import Dict, List, Optional
 
 import aiohttp
 from aiohttp import UnixConnector
@@ -30,7 +29,7 @@ class UDSClient:
 
     def __init__(self, socket_path: str):
         self.socket_path = socket_path
-        self.session: Optional[aiohttp.ClientSession] = None
+        self.session: aiohttp.ClientSession | None = None
 
     async def _get_session(self) -> aiohttp.ClientSession:
         """Get or create aiohttp session with Unix socket connector."""
@@ -46,8 +45,8 @@ class UDSClient:
             self.session = None
 
     async def _send_http_request(
-        self, method: str, path: str, data: Optional[Dict] = None
-    ) -> Dict:
+        self, method: str, path: str, data: dict | None = None,
+    ) -> dict:
         """Send an HTTP request over the Unix domain socket using aiohttp."""
         session = await self._get_session()
 
@@ -68,7 +67,7 @@ class UDSClient:
 
         try:
             async with session.request(
-                method=method, url=url, json=json_data, headers=headers
+                method=method, url=url, json=json_data, headers=headers,
             ) as response:
                 # Check for HTTP errors
                 if response.status >= 400:
@@ -108,7 +107,7 @@ class UDSClient:
             request = CallbackRequest(
                 status=CallbackStatus.COMPLETE,
                 complete=TaskCompleteData(
-                    output=base64.b64encode(result_json).decode("utf-8")
+                    output=base64.b64encode(result_json).decode("utf-8"),
                 ),
             )
         elif callback_data.type == CallbackType.ERROR:
@@ -145,20 +144,20 @@ class UDSClient:
         )
 
     async def register_tasks(
-        self, tasks: List[TaskDefinition]
+        self, tasks: list[TaskDefinition],
     ) -> TaskRegistrationResponse:
         """Register tasks with the server."""
         request = TaskRegistrationRequest(tasks=tasks)
         payload = asdict(request)
         response_data = await self._send_http_request(
-            "POST", "/register-tasks", payload
+            "POST", "/register-tasks", payload,
         )
         return TaskRegistrationResponse(status=response_data.get("status", ""))
 
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
         response_data = await self._send_http_request(
-            "GET", f"/task-result?taskRunID={task_run_id}"
+            "GET", f"/task-result?taskRunID={task_run_id}",
         )
         return TaskResultResponse(
             status=response_data.get("status", ""),

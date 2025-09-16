@@ -1,7 +1,7 @@
 """Task executor for running tasks."""
 
 import logging
-from typing import Any, List
+from typing import Any
 
 from .client import UDSClient
 from .models import CallbackData, CallbackType
@@ -17,7 +17,7 @@ class TaskExecutor:
         self.task_registry = task_registry
         self.client = client
 
-    async def execute(self, task_name: str, input_args: List[Any]) -> Any:
+    async def execute(self, task_name: str, input_args: list[Any]) -> Any:
         """Execute a task by name with the given input."""
         logger.info(f"Starting execution of task: {task_name}")
 
@@ -28,10 +28,9 @@ class TaskExecutor:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)
                 raise result.error
-            else:
-                # Send success callback
-                await self._send_success_callback(task_name, result.result)
-                return result.result
+            # Send success callback
+            await self._send_success_callback(task_name, result.result)
+            return result.result
 
         except Exception as e:
             logger.error(f"Task execution failed: {e}")

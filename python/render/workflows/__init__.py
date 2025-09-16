@@ -23,19 +23,19 @@ from .task import (
 
 __version__ = "0.1.0"
 __all__ = [
-    "task",
-    "Options",
-    "Retry",
-    "get_task_registry",
-    "create_task_decorator",
-    "TaskRegistry",
-    "run",
-    "register",
-    "start",
     "CallbackData",
     "CallbackType",
+    "Options",
+    "Retry",
     "TaskDefinition",
     "TaskInput",
     "TaskRegistrationRequest",
     "TaskRegistrationResponse",
+    "TaskRegistry",
+    "create_task_decorator",
+    "get_task_registry",
+    "register",
+    "run",
+    "start",
+    "task",
 ]

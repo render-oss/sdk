@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 # Enums for callback status types
@@ -32,7 +32,7 @@ class RetryOptions:
 class TaskOptions:
     """Options for a task."""
 
-    retry: Optional[RetryOptions] = None
+    retry: RetryOptions | None = None
 
 
 @dataclass
@@ -40,14 +40,14 @@ class TaskDefinition:
     """Definition of a task to be registered."""
 
     name: str
-    options: Optional[Dict[str, Any]] = None
+    options: dict[str, Any] | None = None
 
 
 @dataclass
 class TaskRegistrationRequest:
     """Request payload for registering tasks."""
 
-    tasks: List[TaskDefinition]
+    tasks: list[TaskDefinition]
 
 
 @dataclass
@@ -63,7 +63,7 @@ class TaskInput:
     """Input data for a task execution."""
 
     task_name: str
-    input: Optional[str] = None  # base64 encoded JSON
+    input: str | None = None  # base64 encoded JSON
 
 
 # Callback models
@@ -99,9 +99,9 @@ class CallbackRequest:
     """Base callback request structure."""
 
     status: CallbackStatus
-    complete: Optional[TaskCompleteData] = None
-    error: Optional[TaskErrorDetails] = None
-    subtask: Optional[SubtaskData] = None
+    complete: TaskCompleteData | None = None
+    error: TaskErrorDetails | None = None
+    subtask: SubtaskData | None = None
 
 
 @dataclass
@@ -109,7 +109,7 @@ class CallbackResponse:
     """Response from a callback."""
 
     status: str
-    task_run_id: Optional[str] = None
+    task_run_id: str | None = None
 
 
 # Task result models
@@ -118,8 +118,8 @@ class TaskResultResponse:
     """Response when requesting task results."""
 
     status: str
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
 
 
 # Internal callback data (what the executor passes to client)
@@ -128,7 +128,7 @@ class CallbackData:
     """Internal callback data structure used by executor."""
 
     type: CallbackType
-    result: Optional[Any] = None
-    error: Optional[str] = None
-    name: Optional[str] = None  # For subtasks
-    input: Optional[Any] = None  # For subtasks
+    result: Any | None = None
+    error: str | None = None
+    name: str | None = None  # For subtasks
+    input: Any | None = None  # For subtasks

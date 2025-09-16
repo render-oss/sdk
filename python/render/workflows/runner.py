@@ -5,7 +5,6 @@ import base64
 import json
 import logging
 import os
-from typing import List
 
 from .client import UDSClient
 from .executor import TaskExecutor
@@ -85,7 +84,7 @@ async def register_async(socket_path: str) -> None:
         task_names = task_registry.get_task_names()
 
         # Convert to the format expected by the API
-        tasks: List[TaskDefinition] = []
+        tasks: list[TaskDefinition] = []
         for name in task_names:
             task_info = task_registry.get_task(name)
 
