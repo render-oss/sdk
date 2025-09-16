@@ -49,7 +49,7 @@ func TestExecuteTask(t *testing.T) {
 		callbackerClient, err := callbackapi.NewClientWithResponses(srv.URL)
 		require.NoError(t, err)
 
-		executor := executor.NewExecutor(tasks, callbackerClient)
+		executor := executor.NewExecutor(tasks, callbackerClient, nil)
 		err = executor.Execute(context.Background(), "testTask")
 		require.NoError(t, err)
 
@@ -83,7 +83,7 @@ func TestExecuteTask(t *testing.T) {
 		callbackerClient, err := callbackapi.NewClientWithResponses(srv.URL)
 		require.NoError(t, err)
 
-		executor := executor.NewExecutor(tasks, callbackerClient)
+		executor := executor.NewExecutor(tasks, callbackerClient, nil)
 		err = executor.Execute(context.Background(), "failingTask")
 		require.NoError(t, err)
 

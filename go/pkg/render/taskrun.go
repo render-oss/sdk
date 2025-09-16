@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	fallbackPollInterval = 1 * time.Minute
+	fallbackPollInterval = 5 * time.Second
 )
 
 // TaskRunWithGet extends the base TaskRun with get functionality

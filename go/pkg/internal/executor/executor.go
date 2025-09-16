@@ -8,20 +8,23 @@ import (
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
+	"github.com/renderinc/workflow-sdk/go/pkg/render"
 )
 
 type Executor struct {
-	tasks      *task.Tasks
-	callbacker *callbackapi.ClientWithResponses
+	tasks        *task.Tasks
+	callbacker   *callbackapi.ClientWithResponses
+	renderClient *render.Client
 }
 
 type CompleteTask func(ctx context.Context, taskName string, result []interface{}, err error) error
 type ExecuteTask func(taskName string, input ...interface{}) ([]interface{}, error)
 
-func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses) *Executor {
+func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses, renderClient *render.Client) *Executor {
 	return &Executor{
-		tasks:      tasks,
-		callbacker: callbacker,
+		tasks:        tasks,
+		callbacker:   callbacker,
+		renderClient: renderClient,
 	}
 }
 
@@ -32,14 +35,24 @@ func (e *Executor) Execute(ctx context.Context, taskName string, input ...interf
 		return err
 	}
 
-	// TODO: Update this once we have sub tasks working
-	noOpExecutorContext := newExecutorContext(func(taskName string, input ...interface{}) ([]interface{}, error) {
-		return nil, nil
-	})
+	executorContext := newExecutorContext(e.executeSubTask)
 
-	result, err := e.tasks.ExecuteTaskByName(taskName, noOpExecutorContext, input...)
+	result, err := e.tasks.ExecuteTaskByName(taskName, executorContext, input...)
 
 	return e.completeTask(context.Background(), taskName, result, err)
+}
+
+func (e *Executor) executeSubTask(taskName string, input ...interface{}) ([]interface{}, error) {
+	taskRun, err := e.renderClient.Workflows.RunTask(render.TaskIdentifier(taskName), input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to run task: %w", err)
+	}
+	taskRunDetails, err := taskRun.Get(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get task run details: %w", err)
+	}
+
+	return taskRunDetails.Results, nil
 }
 
 func (e *Executor) completeTask(ctx context.Context, taskName string, result []interface{}, taskErr error) error {

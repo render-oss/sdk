@@ -29,6 +29,7 @@ import (
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/uds"
+	"github.com/renderinc/workflow-sdk/go/pkg/render"
 )
 
 var taskSingleton = task.NewTasks()
@@ -59,7 +60,11 @@ func Run(ctx context.Context, unixSocketPath string) error {
 		return fmt.Errorf("failed to create callbacker: %w", err)
 	}
 
-	executor := executor.NewExecutor(taskSingleton, callbackerClient)
+	renderClient, err := render.NewSocketClient(unixSocketPath)
+	if err != nil {
+		return fmt.Errorf("failed to create renderClient: %w", err)
+	}
+	executor := executor.NewExecutor(taskSingleton, callbackerClient, renderClient)
 
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {

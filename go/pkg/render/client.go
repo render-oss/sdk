@@ -3,6 +3,7 @@ package render
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 
@@ -72,5 +73,32 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 
 	renderClient.Workflows = &WorkflowsService{client: renderClient}
 
+	return renderClient, nil
+}
+
+func NewSocketClient(unixSocketPath string) (*Client, error) {
+	// Create HTTP client with Unix domain socket transport
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+				return net.Dial("unix", unixSocketPath)
+			},
+		},
+	}
+
+	c, err := client.NewClientWithResponses(
+		"http://unix",
+		client.WithHTTPClient(httpClient),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create client: %w", err)
+	}
+
+	// Create the final client with all configuration
+	renderClient := &Client{
+		internal: c,
+	}
+
+	renderClient.Workflows = &WorkflowsService{client: renderClient}
 	return renderClient, nil
 }
