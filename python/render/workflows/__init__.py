@@ -12,7 +12,14 @@ from .models import (
     TaskRegistrationResponse,
 )
 from .runner import register, run, start
-from .task import Options, Retry, TaskRegistry, create_task_decorator, get_task_registry, task
+from .task import (
+    Options,
+    Retry,
+    TaskRegistry,
+    create_task_decorator,
+    get_task_registry,
+    task,
+)
 
 __version__ = "0.1.0"
 __all__ = [

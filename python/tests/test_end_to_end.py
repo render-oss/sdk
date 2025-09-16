@@ -60,9 +60,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
         return f"Hello {msg}"
 
     @task_decorator(
-        options=Options(
-            retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)
-        )
+        options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5))
     )
     def retry_task(data: str) -> str:
         return data.upper()
@@ -73,6 +71,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
 
     # Import and call register
     from render.workflows.runner import register
+
     register("/tmp/test.sock")
 
     # Verify that UDSClient was instantiated with correct socket path
@@ -119,7 +118,9 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
 
 
 @pytest.mark.asyncio
-async def test_callback_payloads_with_mocked_client(task_registry, task_decorator, mock_client):
+async def test_callback_payloads_with_mocked_client(
+    task_registry, task_decorator, mock_client
+):
     """Test that callback payloads are correctly formatted and sent."""
 
     @task_decorator

@@ -147,6 +147,7 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         def my_task(value: int) -> int:
             return value * 2
     """
+
     def task(
         func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None
     ) -> F:

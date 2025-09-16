@@ -65,6 +65,7 @@ def test_duplicate_task_registration(task_registry, task_decorator):
         return value + 1
 
     with pytest.raises(ValueError, match="Task 'duplicate_task' already registered"):
+
         @task_decorator
         def duplicate_task(value: int) -> int:
             return value + 2
@@ -107,7 +108,9 @@ def test_task_registration_with_options_object():
         return x
 
     # Task with only retry options
-    @task_decorator(options=Options(retry=Retry(max_retries=1, wait_duration_ms=500, factor=1.0)))
+    @task_decorator(
+        options=Options(retry=Retry(max_retries=1, wait_duration_ms=500, factor=1.0))
+    )
     def task_with_retry_only(x: int) -> int:
         return x
 
@@ -128,6 +131,7 @@ def test_task_registration_with_options_object():
     assert retry_task.options is not None
     assert retry_task.options.retry is not None
     assert retry_task.options.retry.max_retries == 1
+
 
 def test_task_registration_preserves_function_attributes(task_registry, task_decorator):
     """Test that task registration preserves original function attributes."""
