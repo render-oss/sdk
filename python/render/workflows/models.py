@@ -1,8 +1,8 @@
 """Typed models for API requests and responses."""
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 # Enums for callback status types
@@ -22,6 +22,7 @@ class CallbackType(str, Enum):
 @dataclass
 class RetryOptions:
     """Retry configuration for a task."""
+
     max_retries: int
     wait_duration_ms: int
     factor: float
@@ -30,12 +31,14 @@ class RetryOptions:
 @dataclass
 class TaskOptions:
     """Options for a task."""
+
     retry: Optional[RetryOptions] = None
 
 
 @dataclass
 class TaskDefinition:
     """Definition of a task to be registered."""
+
     name: str
     options: Optional[Dict[str, Any]] = None
 
@@ -43,12 +46,14 @@ class TaskDefinition:
 @dataclass
 class TaskRegistrationRequest:
     """Request payload for registering tasks."""
+
     tasks: List[TaskDefinition]
 
 
 @dataclass
 class TaskRegistrationResponse:
     """Response from task registration."""
+
     status: str
 
 
@@ -56,6 +61,7 @@ class TaskRegistrationResponse:
 @dataclass
 class TaskInput:
     """Input data for a task execution."""
+
     task_name: str
     input: Optional[str] = None  # base64 encoded JSON
 
@@ -64,12 +70,14 @@ class TaskInput:
 @dataclass
 class TaskCompleteData:
     """Data for a completed task callback."""
+
     output: str  # base64 encoded JSON array
 
 
 @dataclass
 class TaskErrorDetails:
     """Error details for a failed task callback."""
+
     details: str
     exit_code: int = 1
     is_reported_by_sdk: bool = True
@@ -81,6 +89,7 @@ class TaskErrorDetails:
 @dataclass
 class SubtaskData:
     """Data for a subtask callback."""
+
     name: str
     input: str  # base64 encoded JSON
 
@@ -88,6 +97,7 @@ class SubtaskData:
 @dataclass
 class CallbackRequest:
     """Base callback request structure."""
+
     status: CallbackStatus
     complete: Optional[TaskCompleteData] = None
     error: Optional[TaskErrorDetails] = None
@@ -97,6 +107,7 @@ class CallbackRequest:
 @dataclass
 class CallbackResponse:
     """Response from a callback."""
+
     status: str
     task_run_id: Optional[str] = None
 
@@ -105,6 +116,7 @@ class CallbackResponse:
 @dataclass
 class TaskResultResponse:
     """Response when requesting task results."""
+
     status: str
     result: Optional[Any] = None
     error: Optional[str] = None
@@ -114,6 +126,7 @@ class TaskResultResponse:
 @dataclass
 class CallbackData:
     """Internal callback data structure used by executor."""
+
     type: CallbackType
     result: Optional[Any] = None
     error: Optional[str] = None

@@ -1,18 +1,28 @@
 """Unix domain socket client for communicating with the SDK server."""
 
-import json
 import base64
+import json
+from dataclasses import asdict
 from typing import Dict, List, Optional
 
 import aiohttp
 from aiohttp import UnixConnector
 
 from .models import (
-    CallbackData, CallbackRequest, CallbackResponse, CallbackStatus, CallbackType,
-    SubtaskData, TaskCompleteData, TaskDefinition, TaskErrorDetails, TaskInput,
-    TaskRegistrationRequest, TaskRegistrationResponse, TaskResultResponse
+    CallbackData,
+    CallbackRequest,
+    CallbackResponse,
+    CallbackStatus,
+    CallbackType,
+    SubtaskData,
+    TaskCompleteData,
+    TaskDefinition,
+    TaskErrorDetails,
+    TaskInput,
+    TaskRegistrationRequest,
+    TaskRegistrationResponse,
+    TaskResultResponse,
 )
-from dataclasses import asdict
 
 
 class UDSClient:
@@ -35,14 +45,16 @@ class UDSClient:
             await self.session.close()
             self.session = None
 
-    async def _send_http_request(self, method: str, path: str, data: Optional[Dict] = None) -> Dict:
+    async def _send_http_request(
+        self, method: str, path: str, data: Optional[Dict] = None
+    ) -> Dict:
         """Send an HTTP request over the Unix domain socket using aiohttp."""
         session = await self._get_session()
 
         # Prepare headers
         headers = {
             "User-Agent": "render-tasks-python-sdk/0.1.0",
-            "Accept": "application/json"
+            "Accept": "application/json",
         }
 
         # Prepare request data
@@ -56,10 +68,7 @@ class UDSClient:
 
         try:
             async with session.request(
-                method=method,
-                url=url,
-                json=json_data,
-                headers=headers
+                method=method, url=url, json=json_data, headers=headers
             ) as response:
                 # Check for HTTP errors
                 if response.status >= 400:
@@ -81,7 +90,7 @@ class UDSClient:
         response_data = await self._send_http_request("GET", "/input")
         return TaskInput(
             task_name=response_data.get("task_name", ""),
-            input=response_data.get("input")
+            input=response_data.get("input"),
         )
 
     async def post_callback(self, callback_data: CallbackData) -> CallbackResponse:
@@ -89,14 +98,18 @@ class UDSClient:
         # Format the callback data according to the API
         if callback_data.type == CallbackType.COMPLETE:
             # Ensure result is wrapped in an array as expected by the API
-            result_array = [callback_data.result] if not isinstance(callback_data.result, list) else callback_data.result
-            result_json = json.dumps(result_array).encode('utf-8')
+            result_array = (
+                [callback_data.result]
+                if not isinstance(callback_data.result, list)
+                else callback_data.result
+            )
+            result_json = json.dumps(result_array).encode("utf-8")
 
             request = CallbackRequest(
                 status=CallbackStatus.COMPLETE,
                 complete=TaskCompleteData(
-                    output=base64.b64encode(result_json).decode('utf-8')
-                )
+                    output=base64.b64encode(result_json).decode("utf-8")
+                ),
             )
         elif callback_data.type == CallbackType.ERROR:
             request = CallbackRequest(
@@ -107,17 +120,17 @@ class UDSClient:
                     is_reported_by_sdk=True,
                     is_system_err=False,
                     is_oom=False,
-                    is_timeout=False
-                )
+                    is_timeout=False,
+                ),
             )
         elif callback_data.type == CallbackType.SUBTASK:
-            input_json = json.dumps(callback_data.input).encode('utf-8')
+            input_json = json.dumps(callback_data.input).encode("utf-8")
             request = CallbackRequest(
                 status=CallbackStatus.SUBTASK,
                 subtask=SubtaskData(
                     name=callback_data.name or "",
-                    input=base64.b64encode(input_json).decode('utf-8')
-                )
+                    input=base64.b64encode(input_json).decode("utf-8"),
+                ),
             )
         else:
             raise ValueError(f"Unknown callback type: {callback_data.type}")
@@ -128,21 +141,27 @@ class UDSClient:
 
         return CallbackResponse(
             status=response_data.get("status", ""),
-            task_run_id=response_data.get("task_run_id")
+            task_run_id=response_data.get("task_run_id"),
         )
 
-    async def register_tasks(self, tasks: List[TaskDefinition]) -> TaskRegistrationResponse:
+    async def register_tasks(
+        self, tasks: List[TaskDefinition]
+    ) -> TaskRegistrationResponse:
         """Register tasks with the server."""
         request = TaskRegistrationRequest(tasks=tasks)
         payload = asdict(request)
-        response_data = await self._send_http_request("POST", "/register-tasks", payload)
+        response_data = await self._send_http_request(
+            "POST", "/register-tasks", payload
+        )
         return TaskRegistrationResponse(status=response_data.get("status", ""))
 
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
-        response_data = await self._send_http_request("GET", f"/task-result?taskRunID={task_run_id}")
+        response_data = await self._send_http_request(
+            "GET", f"/task-result?taskRunID={task_run_id}"
+        )
         return TaskResultResponse(
             status=response_data.get("status", ""),
             result=response_data.get("result"),
-            error=response_data.get("error")
+            error=response_data.get("error"),
         )

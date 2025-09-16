@@ -1,18 +1,19 @@
 """Runner functionality for the Python SDK."""
 
+import asyncio
+import base64
 import json
 import logging
 import os
-import asyncio
-import base64
 from typing import List
 
 from .client import UDSClient
 from .executor import TaskExecutor
-from .task import get_task_registry
 from .models import TaskDefinition
+from .task import get_task_registry
 
 logger = logging.getLogger(__name__)
+
 
 async def run_async(socket_path: str) -> None:
     """
@@ -68,6 +69,7 @@ def run(socket_path: str) -> None:
     """
     asyncio.run(run_async(socket_path))
 
+
 async def register_async(socket_path: str) -> None:
     """
     Register all tasks with the server asynchronously.
@@ -96,7 +98,7 @@ async def register_async(socket_path: str) -> None:
                     options["retry"] = {
                         "max_retries": retry.max_retries,
                         "wait_duration_ms": retry.wait_duration_ms,
-                        "factor": retry.factor
+                        "factor": retry.factor,
                     }
 
                 if options:
@@ -123,6 +125,7 @@ def register(socket_path: str) -> None:
     Register all tasks with the server (sync wrapper).
     """
     asyncio.run(register_async(socket_path))
+
 
 def start() -> None:
     """

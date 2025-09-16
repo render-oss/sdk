@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """Tests for the task executor functionality."""
 
-import sys
 import os
+import sys
 import unittest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 
 # Add the parent directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from render.workflows import task, TaskRegistry, Options, Retry
-from render.workflows.executor import TaskExecutor
+from render.workflows import Options, Retry, TaskRegistry, task
 from render.workflows.client import UDSClient
+from render.workflows.executor import TaskExecutor
+
 
 @pytest.mark.asyncio
 class TestTaskExecution:
@@ -27,6 +29,7 @@ class TestTaskExecution:
 
     async def test_simple_task_execution(self):
         """Test executing a simple task without subtasks."""
+
         # Define a simple task
         @task
         def add_numbers(a: int, b: int) -> int:
@@ -48,6 +51,7 @@ class TestTaskExecution:
 
     async def test_task_with_string_result(self):
         """Test task that returns a string."""
+
         @task
         def greet(name: str) -> str:
             return f"Hello, {name}!"
@@ -61,6 +65,7 @@ class TestTaskExecution:
 
     async def test_task_execution_error(self):
         """Test task execution that raises an error."""
+
         @task
         def failing_task(x: int) -> int:
             if x < 0:
@@ -99,6 +104,7 @@ class TestTaskContext(unittest.TestCase):
 
     def test_subtask_execution(self):
         """Test executing subtasks within a task using direct calls."""
+
         # Define tasks
         @task
         def square(x: int) -> int:
@@ -123,6 +129,7 @@ class TestTaskContext(unittest.TestCase):
 
     def test_subtask_error_propagation(self):
         """Test that errors in subtasks are properly propagated."""
+
         @task
         def divide(a: int, b: int) -> float:
             if b == 0:
@@ -154,6 +161,7 @@ class TestTaskRegistry(unittest.TestCase):
 
     def test_task_registration(self):
         """Test basic task registration."""
+
         @task
         def test_task(x: int) -> int:
             return x + 1
@@ -169,6 +177,7 @@ class TestTaskRegistry(unittest.TestCase):
 
     def test_custom_task_name(self):
         """Test registering task with custom name."""
+
         @task
         def my_function(x: str) -> str:
             return x.upper()
@@ -182,11 +191,14 @@ class TestTaskRegistry(unittest.TestCase):
 
     def test_task_with_options(self):
         """Test registering task with retry options."""
+
         @task
         def retry_task(x: int) -> int:
             return x * 2
 
-        retry_options = Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=2.0))
+        retry_options = Options(
+            retry=Retry(max_retries=3, wait_duration_ms=1000, factor=2.0)
+        )
         name = self.registry.register(retry_task, options=retry_options)
 
         task_info = self.registry.get_task(name)
@@ -198,6 +210,7 @@ class TestTaskRegistry(unittest.TestCase):
 
     def test_invalid_task_signature(self):
         """Test that task signatures are flexible now (no TaskContext required)."""
+
         # Task without any parameters is now valid
         def no_param_task() -> int:
             return 42
@@ -208,6 +221,7 @@ class TestTaskRegistry(unittest.TestCase):
 
     def test_task_execution_by_name(self):
         """Test executing tasks by name through registry."""
+
         @task
         def multiply(a: int, b: int) -> int:
             return a * b
@@ -232,6 +246,7 @@ class TestExecutorIntegration:
 
     async def test_complex_task_chain(self):
         """Test a complex chain of task executions."""
+
         # Define a set of interconnected tasks
         @task
         def increment(x: int) -> int:
@@ -262,6 +277,7 @@ class TestExecutorIntegration:
 
     async def test_callback_format(self):
         """Test that callbacks are formatted correctly."""
+
         @task
         def simple_task(value: str) -> str:
             return f"processed: {value}"
@@ -283,6 +299,7 @@ class TestExecutorIntegration:
 if __name__ == "__main__":
     # Set up logging for tests
     import logging
+
     logging.basicConfig(level=logging.DEBUG)
 
     # Run tests

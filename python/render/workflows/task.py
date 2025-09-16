@@ -1,22 +1,27 @@
 """Task decorator and related functionality."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Optional, TypeVar
 from dataclasses import dataclass
+from typing import Any, Callable, Dict, List, Optional, TypeVar
 
-F = TypeVar('F', bound=Callable[..., Any])
+F = TypeVar("F", bound=Callable[..., Any])
+
 
 @dataclass
 class Retry:
     """Retry configuration for a task."""
+
     max_retries: int
     wait_duration_ms: int
     factor: float = 1.5
 
+
 @dataclass
 class Options:
     """Configuration options for a task."""
+
     retry: Optional[Retry] = None
+
 
 class TaskResult:
     """Represents the result of a task execution."""
@@ -42,9 +47,11 @@ class TaskResult:
 
         if isinstance(self._result, (list, tuple)):
             if len(output_vars) != len(self._result):
-                raise ValueError(f"Expected {len(self._result)} output variables, got {len(output_vars)}")
+                raise ValueError(
+                    f"Expected {len(self._result)} output variables, got {len(output_vars)}"
+                )
             for i, var in enumerate(output_vars):
-                if hasattr(var, '__setitem__'):
+                if hasattr(var, "__setitem__"):
                     var[0] = self._result[i]
                 else:
                     # For simple assignments, we can't modify the variable in place
@@ -53,10 +60,11 @@ class TaskResult:
         else:
             if len(output_vars) != 1:
                 raise ValueError(f"Expected 1 output variable, got {len(output_vars)}")
-            if hasattr(output_vars[0], '__setitem__'):
+            if hasattr(output_vars[0], "__setitem__"):
                 output_vars[0][0] = self._result
             else:
                 return self._result
+
 
 class TaskContext(ABC):
     """Abstract base class for task context."""
@@ -66,6 +74,7 @@ class TaskContext(ABC):
         """Execute a task and return the result."""
         pass
 
+
 class TaskInfo:
     """Information about a registered task."""
 
@@ -74,13 +83,19 @@ class TaskInfo:
         self.name = name
         self.options = options or Options()
 
+
 class TaskRegistry:
     """Registry for managing tasks."""
 
     def __init__(self):
         self._tasks: Dict[str, TaskInfo] = {}
 
-    def register(self, func: Callable, name: Optional[str] = None, options: Optional[Options] = None) -> str:
+    def register(
+        self,
+        func: Callable,
+        name: Optional[str] = None,
+        options: Optional[Options] = None,
+    ) -> str:
         """Register a task function."""
         task_name = name or func.__name__
 
@@ -112,10 +127,14 @@ class TaskRegistry:
         except Exception as e:
             return TaskResult(error=e)
 
+
 # Global task registry
 _task_registry = TaskRegistry()
 
-def task(func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None) -> F:
+
+def task(
+    func: F = None, *, name: Optional[str] = None, options: Optional[Options] = None
+) -> F:
     """
     Decorator to register a function as a task.
 
@@ -136,6 +155,7 @@ def task(func: F = None, *, name: Optional[str] = None, options: Optional[Option
         def another_task(ctx: TaskContext, value: str) -> str:
             return value.upper()
     """
+
     def decorator(f: F) -> F:
         task_name = _task_registry.register(f, name, options)
         # Add the task name as an attribute so we can reference it later
@@ -148,6 +168,7 @@ def task(func: F = None, *, name: Optional[str] = None, options: Optional[Option
     else:
         # Called without arguments: @task
         return decorator(func)
+
 
 def get_task_registry() -> TaskRegistry:
     """Get the global task registry."""

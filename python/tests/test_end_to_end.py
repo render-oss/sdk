@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """End-to-end tests that simulate the full workflow."""
 
-import sys
 import os
+import sys
 import unittest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 
 # Add the parent directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from render.workflows import task, get_task_registry, Options, Retry
-from render.workflows.executor import TaskExecutor
+from render.workflows import Options, Retry, get_task_registry, task
 from render.workflows.client import UDSClient
+from render.workflows.executor import TaskExecutor
 from render.workflows.runner import register
+
 
 class TestEndToEnd:
     """End-to-end tests."""
@@ -28,14 +30,16 @@ class TestEndToEnd:
         self.mock_client = Mock(spec=UDSClient)
         self.executor = TaskExecutor(self.registry, self.mock_client)
 
-    @patch('render.workflows.runner.UDSClient')
+    @patch("render.workflows.runner.UDSClient")
     def test_task_registration_network_payload(self, mock_uds_client_class):
         """Test that task registration actually sends the correct payload over the network."""
 
         # Set up the mock
         mock_client_instance = Mock()
         mock_uds_client_class.return_value = mock_client_instance
-        mock_client_instance.register_tasks = AsyncMock(return_value={"status": "success"})
+        mock_client_instance.register_tasks = AsyncMock(
+            return_value={"status": "success"}
+        )
         mock_client_instance.disconnect = AsyncMock()
 
         # Define tasks with various configurations
@@ -47,7 +51,11 @@ class TestEndToEnd:
         def renamed_task(msg: str) -> str:
             return f"Hello {msg}"
 
-        @task(options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)))
+        @task(
+            options=Options(
+                retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)
+            )
+        )
         def retry_task(data: str) -> str:
             return data.upper()
 
@@ -136,9 +144,11 @@ class TestEndToEnd:
         assert error_payload.type == "error"
         assert "Test failure" in error_payload.error
 
+
 if __name__ == "__main__":
     # Set up logging for tests
     import logging
+
     logging.basicConfig(level=logging.INFO)
 
     # Run tests

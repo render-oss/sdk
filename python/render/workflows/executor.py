@@ -2,11 +2,13 @@
 
 import logging
 from typing import Any, List
-from .task import TaskRegistry
+
 from .client import UDSClient
 from .models import CallbackData, CallbackType
+from .task import TaskRegistry
 
 logger = logging.getLogger(__name__)
+
 
 class TaskExecutor:
     """Executes tasks received from the SDK server."""
@@ -35,24 +37,18 @@ class TaskExecutor:
             logger.error(f"Task execution failed: {e}")
             # Only send error callback if we haven't already sent one
             # Check if this is a re-raised error from result.error above
-            if not hasattr(e, '_callback_sent'):
+            if not hasattr(e, "_callback_sent"):
                 await self._send_error_callback(task_name, e)
             raise
 
     async def _send_error_callback(self, task_name: str, error: Exception):
         """Send an error callback to the server."""
-        error_callback = CallbackData(
-            type=CallbackType.ERROR,
-            error=str(error)
-        )
+        error_callback = CallbackData(type=CallbackType.ERROR, error=str(error))
         await self.client.post_callback(error_callback)
         # Mark the error as having had a callback sent
         error._callback_sent = True
 
     async def _send_success_callback(self, task_name: str, result: Any):
         """Send a success callback to the server."""
-        success_callback = CallbackData(
-            type=CallbackType.COMPLETE,
-            result=result
-        )
+        success_callback = CallbackData(type=CallbackType.COMPLETE, result=result)
         await self.client.post_callback(success_callback)

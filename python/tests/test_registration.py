@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Unit tests for task registration functionality."""
 
-import unittest
-import sys
 import os
+import sys
+import unittest
 
 # Add the parent directory to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from render.workflows import task, Options, Retry, get_task_registry
+from render.workflows import Options, Retry, get_task_registry, task
 from render.workflows.runner import register
 
 
@@ -22,6 +22,7 @@ class TestTaskRegistration(unittest.TestCase):
 
     def test_basic_task_registration(self):
         """Test that basic tasks are registered correctly."""
+
         @task
         def simple_task(x: int) -> int:
             return x * 2
@@ -42,6 +43,7 @@ class TestTaskRegistration(unittest.TestCase):
 
     def test_custom_name_registration(self):
         """Test task registration with custom name."""
+
         @task(name="custom_name")
         def original_function(data: str) -> str:
             return data.upper()
@@ -57,7 +59,12 @@ class TestTaskRegistration(unittest.TestCase):
 
     def test_retry_options_registration(self):
         """Test task registration with retry options."""
-        @task(options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)))
+
+        @task(
+            options=Options(
+                retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)
+            )
+        )
         def retry_task(value: int) -> int:
             return value + 1
 
@@ -75,14 +82,17 @@ class TestTaskRegistration(unittest.TestCase):
 
     def test_duplicate_task_registration(self):
         """Test that duplicate task registration raises an error."""
+
         @task
         def duplicate_task(value: int) -> int:
             return value + 1
 
         with self.assertRaises(ValueError):
+
             @task
             def duplicate_task(value: int) -> int:
                 return value + 1
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
