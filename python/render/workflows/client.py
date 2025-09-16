@@ -77,12 +77,12 @@ class UDSClient:
                 try:
                     return await response.json()
                 except json.JSONDecodeError as e:
-                    raise Exception(f"Internal error parsing JSON response: {e}")
+                    raise Exception(f"Internal error parsing JSON response: {e}") from e
 
         except aiohttp.ClientError as e:
-            raise Exception(f"HTTP request failed: {e}")
+            raise Exception(f"HTTP request failed: {e}") from e
         except Exception as e:
-            raise Exception(f"Request error: {e}")
+            raise Exception(f"Request error: {e}") from e
 
     async def get_input(self) -> TaskInput:
         """Get the task name and input for a task run."""

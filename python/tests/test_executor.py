@@ -188,11 +188,10 @@ async def test_callback_format(task_registry, task_decorator, mock_client):
         return f"processed: {value}"
 
     executor = TaskExecutor(task_registry, mock_client)
-    result = await executor.execute("simple_task", ["test"])
+    await executor.execute("simple_task", ["test"])
 
     # Check that callback was called with correct format
     mock_client.post_callback.assert_called_once()
     call_args = mock_client.post_callback.call_args[0][0]
-
-    # Verify the result
-    assert result == "processed: test"
+    assert call_args.type == "complete"
+    assert call_args.result == "processed: test"

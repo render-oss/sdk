@@ -49,7 +49,8 @@ class TaskResult:
         if isinstance(self._result, (list, tuple)):
             if len(output_vars) != len(self._result):
                 raise ValueError(
-                    f"Expected {len(self._result)} output variables, got {len(output_vars)}",
+                    f"Expected {len(self._result)} output \
+                      variables, got {len(output_vars)}",
                 )
             for i, var in enumerate(output_vars):
                 if hasattr(var, "__setitem__"):
