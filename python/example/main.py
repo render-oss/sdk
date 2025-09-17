@@ -1,11 +1,6 @@
 """Example usage of the Render Tasks Python SDK."""
 
 import logging
-import os
-import sys
-
-# Add the parent directory to Python path so we can import render.workflows
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from render.workflows import Options, Retry, start, task
 

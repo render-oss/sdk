@@ -1,6 +1,7 @@
 """Unix domain socket client for communicating with the SDK server."""
 
 import base64
+import importlib.metadata
 import json
 from dataclasses import asdict
 
@@ -22,6 +23,8 @@ from .models import (
     TaskRegistrationResponse,
     TaskResultResponse,
 )
+
+version = importlib.metadata.version("render")
 
 
 class UDSClient:
@@ -53,9 +56,10 @@ class UDSClient:
         """Send an HTTP request over the Unix domain socket using aiohttp."""
         session = await self._get_session()
 
+        print(f"User-Agent: render-workflows-python-sdk/{version}")
         # Prepare headers
         headers = {
-            "User-Agent": "render-tasks-python-sdk/0.1.0",
+            "User-Agent": f"render-workflows-python-sdk/{version}",
             "Accept": "application/json",
         }
 

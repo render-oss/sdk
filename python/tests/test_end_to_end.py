@@ -6,6 +6,7 @@ import pytest
 from render.workflows import Options, Retry, TaskRegistry, create_task_decorator
 from render.workflows.client import UDSClient
 from render.workflows.executor import TaskExecutor
+from render.workflows.runner import register
 
 
 # Fixtures
@@ -71,9 +72,6 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     # Mock get_task_registry to return our test registry
     mock_get_registry = mocker.patch("render.workflows.runner.get_task_registry")
     mock_get_registry.return_value = task_registry
-
-    # Import and call register
-    from render.workflows.runner import register
 
     register("/tmp/test.sock")  # noqa:S108
 

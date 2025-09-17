@@ -41,32 +41,6 @@ class TaskResult:
     def error(self) -> Exception | None:
         return self._error
 
-    def get(self, *output_vars):
-        """Get the result and assign to output variables."""
-        if self._error:
-            raise self._error
-
-        if isinstance(self._result, (list, tuple)):
-            if len(output_vars) != len(self._result):
-                raise ValueError(
-                    f"Expected {len(self._result)} output \
-                      variables, got {len(output_vars)}",
-                )
-            for i, var in enumerate(output_vars):
-                if hasattr(var, "__setitem__"):
-                    var[0] = self._result[i]
-                else:
-                    # For simple assignments, we can't modify the variable in place
-                    # So we return the results instead
-                    return self._result
-        else:
-            if len(output_vars) != 1:
-                raise ValueError(f"Expected 1 output variable, got {len(output_vars)}")
-            if hasattr(output_vars[0], "__setitem__"):
-                output_vars[0][0] = self._result
-            else:
-                return self._result
-
 
 class TaskContext(ABC):
     """Abstract base class for task context."""
@@ -116,17 +90,13 @@ class TaskRegistry:
         """Get all task names."""
         return list(self._tasks.keys())
 
-    def execute_task(self, name: str, *args, **kwargs) -> TaskResult:
+    def get_function(self, name: str) -> Callable | None:
         """Execute a task by name."""
         task_info = self.get_task(name)
         if not task_info:
-            return TaskResult(error=ValueError(f"Task '{name}' not found"))
+            return None
 
-        try:
-            result = task_info.func(*args, **kwargs)
-            return TaskResult(result=result)
-        except Exception as e:
-            return TaskResult(error=e)
+        return task_info.func
 
 
 def create_task_decorator(registry: TaskRegistry) -> Callable:

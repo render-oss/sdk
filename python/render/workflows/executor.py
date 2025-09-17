@@ -5,7 +5,7 @@ from typing import Any
 
 from .client import UDSClient
 from .models import CallbackData, CallbackType
-from .task import TaskRegistry
+from .task import TaskRegistry, TaskResult
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,17 @@ class TaskExecutor:
         self.task_registry = task_registry
         self.client = client
 
+    def _execute_task(self, task_name: str, input_args: list[Any]) -> Any:
+        """Execute a task by name with the given input."""
+        func = self.task_registry.get_function(task_name)
+        if not func:
+            return TaskResult(error=ValueError(f"Task '{task_name}' not found"))
+        try:
+            result = func(*input_args)
+            return TaskResult(result=result)
+        except Exception as e:
+            return TaskResult(error=e)
+
     async def execute(self, task_name: str, input_args: list[Any]) -> Any:
         """Execute a task by name with the given input."""
         logger.info(f"Starting execution of task: {task_name}")
@@ -25,7 +36,7 @@ class TaskExecutor:
 
         try:
             # Execute the task
-            result = self.task_registry.execute_task(task_name, *input_args)
+            result = self._execute_task(task_name, input_args)
             if result.error:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)

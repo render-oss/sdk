@@ -70,28 +70,6 @@ def test_duplicate_task_registration(task_registry, task_decorator):
         def duplicate_task(value: int) -> int:
             return value + 2
 
-
-def test_task_execution_through_registry(task_registry, task_decorator):
-    """Test that tasks can be executed through the registry."""
-
-    @task_decorator
-    def add_ten(x: int) -> int:
-        return x + 10
-
-    @task_decorator(name="multiply_by_two")
-    def multiply(x: int) -> int:
-        return x * 2
-
-    # Execute tasks by name
-    result1 = task_registry.execute_task("add_ten", 5)
-    assert result1.result == 15
-    assert result1.error is None
-
-    result2 = task_registry.execute_task("multiply_by_two", 7)
-    assert result2.result == 14
-    assert result2.error is None
-
-
 def test_task_registration_with_options_object():
     """Test task registration with different Options configurations."""
     registry = TaskRegistry()

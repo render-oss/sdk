@@ -3,9 +3,9 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
-name = "render-tasks"
+name = "render"
 version = "0.1.0"
-description = "Python SDK for Render Tasks"
+description = "Python SDK for Render"
 authors = ["Render <hello@render.com>"]
 readme = "README.md"
 packages = [{include = "render"}]
@@ -32,7 +32,7 @@ pytest = "^7.0"
 pytest-cov = "^4.0"
 pytest-asyncio = "^0.21.0"
 pytest-mock = "^3.10.0"
-black = "^21.0"
+black = "^25.1.0"
 isort = "^5.0"
 mypy = "^0.910"
 tox = "^4.0"

@@ -96,61 +96,6 @@ async def test_nonexistent_task(task_executor, mock_client):
     assert call_args.type == "error"
 
 
-# Task Context Tests (Subtask execution)
-def test_subtask_execution(task_registry, task_decorator):
-    """Test executing subtasks within a task using direct calls."""
-
-    @task_decorator
-    def square(x: int) -> int:
-        return x * x
-
-    @task_decorator
-    def add_squares(a: int, b: int) -> int:
-        # Direct function calls for now, will become socket calls later
-        result1 = square(a)
-        result2 = square(b)
-        return result1 + result2
-
-    result = task_registry.execute_task("add_squares", 3, 4)
-
-    # Should compute 3^2 + 4^2 = 9 + 16 = 25
-    assert result.result == 25
-
-
-def test_subtask_error_propagation(task_registry, task_decorator):
-    """Test that errors in subtasks are properly propagated."""
-
-    @task_decorator
-    def divide(a: int, b: int) -> float:
-        if b == 0:
-            raise ZeroDivisionError("Division by zero")
-        return a / b
-
-    @task_decorator
-    def compute_ratio(x: int, y: int) -> float:
-        # Direct function call for now, will become socket call later
-        result = divide(x, y)
-        return result * 2
-
-    result = task_registry.execute_task("compute_ratio", 10, 0)
-
-    assert result.error is not None
-    assert isinstance(result.error, ZeroDivisionError)
-
-
-def test_task_execution_by_name(task_registry, task_decorator):
-    """Test executing tasks by name through registry."""
-
-    @task_decorator
-    def multiply(a: int, b: int) -> int:
-        return a * b
-
-    result = task_registry.execute_task("multiply", 6, 7)
-
-    assert result.result == 42
-    assert result.error is None
-
-
 # Integration Tests
 @pytest.mark.asyncio
 async def test_complex_task_chain(task_registry, task_decorator, mock_client):
