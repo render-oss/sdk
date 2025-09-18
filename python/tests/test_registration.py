@@ -67,7 +67,7 @@ def test_duplicate_task_registration(task_registry, task_decorator):
     with pytest.raises(ValueError, match="Task 'duplicate_task' already registered"):
 
         @task_decorator
-        def duplicate_task(value: int) -> int:
+        def duplicate_task(value: int) -> int: # noqa: F811
             return value + 2
 
 
