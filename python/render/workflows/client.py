@@ -24,7 +24,10 @@ from .models import (
     TaskResultResponse,
 )
 
-version = importlib.metadata.version("render")
+try:
+    version = importlib.metadata.version("render")
+except importlib.metadata.PackageNotFoundError:
+    version = "unknown"  # fallback version
 
 
 class UDSClient:
@@ -56,7 +59,6 @@ class UDSClient:
         """Send an HTTP request over the Unix domain socket using aiohttp."""
         session = await self._get_session()
 
-        print(f"User-Agent: render-workflows-python-sdk/{version}")
         # Prepare headers
         headers = {
             "User-Agent": f"render-workflows-python-sdk/{version}",
