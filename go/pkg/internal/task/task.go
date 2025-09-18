@@ -88,21 +88,26 @@ func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
 	}
 
 	tType := v.Type()
+	numExpectedArgs := tType.NumIn()
+	numArgs := len(args)
+
+	if numArgs != numExpectedArgs {
+		return nil, fmt.Errorf("task %s expected %d argument(s), got %d",
+			// First argument is always TaskContext, so we subtract 1
+			// to get the count of user-defined args.
+			tType.Name(), numExpectedArgs-1, numArgs-1)
+	}
 
 	// We receive arguments in the form of []interface{}, but we want to pass
 	// each argument as a separate argument to the function.
-	if len(args) > 0 {
+	if numArgs > 0 {
 		if slice, ok := args[0].([]interface{}); ok && (1+len(slice) == tType.NumIn()) {
 			args = append([]interface{}{args[0]}, slice...)
 		}
 	}
 
-	if len(args) != tType.NumIn() {
-		return nil, fmt.Errorf("expected %d arguments, got %d", tType.NumIn(), len(args))
-	}
-
 	// Prepare arguments for reflection
-	in := make([]reflect.Value, len(args))
+	in := make([]reflect.Value, numArgs)
 	for i, arg := range args {
 		expectedType := tType.In(i)
 

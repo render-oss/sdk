@@ -5,26 +5,25 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
-	"github.com/renderinc/workflow-sdk/go/pkg/render"
 )
 
 type Executor struct {
-	tasks        *task.Tasks
-	callbacker   *callbackapi.ClientWithResponses
-	renderClient *render.Client
+	tasks      *task.Tasks
+	callbacker *callbackapi.ClientWithResponses
 }
 
 type CompleteTask func(ctx context.Context, taskName string, result []interface{}, err error) error
 type ExecuteTask func(taskName string, input ...interface{}) ([]interface{}, error)
 
-func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses, renderClient *render.Client) *Executor {
+func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses) *Executor {
 	return &Executor{
-		tasks:        tasks,
-		callbacker:   callbacker,
-		renderClient: renderClient,
+		tasks:      tasks,
+		callbacker: callbacker,
 	}
 }
 
@@ -42,17 +41,54 @@ func (e *Executor) Execute(ctx context.Context, taskName string, input ...interf
 	return e.completeTask(context.Background(), taskName, result, err)
 }
 
-func (e *Executor) executeSubTask(taskName string, input ...interface{}) ([]interface{}, error) {
-	taskRun, err := e.renderClient.Workflows.RunTask(render.TaskIdentifier(taskName), input)
+func (e *Executor) executeSubTask(taskName string, input ...interface{}) (_results []interface{}, _err error) {
+	ctx := context.Background()
+	inputBytes, err := json.Marshal(input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal input: %w", err)
+	}
+
+	taskRun, err := e.callbacker.PostRunSubtaskWithResponse(ctx, callbackapi.PostRunSubtaskJSONRequestBody{
+		TaskName: taskName,
+		Input:    &inputBytes,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to run task: %w", err)
 	}
-	taskRunDetails, err := taskRun.Get(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("failed to get task run details: %w", err)
+	if taskRun.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("failed to kick off subtask")
+	}
+	if taskRun.JSON200 == nil || taskRun.JSON200.TaskRunId == "" {
+		return nil, fmt.Errorf("invalid response from task run")
+	}
+	subtaskRunID := taskRun.JSON200.TaskRunId
+
+	var resp *callbackapi.SubtaskResultResponse
+	for ; ; time.Sleep(time.Second) {
+		taskRunDetails, err := e.callbacker.PostGetSubtaskResultWithResponse(ctx, callbackapi.PostGetSubtaskResultJSONRequestBody{
+			TaskRunId: subtaskRunID,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to get task run details: %w", err)
+		}
+		resp = taskRunDetails.JSON200
+		if resp == nil || resp.StillRunning {
+			continue
+		}
+		break
 	}
 
-	return taskRunDetails.Results, nil
+	if resp.Complete != nil {
+		var result []interface{}
+		if err := json.Unmarshal(resp.Complete.Output, &result); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal output: %w", err)
+		}
+		return result, nil
+	}
+	if resp.Error != nil {
+		return nil, fmt.Errorf("task error: %s", resp.Error.Details)
+	}
+	return nil, fmt.Errorf("invalid task run result format")
 }
 
 func (e *Executor) completeTask(ctx context.Context, taskName string, result []interface{}, taskErr error) error {
@@ -64,25 +100,17 @@ func (e *Executor) completeTask(ctx context.Context, taskName string, result []i
 	var callbackRequest *callbackapi.CallbackRequest
 
 	if taskErr != nil {
-		isReportedBySdk := true
 		callbackRequest = &callbackapi.CallbackRequest{
-			Status: callbackapi.Error,
 			Error: &callbackapi.TaskError{
-				Details:         taskErr.Error(),
-				IsReportedBySdk: &isReportedBySdk,
+				Details: taskErr.Error(),
 			},
 		}
 	} else {
 		callbackRequest = &callbackapi.CallbackRequest{
-			Status: callbackapi.Complete,
 			Complete: &callbackapi.TaskComplete{
 				Output: output,
 			},
 		}
-	}
-
-	callbackRequest.Metadata = &callbackapi.TaskMetadata{
-		TaskName: taskName,
 	}
 
 	resp, err := e.callbacker.PostCallbackWithResponse(ctx, *callbackRequest)

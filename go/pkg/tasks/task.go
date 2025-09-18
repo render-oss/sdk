@@ -24,12 +24,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"runtime/debug"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/uds"
-	"github.com/renderinc/workflow-sdk/go/pkg/render"
 )
 
 var taskSingleton = task.NewTasks()
@@ -54,17 +54,46 @@ type TaskContext = task.TaskContext
 type Options = task.Options
 type Retry = task.Retry
 
-func Run(ctx context.Context, unixSocketPath string) error {
+func Run(ctx context.Context, unixSocketPath string) (_err error) {
 	callbackerClient, err := uds.NewCallbackClient(unixSocketPath)
 	if err != nil {
 		return fmt.Errorf("failed to create callbacker: %w", err)
 	}
 
-	renderClient, err := render.NewSocketClient(unixSocketPath)
-	if err != nil {
-		return fmt.Errorf("failed to create renderClient: %w", err)
-	}
-	executor := executor.NewExecutor(taskSingleton, callbackerClient, renderClient)
+	defer func() {
+		var callbackTaskErr *callbackapi.TaskError
+
+		if r := recover(); r != nil {
+			stackTrace := string(debug.Stack())
+			callbackTaskErr = &callbackapi.TaskError{
+				Details:    fmt.Sprintf("task panicked: %v", r),
+				StackTrace: &stackTrace,
+			}
+		} else if _err != nil {
+			callbackTaskErr = &callbackapi.TaskError{
+				Details: fmt.Sprintf("task failed: %v", _err),
+			}
+			_err = nil
+		} else {
+			// No error, nothing to do
+			return
+		}
+
+		resp, callbackErr := callbackerClient.PostCallbackWithResponse(ctx, callbackapi.PostCallbackJSONRequestBody{
+			Error: callbackTaskErr,
+		})
+		// todo better handle errs?
+		if callbackErr != nil {
+			_err = callbackErr
+			return
+		}
+		if resp.StatusCode() != 200 {
+			_err = fmt.Errorf("callback failed with status code %d", resp.StatusCode())
+			return
+		}
+	}()
+
+	executor := executor.NewExecutor(taskSingleton, callbackerClient)
 
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {
@@ -85,7 +114,7 @@ func Run(ctx context.Context, unixSocketPath string) error {
 	// We use this to avoid idempotency checks by the server adapter
 	err = executor.Execute(ctx, taskName, input...)
 	if err != nil {
-		return fmt.Errorf("failed to start task: %w", err)
+		return err
 	}
 	slog.InfoContext(ctx, "Started task successfully")
 

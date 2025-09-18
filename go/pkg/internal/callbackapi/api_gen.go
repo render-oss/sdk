@@ -14,30 +14,13 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
-)
-
-// Defines values for CallbackRequestStatus.
-const (
-	Complete CallbackRequestStatus = "complete"
-	Error    CallbackRequestStatus = "error"
 )
 
 // CallbackRequest defines model for CallbackRequest.
 type CallbackRequest struct {
-	Complete *TaskComplete         `json:"complete,omitempty"`
-	Error    *TaskError            `json:"error,omitempty"`
-	Metadata *TaskMetadata         `json:"metadata,omitempty"`
-	Status   CallbackRequestStatus `json:"status"`
-}
-
-// CallbackRequestStatus defines model for CallbackRequest.Status.
-type CallbackRequestStatus string
-
-// CallbackResponse defines model for CallbackResponse.
-type CallbackResponse struct {
-	TaskId *string `json:"task_id,omitempty"`
+	Complete *TaskComplete `json:"complete,omitempty"`
+	Error    *TaskError    `json:"error,omitempty"`
 }
 
 // InputResponse defines model for InputResponse.
@@ -58,6 +41,29 @@ type RetryConfig struct {
 	WaitDurationMs *int64 `json:"wait_duration_ms,omitempty"`
 }
 
+// RunSubtaskRequest defines model for RunSubtaskRequest.
+type RunSubtaskRequest struct {
+	Input    *[]byte `json:"input,omitempty"`
+	TaskName string  `json:"task_name"`
+}
+
+// RunSubtaskResponse defines model for RunSubtaskResponse.
+type RunSubtaskResponse struct {
+	TaskRunId string `json:"task_run_id"`
+}
+
+// SubtaskResultRequest defines model for SubtaskResultRequest.
+type SubtaskResultRequest struct {
+	TaskRunId string `json:"task_run_id"`
+}
+
+// SubtaskResultResponse defines model for SubtaskResultResponse.
+type SubtaskResultResponse struct {
+	Complete     *TaskComplete `json:"complete,omitempty"`
+	Error        *TaskError    `json:"error,omitempty"`
+	StillRunning bool          `json:"still_running"`
+}
+
 // Task defines model for Task.
 type Task struct {
 	Name    string       `json:"name"`
@@ -71,19 +77,8 @@ type TaskComplete struct {
 
 // TaskError defines model for TaskError.
 type TaskError struct {
-	Details         string `json:"details"`
-	ExitCode        int    `json:"exit_code"`
-	IsOom           *bool  `json:"is_oom,omitempty"`
-	IsReportedBySdk *bool  `json:"is_reported_by_sdk,omitempty"`
-	IsSystemErr     *bool  `json:"is_system_err,omitempty"`
-	IsTimeout       *bool  `json:"is_timeout,omitempty"`
-}
-
-// TaskMetadata defines model for TaskMetadata.
-type TaskMetadata struct {
-	TaskId    string `json:"task_id"`
-	TaskName  string `json:"task_name"`
-	TaskRunId string `json:"task_run_id"`
+	Details    string  `json:"details"`
+	StackTrace *string `json:"stack_trace,omitempty"`
 }
 
 // TaskOptions defines model for TaskOptions.
@@ -91,26 +86,22 @@ type TaskOptions struct {
 	Retry *RetryConfig `json:"retry,omitempty"`
 }
 
-// TaskResultResponse defines model for TaskResultResponse.
-type TaskResultResponse struct {
-	Complete TaskComplete `json:"complete"`
-}
-
 // Tasks defines model for Tasks.
 type Tasks struct {
 	Tasks []Task `json:"tasks"`
 }
 
-// GetTaskResultParams defines parameters for GetTaskResult.
-type GetTaskResultParams struct {
-	TaskRunID string `form:"taskRunID" json:"taskRunID"`
-}
-
 // PostCallbackJSONRequestBody defines body for PostCallback for application/json ContentType.
 type PostCallbackJSONRequestBody = CallbackRequest
 
+// PostGetSubtaskResultJSONRequestBody defines body for PostGetSubtaskResult for application/json ContentType.
+type PostGetSubtaskResultJSONRequestBody = SubtaskResultRequest
+
 // PostRegisterTasksJSONRequestBody defines body for PostRegisterTasks for application/json ContentType.
 type PostRegisterTasksJSONRequestBody = Tasks
+
+// PostRunSubtaskJSONRequestBody defines body for PostRunSubtask for application/json ContentType.
+type PostRunSubtaskJSONRequestBody = RunSubtaskRequest
 
 // RequestEditorFn  is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -190,6 +181,11 @@ type ClientInterface interface {
 
 	PostCallback(ctx context.Context, body PostCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// PostGetSubtaskResultWithBody request with any body
+	PostGetSubtaskResultWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostGetSubtaskResult(ctx context.Context, body PostGetSubtaskResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetInput request
 	GetInput(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -198,8 +194,10 @@ type ClientInterface interface {
 
 	PostRegisterTasks(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetTaskResult request
-	GetTaskResult(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// PostRunSubtaskWithBody request with any body
+	PostRunSubtaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	PostRunSubtask(ctx context.Context, body PostRunSubtaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
 func (c *Client) PostCallbackWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -216,6 +214,30 @@ func (c *Client) PostCallbackWithBody(ctx context.Context, contentType string, b
 
 func (c *Client) PostCallback(ctx context.Context, body PostCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewPostCallbackRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGetSubtaskResultWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetSubtaskResultRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostGetSubtaskResult(ctx context.Context, body PostGetSubtaskResultJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostGetSubtaskResultRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -262,8 +284,20 @@ func (c *Client) PostRegisterTasks(ctx context.Context, body PostRegisterTasksJS
 	return c.Client.Do(req)
 }
 
-func (c *Client) GetTaskResult(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetTaskResultRequest(c.Server, params)
+func (c *Client) PostRunSubtaskWithBody(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRunSubtaskRequestWithBody(c.Server, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) PostRunSubtask(ctx context.Context, body PostRunSubtaskJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewPostRunSubtaskRequest(c.Server, body)
 	if err != nil {
 		return nil, err
 	}
@@ -295,6 +329,46 @@ func NewPostCallbackRequestWithBody(server string, contentType string, body io.R
 	}
 
 	operationPath := fmt.Sprintf("/callback")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewPostGetSubtaskResultRequest calls the generic PostGetSubtaskResult builder with application/json body
+func NewPostGetSubtaskResultRequest(server string, body PostGetSubtaskResultJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostGetSubtaskResultRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostGetSubtaskResultRequestWithBody generates requests for PostGetSubtaskResult with any type of body
+func NewPostGetSubtaskResultRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/get-subtask-result")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -381,8 +455,19 @@ func NewPostRegisterTasksRequestWithBody(server string, contentType string, body
 	return req, nil
 }
 
-// NewGetTaskResultRequest generates requests for GetTaskResult
-func NewGetTaskResultRequest(server string, params *GetTaskResultParams) (*http.Request, error) {
+// NewPostRunSubtaskRequest calls the generic PostRunSubtask builder with application/json body
+func NewPostRunSubtaskRequest(server string, body PostRunSubtaskJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewPostRunSubtaskRequestWithBody(server, "application/json", bodyReader)
+}
+
+// NewPostRunSubtaskRequestWithBody generates requests for PostRunSubtask with any type of body
+func NewPostRunSubtaskRequestWithBody(server string, contentType string, body io.Reader) (*http.Request, error) {
 	var err error
 
 	serverURL, err := url.Parse(server)
@@ -390,7 +475,7 @@ func NewGetTaskResultRequest(server string, params *GetTaskResultParams) (*http.
 		return nil, err
 	}
 
-	operationPath := fmt.Sprintf("/task-result")
+	operationPath := fmt.Sprintf("/run-subtask")
 	if operationPath[0] == '/' {
 		operationPath = "." + operationPath
 	}
@@ -400,28 +485,12 @@ func NewGetTaskResultRequest(server string, params *GetTaskResultParams) (*http.
 		return nil, err
 	}
 
-	if params != nil {
-		queryValues := queryURL.Query()
-
-		if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskRunID", runtime.ParamLocationQuery, params.TaskRunID); err != nil {
-			return nil, err
-		} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-			return nil, err
-		} else {
-			for k, v := range parsed {
-				for _, v2 := range v {
-					queryValues.Add(k, v2)
-				}
-			}
-		}
-
-		queryURL.RawQuery = queryValues.Encode()
-	}
-
-	req, err := http.NewRequest("GET", queryURL.String(), nil)
+	req, err := http.NewRequest("POST", queryURL.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", contentType)
 
 	return req, nil
 }
@@ -474,6 +543,11 @@ type ClientWithResponsesInterface interface {
 
 	PostCallbackWithResponse(ctx context.Context, body PostCallbackJSONRequestBody, reqEditors ...RequestEditorFn) (*PostCallbackResponse, error)
 
+	// PostGetSubtaskResultWithBodyWithResponse request with any body
+	PostGetSubtaskResultWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetSubtaskResultResponse, error)
+
+	PostGetSubtaskResultWithResponse(ctx context.Context, body PostGetSubtaskResultJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetSubtaskResultResponse, error)
+
 	// GetInputWithResponse request
 	GetInputWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetInputResponse, error)
 
@@ -482,14 +556,15 @@ type ClientWithResponsesInterface interface {
 
 	PostRegisterTasksWithResponse(ctx context.Context, body PostRegisterTasksJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRegisterTasksResponse, error)
 
-	// GetTaskResultWithResponse request
-	GetTaskResultWithResponse(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*GetTaskResultResponse, error)
+	// PostRunSubtaskWithBodyWithResponse request with any body
+	PostRunSubtaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRunSubtaskResponse, error)
+
+	PostRunSubtaskWithResponse(ctx context.Context, body PostRunSubtaskJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRunSubtaskResponse, error)
 }
 
 type PostCallbackResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *CallbackResponse
 }
 
 // Status returns HTTPResponse.Status
@@ -502,6 +577,28 @@ func (r PostCallbackResponse) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r PostCallbackResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type PostGetSubtaskResultResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *SubtaskResultResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r PostGetSubtaskResultResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r PostGetSubtaskResultResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -551,14 +648,14 @@ func (r PostRegisterTasksResponse) StatusCode() int {
 	return 0
 }
 
-type GetTaskResultResponse struct {
+type PostRunSubtaskResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *TaskResultResponse
+	JSON200      *RunSubtaskResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r GetTaskResultResponse) Status() string {
+func (r PostRunSubtaskResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -566,7 +663,7 @@ func (r GetTaskResultResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetTaskResultResponse) StatusCode() int {
+func (r PostRunSubtaskResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -588,6 +685,23 @@ func (c *ClientWithResponses) PostCallbackWithResponse(ctx context.Context, body
 		return nil, err
 	}
 	return ParsePostCallbackResponse(rsp)
+}
+
+// PostGetSubtaskResultWithBodyWithResponse request with arbitrary body returning *PostGetSubtaskResultResponse
+func (c *ClientWithResponses) PostGetSubtaskResultWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostGetSubtaskResultResponse, error) {
+	rsp, err := c.PostGetSubtaskResultWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetSubtaskResultResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostGetSubtaskResultWithResponse(ctx context.Context, body PostGetSubtaskResultJSONRequestBody, reqEditors ...RequestEditorFn) (*PostGetSubtaskResultResponse, error) {
+	rsp, err := c.PostGetSubtaskResult(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostGetSubtaskResultResponse(rsp)
 }
 
 // GetInputWithResponse request returning *GetInputResponse
@@ -616,13 +730,21 @@ func (c *ClientWithResponses) PostRegisterTasksWithResponse(ctx context.Context,
 	return ParsePostRegisterTasksResponse(rsp)
 }
 
-// GetTaskResultWithResponse request returning *GetTaskResultResponse
-func (c *ClientWithResponses) GetTaskResultWithResponse(ctx context.Context, params *GetTaskResultParams, reqEditors ...RequestEditorFn) (*GetTaskResultResponse, error) {
-	rsp, err := c.GetTaskResult(ctx, params, reqEditors...)
+// PostRunSubtaskWithBodyWithResponse request with arbitrary body returning *PostRunSubtaskResponse
+func (c *ClientWithResponses) PostRunSubtaskWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*PostRunSubtaskResponse, error) {
+	rsp, err := c.PostRunSubtaskWithBody(ctx, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetTaskResultResponse(rsp)
+	return ParsePostRunSubtaskResponse(rsp)
+}
+
+func (c *ClientWithResponses) PostRunSubtaskWithResponse(ctx context.Context, body PostRunSubtaskJSONRequestBody, reqEditors ...RequestEditorFn) (*PostRunSubtaskResponse, error) {
+	rsp, err := c.PostRunSubtask(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParsePostRunSubtaskResponse(rsp)
 }
 
 // ParsePostCallbackResponse parses an HTTP response from a PostCallbackWithResponse call
@@ -638,9 +760,25 @@ func ParsePostCallbackResponse(rsp *http.Response) (*PostCallbackResponse, error
 		HTTPResponse: rsp,
 	}
 
+	return response, nil
+}
+
+// ParsePostGetSubtaskResultResponse parses an HTTP response from a PostGetSubtaskResultWithResponse call
+func ParsePostGetSubtaskResultResponse(rsp *http.Response) (*PostGetSubtaskResultResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &PostGetSubtaskResultResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest CallbackResponse
+		var dest SubtaskResultResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -693,22 +831,22 @@ func ParsePostRegisterTasksResponse(rsp *http.Response) (*PostRegisterTasksRespo
 	return response, nil
 }
 
-// ParseGetTaskResultResponse parses an HTTP response from a GetTaskResultWithResponse call
-func ParseGetTaskResultResponse(rsp *http.Response) (*GetTaskResultResponse, error) {
+// ParsePostRunSubtaskResponse parses an HTTP response from a PostRunSubtaskWithResponse call
+func ParsePostRunSubtaskResponse(rsp *http.Response) (*PostRunSubtaskResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetTaskResultResponse{
+	response := &PostRunSubtaskResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest TaskResultResponse
+		var dest RunSubtaskResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -724,15 +862,18 @@ type ServerInterface interface {
 	// Receive a callback from a workflow
 	// (POST /callback)
 	PostCallback(w http.ResponseWriter, r *http.Request)
+	// Fetch the results for a subtask
+	// (POST /get-subtask-result)
+	PostGetSubtaskResult(w http.ResponseWriter, r *http.Request)
 	// Get the task name and input for a task run
 	// (GET /input)
 	GetInput(w http.ResponseWriter, r *http.Request)
 	// Publish registered tasks
 	// (POST /register-tasks)
 	PostRegisterTasks(w http.ResponseWriter, r *http.Request)
-	// Get the result of a task run
-	// (GET /task-result)
-	GetTaskResult(w http.ResponseWriter, r *http.Request, params GetTaskResultParams)
+	// Trigger a subtask
+	// (POST /run-subtask)
+	PostRunSubtask(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -742,6 +883,12 @@ type Unimplemented struct{}
 // Receive a callback from a workflow
 // (POST /callback)
 func (_ Unimplemented) PostCallback(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Fetch the results for a subtask
+// (POST /get-subtask-result)
+func (_ Unimplemented) PostGetSubtaskResult(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -757,9 +904,9 @@ func (_ Unimplemented) PostRegisterTasks(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Get the result of a task run
-// (GET /task-result)
-func (_ Unimplemented) GetTaskResult(w http.ResponseWriter, r *http.Request, params GetTaskResultParams) {
+// Trigger a subtask
+// (POST /run-subtask)
+func (_ Unimplemented) PostRunSubtask(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -777,6 +924,20 @@ func (siw *ServerInterfaceWrapper) PostCallback(w http.ResponseWriter, r *http.R
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostCallback(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostGetSubtaskResult operation middleware
+func (siw *ServerInterfaceWrapper) PostGetSubtaskResult(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostGetSubtaskResult(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -814,31 +975,11 @@ func (siw *ServerInterfaceWrapper) PostRegisterTasks(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
-// GetTaskResult operation middleware
-func (siw *ServerInterfaceWrapper) GetTaskResult(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetTaskResultParams
-
-	// ------------- Required query parameter "taskRunID" -------------
-
-	if paramValue := r.URL.Query().Get("taskRunID"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "taskRunID"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "taskRunID", r.URL.Query(), &params.TaskRunID)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "taskRunID", Err: err})
-		return
-	}
+// PostRunSubtask operation middleware
+func (siw *ServerInterfaceWrapper) PostRunSubtask(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTaskResult(w, r, params)
+		siw.Handler.PostRunSubtask(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -965,13 +1106,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/callback", wrapper.PostCallback)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/get-subtask-result", wrapper.PostGetSubtaskResult)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/input", wrapper.GetInput)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/register-tasks", wrapper.PostRegisterTasks)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/task-result", wrapper.GetTaskResult)
+		r.Post(options.BaseURL+"/run-subtask", wrapper.PostRunSubtask)
 	})
 
 	return r
@@ -985,13 +1129,12 @@ type PostCallbackResponseObject interface {
 	VisitPostCallbackResponse(w http.ResponseWriter) error
 }
 
-type PostCallback200JSONResponse CallbackResponse
+type PostCallback200Response struct {
+}
 
-func (response PostCallback200JSONResponse) VisitPostCallbackResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
+func (response PostCallback200Response) VisitPostCallbackResponse(w http.ResponseWriter) error {
 	w.WriteHeader(200)
-
-	return json.NewEncoder(w).Encode(response)
+	return nil
 }
 
 type PostCallback400Response struct {
@@ -1022,6 +1165,31 @@ type PostCallback500Response struct {
 }
 
 func (response PostCallback500Response) VisitPostCallbackResponse(w http.ResponseWriter) error {
+	w.WriteHeader(500)
+	return nil
+}
+
+type PostGetSubtaskResultRequestObject struct {
+	Body *PostGetSubtaskResultJSONRequestBody
+}
+
+type PostGetSubtaskResultResponseObject interface {
+	VisitPostGetSubtaskResultResponse(w http.ResponseWriter) error
+}
+
+type PostGetSubtaskResult200JSONResponse SubtaskResultResponse
+
+func (response PostGetSubtaskResult200JSONResponse) VisitPostGetSubtaskResultResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PostGetSubtaskResult500Response struct {
+}
+
+func (response PostGetSubtaskResult500Response) VisitPostGetSubtaskResultResponse(w http.ResponseWriter) error {
 	w.WriteHeader(500)
 	return nil
 }
@@ -1082,27 +1250,27 @@ func (response PostRegisterTasks500Response) VisitPostRegisterTasksResponse(w ht
 	return nil
 }
 
-type GetTaskResultRequestObject struct {
-	Params GetTaskResultParams
+type PostRunSubtaskRequestObject struct {
+	Body *PostRunSubtaskJSONRequestBody
 }
 
-type GetTaskResultResponseObject interface {
-	VisitGetTaskResultResponse(w http.ResponseWriter) error
+type PostRunSubtaskResponseObject interface {
+	VisitPostRunSubtaskResponse(w http.ResponseWriter) error
 }
 
-type GetTaskResult200JSONResponse TaskResultResponse
+type PostRunSubtask200JSONResponse RunSubtaskResponse
 
-func (response GetTaskResult200JSONResponse) VisitGetTaskResultResponse(w http.ResponseWriter) error {
+func (response PostRunSubtask200JSONResponse) VisitPostRunSubtaskResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetTaskResult500Response struct {
+type PostRunSubtask500Response struct {
 }
 
-func (response GetTaskResult500Response) VisitGetTaskResultResponse(w http.ResponseWriter) error {
+func (response PostRunSubtask500Response) VisitPostRunSubtaskResponse(w http.ResponseWriter) error {
 	w.WriteHeader(500)
 	return nil
 }
@@ -1112,15 +1280,18 @@ type StrictServerInterface interface {
 	// Receive a callback from a workflow
 	// (POST /callback)
 	PostCallback(ctx context.Context, request PostCallbackRequestObject) (PostCallbackResponseObject, error)
+	// Fetch the results for a subtask
+	// (POST /get-subtask-result)
+	PostGetSubtaskResult(ctx context.Context, request PostGetSubtaskResultRequestObject) (PostGetSubtaskResultResponseObject, error)
 	// Get the task name and input for a task run
 	// (GET /input)
 	GetInput(ctx context.Context, request GetInputRequestObject) (GetInputResponseObject, error)
 	// Publish registered tasks
 	// (POST /register-tasks)
 	PostRegisterTasks(ctx context.Context, request PostRegisterTasksRequestObject) (PostRegisterTasksResponseObject, error)
-	// Get the result of a task run
-	// (GET /task-result)
-	GetTaskResult(ctx context.Context, request GetTaskResultRequestObject) (GetTaskResultResponseObject, error)
+	// Trigger a subtask
+	// (POST /run-subtask)
+	PostRunSubtask(ctx context.Context, request PostRunSubtaskRequestObject) (PostRunSubtaskResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -1183,6 +1354,37 @@ func (sh *strictHandler) PostCallback(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// PostGetSubtaskResult operation middleware
+func (sh *strictHandler) PostGetSubtaskResult(w http.ResponseWriter, r *http.Request) {
+	var request PostGetSubtaskResultRequestObject
+
+	var body PostGetSubtaskResultJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostGetSubtaskResult(ctx, request.(PostGetSubtaskResultRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostGetSubtaskResult")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostGetSubtaskResultResponseObject); ok {
+		if err := validResponse.VisitPostGetSubtaskResultResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetInput operation middleware
 func (sh *strictHandler) GetInput(w http.ResponseWriter, r *http.Request) {
 	var request GetInputRequestObject
@@ -1238,25 +1440,30 @@ func (sh *strictHandler) PostRegisterTasks(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// GetTaskResult operation middleware
-func (sh *strictHandler) GetTaskResult(w http.ResponseWriter, r *http.Request, params GetTaskResultParams) {
-	var request GetTaskResultRequestObject
+// PostRunSubtask operation middleware
+func (sh *strictHandler) PostRunSubtask(w http.ResponseWriter, r *http.Request) {
+	var request PostRunSubtaskRequestObject
 
-	request.Params = params
+	var body PostRunSubtaskJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetTaskResult(ctx, request.(GetTaskResultRequestObject))
+		return sh.ssi.PostRunSubtask(ctx, request.(PostRunSubtaskRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetTaskResult")
+		handler = middleware(handler, "PostRunSubtask")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetTaskResultResponseObject); ok {
-		if err := validResponse.VisitGetTaskResultResponse(w); err != nil {
+	} else if validResponse, ok := response.(PostRunSubtaskResponseObject); ok {
+		if err := validResponse.VisitPostRunSubtaskResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {

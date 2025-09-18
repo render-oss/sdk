@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
-	"github.com/stretchr/testify/require"
 )
 
 func testTask(_ task.TaskContext) (interface{}, error) {
@@ -49,7 +50,7 @@ func TestExecuteTask(t *testing.T) {
 		callbackerClient, err := callbackapi.NewClientWithResponses(srv.URL)
 		require.NoError(t, err)
 
-		executor := executor.NewExecutor(tasks, callbackerClient, nil)
+		executor := executor.NewExecutor(tasks, callbackerClient)
 		err = executor.Execute(context.Background(), "testTask")
 		require.NoError(t, err)
 
@@ -75,7 +76,6 @@ func TestExecuteTask(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, callbackRequest.Error.Details, "task failed")
-			require.True(t, *callbackRequest.Error.IsReportedBySdk)
 			callbackCalled = true
 			w.WriteHeader(200)
 		}))
@@ -83,7 +83,7 @@ func TestExecuteTask(t *testing.T) {
 		callbackerClient, err := callbackapi.NewClientWithResponses(srv.URL)
 		require.NoError(t, err)
 
-		executor := executor.NewExecutor(tasks, callbackerClient, nil)
+		executor := executor.NewExecutor(tasks, callbackerClient)
 		err = executor.Execute(context.Background(), "failingTask")
 		require.NoError(t, err)
 
