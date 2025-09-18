@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/tasks"
 )
@@ -30,6 +31,19 @@ func addSquares(ctx tasks.TaskContext, a int, b int) int {
 	return result1 + result2
 }
 
+func testCancellationWithSubtasks(ctx tasks.TaskContext, num int) {
+	var wg sync.WaitGroup
+	for i := 0; i < num; i++ {
+		wg.Add(1)
+
+		go func(i, num int) {
+			defer wg.Done()
+			_ = ctx.ExecuteTask(sleep)
+		}(i, num)
+	}
+	wg.Wait()
+}
+
 func main() {
 	err := tasks.RegisterTask(square)
 	if err != nil {
@@ -43,6 +57,7 @@ func main() {
 	tasks.MustRegister(burn_cpu_1m)
 	tasks.MustRegister(sleep)
 	tasks.MustRegister(measure_latency)
+	tasks.MustRegister(testCancellationWithSubtasks)
 
 	err = tasks.Start()
 	if err != nil {
