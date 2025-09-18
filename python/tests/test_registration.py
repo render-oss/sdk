@@ -70,6 +70,7 @@ def test_duplicate_task_registration(task_registry, task_decorator):
         def duplicate_task(value: int) -> int:
             return value + 2
 
+
 def test_task_registration_with_options_object():
     """Test task registration with different Options configurations."""
     registry = TaskRegistry()
