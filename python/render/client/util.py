@@ -1,7 +1,11 @@
 from asyncio import sleep
-from typing import Callable, Awaitable, Any, Tuple
+from collections.abc import Awaitable
+from typing import Any, Callable
 
-async def poll_fn(fn: Callable[[],Awaitable[Tuple[Any, bool]]], poll_interval: float = 1.0) -> Any:
+
+async def poll_fn(
+    fn: Callable[[], Awaitable[tuple[Any, bool]]], poll_interval: float = 1.0
+) -> Any:
     """Poll a function until it returns a non-None value."""
     while True:
         result, done = await fn()

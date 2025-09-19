@@ -4,7 +4,7 @@ This module provides type aliases that mirror the Go client types,
 re-exporting from the generated client for convenience.
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 # Re-export commonly used types from generated client
 from .render_public_api_client.models.task_run import TaskRun as _TaskRun
@@ -17,7 +17,7 @@ from .render_public_api_client.models.task_run_status import (
 
 # Type aliases to match Go client interface
 TaskIdentifier = str
-TaskData = Union[Dict[str, Any], List[Any], str, int, float, bool, None]
+TaskData = Union[dict[str, Any], list[Any], str, int, float, bool, None]
 
 # Re-export model classes with cleaner names
 TaskRun = _TaskRun

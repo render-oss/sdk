@@ -6,26 +6,23 @@ mirroring the Go client's SSE implementation.
 
 import json
 from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING, Dict, List, Optional
 
 import httpx
 
+from .client import Client
 from .render_public_api_client.api.workflows.stream_task_runs_events import _get_kwargs
 from .types import TaskRunDetails
-
-if TYPE_CHECKING:
-    from .client import Client
 
 
 class SSEClient:
     """Client for Server-Sent Events streaming."""
 
-    def __init__(self, client: "Client"):
+    def __init__(self, client: Client):
         self.client = client
 
     async def stream_task_run_events(
         self,
-        task_run_ids: List[str],
+        task_run_ids: list[str],
     ) -> AsyncGenerator[TaskRunDetails, None]:
         """Stream task run events via SSE.
 
@@ -42,7 +39,9 @@ class SSEClient:
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
         # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(connect=5.0, write=5.0, read=None, pool=None) # These can be long lived
+        timeout = httpx.Timeout(
+            connect=5.0, write=5.0, read=None, pool=None
+        )  # These can be long lived
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Set up headers for SSE
             headers = kwargs.get("headers", {})
@@ -66,11 +65,12 @@ class SSEClient:
                 ) as response:
                     if response.status_code != 200:
                         response_text = await response.aread()
-                        raise Exception(f"SSE stream failed with status {response.status_code}: {response_text.decode()}")
+                        raise Exception(
+                            f"SSE stream failed with status {response.status_code}: {response_text.decode()}"
+                        )
 
                     async for event in parse_stream(response.aiter_bytes()):
                         yield event
-
 
             except httpx.RequestError as e:
                 raise Exception(f"SSE connection failed: {e}")
@@ -78,7 +78,7 @@ class SSEClient:
 
 def stream_task_run_events(
     client: "Client",
-    task_run_ids: List[str],
+    task_run_ids: list[str],
 ) -> AsyncGenerator[TaskRunDetails, None]:
     """Convenience function to stream task run events.
 
@@ -92,26 +92,29 @@ def stream_task_run_events(
     sse_client = SSEClient(client)
     return sse_client.stream_task_run_events(task_run_ids)
 
-async def parse_stream(bytes_iter: AsyncGenerator[bytes, None]) -> AsyncGenerator[TaskRunDetails, None]:
+
+async def parse_stream(
+    bytes_iter: AsyncGenerator[bytes, None],
+) -> AsyncGenerator[TaskRunDetails, None]:
     """Parse a stream of bytes into TaskRunDetails."""
     buffer = ""
     event_data = {}
 
     async for chunk in bytes_iter:
-        buffer += chunk.decode('utf-8', errors='ignore')
+        buffer += chunk.decode("utf-8", errors="ignore")
 
         # Process complete lines
-        while '\n' in buffer:
-            line, buffer = buffer.split('\n', 1)
-            line = line.rstrip('\r')
+        while "\n" in buffer:
+            line, buffer = buffer.split("\n", 1)
+            line = line.rstrip("\r")
 
             # Empty line indicates end of event
             if not line:
-                if 'data' in event_data and 'event' in event_data:
+                if "data" in event_data and "event" in event_data:
                     try:
                         # Yield event if it's a task.completed event
-                        if event_data['event'] == 'task.completed':
-                            data = json.loads(event_data['data'])
+                        if event_data["event"] == "task.completed":
+                            data = json.loads(event_data["data"])
                             task_run_details = _convert_to_task_run_details(data)
                             yield task_run_details
 
@@ -125,14 +128,14 @@ async def parse_stream(bytes_iter: AsyncGenerator[bytes, None]) -> AsyncGenerato
                 continue
 
             # Parse SSE fields
-            if ':' in line:
-                field, value = line.split(':', 1)
+            if ":" in line:
+                field, value = line.split(":", 1)
                 field = field.strip()
                 value = value.strip()
                 event_data[field] = value
 
 
-def _convert_to_task_run_details(data: Dict) -> TaskRunDetails:
+def _convert_to_task_run_details(data: dict) -> TaskRunDetails:
     """Convert JSON event data to TaskRunDetails object.
 
     Args:

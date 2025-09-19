@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Unit tests for SSE parsing functionality."""
 
-import pytest
 import json
-from render.client.sse import parse_stream
+
+import pytest
+
 from render.client import TaskRunDetails, TaskRunStatus
+from render.client.sse import parse_stream
+
 
 class BytesAiter:
     def __init__(self, data: bytes):
@@ -22,7 +25,6 @@ class BytesAiter:
         return chunk
 
 
-
 @pytest.mark.asyncio
 async def test_parse_stream_completed():
     """Test parsing of SSE stream."""
@@ -38,7 +40,9 @@ async def test_parse_stream_completed():
         retries=0,
     )
     sse_data = [
-        b'event: task.completed\ndata: '+json.dumps(details.to_dict()).encode('utf-8')+b'\n\n'
+        b"event: task.completed\ndata: "
+        + json.dumps(details.to_dict()).encode("utf-8")
+        + b"\n\n"
     ]
 
     count = 0
@@ -49,12 +53,11 @@ async def test_parse_stream_completed():
 
     assert count == 1
 
+
 @pytest.mark.asyncio
 async def test_parse_stream_malformed():
     """Test parsing of SSE malformedstream."""
-    sse_data = [
-        b'this is not a valid SSE event\n\n'
-    ]
+    sse_data = [b"this is not a valid SSE event\n\n"]
 
     count = 0
     async for event in parse_stream(BytesAiter(sse_data)):

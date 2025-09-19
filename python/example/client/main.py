@@ -15,16 +15,13 @@ Setup:
 import asyncio
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from render.client import (
-    TASK_RUN_STATUS_COMPLETED,
-    Client,
-    ListTaskRunsParams,
-)
+from render.client import TASK_RUN_STATUS_COMPLETED, Client, ListTaskRunsParams
+
 
 async def main():
     """Demonstrate async workflow operations."""
@@ -34,13 +31,12 @@ async def main():
         print("⚠️  RENDER_API_TOKEN environment variable not set")
         return
 
-
     # Create client
     client = Client(token, base_url="https://api.localhost.render.com:8443/")
 
     # Example task data - replace with your actual task
     task_identifier = "example-task"  # Replace with your task name
-    input_data: Dict[str, Any] = {
+    input_data: dict[str, Any] = {
         "message": "Hello from Python client!",
         "timestamp": "2024-01-01T00:00:00Z",
         "count": 42,
@@ -48,9 +44,8 @@ async def main():
 
     # Run the task
     try:
-      task_run = await client.workflows.run_task("square-workflow-2/square", [2])
-      print(f"Task started with ID: {task_run.id}")
-      task_run
+        task_run = await client.workflows.run_task(task_identifier, input_data)
+        print(f"Task started with ID: {task_run.id}")
     except Exception as e:
         print(f"Error running task: {e}")
         raise
