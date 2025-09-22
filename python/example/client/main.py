@@ -14,13 +14,9 @@ Setup:
 
 import asyncio
 import os
-import sys
 from typing import Any
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-
-from render.client import TASK_RUN_STATUS_COMPLETED, Client, ListTaskRunsParams
+from render.client import Client, ListTaskRunsParams, TaskRunStatus
 
 
 async def main():
@@ -30,7 +26,6 @@ async def main():
     if not token:
         print("⚠️  RENDER_API_TOKEN environment variable not set")
         return
-
     # Create client
     client = Client(token, base_url="https://api.localhost.render.com:8443/")
 
@@ -44,7 +39,7 @@ async def main():
 
     # Run the task
     try:
-        task_run = await client.workflows.run_task(task_identifier, input_data)
+        task_run = await client.workflows.run_task("square-workflow-2/square", ["2"])
         print(f"Task started with ID: {task_run.id}")
     except Exception as e:
         print(f"Error running task: {e}")
@@ -76,6 +71,7 @@ async def main():
     for i, task_run in enumerate(task_runs, 1):
         print(f"   {i}. {task_run.id} {task_run.status}")
 
+    client.workflows.get_task_run
 
 if __name__ == "__main__":
     asyncio.run(main())
