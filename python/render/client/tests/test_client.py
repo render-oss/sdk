@@ -209,35 +209,3 @@ async def test_await_already_completed_task(mocker, mock_task_run, mock_workflow
     assert result.id == "trn-test123"
     assert result.status.value == TaskRunStatus.COMPLETED
     mock_workflows_service.get_task_run.assert_called_once_with("trn-test123")
-
-
-@pytest.mark.asyncio
-async def test_await_with_sse_failure_fallback_to_polling(mocker, awaitable_task_run, mock_task_run_details):
-    """Test fallback to polling when SSE fails."""
-    # Mock SSE to fail
-    awaitable_task_run.workflows_service.client.sse.stream_task_run_events = mocker.AsyncMock(
-        side_effect=Exception("SSE connection failed")
-    )
-
-    # Mock polling to succeed
-    mock_get_task_run = mocker.AsyncMock()
-    awaitable_task_run.workflows_service.get_task_run = mock_get_task_run
-
-    # First call returns running, second returns completed
-    running_details = copy.deepcopy(mock_task_run_details)
-    running_details.status.value = TaskRunStatus.RUNNING
-    completed_details = copy.deepcopy(mock_task_run_details)
-    completed_details.status.value = TaskRunStatus.COMPLETED
-
-    mock_get_task_run.side_effect = [
-        running_details,  # Still running
-        completed_details,  # Now completed
-    ]
-
-    # Mock sleep to avoid actual delays
-    mocker.patch("asyncio.sleep")
-    result = await awaitable_task_run
-
-    assert result.id == "trn-test123"
-    assert result.status.value == TaskRunStatus.COMPLETED
-    assert mock_get_task_run.call_count == 2

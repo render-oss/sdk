@@ -22,7 +22,7 @@ from render.client.types import (
     TaskRunDetails,
     TaskRunStatusValues,
 )
-from render.client.util import poll_fn
+from render.client.util import retry_with_backoff
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -37,8 +37,6 @@ class AwaitableTaskRun:
     This class wraps a TaskRun and makes it awaitable, so you can use:
     `result = await task_run`
     """
-
-    FALLBACK_POLL_INTERVAL = 5.0  # seconds
 
     def __init__(self, task_run: TaskRun, workflows_service: "WorkflowsService"):
         self.task_run = task_run
@@ -79,32 +77,24 @@ class AwaitableTaskRun:
         if self.is_terminal_status():
             return await self.workflows_service.get_task_run(self.id)
 
-        try:
-            # Try SSE streaming first
-            async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
-                if event and event.id == self.id:
-                    # Update our internal state
-                    self.task_run = event
-
-                    if event.error:
-                        raise TaskRunError(event.error)
-
-                    return event
-
-        except Exception as e:
-            # SSE failed, fall back to polling
-            print(f"SSE streaming failed, falling back to polling: {e}")
-
-        # Fallback polling mechanism
-        return await poll_fn(self._task_run_completed, self.FALLBACK_POLL_INTERVAL)
-
-    async def _task_run_completed(self) -> tuple[TaskRunDetails, bool]:
-        self.task_run = await self.workflows_service.get_task_run(self.id)
-
-        return self.task_run, self.task_run.status.value in (
-            TaskRunStatusValues.COMPLETED,
-            TaskRunStatusValues.FAILED,
+        return await retry_with_backoff(
+          self._task_run_completed_with_sse,
+          max_retries=5,
+          poll_interval=1.0,
+          backoff_factor=2.0,
+          exempted_exceptions=(TaskRunError,),
         )
+
+    async def _task_run_completed_with_sse(self) -> tuple[TaskRunDetails, bool]:
+        async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
+            if event and event.id == self.id:
+                # Update our internal state
+                self.task_run = event
+
+                if event.error:
+                    raise TaskRunError(event.error)
+
+                return event
 
 
 class WorkflowsService:
