@@ -22,9 +22,7 @@ async def test_retry_with_backoff_failure():
         raise TestException("Test failure")
 
     with pytest.raises(TestException):
-        result = await retry_with_backoff(
-            fn, max_retries=2, poll_interval=0.001, backoff_factor=1.0
-        )
+        result = await retry_with_backoff(fn, max_retries=2, poll_interval=0.001, backoff_factor=1.0)
         assert result is None
 
 
@@ -40,9 +38,7 @@ async def test_retry_with_backoff_success_after_failure():
         else:
             return 1
 
-    result = await retry_with_backoff(
-        fn, max_retries=2, poll_interval=0.001, backoff_factor=1.0
-    )
+    result = await retry_with_backoff(fn, max_retries=2, poll_interval=0.001, backoff_factor=1.0)
     assert result == 1
 
 

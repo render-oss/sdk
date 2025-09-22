@@ -110,9 +110,7 @@ class UDSClient:
         if callback_data.type == CallbackType.COMPLETE:
             # Ensure result is wrapped in an array as expected by the API
             result_array = (
-                [callback_data.result]
-                if not isinstance(callback_data.result, list)
-                else callback_data.result
+                [callback_data.result] if not isinstance(callback_data.result, list) else callback_data.result
             )
             result_json = json.dumps(result_array).encode("utf-8")
 
