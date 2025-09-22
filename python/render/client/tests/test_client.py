@@ -74,9 +74,7 @@ def workflows_service(client):
 @pytest.mark.asyncio
 async def test_run_task_success(mocker, workflows_service, mock_task_run):
     """Test successful task execution."""
-    mock_create = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.create_task.asyncio"
-    )
+    mock_create = mocker.patch("render.client.render_public_api_client.api.workflows.create_task.asyncio")
     mock_create.return_value = mock_task_run
 
     result = await workflows_service.run_task("test-task", {"input": "data"})
@@ -91,9 +89,7 @@ async def test_run_task_failure(mocker, workflows_service):
     """Test task execution failure."""
 
     error = Error(message="Task creation failed")
-    mock_create = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.create_task.asyncio"
-    )
+    mock_create = mocker.patch("render.client.render_public_api_client.api.workflows.create_task.asyncio")
     mock_create.return_value = error
 
     with pytest.raises(Exception, match="Failed to create task: Task creation failed"):
@@ -103,62 +99,46 @@ async def test_run_task_failure(mocker, workflows_service):
 @pytest.mark.asyncio
 async def test_get_task_run_success(mocker, workflows_service, mock_task_run_details):
     """Test successful task run retrieval."""
-    mock_get = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.get_task_run.asyncio"
-    )
+    mock_get = mocker.patch("render.client.render_public_api_client.api.workflows.get_task_run.asyncio")
     mock_get.return_value = mock_task_run_details
 
     result = await workflows_service.get_task_run("trn-test123")
 
     assert result.id == "trn-test123"
     assert result.status.value == TASK_RUN_STATUS_COMPLETED
-    mock_get.assert_called_once_with(
-        client=workflows_service.client.internal, task_run_id="trn-test123"
-    )
+    mock_get.assert_called_once_with(client=workflows_service.client.internal, task_run_id="trn-test123")
 
 
 @pytest.mark.asyncio
 async def test_get_task_run_failure(mocker, workflows_service):
     """Test task run retrieval failure."""
     error = Error(message="Task not found")
-    mock_get = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.get_task_run.asyncio"
-    )
+    mock_get = mocker.patch("render.client.render_public_api_client.api.workflows.get_task_run.asyncio")
     mock_get.return_value = error
 
-    with pytest.raises(
-        Exception, match="Failed to get task run trn-test123: Task not found"
-    ):
+    with pytest.raises(Exception, match="Failed to get task run trn-test123: Task not found"):
         await workflows_service.get_task_run("trn-test123")
 
 
 @pytest.mark.asyncio
 async def test_cancel_task_run_success(mocker, workflows_service):
     """Test successful task run cancellation."""
-    mock_delete = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.delete_task_run.asyncio"
-    )
+    mock_delete = mocker.patch("render.client.render_public_api_client.api.workflows.delete_task_run.asyncio")
     mock_delete.return_value = None  # Success returns None
 
     await workflows_service.cancel_task_run("trn-test123")
 
-    mock_delete.assert_called_once_with(
-        client=workflows_service.client.internal, task_run_id="trn-test123"
-    )
+    mock_delete.assert_called_once_with(client=workflows_service.client.internal, task_run_id="trn-test123")
 
 
 @pytest.mark.asyncio
 async def test_cancel_task_run_failure(mocker, workflows_service):
     """Test task run cancellation failure."""
     error = Error(message="Cannot cancel task")
-    mock_delete = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.delete_task_run.asyncio"
-    )
+    mock_delete = mocker.patch("render.client.render_public_api_client.api.workflows.delete_task_run.asyncio")
     mock_delete.return_value = error
 
-    with pytest.raises(
-        Exception, match="Failed to cancel task run trn-test123: Cannot cancel task"
-    ):
+    with pytest.raises(Exception, match="Failed to cancel task run trn-test123: Cannot cancel task"):
         await workflows_service.cancel_task_run("trn-test123")
 
 
@@ -166,9 +146,7 @@ async def test_cancel_task_run_failure(mocker, workflows_service):
 async def test_list_task_runs_success(mocker, workflows_service, mock_task_run):
     """Test successful task runs listing."""
     task_runs = [mock_task_run]
-    mock_list = mocker.patch(
-        "render.client.render_public_api_client.api.workflows.list_task_runs.asyncio"
-    )
+    mock_list = mocker.patch("render.client.render_public_api_client.api.workflows.list_task_runs.asyncio")
     mock_list.return_value = task_runs
 
     params = ListTaskRunsParams(limit=5, owner_id="test-owner")
@@ -221,18 +199,14 @@ def test_is_terminal_status(mock_task_run, mock_workflows_service):
 
 
 @pytest.mark.asyncio
-async def test_await_already_completed_task(
-    mocker, mock_task_run, mock_workflows_service, mock_task_run_details
-):
+async def test_await_already_completed_task(mocker, mock_task_run, mock_workflows_service, mock_task_run_details):
     """Test awaiting an already completed task."""
     # Set task as completed
     mock_task_run.status.value = TASK_RUN_STATUS_COMPLETED
     awaitable_task_run = AwaitableTaskRun(mock_task_run, mock_workflows_service)
 
     # Mock the get_task_run call
-    mock_workflows_service.get_task_run = mocker.AsyncMock(
-        return_value=mock_task_run_details
-    )
+    mock_workflows_service.get_task_run = mocker.AsyncMock(return_value=mock_task_run_details)
 
     result = await awaitable_task_run
     assert result.id == "trn-test123"
@@ -241,13 +215,11 @@ async def test_await_already_completed_task(
 
 
 @pytest.mark.asyncio
-async def test_await_with_sse_failure_fallback_to_polling(
-    mocker, awaitable_task_run, mock_task_run_details
-):
+async def test_await_with_sse_failure_fallback_to_polling(mocker, awaitable_task_run, mock_task_run_details):
     """Test fallback to polling when SSE fails."""
     # Mock SSE to fail
-    awaitable_task_run.workflows_service.client.sse.stream_task_run_events = (
-        mocker.AsyncMock(side_effect=Exception("SSE connection failed"))
+    awaitable_task_run.workflows_service.client.sse.stream_task_run_events = mocker.AsyncMock(
+        side_effect=Exception("SSE connection failed")
     )
 
     # Mock polling to succeed

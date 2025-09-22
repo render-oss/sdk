@@ -1,1 +1,0 @@
-# Client example package

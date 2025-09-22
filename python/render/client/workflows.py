@@ -78,9 +78,7 @@ class AwaitableTaskRun:
 
         try:
             # Try SSE streaming first
-            async for event in self.workflows_service.client.sse.stream_task_run_events(
-                [self.id]
-            ):
+            async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
                 if event and event.id == self.id:
                     # Update our internal state
                     self.task_run = event
@@ -173,9 +171,7 @@ class WorkflowsService:
         )
 
         if response is None:
-            raise Exception(
-                f"Failed to get task run {task_run_id}: no response received"
-            )
+            raise Exception(f"Failed to get task run {task_run_id}: no response received")
 
         if isinstance(response, Error):
             raise Exception(f"Failed to get task run {task_run_id}: {response.message}")
@@ -200,9 +196,7 @@ class WorkflowsService:
 
         # delete_task_run returns None on success (204 status)
         if response is not None and isinstance(response, Error):
-            raise Exception(
-                f"Failed to cancel task run {task_run_id}: {response.message}"
-            )
+            raise Exception(f"Failed to cancel task run {task_run_id}: {response.message}")
 
     async def list_task_runs(
         self,
