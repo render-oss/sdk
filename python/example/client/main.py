@@ -39,7 +39,7 @@ async def main():
 
     # Run the task
     try:
-        task_run = await client.workflows.run_task("square-workflow-2/square", ["2"])
+        task_run = await client.workflows.run_task(task_identifier, input_data)
         print(f"Task started with ID: {task_run.id}")
     except Exception as e:
         print(f"Error running task: {e}")
