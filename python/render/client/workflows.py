@@ -6,15 +6,15 @@ It mirrors the functionality of the Go WorkflowsService.
 
 from typing import TYPE_CHECKING, Optional
 
-from .render_public_api_client.api.workflows import (
+from render.client.render_public_api_client.api.workflows import (
     create_task,
     delete_task_run,
     get_task_run,
     list_task_runs,
 )
-from .render_public_api_client.models.error import Error
-from .render_public_api_client.models.run_task import RunTask
-from .types import (
+from render.client.render_public_api_client.models.error import Error
+from render.client.render_public_api_client.models.run_task import RunTask
+from render.client.types import (
     ListTaskRunsParams,
     TaskData,
     TaskIdentifier,
@@ -22,11 +22,14 @@ from .types import (
     TaskRunDetails,
     TaskRunStatusValues,
 )
-from .util import poll_fn
+from render.client.util import poll_fn
 
 if TYPE_CHECKING:
-    from .client import Client
+    from render.client.client import Client
 
+class TaskRunError(Exception):
+    """Exception raised when a task run fails."""
+    pass
 
 class AwaitableTaskRun:
     """TaskRun with awaitable functionality for waiting on completion.
@@ -82,6 +85,9 @@ class AwaitableTaskRun:
                 if event and event.id == self.id:
                     # Update our internal state
                     self.task_run = event
+
+                    if event.error:
+                        raise TaskRunError(event.error)
 
                     return event
 

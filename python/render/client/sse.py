@@ -10,11 +10,11 @@ from typing import TYPE_CHECKING
 
 import httpx
 
-from .render_public_api_client.api.workflows.stream_task_runs_events import _get_kwargs
-from .types import TaskRunDetails
+from render.client.render_public_api_client.api.workflows.stream_task_runs_events import _get_kwargs
+from render.client.types import TaskRunDetails
 
 if TYPE_CHECKING:
-    from .client import Client
+    from render.client.client import Client
 
 
 class SSEClient:

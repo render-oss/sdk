@@ -7,9 +7,9 @@ It mirrors the functionality of the Go client.
 import os
 from typing import Optional
 
-from .render_public_api_client.client import AuthenticatedClient
-from .sse import SSEClient
-from .workflows import WorkflowsService
+from render.client.render_public_api_client.client import AuthenticatedClient
+from render.client.sse import SSEClient
+from render.client.workflows import WorkflowsService
 
 
 class Client:

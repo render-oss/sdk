@@ -3,9 +3,9 @@
 import logging
 from typing import Any
 
-from .client import UDSClient
-from .models import CallbackData, CallbackType
-from .task import TaskRegistry, TaskResult
+from render.workflows.client import UDSClient
+from render.workflows.models import CallbackData, CallbackType
+from render.workflows.task import TaskRegistry, TaskResult
 
 logger = logging.getLogger(__name__)
 

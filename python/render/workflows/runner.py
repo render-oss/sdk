@@ -6,10 +6,10 @@ import json
 import logging
 import os
 
-from .client import UDSClient
-from .executor import TaskExecutor
-from .models import TaskDefinition
-from .task import get_task_registry
+from render.workflows.client import UDSClient
+from render.workflows.executor import TaskExecutor
+from render.workflows.models import TaskDefinition
+from render.workflows.task import get_task_registry
 
 logger = logging.getLogger(__name__)
 

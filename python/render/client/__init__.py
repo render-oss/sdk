@@ -4,8 +4,8 @@ A Python client library for interacting with Render's REST API.
 This module mirrors the functionality of the Go client in go/pkg/render.
 """
 
-from .client import Client
-from .types import (
+from render.client.client import Client
+from render.client.types import (
     CursorParam,
     LimitParam,
     ListTaskRunsParams,
@@ -16,7 +16,7 @@ from .types import (
     TaskRunDetails,
     TaskRunStatus,
 )
-from .workflows import WorkflowsService
+from render.client.workflows import WorkflowsService
 
 # Constants for TaskRunStatus
 TASK_RUN_STATUS_PENDING = "pending"

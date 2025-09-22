@@ -6,7 +6,7 @@ This package provides:
 """
 
 # Re-export commonly used workflow SDK classes
-from .workflows import (
+from render.workflows import (
     Options,
     Retry,
     TaskRegistry,

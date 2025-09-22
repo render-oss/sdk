@@ -8,7 +8,7 @@ from dataclasses import asdict
 import aiohttp
 from aiohttp import UnixConnector
 
-from .models import (
+from render.workflows.models import (
     CallbackData,
     CallbackRequest,
     CallbackResponse,
