@@ -63,7 +63,7 @@ exclude = ["tests/", "example/", "render/public_api/"]
 check_untyped_defs = false
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["**/tests"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
