@@ -6,18 +6,21 @@ mirroring the Go client's SSE implementation.
 
 import json
 from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
 
 import httpx
 
-from .client import Client
 from .render_public_api_client.api.workflows.stream_task_runs_events import _get_kwargs
 from .types import TaskRunDetails
+
+if TYPE_CHECKING:
+    from .client import Client
 
 
 class SSEClient:
     """Client for Server-Sent Events streaming."""
 
-    def __init__(self, client: Client):
+    def __init__(self, client: "Client"):
         self.client = client
 
     async def stream_task_run_events(
@@ -39,9 +42,7 @@ class SSEClient:
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
         # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(
-            connect=5.0, write=5.0, read=None, pool=None
-        )  # These can be long lived
+        timeout = httpx.Timeout(connect=5.0, write=5.0, read=None, pool=None)  # These can be long lived
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Set up headers for SSE
             headers = kwargs.get("headers", {})
