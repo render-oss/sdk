@@ -39,7 +39,11 @@ async def test_parse_stream_completed():
         root_task_run_id="trn-test123",
         retries=0,
     )
-    sse_data = [b"event: task.completed\ndata: " + json.dumps(details.to_dict()).encode("utf-8") + b"\n\n"]
+    sse_data = [
+        b"event: task.completed\ndata: "
+        + json.dumps(details.to_dict()).encode("utf-8")
+        + b"\n\n"
+    ]
 
     count = 0
     async for event in parse_stream(BytesAiter(sse_data)):
@@ -56,7 +60,7 @@ async def test_parse_stream_malformed():
     sse_data = [b"this is not a valid SSE event\n\n"]
 
     count = 0
-    async for event in parse_stream(BytesAiter(sse_data)):
+    async for _ in parse_stream(BytesAiter(sse_data)):
         count += 1
 
     assert count == 0

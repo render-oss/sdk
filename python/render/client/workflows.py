@@ -4,7 +4,7 @@ This module provides the WorkflowsService class for workflow-related API operati
 It mirrors the functionality of the Go WorkflowsService.
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from render.client.render_public_api_client.api.workflows import (
     create_task,
@@ -27,9 +27,12 @@ from render.client.util import retry_with_backoff
 if TYPE_CHECKING:
     from render.client.client import Client
 
+
 class TaskRunError(Exception):
     """Exception raised when a task run fails."""
+
     pass
+
 
 class AwaitableTaskRun:
     """TaskRun with awaitable functionality for waiting on completion.
@@ -41,7 +44,7 @@ class AwaitableTaskRun:
     def __init__(self, task_run: TaskRun, workflows_service: "WorkflowsService"):
         self.task_run = task_run
         self.workflows_service = workflows_service
-        self._details: Optional[TaskRunDetails] = None
+        self._details: TaskRunDetails | None = None
 
     @property
     def id(self) -> str:
@@ -78,15 +81,17 @@ class AwaitableTaskRun:
             return await self.workflows_service.get_task_run(self.id)
 
         return await retry_with_backoff(
-          self._task_run_completed_with_sse,
-          max_retries=5,
-          poll_interval=1.0,
-          backoff_factor=2.0,
-          exempted_exceptions=(TaskRunError,),
+            self._task_run_completed_with_sse,
+            max_retries=5,
+            poll_interval=1.0,
+            backoff_factor=2.0,
+            exempted_exceptions=(TaskRunError,),
         )
 
     async def _task_run_completed_with_sse(self) -> tuple[TaskRunDetails, bool]:
-        async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
+        async for event in self.workflows_service.client.sse.stream_task_run_events(
+            [self.id]
+        ):
             if event and event.id == self.id:
                 # Update our internal state
                 self.task_run = event
@@ -167,7 +172,9 @@ class WorkflowsService:
         )
 
         if response is None:
-            raise Exception(f"Failed to get task run {task_run_id}: no response received")
+            raise Exception(
+                f"Failed to get task run {task_run_id}: no response received"
+            )
 
         if isinstance(response, Error):
             raise Exception(f"Failed to get task run {task_run_id}: {response.message}")
@@ -192,11 +199,13 @@ class WorkflowsService:
 
         # delete_task_run returns None on success (204 status)
         if response is not None and isinstance(response, Error):
-            raise Exception(f"Failed to cancel task run {task_run_id}: {response.message}")
+            raise Exception(
+                f"Failed to cancel task run {task_run_id}: {response.message}"
+            )
 
     async def list_task_runs(
         self,
-        params: Optional[ListTaskRunsParams] = None,
+        params: ListTaskRunsParams | None = None,
     ) -> list[TaskRun]:
         """List task runs with optional filtering.
 

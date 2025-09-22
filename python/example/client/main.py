@@ -71,7 +71,6 @@ async def main():
     for i, task_run in enumerate(task_runs, 1):
         print(f"   {i}. {task_run.id} {task_run.status}")
 
-    client.workflows.get_task_run
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -10,7 +10,9 @@ from typing import TYPE_CHECKING
 
 import httpx
 
-from render.client.render_public_api_client.api.workflows.stream_task_runs_events import _get_kwargs
+from render.client.render_public_api_client.api.workflows.stream_task_runs_events import (
+    _get_kwargs,
+)
 from render.client.types import TaskRunDetails
 
 if TYPE_CHECKING:
@@ -42,7 +44,9 @@ class SSEClient:
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
         # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(connect=5.0, write=5.0, read=None, pool=None)  # These can be long lived
+        timeout = httpx.Timeout(
+            connect=5.0, write=5.0, read=None, pool=None
+        )  # These can be long lived
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Set up headers for SSE
             headers = kwargs.get("headers", {})
@@ -67,14 +71,15 @@ class SSEClient:
                     if response.status_code != 200:
                         response_text = await response.aread()
                         raise Exception(
-                            f"SSE stream failed with status {response.status_code}: {response_text.decode()}"
+                            f"SSE stream failed with status {response.status_code}: \
+                              {response_text.decode()}"
                         )
 
                     async for event in parse_stream(response.aiter_bytes()):
                         yield event
 
             except httpx.RequestError as e:
-                raise Exception(f"SSE connection failed: {e}")
+                raise Exception(f"SSE connection failed: {e}") from e
 
 
 def stream_task_run_events(

@@ -5,7 +5,6 @@ It mirrors the functionality of the Go client.
 """
 
 import os
-from typing import Optional
 
 from render.client.render_public_api_client.client import AuthenticatedClient
 from render.client.sse import SSEClient
@@ -27,7 +26,7 @@ class Client:
 
     def __init__(
         self,
-        token: Optional[str] = None,
+        token: str | None = None,
         base_url: str = "https://api.render.com",
     ):
         """Initialize a new Render API client.
