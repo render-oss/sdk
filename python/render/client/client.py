@@ -6,7 +6,7 @@ It mirrors the functionality of the Go client.
 
 import os
 
-from render.client.render_public_api_client.client import AuthenticatedClient
+from render.public_api.client import AuthenticatedClient
 from render.client.sse import SSEClient
 from render.client.workflows import WorkflowsService
 

@@ -6,14 +6,14 @@ It mirrors the functionality of the Go WorkflowsService.
 
 from typing import TYPE_CHECKING
 
-from render.client.render_public_api_client.api.workflows import (
+from render.public_api.api.workflows import (
     create_task,
     delete_task_run,
     get_task_run,
     list_task_runs,
 )
-from render.client.render_public_api_client.models.error import Error
-from render.client.render_public_api_client.models.run_task import RunTask
+from render.public_api.models.error import Error
+from render.public_api.models.run_task import RunTask
 from render.client.types import (
     ListTaskRunsParams,
     TaskData,
@@ -89,9 +89,7 @@ class AwaitableTaskRun:
         )
 
     async def _task_run_completed_with_sse(self) -> tuple[TaskRunDetails, bool]:
-        async for event in self.workflows_service.client.sse.stream_task_run_events(
-            [self.id]
-        ):
+        async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
             if event and event.id == self.id:
                 # Update our internal state
                 self.task_run = event
@@ -172,9 +170,7 @@ class WorkflowsService:
         )
 
         if response is None:
-            raise Exception(
-                f"Failed to get task run {task_run_id}: no response received"
-            )
+            raise Exception(f"Failed to get task run {task_run_id}: no response received")
 
         if isinstance(response, Error):
             raise Exception(f"Failed to get task run {task_run_id}: {response.message}")
@@ -199,9 +195,7 @@ class WorkflowsService:
 
         # delete_task_run returns None on success (204 status)
         if response is not None and isinstance(response, Error):
-            raise Exception(
-                f"Failed to cancel task run {task_run_id}: {response.message}"
-            )
+            raise Exception(f"Failed to cancel task run {task_run_id}: {response.message}")
 
     async def list_task_runs(
         self,

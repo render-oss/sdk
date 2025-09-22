@@ -7,11 +7,11 @@ re-exporting from the generated client for convenience.
 from typing import Any
 
 # Re-export commonly used types from generated client
-from render.client.render_public_api_client.models.task_run import TaskRun as _TaskRun
-from render.client.render_public_api_client.models.task_run_details import (
+from render.public_api.models.task_run import TaskRun as _TaskRun
+from render.public_api.models.task_run_details import (
     TaskRunDetails as _TaskRunDetails,
 )
-from render.client.render_public_api_client.models.task_run_status import (
+from render.public_api.models.task_run_status import (
     TaskRunStatus as _TaskRunStatus,
 )
 

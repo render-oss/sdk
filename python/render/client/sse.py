@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import httpx
 
-from render.client.render_public_api_client.api.workflows.stream_task_runs_events import (
+from render.public_api.api.workflows.stream_task_runs_events import (
     _get_kwargs,
 )
 from render.client.types import TaskRunDetails
@@ -44,9 +44,7 @@ class SSEClient:
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
         # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(
-            connect=5.0, write=5.0, read=None, pool=None
-        )  # These can be long lived
+        timeout = httpx.Timeout(connect=5.0, write=5.0, read=None, pool=None)  # These can be long lived
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Set up headers for SSE
             headers = kwargs.get("headers", {})
@@ -80,23 +78,6 @@ class SSEClient:
 
             except httpx.RequestError as e:
                 raise Exception(f"SSE connection failed: {e}") from e
-
-
-def stream_task_run_events(
-    client: "Client",
-    task_run_ids: list[str],
-) -> AsyncGenerator[TaskRunDetails, None]:
-    """Convenience function to stream task run events.
-
-    Args:
-        client: The Render API client
-        task_run_ids: List of task run IDs to stream
-
-    Yields:
-        TaskRunDetails: Task run event updates
-    """
-    sse_client = SSEClient(client)
-    return sse_client.stream_task_run_events(task_run_ids)
 
 
 async def parse_stream(
