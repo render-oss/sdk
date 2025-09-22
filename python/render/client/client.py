@@ -34,11 +34,11 @@ class Client:
 
         Args:
             token: API authentication token. If not provided, will look for
-                  RENDER_API_TOKEN environment variable.
+                  RENDER_API_KEY environment variable.
             *options: Client configuration options
         """
         # Set default values
-        self.token = token or os.getenv("RENDER_API_TOKEN", "")
+        self.token = token or os.getenv("RENDER_API_KEY", "")
         self.base_url = base_url
 
         # Ensure base URL has proper format

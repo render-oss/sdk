@@ -7,7 +7,7 @@ to interact with Render's workflows API. It shows both async and sync patterns,
 task execution, monitoring, and error handling.
 
 Setup:
-1. Set your Render API token: export RENDER_API_TOKEN="your_token_here"
+1. Set your Render API token: export RENDER_API_KEY="your_token_here"
 2. Replace "your-task-name" with an actual task from your Render dashboard
 3. Run: poetry run python example/client/main.py
 """
@@ -22,9 +22,9 @@ from render.client import Client, ListTaskRunsParams, TaskRunStatus
 async def main():
     """Demonstrate async workflow operations."""
     # Get API token from environment
-    token = os.getenv("RENDER_API_TOKEN")
+    token = os.getenv("RENDER_API_KEY")
     if not token:
-        print("⚠️  RENDER_API_TOKEN environment variable not set")
+        print("⚠️  RENDER_API_KEY environment variable not set")
         return
     # Create client
     client = Client(token, base_url="https://api.localhost.render.com:8443/")
