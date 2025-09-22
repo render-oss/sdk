@@ -6,9 +6,6 @@ import copy
 import pytest
 
 from render.client import (
-    TASK_RUN_STATUS_COMPLETED,
-    TASK_RUN_STATUS_FAILED,
-    TASK_RUN_STATUS_RUNNING,
     Client,
     ListTaskRunsParams,
     WorkflowsService,
@@ -29,7 +26,7 @@ def mock_task_run(mocker):
     task_run = mocker.Mock(spec=TaskRun)
     task_run.id = "trn-test123"
     task_run.status = mocker.Mock(spec=TaskRunStatus)
-    task_run.status.value = TASK_RUN_STATUS_RUNNING
+    task_run.status.value = TaskRunStatus.RUNNING
     task_run.completed_at = None
     return task_run
 
@@ -40,7 +37,7 @@ def mock_task_run_details(mocker):
     details = mocker.Mock(spec=TaskRunDetails)
     details.id = "trn-test123"
     details.status = mocker.Mock(spec=TaskRunStatus)
-    details.status.value = TASK_RUN_STATUS_COMPLETED
+    details.status.value = TaskRunStatus.COMPLETED
     details.output = {"result": 42}
     details.error = None
     details.completed_at = "2024-01-01T00:00:00Z"
@@ -105,7 +102,7 @@ async def test_get_task_run_success(mocker, workflows_service, mock_task_run_det
     result = await workflows_service.get_task_run("trn-test123")
 
     assert result.id == "trn-test123"
-    assert result.status.value == TASK_RUN_STATUS_COMPLETED
+    assert result.status.value == TaskRunStatus.COMPLETED
     mock_get.assert_called_once_with(client=workflows_service.client.internal, task_run_id="trn-test123")
 
 
@@ -177,23 +174,23 @@ def awaitable_task_run(mock_task_run, mock_workflows_service):
 def test_task_run_properties(awaitable_task_run):
     """Test AwaitableTaskRun properties."""
     assert awaitable_task_run.id == "trn-test123"
-    assert awaitable_task_run.status == TASK_RUN_STATUS_RUNNING
+    assert awaitable_task_run.status == TaskRunStatus.RUNNING
 
 
 def test_is_terminal_status(mock_task_run, mock_workflows_service):
     """Test terminal status detection."""
     # Test running status (not terminal)
-    mock_task_run.status.value = TASK_RUN_STATUS_RUNNING
+    mock_task_run.status.value = TaskRunStatus.RUNNING
     awaitable_task_run = AwaitableTaskRun(mock_task_run, mock_workflows_service)
     assert not awaitable_task_run.is_terminal_status()
 
     # Test completed status (terminal)
-    mock_task_run.status.value = TASK_RUN_STATUS_COMPLETED
+    mock_task_run.status.value = TaskRunStatus.COMPLETED
     awaitable_task_run = AwaitableTaskRun(mock_task_run, mock_workflows_service)
     assert awaitable_task_run.is_terminal_status()
 
     # Test failed status (terminal)
-    mock_task_run.status.value = TASK_RUN_STATUS_FAILED
+    mock_task_run.status.value = TaskRunStatus.FAILED
     awaitable_task_run = AwaitableTaskRun(mock_task_run, mock_workflows_service)
     assert awaitable_task_run.is_terminal_status()
 
@@ -202,7 +199,7 @@ def test_is_terminal_status(mock_task_run, mock_workflows_service):
 async def test_await_already_completed_task(mocker, mock_task_run, mock_workflows_service, mock_task_run_details):
     """Test awaiting an already completed task."""
     # Set task as completed
-    mock_task_run.status.value = TASK_RUN_STATUS_COMPLETED
+    mock_task_run.status.value = TaskRunStatus.COMPLETED
     awaitable_task_run = AwaitableTaskRun(mock_task_run, mock_workflows_service)
 
     # Mock the get_task_run call
@@ -210,7 +207,7 @@ async def test_await_already_completed_task(mocker, mock_task_run, mock_workflow
 
     result = await awaitable_task_run
     assert result.id == "trn-test123"
-    assert result.status.value == TASK_RUN_STATUS_COMPLETED
+    assert result.status.value == TaskRunStatus.COMPLETED
     mock_workflows_service.get_task_run.assert_called_once_with("trn-test123")
 
 
@@ -228,9 +225,9 @@ async def test_await_with_sse_failure_fallback_to_polling(mocker, awaitable_task
 
     # First call returns running, second returns completed
     running_details = copy.deepcopy(mock_task_run_details)
-    running_details.status.value = TASK_RUN_STATUS_RUNNING
+    running_details.status.value = TaskRunStatus.RUNNING
     completed_details = copy.deepcopy(mock_task_run_details)
-    completed_details.status.value = TASK_RUN_STATUS_COMPLETED
+    completed_details.status.value = TaskRunStatus.COMPLETED
 
     mock_get_task_run.side_effect = [
         running_details,  # Still running
@@ -242,5 +239,5 @@ async def test_await_with_sse_failure_fallback_to_polling(mocker, awaitable_task
     result = await awaitable_task_run
 
     assert result.id == "trn-test123"
-    assert result.status.value == TASK_RUN_STATUS_COMPLETED
+    assert result.status.value == TaskRunStatus.COMPLETED
     assert mock_get_task_run.call_count == 2

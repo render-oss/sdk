@@ -55,7 +55,7 @@ async def main():
     result = await task_run
 
     # Check final status
-    if result.status.value == TASK_RUN_STATUS_COMPLETED:
+    if result.status.value == TaskRunStatus.COMPLETED:
         print("✅ Task completed successfully!")
         print(f"   Final status: {result.status}")
         if hasattr(result, "output") and result.output:

@@ -18,12 +18,6 @@ from render.client.types import (
 )
 from render.client.workflows import WorkflowsService
 
-# Constants for TaskRunStatus
-TASK_RUN_STATUS_PENDING = "pending"
-TASK_RUN_STATUS_RUNNING = "running"
-TASK_RUN_STATUS_COMPLETED = "completed"
-TASK_RUN_STATUS_FAILED = "failed"
-
 __all__ = [
     "Client",
     "WorkflowsService",
@@ -36,8 +30,4 @@ __all__ = [
     "LimitParam",
     "CursorParam",
     "OwnerIdParam",
-    "TASK_RUN_STATUS_PENDING",
-    "TASK_RUN_STATUS_RUNNING",
-    "TASK_RUN_STATUS_COMPLETED",
-    "TASK_RUN_STATUS_FAILED",
 ]
