@@ -43,14 +43,14 @@ ruff = "0.13.0"
 line-length = 88
 target-version = ['py310']
 extend-exclude = '''
-/public_api/
+render/public_api/
 '''
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 line_length = 88
-extend_skip = ["public_api"]
+extend_skip = ["render/public_api"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -59,7 +59,7 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 explicit_package_bases = true
 namespace_packages = true
-exclude = ["tests/", "example/", "*/public_api/"]
+exclude = ["tests/", "example/", "render/public_api/"]
 check_untyped_defs = false
 
 [tool.pytest.ini_options]
@@ -69,7 +69,7 @@ python_files = ["test_*.py"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-exclude = ["*/public_api/"]
+exclude = ["render/public_api/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
