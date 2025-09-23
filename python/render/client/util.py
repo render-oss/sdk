@@ -1,6 +1,9 @@
+import logging
 from asyncio import sleep
 from collections.abc import Awaitable, Callable
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 async def retry_with_backoff(
@@ -12,7 +15,7 @@ async def retry_with_backoff(
 ) -> Any:
     """Retry a function until it returns a non-None value."""
     for i in range(max_retries):
-        print(f"Retrying {fn.__name__} (attempt {i + 1}/{max_retries})")
+        logger.debug(f"Retrying {fn.__name__} (attempt {i + 1}/{max_retries})")
         try:
             result = await fn()
         except exempted_exceptions:

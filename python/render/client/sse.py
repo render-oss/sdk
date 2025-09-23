@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING
 
 import httpx
 
+from render.client.types import TaskRunDetails
 from render.public_api.api.workflows.stream_task_runs_events import (
     _get_kwargs,
 )
-from render.client.types import TaskRunDetails
 
 if TYPE_CHECKING:
     from render.client.client import Client
