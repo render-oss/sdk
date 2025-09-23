@@ -71,7 +71,10 @@ class AwaitableTaskRun:
             TaskRunDetails: The final task run details
 
         Raises:
-            Exception: If the task run fails or API calls fail
+            TaskRunError: If the task run fails with an error
+            ClientError: For 4xx client errors when polling task status
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If requests time out while polling
         """
         # If already completed, get current details and return
         if self.is_terminal_status():
@@ -124,7 +127,9 @@ class WorkflowsService:
             AwaitableTaskRun: An awaitable task run object
 
         Raises:
-            Exception: If the API request fails
+            ClientError: For 4xx client errors (invalid task, malformed input, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If the request times out
         """
         response = (await self._create_task_api_call(task_identifier, input_data)).parsed
 
@@ -158,7 +163,9 @@ class WorkflowsService:
             TaskRunDetails: The task run details
 
         Raises:
-            Exception: If the API request fails
+            ClientError: For 4xx client errors (task not found, invalid ID, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If the request times out
         """
         return (await self._get_task_run_api_call(task_run_id)).parsed
 
@@ -179,7 +186,9 @@ class WorkflowsService:
             task_run_id: The ID of the task run to cancel
 
         Raises:
-            Exception: If the API request fails
+            ClientError: For 4xx client errors (task not found, already completed, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If the request times out
         """
         await self._cancel_task_run_api_call(task_run_id)
 
@@ -209,7 +218,9 @@ class WorkflowsService:
             list[TaskRun]: List of task runs
 
         Raises:
-            Exception: If the API request fails
+            ClientError: For 4xx client errors (invalid parameters, unauthorized, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If the request times out
         """
         return (await self._list_task_runs_api_call(params)).parsed
 
