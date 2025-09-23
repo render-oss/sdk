@@ -37,7 +37,7 @@ black = "^25.1.0"
 isort = "^5.0"
 mypy = "^0.910"
 tox = "^4.0"
-ruff = "0.13.0"
+ruff = "~=0.13"
 
 [tool.black]
 line-length = 88
