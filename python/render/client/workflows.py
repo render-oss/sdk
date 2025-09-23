@@ -6,14 +6,6 @@ It mirrors the functionality of the Go WorkflowsService.
 
 from typing import TYPE_CHECKING
 
-from render.public_api.api.workflows import (
-    create_task,
-    delete_task_run,
-    get_task_run,
-    list_task_runs,
-)
-from render.public_api.models.error import Error
-from render.public_api.models.run_task import RunTask
 from render.client.types import (
     ListTaskRunsParams,
     TaskData,
@@ -23,6 +15,14 @@ from render.client.types import (
     TaskRunStatusValues,
 )
 from render.client.util import retry_with_backoff
+from render.public_api.api.workflows import (
+    create_task,
+    cancel_task_run,
+    get_task_run,
+    list_task_runs,
+)
+from render.public_api.models.error import Error
+from render.public_api.models.run_task import RunTask
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -188,7 +188,7 @@ class WorkflowsService:
         Raises:
             Exception: If the API request fails
         """
-        response = await delete_task_run.asyncio(
+        response = await cancel_task_run.asyncio(
             client=self.client.internal,
             task_run_id=task_run_id,
         )
