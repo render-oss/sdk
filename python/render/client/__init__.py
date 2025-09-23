@@ -9,7 +9,7 @@ from render.client.types import (
     CursorParam,
     LimitParam,
     ListTaskRunsParams,
-    OwnerIdParam,
+    OwnerIDParam,
     TaskData,
     TaskIdentifier,
     TaskRun,
@@ -29,5 +29,5 @@ __all__ = [
     "ListTaskRunsParams",
     "LimitParam",
     "CursorParam",
-    "OwnerIdParam",
+    "OwnerIDParam",
 ]

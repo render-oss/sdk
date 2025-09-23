@@ -24,6 +24,11 @@ TaskRun = _TaskRun
 TaskRunDetails = _TaskRunDetails
 TaskRunStatus = _TaskRunStatus
 
+# Individual parameter types
+LimitParam = int | None
+CursorParam = str | None
+OwnerIDParam = str | None
+
 
 # Parameter types for API calls
 class ListTaskRunsParams:
@@ -31,19 +36,16 @@ class ListTaskRunsParams:
 
     def __init__(
         self,
-        limit: int | None = None,
-        cursor: str | None = None,
-        owner_id: str | None = None,
+        limit: LimitParam = None,
+        cursor: CursorParam = None,
+        owner_id: OwnerIDParam = None,
     ):
         self.limit = limit
         self.cursor = cursor
         self.owner_id = owner_id
 
 
-# Individual parameter types
-LimitParam = int | None
-CursorParam = str | None
-OwnerIdParam = str | None
+
 
 
 # Constants for TaskRunStatus values (matching the Go client)
