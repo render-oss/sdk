@@ -26,6 +26,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = "^3.10"
 aiohttp = "^3.8.0"
+openapi-python-client = "^0.26.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
@@ -36,16 +37,20 @@ black = "^25.1.0"
 isort = "^5.0"
 mypy = "^0.910"
 tox = "^4.0"
-ruff = "^0.1.0"
+ruff = "0.13.0"
 
 [tool.black]
 line-length = 88
 target-version = ['py310']
+extend-exclude = '''
+render/public_api/
+'''
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 line_length = 88
+extend_skip = ["render/public_api"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -54,7 +59,7 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 explicit_package_bases = true
 namespace_packages = true
-exclude = ["tests/", "example/"]
+exclude = ["tests/", "example/", "render/public_api/"]
 check_untyped_defs = false
 
 [tool.pytest.ini_options]
@@ -64,7 +69,8 @@ python_files = ["test_*.py"]
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+exclude = ["render/public_api/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
-per-file-ignores = { "tests/**" = ["S101"] }
+per-file-ignores = { "*test_*.py" = ["S101"] }
