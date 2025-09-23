@@ -71,7 +71,7 @@ def workflows_service(client):
 
 @pytest.fixture
 def mock_delete_task_run_asyncio(mocker):
-    return mocker.patch('render.public_api.api.workflows.delete_task_run.asyncio')
+    return mocker.patch('render.public_api.api.workflows.cancel_task_run.asyncio')
 
 @pytest.fixture
 def mock_list_task_runs_asyncio(mocker):
