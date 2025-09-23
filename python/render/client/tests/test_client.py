@@ -5,6 +5,7 @@ import datetime
 import pytest
 
 from render.client import Client, ListTaskRunsParams, WorkflowsService
+from render.client.errors import ClientError
 from render.public_api.models.error import Error
 from render.public_api.models.task_run import TaskRun
 from render.public_api.models.task_run_details import (
@@ -12,6 +13,7 @@ from render.public_api.models.task_run_details import (
 )
 from render.public_api.models.task_run_status import TaskRunStatus
 from render.client.workflows import AwaitableTaskRun
+from render.public_api.types import Response
 
 
 # Fixtures
@@ -71,24 +73,24 @@ def workflows_service(client):
 
 @pytest.fixture
 def mock_delete_task_run_asyncio(mocker):
-    return mocker.patch('render.public_api.api.workflows.cancel_task_run.asyncio')
+    return mocker.patch('render.public_api.api.workflows.cancel_task_run.asyncio_detailed')
 
 @pytest.fixture
 def mock_list_task_runs_asyncio(mocker):
-    return mocker.patch('render.public_api.api.workflows.list_task_runs.asyncio')
+    return mocker.patch('render.public_api.api.workflows.list_task_runs.asyncio_detailed')
 
 @pytest.fixture
 def mock_create_task_asyncio(mocker):
-    return mocker.patch('render.public_api.api.workflows.create_task.asyncio')
+    return mocker.patch('render.public_api.api.workflows.create_task.asyncio_detailed')
 
 @pytest.fixture
 def mock_get_task_run_asyncio(mocker):
-    return mocker.patch('render.public_api.api.workflows.get_task_run.asyncio')
+    return mocker.patch('render.public_api.api.workflows.get_task_run.asyncio_detailed')
 
 @pytest.mark.asyncio
 async def test_run_task_success(mock_create_task_asyncio, workflows_service, mock_task_run):
     """Test successful task execution."""
-    mock_create_task_asyncio.return_value = mock_task_run
+    mock_create_task_asyncio.return_value = Response(status_code=202, content=b'', headers={}, parsed=mock_task_run)
 
     result = await workflows_service.run_task("test-task", {"input": "data"})
 
@@ -102,16 +104,16 @@ async def test_run_task_failure(mock_create_task_asyncio, workflows_service):
     """Test task execution failure."""
 
     error = Error(message="Task creation failed")
-    mock_create_task_asyncio.return_value = error
+    mock_create_task_asyncio.return_value = Response(status_code=400, content=b'', headers={}, parsed=error)
 
-    with pytest.raises(Exception, match="Failed to create task: Task creation failed"):
+    with pytest.raises(ClientError, match="create task failed: Task creation failed"):
         await workflows_service.run_task("test-task", {"input": "data"})
 
 
 @pytest.mark.asyncio
 async def test_get_task_run_success(mock_get_task_run_asyncio, workflows_service, mock_task_run_details):
     """Test successful task run retrieval."""
-    mock_get_task_run_asyncio.return_value = mock_task_run_details
+    mock_get_task_run_asyncio.return_value = Response(status_code=200, content=b'', headers={}, parsed=mock_task_run_details)
 
     result = await workflows_service.get_task_run("trn-test123")
 
@@ -124,16 +126,16 @@ async def test_get_task_run_success(mock_get_task_run_asyncio, workflows_service
 async def test_get_task_run_failure(mock_get_task_run_asyncio, workflows_service):
     """Test task run retrieval failure."""
     error = Error(message="Task not found")
-    mock_get_task_run_asyncio.return_value = error
+    mock_get_task_run_asyncio.return_value = Response(status_code=400, content=b'', headers={}, parsed=error)
 
-    with pytest.raises(Exception, match="Failed to get task run trn-test123: Task not found"):
+    with pytest.raises(ClientError, match="get task run failed: Task not found"):
         await workflows_service.get_task_run("trn-test123")
 
 
 @pytest.mark.asyncio
 async def test_cancel_task_run_success(mock_delete_task_run_asyncio, workflows_service):
     """Test successful task run cancellation."""
-    mock_delete_task_run_asyncio.return_value = None  # Success returns None
+    mock_delete_task_run_asyncio.return_value = Response(status_code=204, content=b'', headers={}, parsed=None)
 
     await workflows_service.cancel_task_run("trn-test123")
 
@@ -144,9 +146,9 @@ async def test_cancel_task_run_success(mock_delete_task_run_asyncio, workflows_s
 async def test_cancel_task_run_failure(mock_delete_task_run_asyncio, workflows_service):
     """Test task run cancellation failure."""
     error = Error(message="Cannot cancel task")
-    mock_delete_task_run_asyncio.return_value = error
+    mock_delete_task_run_asyncio.return_value = Response(status_code=400, content=b'', headers={}, parsed=error)
 
-    with pytest.raises(Exception, match="Failed to cancel task run trn-test123: Cannot cancel task"):
+    with pytest.raises(ClientError, match="cancel task run failed: Cannot cancel task"):
         await workflows_service.cancel_task_run("trn-test123")
 
 
@@ -154,7 +156,7 @@ async def test_cancel_task_run_failure(mock_delete_task_run_asyncio, workflows_s
 async def test_list_task_runs_success(mock_list_task_runs_asyncio, workflows_service, mock_task_run):
     """Test successful task runs listing."""
     task_runs = [mock_task_run]
-    mock_list_task_runs_asyncio.return_value = task_runs
+    mock_list_task_runs_asyncio.return_value = Response(status_code=200, content=b'', headers={}, parsed=task_runs)
 
     params = ListTaskRunsParams(limit=5, owner_id="test-owner")
     result = await workflows_service.list_task_runs(params)

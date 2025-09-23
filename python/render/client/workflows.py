@@ -4,7 +4,7 @@ This module provides the WorkflowsService class for workflow-related API operati
 It mirrors the functionality of the Go WorkflowsService.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from render.client.types import (
     ListTaskRunsParams,
@@ -23,15 +23,12 @@ from render.public_api.api.workflows import (
 )
 from render.public_api.models.error import Error
 from render.public_api.models.run_task import RunTask
+from render.client.util import handle_http_errors
+from render.public_api.types import Response
+from render.client.errors import TaskRunError
 
 if TYPE_CHECKING:
     from render.client.client import Client
-
-
-class TaskRunError(Exception):
-    """Exception raised when a task run fails."""
-
-    pass
 
 
 class AwaitableTaskRun:
@@ -129,6 +126,14 @@ class WorkflowsService:
         Raises:
             Exception: If the API request fails
         """
+        response = (await self._create_task_api_call(task_identifier, input_data)).parsed
+
+        # Return wrapped task run with awaitable functionality
+        return AwaitableTaskRun(response, self)
+
+    @handle_http_errors("create task")
+    async def _create_task_api_call(self, task_identifier: TaskIdentifier, input_data: TaskData) -> Response[Error | TaskRun]:
+        """Internal method to make the create task API call."""
         # Create the request body
         run_task = RunTask(
             task=task_identifier,
@@ -136,19 +141,10 @@ class WorkflowsService:
         )
 
         # Make the API call
-        response = await create_task.asyncio(
+        return await create_task.asyncio_detailed(
             client=self.client.internal,
             body=run_task,
         )
-
-        if response is None:
-            raise Exception("Failed to create task: no response received")
-
-        if isinstance(response, Error):
-            raise Exception(f"Failed to create task: {response.message}")
-
-        # Return wrapped task run with awaitable functionality
-        return AwaitableTaskRun(response, self)
 
     async def get_task_run(self, task_run_id: str) -> TaskRunDetails:
         """Get details about a specific task run.
@@ -164,18 +160,15 @@ class WorkflowsService:
         Raises:
             Exception: If the API request fails
         """
-        response = await get_task_run.asyncio(
+        return (await self._get_task_run_api_call(task_run_id)).parsed
+
+    @handle_http_errors("get task run")
+    async def _get_task_run_api_call(self, task_run_id: str) -> Response[Error | TaskRunDetails]:
+        """Internal method to make the get task run API call."""
+        return await get_task_run.asyncio_detailed(
             client=self.client.internal,
             task_run_id=task_run_id,
         )
-
-        if response is None:
-            raise Exception(f"Failed to get task run {task_run_id}: no response received")
-
-        if isinstance(response, Error):
-            raise Exception(f"Failed to get task run {task_run_id}: {response.message}")
-
-        return response
 
     async def cancel_task_run(self, task_run_id: str) -> None:
         """Cancel a running task.
@@ -188,14 +181,18 @@ class WorkflowsService:
         Raises:
             Exception: If the API request fails
         """
-        response = await cancel_task_run.asyncio(
+        await self._cancel_task_run_api_call(task_run_id)
+
+        # cancel_task_run returns None on success (204 status)
+        # Error objects will be handled by the decorator
+
+    @handle_http_errors("cancel task run")
+    async def _cancel_task_run_api_call(self, task_run_id: str) -> Response[Any | Error]:
+        """Internal method to make the cancel task run API call."""
+        return await cancel_task_run.asyncio_detailed(
             client=self.client.internal,
             task_run_id=task_run_id,
         )
-
-        # delete_task_run returns None on success (204 status)
-        if response is not None and isinstance(response, Error):
-            raise Exception(f"Failed to cancel task run {task_run_id}: {response.message}")
 
     async def list_task_runs(
         self,
@@ -214,26 +211,19 @@ class WorkflowsService:
         Raises:
             Exception: If the API request fails
         """
+        return (await self._list_task_runs_api_call(params)).parsed
+
+    @handle_http_errors("list task runs")
+    async def _list_task_runs_api_call(self, params: ListTaskRunsParams | None = None) -> Response[Error | list[TaskRun]]:
+        """Internal method to make the list task runs API call."""
         # Convert params to API parameters
         limit = params.limit if params else None
         cursor = params.cursor if params else None
         owner_id = params.owner_id if params else None
 
-        response = await list_task_runs.asyncio(
+        return await list_task_runs.asyncio_detailed(
             client=self.client.internal,
             limit=limit,
             cursor=cursor,
             owner_id=owner_id,
         )
-
-        if response is None:
-            raise Exception("Failed to list task runs: no response received")
-
-        if isinstance(response, Error):
-            raise Exception(f"Failed to list task runs: {response.message}")
-
-        # Response should be a list of TaskRun objects
-        if isinstance(response, list):
-            return response
-        else:
-            raise Exception(f"Unexpected response type: {type(response)}")

@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import httpx
 
 from render.client.types import TaskRunDetails
+from render.client.util import handle_http_error, handle_httpx_exception
 from render.public_api.api.workflows.stream_task_runs_events import (
     _get_kwargs,
 )
@@ -66,18 +67,13 @@ class SSEClient:
                     params=kwargs.get("params", {}),
                     headers=headers,
                 ) as response:
-                    if response.status_code != 200:
-                        response_text = await response.aread()
-                        raise Exception(
-                            f"SSE stream failed with status {response.status_code}: \
-                              {response_text.decode()}"
-                        )
+                    handle_http_error(response, "SSE stream")
 
                     async for event in parse_stream(response.aiter_bytes()):
                         yield event
 
             except httpx.RequestError as e:
-                raise Exception(f"SSE connection failed: {e}") from e
+                handle_httpx_exception(e, "SSE connection")
 
 
 async def parse_stream(
