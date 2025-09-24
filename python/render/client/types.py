@@ -1,23 +1,16 @@
-"""Type aliases and imports
-
-This module provides type aliases that mirror the Go client types,
-re-exporting from the generated client for convenience.
-"""
+"""Type aliases and imports"""
 
 from typing import Any
 
 # Re-export commonly used types from generated client
 from render.public_api.models.task_run import TaskRun as _TaskRun
-from render.public_api.models.task_run_details import (
-    TaskRunDetails as _TaskRunDetails,
-)
-from render.public_api.models.task_run_status import (
-    TaskRunStatus as _TaskRunStatus,
-)
+from render.public_api.models.task_run_details import TaskRunDetails as _TaskRunDetails
+from render.public_api.models.task_run_status import TaskRunStatus as _TaskRunStatus
+from render.public_api.types import Unset
 
 # Type aliases to match Go client interface
 TaskIdentifier = str
-TaskData = dict[str, Any] | list[Any] | str | int | float | bool | None
+TaskData = list[Any]
 
 # Re-export model classes with cleaner names
 TaskRun = _TaskRun
@@ -27,12 +20,16 @@ TaskRunStatus = _TaskRunStatus
 # Individual parameter types
 LimitParam = int | None
 CursorParam = str | None
-OwnerIDParam = str | None
+OwnerIDParam = list[str] | None
 
 
 # Parameter types for API calls
 class ListTaskRunsParams:
     """Parameters for listing task runs."""
+
+    limit: int | Unset
+    cursor: str | Unset
+    owner_id: list[str] | Unset
 
     def __init__(
         self,
@@ -40,11 +37,23 @@ class ListTaskRunsParams:
         cursor: CursorParam = None,
         owner_id: OwnerIDParam = None,
     ):
-        self.limit = limit
-        self.cursor = cursor
-        self.owner_id = owner_id
+        if limit is None:
+            self.limit = Unset()
+        else:
+            self.limit = limit
 
-# Constants for TaskRunStatus values (matching the Go client)
+        if cursor is None:
+            self.cursor = Unset()
+        else:
+            self.cursor = cursor
+
+        if owner_id is None:
+            self.owner_id = Unset()
+        else:
+            self.owner_id = owner_id
+
+
+# Constants for TaskRunStatus values
 class TaskRunStatusValues:
     """Constants for task run status values."""
 

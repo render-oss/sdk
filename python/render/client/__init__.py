@@ -1,7 +1,6 @@
 """Render REST API Client
 
 A Python client library for interacting with Render's REST API.
-This module mirrors the functionality of the Go client in go/pkg/render.
 """
 
 from render.client.client import Client

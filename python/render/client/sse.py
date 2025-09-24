@@ -1,21 +1,18 @@
 """Server-Sent Events (SSE) client
 
-This module provides SSE streaming functionality for task run events,
-mirroring the Go client's SSE implementation.
+This module provides SSE streaming functionality for task run events.
 """
 
 import json
-from collections.abc import AsyncGenerator
-from typing import TYPE_CHECKING
 import logging
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING, Any
 
 import httpx
 
 from render.client.types import TaskRunDetails
 from render.client.util import handle_http_error, handle_httpx_exception
-from render.public_api.api.workflows.stream_task_runs_events import (
-    _get_kwargs,
-)
+from render.public_api.api.workflows.stream_task_runs_events import _get_kwargs
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -32,7 +29,7 @@ class SSEClient:
     async def stream_task_run_events(
         self,
         task_run_ids: list[str],
-    ) -> AsyncGenerator[TaskRunDetails, None]:
+    ) -> AsyncIterator[TaskRunDetails]:
         """Stream task run events via SSE.
 
         Args:
@@ -50,7 +47,9 @@ class SSEClient:
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
         # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(connect=5.0, write=5.0, read=None, pool=None)  # These can be long lived
+        timeout = httpx.Timeout(
+            connect=5.0, write=5.0, read=None, pool=None
+        )  # These can be long lived
         async with httpx.AsyncClient(timeout=timeout) as http_client:
             # Set up headers for SSE
             headers = kwargs.get("headers", {})
@@ -82,11 +81,11 @@ class SSEClient:
 
 
 async def parse_stream(
-    bytes_iter: AsyncGenerator[bytes, None],
-) -> AsyncGenerator[TaskRunDetails, None]:
+    bytes_iter: AsyncIterator[bytes],
+) -> AsyncIterator[TaskRunDetails]:
     """Parse a stream of bytes into TaskRunDetails."""
     buffer = ""
-    event_data = {}
+    event_data: dict[str, Any] = {}
 
     async for chunk in bytes_iter:
         buffer += chunk.decode("utf-8", errors="ignore")

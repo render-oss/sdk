@@ -1,11 +1,11 @@
 """Workflows service
 
 This module provides the WorkflowsService class for workflow-related API operations.
-It mirrors the functionality of the Go WorkflowsService.
 """
 
 from typing import TYPE_CHECKING, Any
 
+from render.client.errors import RenderError, TaskRunError
 from render.client.types import (
     ListTaskRunsParams,
     TaskData,
@@ -14,18 +14,16 @@ from render.client.types import (
     TaskRunDetails,
     TaskRunStatusValues,
 )
-from render.client.util import retry_with_backoff
+from render.client.util import handle_http_errors, retry_with_backoff
 from render.public_api.api.workflows import (
-    create_task,
     cancel_task_run,
+    create_task,
     get_task_run,
     list_task_runs,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.run_task import RunTask
-from render.client.util import handle_http_errors
-from render.public_api.types import Response
-from render.client.errors import TaskRunError
+from render.public_api.types import Response, Unset
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -71,6 +69,7 @@ class AwaitableTaskRun:
             TaskRunDetails: The final task run details
 
         Raises:
+            RenderError: If the task run completed with no event
             TaskRunError: If the task run fails with an error
             ClientError: For 4xx client errors when polling task status
             ServerError: For 5xx server errors and network failures
@@ -78,7 +77,8 @@ class AwaitableTaskRun:
         """
         # If already completed, get current details and return
         if self.is_terminal_status():
-            return await self.workflows_service.get_task_run(self.id)
+            self._details = await self.workflows_service.get_task_run(self.id)
+            return self._details
 
         return await retry_with_backoff(
             self._task_run_completed_with_sse,
@@ -88,16 +88,20 @@ class AwaitableTaskRun:
             exempted_exceptions=(TaskRunError,),
         )
 
-    async def _task_run_completed_with_sse(self) -> tuple[TaskRunDetails, bool]:
-        async for event in self.workflows_service.client.sse.stream_task_run_events([self.id]):
+    async def _task_run_completed_with_sse(self) -> TaskRunDetails:
+        async for event in self.workflows_service.client.sse.stream_task_run_events(
+            [self.id]
+        ):
             if event and event.id == self.id:
                 # Update our internal state
-                self.task_run = event
+                self._details = event
 
                 if event.error:
                     raise TaskRunError(event.error)
 
                 return event
+
+        raise RenderError("Task run completed with no event")
 
 
 class WorkflowsService:
@@ -131,13 +135,17 @@ class WorkflowsService:
             ServerError: For 5xx server errors and network failures
             TimeoutError: If the request times out
         """
-        response = (await self._create_task_api_call(task_identifier, input_data)).parsed
+        response = (
+            await self._create_task_api_call(task_identifier, input_data)
+        ).parsed
 
         # Return wrapped task run with awaitable functionality
         return AwaitableTaskRun(response, self)
 
     @handle_http_errors("create task")
-    async def _create_task_api_call(self, task_identifier: TaskIdentifier, input_data: TaskData) -> Response[Error | TaskRun]:
+    async def _create_task_api_call(
+        self, task_identifier: TaskIdentifier, input_data: TaskData
+    ) -> Response[Error | TaskRun]:
         """Internal method to make the create task API call."""
         # Create the request body
         run_task = RunTask(
@@ -170,7 +178,9 @@ class WorkflowsService:
         return (await self._get_task_run_api_call(task_run_id)).parsed
 
     @handle_http_errors("get task run")
-    async def _get_task_run_api_call(self, task_run_id: str) -> Response[Error | TaskRunDetails]:
+    async def _get_task_run_api_call(
+        self, task_run_id: str
+    ) -> Response[Error | TaskRunDetails]:
         """Internal method to make the get task run API call."""
         return await get_task_run.asyncio_detailed(
             client=self.client.internal,
@@ -196,7 +206,9 @@ class WorkflowsService:
         # Error objects will be handled by the decorator
 
     @handle_http_errors("cancel task run")
-    async def _cancel_task_run_api_call(self, task_run_id: str) -> Response[Any | Error]:
+    async def _cancel_task_run_api_call(
+        self, task_run_id: str
+    ) -> Response[Any | Error]:
         """Internal method to make the cancel task run API call."""
         return await cancel_task_run.asyncio_detailed(
             client=self.client.internal,
@@ -225,12 +237,14 @@ class WorkflowsService:
         return (await self._list_task_runs_api_call(params)).parsed
 
     @handle_http_errors("list task runs")
-    async def _list_task_runs_api_call(self, params: ListTaskRunsParams | None = None) -> Response[Error | list[TaskRun]]:
+    async def _list_task_runs_api_call(
+        self, params: ListTaskRunsParams | None = None
+    ) -> Response[Error | list[TaskRun]]:
         """Internal method to make the list task runs API call."""
         # Convert params to API parameters
-        limit = params.limit if params else None
-        cursor = params.cursor if params else None
-        owner_id = params.owner_id if params else None
+        limit = params.limit if params else Unset()
+        cursor = params.cursor if params else Unset()
+        owner_id = params.owner_id if params else Unset()
 
         return await list_task_runs.asyncio_detailed(
             client=self.client.internal,

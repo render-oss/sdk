@@ -62,7 +62,7 @@ class TaskInfo:
 class TaskRegistry:
     """Registry for managing tasks."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._tasks: dict[str, TaskInfo] = {}
 
     def register(

@@ -1,14 +1,13 @@
 """Render API Client
 
 This module provides the main Client class for interacting with Render's REST API.
-It mirrors the functionality of the Go client.
 """
 
 import os
 
-from render.public_api.client import AuthenticatedClient
 from render.client.sse import SSEClient
 from render.client.workflows import WorkflowsService
+from render.public_api.client import AuthenticatedClient
 
 
 class Client:
@@ -24,6 +23,8 @@ class Client:
         workflows: Service client for workflow operations
     """
 
+    token: str
+
     def __init__(
         self,
         token: str | None = None,
@@ -37,7 +38,10 @@ class Client:
             *options: Client configuration options
         """
         # Set default values
-        self.token = token or os.getenv("RENDER_API_KEY", "")
+        if token is None:
+            self.token = os.getenv("RENDER_API_KEY", "")
+        else:
+            self.token = token
         self.base_url = base_url
 
         # Ensure base URL has proper format
@@ -51,7 +55,6 @@ class Client:
         self.internal = AuthenticatedClient(
             base_url=api_base,
             token=self.token,
-            headers={"Authorization": f"Bearer {self.token}"},
         )
 
         # Initialize service clients

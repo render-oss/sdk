@@ -7,7 +7,6 @@ from typing import Any
 import httpx
 
 from render.client.errors import ClientError, RenderError, ServerError, TimeoutError
-
 from render.public_api.models.error import Error
 from render.public_api.types import Response
 
@@ -55,7 +54,9 @@ def handle_http_error(response: httpx.Response, operation: str) -> None:
             # Try to get error message from JSON response
             error_data = response.json()
             if isinstance(error_data, dict):
-                error_message = error_data.get("message", error_data.get("error", response.text))
+                error_message = error_data.get(
+                    "message", error_data.get("error", response.text)
+                )
             else:
                 error_message = response.text
         except Exception:
@@ -63,7 +64,9 @@ def handle_http_error(response: httpx.Response, operation: str) -> None:
             error_message = response.text
 
         base_message = f"{operation} failed with status {response.status_code}"
-        full_message = f"{base_message}: {error_message}" if error_message else base_message
+        full_message = (
+            f"{base_message}: {error_message}" if error_message else base_message
+        )
 
         if 400 <= response.status_code < 500:
             raise ClientError(full_message)
@@ -95,7 +98,9 @@ def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> N
         raise RenderError(f"{operation} failed with unexpected error: {exc}") from exc
 
 
-def handle_api_error(response: Response[Any | Error], operation: str = "API request") -> None:
+def handle_api_error(
+    response: Response[Any | Error], operation: str = "API request"
+) -> None:
     """
     Convert an API Error object into the appropriate custom exception.
 
@@ -110,20 +115,19 @@ def handle_api_error(response: Response[Any | Error], operation: str = "API requ
     """
 
     if not isinstance(response.parsed, Error):
-      pass
+        pass
 
     # Get error message, fallback to generic message if not available
-    message = getattr(response.parsed, 'message', None)
+    message = getattr(response.parsed, "message", None)
     if not message or message == "UNSET":
         message = "Unknown error occurred"
 
     # Get error ID for additional context if available
-    error_id = getattr(response.parsed, 'id', None)
+    error_id = getattr(response.parsed, "id", None)
     if error_id and error_id != "UNSET":
         full_message = f"{operation} failed: {message} (ID: {error_id})"
     else:
         full_message = f"{operation} failed: {message}"
-
 
     if response.status_code:
         if response.status_code >= 400 and response.status_code < 500:
@@ -151,6 +155,7 @@ def handle_http_errors(operation: str):
                 response = await client.post("/tasks", json=data)
                 return response
     """
+
     def decorator(func: Callable[..., Awaitable[Response[Any | Error]]]):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
@@ -163,11 +168,12 @@ def handle_http_errors(operation: str):
 
             except httpx.RequestError as exc:
                 handle_httpx_exception(exc, operation)
-            except RenderError as exc:
+            except RenderError:
                 raise
             except Exception as exc:
                 # Unexpected exception
                 RenderError(f"{operation} failed with unexpected error: {exc}")
 
         return wrapper
+
     return decorator
