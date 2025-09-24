@@ -12,7 +12,7 @@ from render.public_api.models.error import Error
 from render.public_api.models.task_run import TaskRun
 from render.public_api.models.task_run_details import TaskRunDetails
 from render.public_api.models.task_run_status import TaskRunStatus
-from render.public_api.types import Response
+from render.public_api.types import Response, Unset
 
 
 # Fixtures
@@ -198,7 +198,7 @@ async def test_list_task_runs_success(
     mock_list_task_runs_asyncio.assert_called_once_with(
         client=workflows_service.client.internal,
         limit=5,
-        cursor=None,
+        cursor=Unset(),
         owner_id="test-owner",
     )
 
