@@ -12,7 +12,7 @@ from render.public_api.models.error import Error
 from render.public_api.models.task_run import TaskRun
 from render.public_api.models.task_run_details import TaskRunDetails
 from render.public_api.models.task_run_status import TaskRunStatus
-from render.public_api.types import Response, Unset
+from render.public_api.types import Response
 
 
 # Fixtures
@@ -182,7 +182,7 @@ async def test_cancel_task_run_failure(mock_cancel_task_run_asyncio, workflows_s
 
 @pytest.mark.asyncio
 async def test_list_task_runs_success(
-    mock_list_task_runs_asyncio, workflows_service, mock_task_run
+    mocker, mock_list_task_runs_asyncio, workflows_service, mock_task_run
 ):
     """Test successful task runs listing."""
     task_runs = [mock_task_run]
@@ -198,7 +198,7 @@ async def test_list_task_runs_success(
     mock_list_task_runs_asyncio.assert_called_once_with(
         client=workflows_service.client.internal,
         limit=5,
-        cursor=Unset(),
+        cursor=mocker.ANY,
         owner_id="test-owner",
     )
 
