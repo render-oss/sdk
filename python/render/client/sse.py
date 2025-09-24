@@ -7,6 +7,7 @@ mirroring the Go client's SSE implementation.
 import json
 from collections.abc import AsyncGenerator
 from typing import TYPE_CHECKING
+import logging
 
 import httpx
 
@@ -18,6 +19,8 @@ from render.public_api.api.workflows.stream_task_runs_events import (
 
 if TYPE_CHECKING:
     from render.client.client import Client
+
+logger = logging.getLogger(__name__)
 
 
 class SSEClient:
@@ -39,7 +42,9 @@ class SSEClient:
             TaskRunDetails: Task run event updates
 
         Raises:
-            Exception: If the SSE connection fails
+            TimeoutError: For timeout-related errors
+            ClientError: For other client-side errors
+            ServerError: For connection errors that might indicate server issues
         """
         # Build the request parameters
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
@@ -102,7 +107,7 @@ async def parse_stream(
                             yield task_run_details
 
                     except Exception as e:
-                        print(f"Error parsing event: {e}")
+                        logger.error(f"Error parsing event: {e}")
                         # Skip invalid events
                         pass
 

@@ -17,6 +17,7 @@ import os
 from typing import Any
 
 from render.client import Client, ListTaskRunsParams, TaskRunStatus
+from render.client.errors import TaskRunError, RenderError
 
 
 async def main():
@@ -27,7 +28,7 @@ async def main():
         print("⚠️  RENDER_API_KEY environment variable not set")
         return
     # Create client
-    client = Client(token, base_url="https://api.localhost.render.com:8443/")
+    client = Client(token)
 
     # Example task data - replace with your actual task
     task_identifier = "example-task"  # Replace with your task name
@@ -47,19 +48,17 @@ async def main():
 
     # Wait for completion using SSE streaming (Pythonic way!)
     print("\n⏳ Waiting for task completion (using SSE streaming)...")
-    result = await task_run
-
-    # Check final status
-    if result.status.value == TaskRunStatus.COMPLETED:
+    try:
+        result = await task_run
         print("✅ Task completed successfully!")
         print(f"   Final status: {result.status}")
-        if hasattr(result, "output") and result.output:
-            print(f"   Output: {result.output}")
-    else:
+        print(f"   Task run ID: {result.results}")
+    except TaskRunError as e:
         print("❌ Task failed or was cancelled")
         print(f"   Final status: {result.status}")
-        if hasattr(result, "error") and result.error:
-            print(f"   Error: {result.error}")
+        print(f"   Error: {e}")
+    except RenderError as e:
+        print(f"Error waiting for task completion: {e}")
 
     # List recent task runs
     print("📋 Listing recent task runs...")

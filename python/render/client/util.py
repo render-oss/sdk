@@ -38,7 +38,7 @@ async def retry_with_backoff(
     return None
 
 
-def handle_http_error(response: httpx.Response, operation: str = "API request") -> None:
+def handle_http_error(response: httpx.Response, operation: str) -> None:
     """
     Translate HTTP response errors into appropriate custom exceptions.
 
@@ -134,7 +134,7 @@ def handle_api_error(response: Response[Any | Error], operation: str = "API requ
         raise ClientError(full_message)
 
 
-def handle_http_errors(operation: str = None):
+def handle_http_errors(operation: str):
     """
     Decorator that handles HTTPX exceptions and HTTP error responses.
 
@@ -142,8 +142,7 @@ def handle_http_errors(operation: str = None):
     any HTTPX exceptions or HTTP error responses into appropriate custom exceptions.
 
     Args:
-        operation: Optional description of the operation for error messages.
-                  If not provided, uses the function name.
+        operation: Description of the operation for error messages.
 
     Example:
         @handle_http_errors("create task")
@@ -155,24 +154,20 @@ def handle_http_errors(operation: str = None):
     def decorator(func: Callable[..., Awaitable[Response[Any | Error]]]):
         @functools.wraps(func)
         async def wrapper(*args, **kwargs):
-            op_name = operation or func.__name__.replace('_', ' ')
-
             try:
                 result = await func(*args, **kwargs)
 
-                handle_api_error(result, op_name)
+                handle_api_error(result, operation)
 
                 return result
 
             except httpx.RequestError as exc:
-                handle_httpx_exception(exc, op_name)
+                handle_httpx_exception(exc, operation)
+            except RenderError as exc:
+                raise
             except Exception as exc:
-                if isinstance(exc, (ClientError, ServerError, TimeoutError, RenderError)):
-                    # Re-raise our custom exceptions
-                    raise
-                else:
-                    # Handle unexpected exceptions
-                    handle_httpx_exception(exc, op_name)
+                # Unexpected exception
+                RenderError(f"{operation} failed with unexpected error: {exc}")
 
         return wrapper
     return decorator

@@ -69,27 +69,27 @@ async def test_retry_with_backoff_success_after_failure_with_exempted_exception(
 def test_handle_http_error_4xx():
     response = httpx.Response(status_code=404, json={"message": "Not found"}, text="Not found")
     with pytest.raises(ClientError, match="API request failed with status 404: Not found"):
-        handle_http_error(response)
+        handle_http_error(response, "API request")
 
 def test_handle_http_error_5xx():
     response = httpx.Response(status_code=500, json={"error": "Internal server error"}, text="Internal server error")
     with pytest.raises(ServerError, match="API request failed with status 500: Internal server error"):
-        handle_http_error(response)
+        handle_http_error(response, "API request")
 
 def test_handle_httpx_exception_timeout():
     exception = httpx.TimeoutException("Request timed out")
     with pytest.raises(TimeoutError, match="HTTP request timed out"):
-        handle_httpx_exception(exception)
+        handle_httpx_exception(exception, "HTTP request")
 
 def test_handle_api_error_client_error():
     response = Response(status_code=400, content=b'', headers={}, parsed=Error(message="Bad request"))
     with pytest.raises(ClientError, match="API request failed: Bad request"):
-        handle_api_error(response)
+        handle_api_error(response, "API request")
 
 def test_handle_api_error_server_error():
     response = Response(status_code=500, content=b'', headers={}, parsed=Error(message="Internal server error"))
     with pytest.raises(ServerError, match="API request failed: Internal server error"):
-        handle_api_error(response)
+        handle_api_error(response, "API request")
 
 @pytest.mark.asyncio
 async def test_decorator_handle_http_errors():

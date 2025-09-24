@@ -7,7 +7,7 @@ class ClientError(RenderError):
     the client makes a request to the API and the API returns a 4xx error."""
     pass
 
-class TimeoutError(ClientError):
+class TimeoutError(RenderError):
     """Exception for timeout errors. This is returned when the
     client makes a request to the API and the request times out."""
     pass

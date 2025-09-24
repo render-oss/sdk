@@ -44,10 +44,6 @@ class ListTaskRunsParams:
         self.cursor = cursor
         self.owner_id = owner_id
 
-
-
-
-
 # Constants for TaskRunStatus values (matching the Go client)
 class TaskRunStatusValues:
     """Constants for task run status values."""
