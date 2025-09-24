@@ -27,6 +27,7 @@ classifiers = [
 python = "^3.10"
 aiohttp = "^3.8.0"
 openapi-python-client = "^0.26.1"
+httpx = "^0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0"
@@ -35,9 +36,9 @@ pytest-asyncio = "^0.21.0"
 pytest-mock = "^3.10.0"
 black = "^25.1.0"
 isort = "^5.0"
-mypy = "^0.910"
+mypy = "^1.18.2"
 tox = "^4.0"
-ruff = "0.13.0"
+ruff = "~=0.13"
 
 [tool.black]
 line-length = 88
@@ -63,7 +64,7 @@ exclude = ["tests/", "example/", "render/public_api/"]
 check_untyped_defs = false
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["**/tests"]
 python_files = ["test_*.py"]
 
 [tool.ruff]
