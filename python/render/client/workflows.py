@@ -23,7 +23,7 @@ from render.public_api.api.workflows import (
 )
 from render.public_api.models.error import Error
 from render.public_api.models.run_task import RunTask
-from render.public_api.types import Response, Unset
+from render.public_api.types import Response, UNSET
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -242,9 +242,9 @@ class WorkflowsService:
     ) -> Response[Error | list[TaskRun]]:
         """Internal method to make the list task runs API call."""
         # Convert params to API parameters
-        limit = params.limit if params else Unset()
-        cursor = params.cursor if params else Unset()
-        owner_id = params.owner_id if params else Unset()
+        limit = params.limit if params and params.limit is not None else UNSET
+        cursor = params.cursor if params and params.cursor is not None else UNSET
+        owner_id = params.owner_id if params and params.owner_id is not None else UNSET
 
         return await list_task_runs.asyncio_detailed(
             client=self.client.internal,

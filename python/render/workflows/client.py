@@ -104,9 +104,14 @@ class UDSClient:
 
     async def get_input(self) -> InputResponse:
         """Get the task name and input for a task run."""
-        response = await get_input.asyncio(client=self.client)
+        response = (await self._get_input_api_call()).parsed
 
         return response
+
+    @handle_http_errors("get input")
+    async def _get_input_api_call(self) -> Response[Any | InputResponse]:
+        """Internal method to make the get input API call."""
+        return await get_input.asyncio_detailed(client=self.client)
 
     async def post_callback(self, callback_request: CallbackRequest) -> None:
         """Send a callback to the server."""
@@ -126,7 +131,7 @@ class UDSClient:
                     output=base64.b64encode(result_json).decode("utf-8")
                 )
             )
-        elif callback_request.status == Status.ERROR:
+        elif callback_request.status == Status.ERROR and callback_request.error is not None:
             data = GeneratedCallbackRequest(
                 error=TaskError(details=callback_request.error)
             )
@@ -141,7 +146,7 @@ class UDSClient:
         """Internal method to make the post callback API call."""
         return await post_callback.asyncio_detailed(client=self.client, body=data)
 
-    async def run_subtask(self, task_name: str, input_data: any = None) -> any:
+    async def run_subtask(self, task_name: str, input_data: Any = None) -> Any:
         """
         Run a subtask and wait for its completion.
 
