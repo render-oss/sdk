@@ -1,12 +1,10 @@
 """Task executor for running tasks."""
 
-import asyncio
 import inspect
 import logging
 from typing import Any
 
-from render.workflows.client import UDSClient, CallbackRequest, Status
-from render.workflows.callback_api.models import TaskComplete, TaskError
+from render.workflows.client import CallbackRequest, Status, UDSClient
 from render.workflows.task import TaskRegistry, TaskResult, _current_client
 
 logger = logging.getLogger(__name__)
@@ -73,16 +71,10 @@ class TaskExecutor:
 
     async def _send_error_callback(self, task_name: str, error: Exception):
         """Send an error callback to the server."""
-        error_callback = CallbackRequest(
-            status=Status.ERROR,
-            error=str(error)
-        )
+        error_callback = CallbackRequest(status=Status.ERROR, error=str(error))
         await self.client.post_callback(error_callback)
 
     async def _send_success_callback(self, task_name: str, result: Any):
         """Send a success callback to the server."""
-        success_callback = CallbackRequest(
-            status=Status.SUCCESS,
-            result=result
-        )
+        success_callback = CallbackRequest(status=Status.SUCCESS, result=result)
         await self.client.post_callback(success_callback)

@@ -1,16 +1,16 @@
 """Task decorator and related functionality."""
 
+import contextvars
 import functools
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypeVar
-import contextvars
 
 F = TypeVar("F", bound=Callable[..., Any])
 
 # Context variable to hold the current client for subtask execution
-_current_client: contextvars.ContextVar = contextvars.ContextVar('current_client')
+_current_client: contextvars.ContextVar = contextvars.ContextVar("current_client")
 
 
 @dataclass
@@ -161,12 +161,19 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
 
                 def __await__(self):
                     """Run as a subtask when awaited."""
+
                     async def run_subtask():
                         try:
                             client = _current_client.get()
-                            return await client.run_subtask(self._name, list(self._args))
-                        except LookupError:
-                            raise RuntimeError(f"Cannot run {self._name} as subtask outside of task execution context")
+                            return await client.run_subtask(
+                                self._name, list(self._args)
+                            )
+                        except LookupError as e:
+                            raise RuntimeError(
+                                f"Cannot run {self._name} as subtask \
+                                  outside of task execution context"
+                            ) from e
+
                     return run_subtask().__await__()
 
             return TaskCallable(f, task_name)

@@ -3,9 +3,9 @@
 
 import pytest
 
-from render.workflows.task import TaskRegistry, create_task_decorator
-from render.workflows.client import UDSClient, Status
+from render.workflows.client import Status, UDSClient
 from render.workflows.executor import TaskExecutor
+from render.workflows.task import TaskRegistry, create_task_decorator
 
 
 # Fixtures

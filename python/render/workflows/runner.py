@@ -6,10 +6,10 @@ import json
 import logging
 import os
 
+from render.workflows.callback_api.models import RetryConfig, Task, TaskOptions, Tasks
 from render.workflows.client import UDSClient
 from render.workflows.executor import TaskExecutor
 from render.workflows.task import get_task_registry
-from render.workflows.callback_api.models import Task, TaskOptions, RetryConfig, Tasks
 
 logger = logging.getLogger(__name__)
 
@@ -90,14 +90,13 @@ async def register_async(socket_path: str) -> None:
 
             options = TaskOptions()
             # Add options if present
-            if task_info and task_info.options:
-                if task_info.options.retry:
-                    retry = task_info.options.retry
-                    options.retry = RetryConfig(
-                        max_retries=retry.max_retries,
-                        wait_duration_ms=retry.wait_duration_ms,
-                        factor=retry.factor,
-                    )
+            if task_info and task_info.options and task_info.options.retry:
+                retry = task_info.options.retry
+                options.retry = RetryConfig(
+                    max_retries=retry.max_retries,
+                    wait_duration_ms=retry.wait_duration_ms,
+                    factor=retry.factor,
+                )
 
             task_def = Task(name=name, options=options)
             tasks.append(task_def)

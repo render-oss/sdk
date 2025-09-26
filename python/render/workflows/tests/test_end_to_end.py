@@ -3,11 +3,11 @@
 
 import pytest
 
-from render.workflows.task import Options, Retry, TaskRegistry, create_task_decorator
 from render.workflows.callback_api.models.task_options import TaskOptions
-from render.workflows.client import UDSClient, Status
+from render.workflows.client import Status, UDSClient
 from render.workflows.executor import TaskExecutor
 from render.workflows.runner import register
+from render.workflows.task import Options, Retry, TaskRegistry, create_task_decorator
 
 
 # Fixtures

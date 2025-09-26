@@ -10,8 +10,8 @@ from typing import Any
 
 import httpx
 
-from render.client.util import handle_http_errors
 from render.client.errors import RenderError, TaskRunError
+from render.client.util import handle_http_errors
 from render.workflows.callback_api.api.default import (
     get_input,
     post_callback,
@@ -22,28 +22,36 @@ from render.workflows.callback_api.api.default import (
 from render.workflows.callback_api.client import Client
 from render.workflows.callback_api.models import (
     CallbackRequest as GeneratedCallbackRequest,
+)
+from render.workflows.callback_api.models import (
     InputResponse,
     RunSubtaskRequest,
     RunSubtaskResponse,
     SubtaskResultRequest,
-    Tasks,
     TaskComplete,
     TaskError,
+    Tasks,
 )
-from render.workflows.callback_api.models.subtask_result_response import SubtaskResultResponse
-from render.workflows.callback_api.types import UNSET, Unset, Response
+from render.workflows.callback_api.models.subtask_result_response import (
+    SubtaskResultResponse,
+)
+from render.workflows.callback_api.types import Response, Unset
+
 
 class Status(Enum):
     RUNNING = "running"
     ERROR = "error"
     SUCCESS = "success"
 
+
 @dataclass
 class TaskResultResponse:
     """Response when requesting task results."""
+
     status: Status
     result: Any | None = None
     error: str | None = None
+
 
 @dataclass
 class CallbackRequest:
@@ -51,12 +59,14 @@ class CallbackRequest:
     result: Any | None = None
     error: str | None = None
 
+
 POLLING_INTERVAL = 1.0
 
 try:
     version = importlib.metadata.version("render")
 except importlib.metadata.PackageNotFoundError:
     version = "unknown"  # fallback version
+
 
 class UDSClient:
     """Client for communicating with the SDK server over Unix Domain Socket."""
@@ -72,14 +82,10 @@ class UDSClient:
         # Create httpx clients with UDS transport and User-Agent header
         headers = {"User-Agent": f"render-workflows-python-sdk/{version}"}
         sync_client = httpx.Client(
-            transport=transport,
-            headers=headers,
-            base_url="http://localhost"
+            transport=transport, headers=headers, base_url="http://localhost"
         )
         async_client = httpx.AsyncClient(
-            transport=async_transport,
-            headers=headers,
-            base_url="http://localhost"
+            transport=async_transport, headers=headers, base_url="http://localhost"
         )
 
         # Set the clients on the generated client
@@ -88,7 +94,10 @@ class UDSClient:
 
     async def disconnect(self):
         """Close the async httpx client."""
-        if hasattr(self.client, "_async_client") and self.client._async_client is not None:
+        if (
+            hasattr(self.client, "_async_client")
+            and self.client._async_client is not None
+        ):
             await self.client._async_client.aclose()
         if hasattr(self.client, "_client") and self.client._client is not None:
             self.client._client.close()
@@ -101,15 +110,16 @@ class UDSClient:
 
     async def post_callback(self, callback_request: CallbackRequest) -> None:
         """Send a callback to the server."""
-        data : GeneratedCallbackRequest
+        data: GeneratedCallbackRequest
 
         if callback_request.status == Status.SUCCESS:
             # Ensure result is wrapped in an array as expected by the API
             result_array = (
-                [callback_request.result] if not isinstance(callback_request.result, list) else callback_request.result
+                [callback_request.result]
+                if not isinstance(callback_request.result, list)
+                else callback_request.result
             )
             result_json = json.dumps(result_array).encode("utf-8")
-
 
             data = GeneratedCallbackRequest(
                 complete=TaskComplete(
@@ -118,16 +128,16 @@ class UDSClient:
             )
         elif callback_request.status == Status.ERROR:
             data = GeneratedCallbackRequest(
-                error=TaskError(
-                    details=callback_request.error
-                )
+                error=TaskError(details=callback_request.error)
             )
 
         # Send using the generated API
         await self._post_callback_api_call(data)
 
     @handle_http_errors("post callback")
-    async def _post_callback_api_call(self, data: GeneratedCallbackRequest) -> Response[Any]  :
+    async def _post_callback_api_call(
+        self, data: GeneratedCallbackRequest
+    ) -> Response[Any]:
         """Internal method to make the post callback API call."""
         return await post_callback.asyncio_detailed(client=self.client, body=data)
 
@@ -143,7 +153,9 @@ class UDSClient:
             The result of the subtask execution
         """
         # Encode input data as base64 JSON
-        input_json = json.dumps(input_data if input_data is not None else []).encode("utf-8")
+        input_json = json.dumps(input_data if input_data is not None else []).encode(
+            "utf-8"
+        )
         subtask_request = RunSubtaskRequest(
             task_name=task_name,
             input_=base64.b64encode(input_json).decode("utf-8"),
@@ -159,7 +171,7 @@ class UDSClient:
             result = await self.get_task_result(task_run_id)
 
             if result.status == Status.SUCCESS:
-                # Extract the actual value from the array (results are wrapped in arrays)
+                # Extract the actual value from the array
                 actual_result = result.result
                 if isinstance(actual_result, list) and len(actual_result) == 1:
                     return actual_result[0]
@@ -172,9 +184,10 @@ class UDSClient:
             else:
                 raise RenderError(f"Unknown subtask status: {result.status}")
 
-
     @handle_http_errors("run subtask")
-    async def _run_subtask_api_call(self, body: RunSubtaskRequest) -> Response[Any | RunSubtaskResponse]:
+    async def _run_subtask_api_call(
+        self, body: RunSubtaskRequest
+    ) -> Response[Any | RunSubtaskResponse]:
         return await post_run_subtask.asyncio_detailed(client=self.client, body=body)
 
     async def register_tasks(
@@ -187,7 +200,9 @@ class UDSClient:
     @handle_http_errors("register tasks")
     async def _register_tasks_api_call(self, tasks: Tasks) -> Response[Any]:
         """Internal method to make the register tasks API call."""
-        return await post_register_tasks.asyncio_detailed(client=self.client, body=tasks)
+        return await post_register_tasks.asyncio_detailed(
+            client=self.client, body=tasks
+        )
 
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
@@ -216,9 +231,11 @@ class UDSClient:
             result = None
             if response.complete.output:
                 try:
-                    result = json.loads(base64.b64decode(response.complete.output).decode("utf-8"))
+                    result = json.loads(
+                        base64.b64decode(response.complete.output).decode("utf-8")
+                    )
                 except (json.JSONDecodeError, ValueError) as e:
-                    raise RenderError(f"Failed to decode task result: {e}")
+                    raise RenderError(f"Failed to decode task result: {e}") from e
 
             return TaskResultResponse(
                 status=Status.SUCCESS,
@@ -229,6 +246,10 @@ class UDSClient:
         raise RenderError("Unknown task status")
 
     @handle_http_errors("get task result")
-    async def _get_task_result_api_call(self, body: SubtaskResultRequest) -> Response[Any | SubtaskResultResponse]:
+    async def _get_task_result_api_call(
+        self, body: SubtaskResultRequest
+    ) -> Response[Any | SubtaskResultResponse]:
         """Internal method to make the get task result API call."""
-        return await post_get_subtask_result.asyncio_detailed(client=self.client, body=body)
+        return await post_get_subtask_result.asyncio_detailed(
+            client=self.client, body=body
+        )
