@@ -3,8 +3,8 @@
 
 import pytest
 
-from render.workflows import TaskRegistry, create_task_decorator
-from render.workflows.client import UDSClient
+from render.workflows.task import TaskRegistry, create_task_decorator
+from render.workflows.client import UDSClient, Status
 from render.workflows.executor import TaskExecutor
 
 
@@ -49,7 +49,8 @@ async def test_simple_task_execution(task_decorator, task_executor, mock_client)
     assert result == 8
     mock_client.post_callback.assert_called_once()
     call_args = mock_client.post_callback.call_args[0][0]
-    assert call_args.type == "complete"
+    assert call_args.status == Status.SUCCESS
+    assert call_args.result == 8
 
 
 @pytest.mark.asyncio
@@ -81,7 +82,7 @@ async def test_task_execution_error(task_decorator, task_executor, mock_client):
 
     mock_client.post_callback.assert_called_once()
     call_args = mock_client.post_callback.call_args[0][0]
-    assert call_args.type == "error"
+    assert call_args.status == Status.ERROR
     assert "Negative numbers not allowed" in call_args.error
 
 
@@ -93,7 +94,7 @@ async def test_nonexistent_task(task_executor, mock_client):
 
     mock_client.post_callback.assert_called_once()
     call_args = mock_client.post_callback.call_args[0][0]
-    assert call_args.type == "error"
+    assert call_args.status == Status.ERROR
 
 
 # Integration Tests
@@ -149,5 +150,5 @@ async def test_callback_format(task_registry, task_decorator, mock_client):
     # Check that callback was called with correct format
     mock_client.post_callback.assert_called_once()
     call_args = mock_client.post_callback.call_args[0][0]
-    assert call_args.type == "complete"
+    assert call_args.status == Status.SUCCESS
     assert call_args.result == "processed: test"
