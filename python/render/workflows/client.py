@@ -10,6 +10,8 @@ from typing import Any
 
 import httpx
 
+from render.client.util import handle_http_errors
+from render.client.errors import RenderError, TaskRunError
 from render.workflows.callback_api.api.default import (
     get_input,
     post_callback,
@@ -22,12 +24,14 @@ from render.workflows.callback_api.models import (
     CallbackRequest as GeneratedCallbackRequest,
     InputResponse,
     RunSubtaskRequest,
+    RunSubtaskResponse,
     SubtaskResultRequest,
     Tasks,
     TaskComplete,
     TaskError,
 )
-from render.workflows.callback_api.types import UNSET, Unset
+from render.workflows.callback_api.models.subtask_result_response import SubtaskResultResponse
+from render.workflows.callback_api.types import UNSET, Unset, Response
 
 class Status(Enum):
     RUNNING = "running"
@@ -92,8 +96,6 @@ class UDSClient:
     async def get_input(self) -> InputResponse:
         """Get the task name and input for a task run."""
         response = await get_input.asyncio(client=self.client)
-        if response is None:
-            raise Exception("Failed to get input from server")
 
         return response
 
@@ -122,11 +124,12 @@ class UDSClient:
             )
 
         # Send using the generated API
-        response = await post_callback.asyncio_detailed(client=self.client, body=data)
+        await self._post_callback_api_call(data)
 
-        if response.status_code >= 400:
-            error_text = response.content.decode() if response.content else "Unknown error"
-            raise Exception(f"HTTP {response.status_code}: {error_text}")
+    @handle_http_errors("post callback")
+    async def _post_callback_api_call(self, data: GeneratedCallbackRequest) -> Response[Any]  :
+        """Internal method to make the post callback API call."""
+        return await post_callback.asyncio_detailed(client=self.client, body=data)
 
     async def run_subtask(self, task_name: str, input_data: any = None) -> any:
         """
@@ -147,9 +150,7 @@ class UDSClient:
         )
 
         # Start the subtask
-        response = await post_run_subtask.asyncio(client=self.client, body=subtask_request)
-        if response is None:
-            raise Exception("Failed to start subtask")
+        response = (await self._run_subtask_api_call(subtask_request)).parsed
 
         task_run_id = response.task_run_id
 
@@ -164,28 +165,35 @@ class UDSClient:
                     return actual_result[0]
                 return actual_result
             elif result.status == Status.ERROR:
-                raise Exception(f"Subtask failed: {result.error}")
+                raise TaskRunError(f"Subtask failed: {result.error}")
             elif result.status == Status.RUNNING:
                 # Wait a bit before polling again
                 await asyncio.sleep(POLLING_INTERVAL)
             else:
-                raise Exception(f"Unknown subtask status: {result.status}")
+                raise RenderError(f"Unknown subtask status: {result.status}")
+
+
+    @handle_http_errors("run subtask")
+    async def _run_subtask_api_call(self, body: RunSubtaskRequest) -> Response[Any | RunSubtaskResponse]:
+        return await post_run_subtask.asyncio_detailed(client=self.client, body=body)
 
     async def register_tasks(
         self,
         tasks: Tasks,
     ) -> None:
         """Register tasks with the server."""
-        await post_register_tasks.asyncio_detailed(client=self.client, body=tasks)
+        await self._register_tasks_api_call(tasks)
+
+    @handle_http_errors("register tasks")
+    async def _register_tasks_api_call(self, tasks: Tasks) -> Response[Any]:
+        """Internal method to make the register tasks API call."""
+        return await post_register_tasks.asyncio_detailed(client=self.client, body=tasks)
 
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
         subtask_result_request = SubtaskResultRequest(task_run_id=task_run_id)
 
-        response = await post_get_subtask_result.asyncio(client=self.client, body=subtask_result_request)
-
-        if response is None:
-            raise Exception("Failed to get task result")
+        response = (await self._get_task_result_api_call(subtask_result_request)).parsed
 
         # Check if task is still running
         if response.still_running:
@@ -210,7 +218,7 @@ class UDSClient:
                 try:
                     result = json.loads(base64.b64decode(response.complete.output).decode("utf-8"))
                 except (json.JSONDecodeError, ValueError) as e:
-                    raise Exception(f"Failed to decode task result: {e}")
+                    raise RenderError(f"Failed to decode task result: {e}")
 
             return TaskResultResponse(
                 status=Status.SUCCESS,
@@ -218,4 +226,9 @@ class UDSClient:
                 error=None,
             )
 
-        raise Exception("Unknown task status")
+        raise RenderError("Unknown task status")
+
+    @handle_http_errors("get task result")
+    async def _get_task_result_api_call(self, body: SubtaskResultRequest) -> Response[Any | SubtaskResultResponse]:
+        """Internal method to make the get task result API call."""
+        return await post_get_subtask_result.asyncio_detailed(client=self.client, body=body)
