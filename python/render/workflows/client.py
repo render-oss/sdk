@@ -1,9 +1,11 @@
 """Unix domain socket client for communicating with the SDK server."""
 
+import asyncio
 import base64
 import importlib.metadata
 import json
 from dataclasses import asdict
+import logging
 
 import httpx
 
@@ -22,7 +24,7 @@ from render.workflows.callback_api.models import (
 from render.workflows.callback_api.models import (
     Task as GeneratedTask,
 )
-from render.workflows.callback_api.types import UNSET
+from render.workflows.callback_api.types import UNSET, Unset
 from render.workflows.models import (
     CallbackData,
     CallbackRequest,
@@ -39,11 +41,14 @@ from render.workflows.models import (
     TaskResultResponse,
 )
 
+POLLING_INTERVAL = 1.0
+
 try:
     version = importlib.metadata.version("render")
 except importlib.metadata.PackageNotFoundError:
     version = "unknown"  # fallback version
 
+logger = logging.getLogger(__name__)
 
 class UDSClient:
     """Client for communicating with the SDK server over Unix Domain Socket using generated API."""
@@ -118,21 +123,8 @@ class UDSClient:
                 ),
             )
         elif callback_data.type == CallbackType.SUBTASK:
-            # For subtasks, use the new run_subtask endpoint
-            input_json = json.dumps(callback_data.input).encode("utf-8")
-            subtask_request = RunSubtaskRequest(
-                task_name=callback_data.name or "",
-                input_=base64.b64encode(input_json).decode("utf-8"),
-            )
-
-            response = await post_run_subtask.asyncio(client=self.client, body=subtask_request)
-            if response is None:
-                raise Exception("Failed to run subtask")
-
-            return CallbackResponse(
-                status="ok",
-                task_run_id=response.task_run_id,
-            )
+            # Subtasks are now handled separately via run_subtask method
+            raise ValueError("Subtasks should be run using the run_subtask method directly")
         else:
             raise ValueError(f"Unknown callback type: {callback_data.type}")
 
@@ -160,6 +152,49 @@ class UDSClient:
             status=response_data.get("status", "ok"),
             task_run_id=response_data.get("task_run_id"),
         )
+
+    async def run_subtask(self, task_name: str, input_data: any = None) -> any:
+        """
+        Run a subtask and wait for its completion.
+
+        Args:
+            task_name: Name of the task to run
+            input_data: Input data to pass to the task
+
+        Returns:
+            The result of the subtask execution
+        """
+        # Encode input data as base64 JSON
+        input_json = json.dumps(input_data if input_data is not None else []).encode("utf-8")
+        subtask_request = RunSubtaskRequest(
+            task_name=task_name,
+            input_=base64.b64encode(input_json).decode("utf-8"),
+        )
+
+        # Start the subtask
+        response = await post_run_subtask.asyncio(client=self.client, body=subtask_request)
+        if response is None:
+            raise Exception("Failed to start subtask")
+
+        task_run_id = response.task_run_id
+
+        # Poll for completion
+        while True:
+            result = await self.get_task_result(task_run_id)
+
+            if result.status == "complete":
+                # Extract the actual value from the array (results are wrapped in arrays)
+                actual_result = result.result
+                if isinstance(actual_result, list) and len(actual_result) == 1:
+                    return actual_result[0]
+                return actual_result
+            elif result.status == "error":
+                raise Exception(f"Subtask failed: {result.error}")
+            elif result.status == "running":
+                # Wait a bit before polling again
+                await asyncio.sleep(POLLING_INTERVAL)
+            else:
+                raise Exception(f"Unknown subtask status: {result.status}")
 
     async def register_tasks(
         self,
@@ -191,7 +226,7 @@ class UDSClient:
             )
 
         # Check if there was an error
-        if not isinstance(response.error, UNSET) and response.error is not None:
+        if not isinstance(response.error, Unset) and response.error is not None:
             return TaskResultResponse(
                 status="error",
                 result=None,
@@ -199,7 +234,7 @@ class UDSClient:
             )
 
         # Check if task completed successfully
-        if not isinstance(response.complete, UNSET) and response.complete is not None:
+        if not isinstance(response.complete, Unset) and response.complete is not None:
             result = None
             if response.complete.output:
                 try:

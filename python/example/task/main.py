@@ -17,17 +17,17 @@ def square(a: int) -> int:
 
 
 @task
-def add_squares(a: int, b: int) -> int:
+async def add_squares(a: int, b: int) -> int:
     """Add the squares of two numbers."""
     logger.info(f"Computing add_squares: {a}, {b}")
 
     # Execute subtasks
-    result1 = square(a)
-    result2 = square(b)
+    result1 = await square(a)
+    logger.info(f"Square result: {result1}")
+    result2 = await square(b)
+    logger.info(f"Square result: {result2}")
 
-    logger.info(f"Square results: {result1.result}, {result2.result}")
-
-    return result1.result + result2.result
+    return result1 + result2
 
 
 @task(

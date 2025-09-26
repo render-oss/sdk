@@ -98,7 +98,7 @@ async def test_nonexistent_task(task_executor, mock_client):
 
 # Integration Tests
 @pytest.mark.asyncio
-async def test_complex_task_chain(task_registry, task_decorator, mock_client):
+async def test_complex_task_chain(task_registry, task_decorator, mock_client, mocker):
     """Test a complex chain of task executions."""
 
     @task_decorator
@@ -110,12 +110,23 @@ async def test_complex_task_chain(task_registry, task_decorator, mock_client):
         return x * 2
 
     @task_decorator
-    def complex_calculation(start: int) -> int:
-        # Direct function calls (will become socket calls in future)
-        step1 = increment(start)
-        step2 = double(step1)
-        step3 = increment(step2)
+    async def complex_calculation(start: int) -> int:
+        # Use await for subtask calls
+        step1 = await increment(start)
+        step2 = await double(step1)
+        step3 = await increment(step2)
         return step3
+
+    # Configure mock to simulate subtask execution
+    def mock_run_subtask(task_name, args):
+        if task_name == "increment":
+            return args[0] + 1
+        elif task_name == "double":
+            return args[0] * 2
+        else:
+            raise ValueError(f"Unknown task: {task_name}")
+
+    mock_client.run_subtask = mocker.AsyncMock(side_effect=mock_run_subtask)
 
     executor = TaskExecutor(task_registry, mock_client)
     result = await executor.execute("complex_calculation", [5])
