@@ -1,11 +1,16 @@
 """Task decorator and related functionality."""
 
+import contextvars
+import functools
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+# Context variable to hold the current client for subtask execution
+_current_client: contextvars.ContextVar = contextvars.ContextVar("current_client")
 
 
 @dataclass
@@ -99,6 +104,37 @@ class TaskRegistry:
         return task_info.func
 
 
+class TaskCallable:
+    """A callable that can be awaited to run as a subtask."""
+
+    def __init__(self, func, name):
+        self._func = func
+        self._name = name
+        # Copy function attributes for introspection
+        functools.update_wrapper(self, func)
+
+    def __call__(self, *args, **kwargs):
+        # Store args for potential await
+        self._args = args
+        self._kwargs = kwargs
+        return self
+
+    def __await__(self):
+        """Run as a subtask when awaited."""
+
+        async def run_subtask():
+            try:
+                client = _current_client.get()
+                return await client.run_subtask(self._name, list(self._args))
+            except LookupError as e:
+                raise RuntimeError(
+                    f"Cannot run {self._name} as subtask \
+                      outside of task execution context"
+                ) from e
+
+        return run_subtask().__await__()
+
+
 def create_task_decorator(registry: TaskRegistry) -> Callable:
     """
     Create a task decorator bound to a specific registry.
@@ -123,7 +159,7 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         *,
         name: str | None = None,
         options: Options | None = None,
-    ) -> F | Callable[[F], F]:
+    ) -> F | Callable[[F], TaskCallable]:
         """
         Decorator to register a function as a task in the bound registry.
 
@@ -136,9 +172,10 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
             The decorated function
         """
 
-        def decorator(f: F) -> F:
-            registry.register(f, name, options)
-            return f
+        def decorator(f: F) -> TaskCallable:
+            task_name = registry.register(f, name, options)
+
+            return TaskCallable(f, task_name)
 
         if func is None:
             # Called with arguments: @task(name="...", options=...)

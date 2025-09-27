@@ -1,11 +1,11 @@
 """Task executor for running tasks."""
 
+import inspect
 import logging
 from typing import Any
 
-from render.workflows.client import UDSClient
-from render.workflows.models import CallbackData, CallbackType
-from render.workflows.task import TaskRegistry, TaskResult
+from render.workflows.client import CallbackRequest, Status, UDSClient
+from render.workflows.task import TaskRegistry, TaskResult, _current_client
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +17,28 @@ class TaskExecutor:
         self.task_registry = task_registry
         self.client = client
 
-    def _execute_task(self, task_name: str, input_args: list[Any]) -> Any:
+    async def _execute_task(self, task_name: str, input_args: list[Any]) -> Any:
         """Execute a task by name with the given input."""
         func = self.task_registry.get_function(task_name)
         if not func:
             return TaskResult(error=ValueError(f"Task '{task_name}' not found"))
+
         try:
-            result = func(*input_args)
-            return TaskResult(result=result)
+            # Set the client context for subtask execution
+            context = _current_client.set(self.client)
+
+            try:
+                # Check if the function is async
+                if inspect.iscoroutinefunction(func):
+                    result = await func(*input_args)
+                else:
+                    result = func(*input_args)
+
+                return TaskResult(result=result)
+            finally:
+                # Clean up the context
+                _current_client.reset(context)
+
         except Exception as e:
             return TaskResult(error=e)
 
@@ -36,7 +50,7 @@ class TaskExecutor:
 
         try:
             # Execute the task
-            result = self._execute_task(task_name, input_args)
+            result = await self._execute_task(task_name, input_args)
             if result.error:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)
@@ -57,10 +71,10 @@ class TaskExecutor:
 
     async def _send_error_callback(self, task_name: str, error: Exception):
         """Send an error callback to the server."""
-        error_callback = CallbackData(type=CallbackType.ERROR, error=str(error))
+        error_callback = CallbackRequest(status=Status.ERROR, error=str(error))
         await self.client.post_callback(error_callback)
 
     async def _send_success_callback(self, task_name: str, result: Any):
         """Send a success callback to the server."""
-        success_callback = CallbackData(type=CallbackType.COMPLETE, result=result)
+        success_callback = CallbackRequest(status=Status.SUCCESS, result=result)
         await self.client.post_callback(success_callback)
