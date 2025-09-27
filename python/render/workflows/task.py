@@ -103,6 +103,7 @@ class TaskRegistry:
 
         return task_info.func
 
+
 class TaskCallable:
     """A callable that can be awaited to run as a subtask."""
 
@@ -124,9 +125,7 @@ class TaskCallable:
         async def run_subtask():
             try:
                 client = _current_client.get()
-                return await client.run_subtask(
-                    self._name, list(self._args)
-                )
+                return await client.run_subtask(self._name, list(self._args))
             except LookupError as e:
                 raise RuntimeError(
                     f"Cannot run {self._name} as subtask \
@@ -134,6 +133,7 @@ class TaskCallable:
                 ) from e
 
         return run_subtask().__await__()
+
 
 def create_task_decorator(registry: TaskRegistry) -> Callable:
     """

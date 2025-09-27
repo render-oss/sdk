@@ -3,8 +3,8 @@
 import asyncio
 import base64
 import importlib.metadata
-import time
 import json
+import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -62,8 +62,8 @@ class CallbackRequest:
 
 
 POLLING_INTERVAL = 1.0
-POLLING_TIMEOUT = 24 * 60 * 60 # 24 hours
-QUERY_TIMEOUT = 15 # 15 seconds
+POLLING_TIMEOUT = 24 * 60 * 60  # 24 hours
+QUERY_TIMEOUT = 15  # 15 seconds
 
 try:
     version = importlib.metadata.version("render")
@@ -82,7 +82,7 @@ class UDSClient:
             base_url="http://localhost",
             headers={"User-Agent": f"render-workflows-python-sdk/{version}"},
             httpx_args={
-              "transport": httpx.AsyncHTTPTransport(uds=self.socket_path),
+                "transport": httpx.AsyncHTTPTransport(uds=self.socket_path),
             },
             timeout=httpx.Timeout(timeout=QUERY_TIMEOUT),
         )
@@ -106,19 +106,30 @@ class UDSClient:
         if callback_request.status == Status.SUCCESS:
             # Ensure result is wrapped in an array as expected by the API
             result_array = (
-                [callback_request.result] if not isinstance(callback_request.result, list) else callback_request.result
+                [callback_request.result]
+                if not isinstance(callback_request.result, list)
+                else callback_request.result
             )
             result_json = json.dumps(result_array).encode()
 
-            data = GeneratedCallbackRequest(complete=TaskComplete(output=base64.b64encode(result_json).decode()))
-        elif callback_request.status == Status.ERROR and callback_request.error is not None:
-            data = GeneratedCallbackRequest(error=TaskError(details=callback_request.error))
+            data = GeneratedCallbackRequest(
+                complete=TaskComplete(output=base64.b64encode(result_json).decode())
+            )
+        elif (
+            callback_request.status == Status.ERROR
+            and callback_request.error is not None
+        ):
+            data = GeneratedCallbackRequest(
+                error=TaskError(details=callback_request.error)
+            )
 
         # Send using the generated API
         await self._post_callback_api_call(data)
 
     @handle_http_errors("post callback")
-    async def _post_callback_api_call(self, data: GeneratedCallbackRequest) -> Response[Any]:
+    async def _post_callback_api_call(
+        self, data: GeneratedCallbackRequest
+    ) -> Response[Any]:
         """Internal method to make the post callback API call."""
         async with self.get_client() as client:
             return await post_callback.asyncio_detailed(client=client, body=data)
@@ -166,7 +177,9 @@ class UDSClient:
                 raise RenderError(f"Unknown subtask status: {result.status}")
 
     @handle_http_errors("run subtask")
-    async def _run_subtask_api_call(self, body: RunSubtaskRequest) -> Response[Any | RunSubtaskResponse]:
+    async def _run_subtask_api_call(
+        self, body: RunSubtaskRequest
+    ) -> Response[Any | RunSubtaskResponse]:
         async with self.get_client() as client:
             return await post_run_subtask.asyncio_detailed(client=client, body=body)
 
@@ -210,7 +223,9 @@ class UDSClient:
             result = None
             if response.complete.output:
                 try:
-                    result = json.loads(base64.b64decode(response.complete.output).decode())
+                    result = json.loads(
+                        base64.b64decode(response.complete.output).decode()
+                    )
                 except (json.JSONDecodeError, ValueError) as e:
                     raise RenderError(f"Failed to decode task result: {e}") from e
 
@@ -223,7 +238,11 @@ class UDSClient:
         raise RenderError("Unknown task status")
 
     @handle_http_errors("get task result")
-    async def _get_task_result_api_call(self, body: SubtaskResultRequest) -> Response[Any | SubtaskResultResponse]:
+    async def _get_task_result_api_call(
+        self, body: SubtaskResultRequest
+    ) -> Response[Any | SubtaskResultResponse]:
         """Internal method to make the get task result API call."""
         async with self.get_client() as client:
-            return await post_get_subtask_result.asyncio_detailed(client=client, body=body)
+            return await post_get_subtask_result.asyncio_detailed(
+                client=client, body=body
+            )
