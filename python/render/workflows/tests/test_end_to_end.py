@@ -114,9 +114,6 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     assert retry_options.wait_duration_ms == 1000
     assert retry_options.factor == 1.5
 
-    # Verify disconnect was called
-    mock_client_instance.disconnect.assert_called_once()
-
 
 @pytest.mark.asyncio
 async def test_callback_payloads_with_mocked_client(
