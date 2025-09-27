@@ -58,8 +58,6 @@ async def run_async(socket_path: str) -> None:
     except Exception as e:
         logger.error(f"Task execution failed: {e}")
         raise
-    finally:
-        await client.disconnect()
 
 
 def run(socket_path: str) -> None:
@@ -110,8 +108,6 @@ async def register_async(socket_path: str) -> None:
     except Exception as e:
         logger.error(f"Task registration failed: {e}")
         raise
-    finally:
-        await client.disconnect()
 
 
 def register(socket_path: str) -> None:
