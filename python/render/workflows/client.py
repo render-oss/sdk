@@ -3,6 +3,7 @@
 import asyncio
 import base64
 import importlib.metadata
+import time
 import json
 from dataclasses import dataclass
 from enum import Enum
@@ -61,6 +62,8 @@ class CallbackRequest:
 
 
 POLLING_INTERVAL = 1.0
+POLLING_TIMEOUT = 24 * 60 * 60 # 24 hours
+QUERY_TIMEOUT = 15 # 15 seconds
 
 try:
     version = importlib.metadata.version("render")
@@ -81,6 +84,7 @@ class UDSClient:
             httpx_args={
               "transport": httpx.AsyncHTTPTransport(uds=self.socket_path),
             },
+            timeout=httpx.Timeout(timeout=QUERY_TIMEOUT),
         )
 
     async def get_input(self) -> InputResponse:
@@ -143,7 +147,8 @@ class UDSClient:
         task_run_id = response.task_run_id
 
         # Poll for completion
-        while True:
+        start_time = time.time()
+        while time.time() - start_time < POLLING_TIMEOUT:
             result = await self.get_task_result(task_run_id)
 
             if result.status == Status.SUCCESS:
