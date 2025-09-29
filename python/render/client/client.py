@@ -42,7 +42,19 @@ class Client:
             self.token = os.getenv("RENDER_API_KEY", "")
         else:
             self.token = token
-        self.base_url = base_url
+
+        # If local dev is enabled, use the default local dev URL
+        # or the URL from the RENDER_LOCAL_DEV_URL environment variable.
+        # Otherwise, use the base URL
+        use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
+        if use_local_dev != "":
+            local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
+            if local_dev_url != "":
+                self.base_url = local_dev_url
+            else:
+                self.base_url = "http://localhost:8120"
+        else:
+            self.base_url = base_url
 
         # Ensure base URL has proper format
         if not self.base_url.startswith(("http://", "https://")):
