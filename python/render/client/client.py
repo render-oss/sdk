@@ -48,7 +48,7 @@ class Client:
         # Otherwise, use the base URL
         use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
         local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
-        if local_dev_url != "":
+        if local_dev_url:
             self.base_url = local_dev_url
         elif use_local_dev in ["1", "t", "T", "true", "TRUE", "True"]:
             self.base_url = "http://localhost:8120"
