@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/render/internal/client"
@@ -59,7 +60,7 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 	}
 
 	useLocalDev := os.Getenv(UseLocalDev)
-	if useLocalDev != "" {
+	if value, _ := strconv.ParseBool(useLocalDev); value {
 		baseURL = "http://localhost:8120"
 	}
 
