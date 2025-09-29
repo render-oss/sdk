@@ -1,5 +1,6 @@
-# workflow-sdk
-An SDK for Render's workflow product
+# workflows-sdk
+
+An SDK for Render Workflows
 
 # Development
 

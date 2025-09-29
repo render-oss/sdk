@@ -1,8 +1,6 @@
-# Render Tasks Python SDK
+# Render Workflows Python SDK
 
-[![Python CI](https://github.com/anthropics/render-workflow-sdk/actions/workflows/python-ci.yml/badge.svg)](https://github.com/anthropics/render-workflow-sdk/actions/workflows/python-ci.yml)
-
-A Python SDK for defining and executing tasks in the Render workflow system.
+A Python SDK for defining and executing tasks in the Render Workflows system.
 
 ## Installation
 
