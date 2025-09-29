@@ -172,7 +172,7 @@ def handle_http_errors(operation: str):
                 raise
             except Exception as exc:
                 # Unexpected exception
-                RenderError(f"{operation} failed with unexpected error: {exc}")
+                raise RenderError(f"{operation} failed with unexpected error: {exc}")
 
         return wrapper
 
