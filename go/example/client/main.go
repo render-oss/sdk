@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -15,8 +16,8 @@ func main() {
 	}
 
 	// Example: Run a task
-	taskIdentifier := render.TaskIdentifier("my-workflow/my-task")
-	input := render.TaskData{"input1", "input2", 123}
+	taskIdentifier := render.TaskIdentifier("my-workflow/square")
+	input := render.TaskData{4}
 
 	taskRun, err := client.Workflows.RunTask(taskIdentifier, input)
 	if err != nil {
@@ -25,6 +26,13 @@ func main() {
 
 	fmt.Printf("Task run created with ID: %s, Status: %s\n", taskRun.Id, taskRun.Status)
 
+	result, err := taskRun.Get(context.Background())
+	if err != nil {
+		log.Fatalf("Failed to get task run details: %v", err)
+	}
+
+	fmt.Printf("Task run details: ID=%s, Status=%s, Results=%v\n",
+		result.Id, result.Status, result.Results)
 	// Example: Get task run details
 	details, err := client.Workflows.GetTaskRun(taskRun.Id)
 	if err != nil {

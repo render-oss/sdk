@@ -47,12 +47,11 @@ class Client:
         # or the URL from the RENDER_LOCAL_DEV_URL environment variable.
         # Otherwise, use the base URL
         use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
+        local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
         if use_local_dev != "":
-            local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
-            if local_dev_url != "":
-                self.base_url = local_dev_url
-            else:
-                self.base_url = "http://localhost:8120"
+            self.base_url = "http://localhost:8120"
+        elif local_dev_url != "":
+            self.base_url = local_dev_url
         else:
             self.base_url = base_url
 
