@@ -43,8 +43,8 @@ class Client:
         else:
             self.token = token
 
-        # If local dev is enabled, use the default local dev URL
-        # or the URL from the RENDER_LOCAL_DEV_URL environment variable.
+        # Use the local dev URL when provided,
+        # Otherwise if local dev is enabled, use the default local dev URL
         # Otherwise, use the base URL
         use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
         local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
