@@ -5,9 +5,16 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/render/internal/client"
+)
+
+const (
+	LocalDevURL = "RENDER_LOCAL_DEV_URL"
+	UseLocalDev = "RENDER_USE_LOCAL_DEV"
 )
 
 // Client represents the Render API client
@@ -50,6 +57,16 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 	// Ensure base URL has protocol
 	if !strings.HasPrefix(baseURL, "http://") && !strings.HasPrefix(baseURL, "https://") {
 		baseURL = "https://" + baseURL
+	}
+
+	useLocalDev := os.Getenv(UseLocalDev)
+	if value, _ := strconv.ParseBool(useLocalDev); value {
+		baseURL = "http://localhost:8120"
+	}
+
+	localDevURL := os.Getenv(LocalDevURL)
+	if localDevURL != "" {
+		baseURL = localDevURL
 	}
 
 	// Create the internal generated client with auth
