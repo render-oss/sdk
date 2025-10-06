@@ -16,7 +16,7 @@ func main() {
 	}
 
 	// Example: Run a task
-	taskIdentifier := render.TaskIdentifier("my-workflow/square")
+	taskIdentifier := render.TaskIdentifier("my-workflow-slug/square")
 	input := render.TaskData{4}
 
 	taskRun, err := client.Workflows.RunTask(taskIdentifier, input)

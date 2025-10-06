@@ -31,12 +31,8 @@ async def main():
     client = Client(token)
 
     # Example task data - replace with your actual task
-    task_identifier = "example-task"  # Replace with your task name
-    input_data: dict[str, Any] = {
-        "message": "Hello from Python client!",
-        "timestamp": "2024-01-01T00:00:00Z",
-        "count": 42,
-    }
+    task_identifier = "package-renaming-slug/square"  # Replace with your task name
+    input_data: list[Any] = [3]
 
     # Run the task
     try:
