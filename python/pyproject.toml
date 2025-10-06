@@ -1,0 +1,76 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "render_sdk"
+version = "0.1.0"
+description = "Python SDK for Render Workflows"
+authors = ["Render <support@render.com>"]
+readme = "README.md"
+packages = [{include = "render_sdk"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.8.0"
+openapi-python-client = "^0.26.1"
+httpx = "^0.28.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+pytest-cov = "^4.0"
+pytest-asyncio = "^0.21.0"
+pytest-mock = "^3.10.0"
+black = "^25.1.0"
+isort = "^5.0"
+mypy = "^1.18.2"
+tox = "^4.0"
+ruff = "~=0.13"
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+extend-exclude = '''
+(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+extend_skip = ["render_sdk/public_api", "render_sdk/workflows/callback_api/"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = false
+explicit_package_bases = true
+namespace_packages = true
+exclude = ["tests/", "example/", "render_sdk/public_api/", "render_sdk/workflows/callback_api/"]
+check_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["**/tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = ["render_sdk/public_api/", "render_sdk/workflows/callback_api/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "S"]
+per-file-ignores = { "*test_*.py" = ["S101"] }
