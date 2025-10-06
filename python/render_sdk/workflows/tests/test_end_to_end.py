@@ -3,11 +3,16 @@
 
 import pytest
 
-from render.workflows.callback_api.models.task_options import TaskOptions
-from render.workflows.client import Status, UDSClient
-from render.workflows.executor import TaskExecutor
-from render.workflows.runner import register
-from render.workflows.task import Options, Retry, TaskRegistry, create_task_decorator
+from render_sdk.workflows.callback_api.models.task_options import TaskOptions
+from render_sdk.workflows.client import Status, UDSClient
+from render_sdk.workflows.executor import TaskExecutor
+from render_sdk.workflows.runner import register
+from render_sdk.workflows.task import (
+    Options,
+    Retry,
+    TaskRegistry,
+    create_task_decorator,
+)
 
 
 # Fixtures
@@ -45,7 +50,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     """
 
     # Mock the UDSClient class
-    mock_uds_client_class = mocker.patch("render.workflows.runner.UDSClient")
+    mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
 
     # Set up the mock instance
     mock_client_instance = mocker.Mock()
@@ -71,7 +76,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
         return data.upper()
 
     # Mock get_task_registry to return our test registry
-    mock_get_registry = mocker.patch("render.workflows.runner.get_task_registry")
+    mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
     mock_get_registry.return_value = task_registry
 
     register("/tmp/test.sock")  # noqa:S108

@@ -5,8 +5,8 @@ This module provides the WorkflowsService class for workflow-related API operati
 
 from typing import TYPE_CHECKING, Any
 
-from render.client.errors import RenderError, TaskRunError
-from render.client.types import (
+from render_sdk.client.errors import RenderError, TaskRunError
+from render_sdk.client.types import (
     ListTaskRunsParams,
     TaskData,
     TaskIdentifier,
@@ -14,19 +14,19 @@ from render.client.types import (
     TaskRunDetails,
     TaskRunStatusValues,
 )
-from render.client.util import handle_http_errors, retry_with_backoff
-from render.public_api.api.workflows import (
+from render_sdk.client.util import handle_http_errors, retry_with_backoff
+from render_sdk.public_api.api.workflows import (
     cancel_task_run,
     create_task,
     get_task_run,
     list_task_runs,
 )
-from render.public_api.models.error import Error
-from render.public_api.models.run_task import RunTask
-from render.public_api.types import UNSET, Response
+from render_sdk.public_api.models.error import Error
+from render_sdk.public_api.models.run_task import RunTask
+from render_sdk.public_api.types import UNSET, Response
 
 if TYPE_CHECKING:
-    from render.client.client import Client
+    from render_sdk.client.client import Client
 
 
 class AwaitableTaskRun:

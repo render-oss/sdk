@@ -3,7 +3,12 @@
 
 import pytest
 
-from render.workflows.task import Options, Retry, TaskRegistry, create_task_decorator
+from render_sdk.workflows.task import (
+    Options,
+    Retry,
+    TaskRegistry,
+    create_task_decorator,
+)
 
 
 # Fixtures

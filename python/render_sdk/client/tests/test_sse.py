@@ -5,8 +5,8 @@ import json
 
 import pytest
 
-from render.client import TaskRunDetails, TaskRunStatus
-from render.client.sse import parse_stream
+from render_sdk.client import TaskRunDetails, TaskRunStatus
+from render_sdk.client.sse import parse_stream
 
 
 class BytesAiter:

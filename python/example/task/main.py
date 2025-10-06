@@ -2,7 +2,7 @@
 
 import logging
 
-from render.workflows import Options, Retry, start, task
+from render_sdk.workflows import Options, Retry, start, task
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

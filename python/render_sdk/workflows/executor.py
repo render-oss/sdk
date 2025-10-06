@@ -4,8 +4,8 @@ import inspect
 import logging
 from typing import Any
 
-from render.workflows.client import CallbackRequest, Status, UDSClient
-from render.workflows.task import TaskRegistry, TaskResult, _current_client
+from render_sdk.workflows.client import CallbackRequest, Status, UDSClient
+from render_sdk.workflows.task import TaskRegistry, TaskResult, _current_client
 
 logger = logging.getLogger(__name__)
 

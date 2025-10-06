@@ -3,9 +3,11 @@
 from typing import Any
 
 # Re-export commonly used types from generated client
-from render.public_api.models.task_run import TaskRun as _TaskRun
-from render.public_api.models.task_run_details import TaskRunDetails as _TaskRunDetails
-from render.public_api.models.task_run_status import TaskRunStatus as _TaskRunStatus
+from render_sdk.public_api.models.task_run import TaskRun as _TaskRun
+from render_sdk.public_api.models.task_run_details import (
+    TaskRunDetails as _TaskRunDetails,
+)
+from render_sdk.public_api.models.task_run_status import TaskRunStatus as _TaskRunStatus
 
 # Type aliases to match Go client interface
 TaskIdentifier = str

@@ -11,20 +11,20 @@ from typing import Any
 
 import httpx
 
-from render.client.errors import RenderError, TaskRunError
-from render.client.util import handle_http_errors
-from render.workflows.callback_api.api.default import (
+from render_sdk.client.errors import RenderError, TaskRunError
+from render_sdk.client.util import handle_http_errors
+from render_sdk.workflows.callback_api.api.default import (
     get_input,
     post_callback,
     post_get_subtask_result,
     post_register_tasks,
     post_run_subtask,
 )
-from render.workflows.callback_api.client import Client
-from render.workflows.callback_api.models import (
+from render_sdk.workflows.callback_api.client import Client
+from render_sdk.workflows.callback_api.models import (
     CallbackRequest as GeneratedCallbackRequest,
 )
-from render.workflows.callback_api.models import (
+from render_sdk.workflows.callback_api.models import (
     InputResponse,
     RunSubtaskRequest,
     RunSubtaskResponse,
@@ -33,10 +33,10 @@ from render.workflows.callback_api.models import (
     TaskError,
     Tasks,
 )
-from render.workflows.callback_api.models.subtask_result_response import (
+from render_sdk.workflows.callback_api.models.subtask_result_response import (
     SubtaskResultResponse,
 )
-from render.workflows.callback_api.types import Response, Unset
+from render_sdk.workflows.callback_api.types import Response, Unset
 
 
 class Status(Enum):

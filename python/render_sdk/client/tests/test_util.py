@@ -1,16 +1,16 @@
 import httpx
 import pytest
 
-from render.client.errors import ClientError, ServerError, TimeoutError
-from render.client.util import (
+from render_sdk.client.errors import ClientError, ServerError, TimeoutError
+from render_sdk.client.util import (
     handle_api_error,
     handle_http_error,
     handle_http_errors,
     handle_httpx_exception,
     retry_with_backoff,
 )
-from render.public_api.models.error import Error
-from render.public_api.types import Response
+from render_sdk.public_api.models.error import Error
+from render_sdk.public_api.types import Response
 
 
 class TestException(Exception):

@@ -6,9 +6,9 @@ from typing import Any
 
 import httpx
 
-from render.client.errors import ClientError, RenderError, ServerError, TimeoutError
-from render.public_api.models.error import Error
-from render.public_api.types import Response
+from render_sdk.client.errors import ClientError, RenderError, ServerError, TimeoutError
+from render_sdk.public_api.models.error import Error
+from render_sdk.public_api.types import Response
 
 logger = logging.getLogger(__name__)
 

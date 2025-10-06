@@ -6,10 +6,15 @@ import json
 import logging
 import os
 
-from render.workflows.callback_api.models import RetryConfig, Task, TaskOptions, Tasks
-from render.workflows.client import UDSClient
-from render.workflows.executor import TaskExecutor
-from render.workflows.task import get_task_registry
+from render_sdk.workflows.callback_api.models import (
+    RetryConfig,
+    Task,
+    TaskOptions,
+    Tasks,
+)
+from render_sdk.workflows.client import UDSClient
+from render_sdk.workflows.executor import TaskExecutor
+from render_sdk.workflows.task import get_task_registry
 
 logger = logging.getLogger(__name__)
 

@@ -3,8 +3,8 @@
 A Python client library for interacting with Render's REST API.
 """
 
-from render.client.client import Client
-from render.client.types import (
+from render_sdk.client.client import Client
+from render_sdk.client.types import (
     CursorParam,
     LimitParam,
     ListTaskRunsParams,
@@ -15,7 +15,7 @@ from render.client.types import (
     TaskRunDetails,
     TaskRunStatus,
 )
-from render.client.workflows import WorkflowsService
+from render_sdk.client.workflows import WorkflowsService
 
 __all__ = [
     "Client",

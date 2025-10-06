@@ -5,9 +5,9 @@ This module provides the main Client class for interacting with Render's REST AP
 
 import os
 
-from render.client.sse import SSEClient
-from render.client.workflows import WorkflowsService
-from render.public_api.client import AuthenticatedClient
+from render_sdk.client.sse import SSEClient
+from render_sdk.client.workflows import WorkflowsService
+from render_sdk.public_api.client import AuthenticatedClient
 
 
 class Client:

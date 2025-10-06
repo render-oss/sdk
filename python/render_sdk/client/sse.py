@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from render.client.types import TaskRunDetails
-from render.client.util import handle_http_error, handle_httpx_exception
-from render.public_api.api.workflows.stream_task_runs_events import _get_kwargs
+from render_sdk.client.types import TaskRunDetails
+from render_sdk.client.util import handle_http_error, handle_httpx_exception
+from render_sdk.public_api.api.workflows.stream_task_runs_events import _get_kwargs
 
 if TYPE_CHECKING:
-    from render.client.client import Client
+    from render_sdk.client.client import Client
 
 logger = logging.getLogger(__name__)
 

@@ -5,14 +5,14 @@ import datetime
 
 import pytest
 
-from render.client import Client, ListTaskRunsParams, WorkflowsService
-from render.client.errors import ClientError
-from render.client.workflows import AwaitableTaskRun
-from render.public_api.models.error import Error
-from render.public_api.models.task_run import TaskRun
-from render.public_api.models.task_run_details import TaskRunDetails
-from render.public_api.models.task_run_status import TaskRunStatus
-from render.public_api.types import Response
+from render_sdk.client import Client, ListTaskRunsParams, WorkflowsService
+from render_sdk.client.errors import ClientError
+from render_sdk.client.workflows import AwaitableTaskRun
+from render_sdk.public_api.models.error import Error
+from render_sdk.public_api.models.task_run import TaskRun
+from render_sdk.public_api.models.task_run_details import TaskRunDetails
+from render_sdk.public_api.models.task_run_status import TaskRunStatus
+from render_sdk.public_api.types import Response
 
 
 # Fixtures
@@ -59,7 +59,7 @@ def mock_authenticated_client(mocker):
 def client(mocker, mock_authenticated_client):
     """Create a Client instance with mocked dependencies."""
     mocker.patch(
-        "render.client.client.AuthenticatedClient",
+        "render_sdk.client.client.AuthenticatedClient",
         return_value=mock_authenticated_client,
     )
     return Client("test-token", base_url="https://api.test.com")
@@ -74,25 +74,29 @@ def workflows_service(client):
 @pytest.fixture
 def mock_cancel_task_run_asyncio(mocker):
     return mocker.patch(
-        "render.public_api.api.workflows.cancel_task_run.asyncio_detailed"
+        "render_sdk.public_api.api.workflows.cancel_task_run.asyncio_detailed"
     )
 
 
 @pytest.fixture
 def mock_list_task_runs_asyncio(mocker):
     return mocker.patch(
-        "render.public_api.api.workflows.list_task_runs.asyncio_detailed"
+        "render_sdk.public_api.api.workflows.list_task_runs.asyncio_detailed"
     )
 
 
 @pytest.fixture
 def mock_create_task_asyncio(mocker):
-    return mocker.patch("render.public_api.api.workflows.create_task.asyncio_detailed")
+    return mocker.patch(
+        "render_sdk.public_api.api.workflows.create_task.asyncio_detailed"
+    )
 
 
 @pytest.fixture
 def mock_get_task_run_asyncio(mocker):
-    return mocker.patch("render.public_api.api.workflows.get_task_run.asyncio_detailed")
+    return mocker.patch(
+        "render_sdk.public_api.api.workflows.get_task_run.asyncio_detailed"
+    )
 
 
 @pytest.mark.asyncio
