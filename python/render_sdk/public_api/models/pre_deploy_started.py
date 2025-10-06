@@ -1,0 +1,67 @@
+from collections.abc import Mapping
+from typing import Any, TypeVar
+
+from attrs import define as _attrs_define
+from attrs import field as _attrs_field
+
+T = TypeVar("T", bound="PreDeployStarted")
+
+
+@_attrs_define
+class PreDeployStarted:
+    """
+    Attributes:
+        deploy_command_execution_id (str):
+        deploy_id (str):
+    """
+
+    deploy_command_execution_id: str
+    deploy_id: str
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        deploy_command_execution_id = self.deploy_command_execution_id
+
+        deploy_id = self.deploy_id
+
+        field_dict: dict[str, Any] = {}
+        field_dict.update(self.additional_properties)
+        field_dict.update(
+            {
+                "deployCommandExecutionId": deploy_command_execution_id,
+                "deployId": deploy_id,
+            }
+        )
+
+        return field_dict
+
+    @classmethod
+    def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        d = dict(src_dict)
+        deploy_command_execution_id = d.pop("deployCommandExecutionId")
+
+        deploy_id = d.pop("deployId")
+
+        pre_deploy_started = cls(
+            deploy_command_execution_id=deploy_command_execution_id,
+            deploy_id=deploy_id,
+        )
+
+        pre_deploy_started.additional_properties = d
+        return pre_deploy_started
+
+    @property
+    def additional_keys(self) -> list[str]:
+        return list(self.additional_properties.keys())
+
+    def __getitem__(self, key: str) -> Any:
+        return self.additional_properties[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        self.additional_properties[key] = value
+
+    def __delitem__(self, key: str) -> None:
+        del self.additional_properties[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.additional_properties
