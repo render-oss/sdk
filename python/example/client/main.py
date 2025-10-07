@@ -31,7 +31,7 @@ async def main():
     client = Client(token)
 
     # Example task data - replace with your actual task
-    task_identifier = "my-workflow-slug/square"  # Replace with your task identifier
+    task_identifier = "my-workflow-slug/task-name"  # Replace with your task identifier
     input_data: list[Any] = [3]
 
     # Run the task
