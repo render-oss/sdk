@@ -6,8 +6,9 @@ import logging
 from render_sdk.workflows import Options, Retry, start, task
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @task
@@ -57,7 +58,6 @@ async def fan_out(n: int) -> list[int]:
 
 
 if __name__ == "__main__":
-    logger.info("Starting Render Tasks example")
     try:
         start()
     except Exception as e:
