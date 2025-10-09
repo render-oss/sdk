@@ -40,6 +40,8 @@ class Client:
         # Set default values
         if token is None:
             self.token = os.getenv("RENDER_API_KEY", "")
+            if self.token == "":
+                raise ValueError("RENDER_API_KEY environment variable is not set and no token was provided")
         else:
             self.token = token
 

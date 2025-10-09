@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// Example usage of the render client
-	client, err := render.NewClient("your-api-token")
+	client, err := render.NewClient()
 	if err != nil {
 		log.Fatalf("Failed to create render client: %v", err)
 	}
