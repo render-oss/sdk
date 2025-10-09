@@ -23,7 +23,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"runtime/debug"
 
 	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
@@ -109,14 +108,12 @@ func Run(ctx context.Context, unixSocketPath string) (_err error) {
 	if err != nil {
 		return fmt.Errorf("failed to unmarshal input: %w", err)
 	}
-	slog.InfoContext(ctx, "Received input", "taskName", taskName, "rawInput", string(rawInput), "input", input)
 
 	// We use this to avoid idempotency checks by the server adapter
 	err = executor.Execute(ctx, taskName, input...)
 	if err != nil {
 		return err
 	}
-	slog.InfoContext(ctx, "Started task successfully")
 
 	return nil
 }
@@ -146,6 +143,5 @@ func Register(ctx context.Context, unixSocketPath string) error {
 	if resp.StatusCode() != 200 {
 		return fmt.Errorf("failed to register tasks: status code %d", resp.StatusCode())
 	}
-	slog.InfoContext(ctx, "registered tasks successfully")
 	return nil
 }
