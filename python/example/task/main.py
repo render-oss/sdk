@@ -48,7 +48,6 @@ def greet(name: str) -> str:
 
 
 if __name__ == "__main__":
-    logger.info("Starting Render Tasks example")
     try:
         start()
     except Exception as e:
