@@ -23,6 +23,7 @@ func NewCallbackClient(unixSocketPath string) (*callbackapi.ClientWithResponses,
 	retryingHTTPClient := retryablehttp.NewClient()
 	retryingHTTPClient.HTTPClient = httpClient
 	retryingHTTPClient.RetryMax = 10
+	retryingHTTPClient.Logger = nil
 
 	callbackClient, err := callbackapi.NewClientWithResponses(
 		"http://unix",

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -141,14 +140,10 @@ func (e *executorContext) ExecuteTask(t task.Task, input ...interface{}) *task.T
 		return &task.TaskResult{Error: err}
 	}
 
-	log.Printf("Calling task: %s", taskName)
-
 	result, err := e.executeTask(taskName, input...)
 	if err != nil {
 		return &task.TaskResult{Error: err}
 	}
-
-	log.Printf("Task completed: %s", taskName)
 
 	return &task.TaskResult{Result: result}
 }
