@@ -44,7 +44,7 @@ class TaskExecutor:
 
     async def execute(self, task_name: str, input_args: list[Any]) -> Any:
         """Execute a task by name with the given input."""
-        logger.info(f"Starting execution of task: {task_name}")
+        logger.debug(f"Starting execution of task: {task_name}")
 
         sent_error = False
 

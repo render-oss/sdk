@@ -25,17 +25,15 @@ async def run_async(socket_path: str) -> None:
 
     It gets the input from the server, executes the task, and sends the result back.
     """
-    logger.info("Starting task runner")
+    logger.debug("Starting task runner")
 
     # Create client
     client = UDSClient(socket_path)
 
     try:
         # Get input from server
-        logger.info("Getting input from server")
+        logger.debug("Getting task input")
         input_response = await client.get_input()
-
-        logger.info(f"Input response: {input_response}")
 
         task_name = input_response.task_name
         raw_input = input_response.input_
@@ -50,18 +48,13 @@ async def run_async(socket_path: str) -> None:
         else:
             input_data = []
 
-        logger.info(f"Received input - task: {task_name}, input: {input_data}")
-
         # Create executor and execute task
         task_registry = get_task_registry()
         executor = TaskExecutor(task_registry, client)
 
-        result = await executor.execute(task_name, input_data)
-
-        logger.info(f"Task executed successfully with result: {result}")
-
-    except Exception as e:
-        logger.error(f"Task execution failed: {e}")
+        logger.debug(f"Executing task: {task_name}")
+        await executor.execute(task_name, input_data)
+    except Exception:
         raise
 
 
@@ -76,7 +69,7 @@ async def register_async(socket_path: str) -> None:
     """
     Register all tasks with the server asynchronously.
     """
-    logger.info("Registering tasks")
+    logger.debug("Registering tasks")
 
     # Create client
     client = UDSClient(socket_path)
@@ -105,10 +98,10 @@ async def register_async(socket_path: str) -> None:
             tasks.append(task_def)
 
         # Register tasks with server
-        logger.info(f"Registering {len(tasks)} tasks: {[t.name for t in tasks]}")
+        logger.debug(f"Registering {len(tasks)} tasks: {[t.name for t in tasks]}")
         await client.register_tasks(Tasks(tasks=tasks))
 
-        logger.info("Tasks registered successfully")
+        logger.debug("Tasks registered successfully")
 
     except Exception as e:
         logger.error(f"Task registration failed: {e}")
@@ -138,8 +131,6 @@ def start() -> None:
 
     if not socket_path:
         raise ValueError("RENDER_SDK_SOCKET_PATH environment variable is required")
-
-    logger.info(f"Starting in mode: {mode}")
 
     if mode == "run":
         run(socket_path)
