@@ -1,5 +1,6 @@
 """Task decorator and related functionality."""
 
+import asyncio
 import contextvars
 import functools
 from abc import ABC, abstractmethod
@@ -104,6 +105,28 @@ class TaskRegistry:
         return task_info.func
 
 
+class TaskInstance:
+    """Represents a single task execution that can be awaited."""
+
+    def __init__(self, name: str, future: asyncio.Task):
+        self._name = name
+        self._future = future
+
+    def __await__(self):
+        """Await the task execution."""
+
+        async def run_subtask():
+            try:
+                return await self._future
+            except LookupError as e:
+                raise RuntimeError(
+                    f"Cannot run {self._name} as subtask \
+                      outside of task execution context"
+                ) from e
+
+        return run_subtask().__await__()
+
+
 class TaskCallable:
     """A callable that can be awaited to run as a subtask."""
 
@@ -114,25 +137,11 @@ class TaskCallable:
         functools.update_wrapper(self, func)
 
     def __call__(self, *args, **kwargs):
-        # Store args for potential await
-        self._args = args
-        self._kwargs = kwargs
-        return self
-
-    def __await__(self):
-        """Run as a subtask when awaited."""
-
-        async def run_subtask():
-            try:
-                client = _current_client.get()
-                return await client.run_subtask(self._name, list(self._args))
-            except LookupError as e:
-                raise RuntimeError(
-                    f"Cannot run {self._name} as subtask \
-                      outside of task execution context"
-                ) from e
-
-        return run_subtask().__await__()
+        # Create a new TaskInstance for each call
+        client = _current_client.get()
+        # Start execution immediately
+        future = asyncio.create_task(client.run_subtask(self._name, list(args)))
+        return TaskInstance(self._name, future)
 
 
 def create_task_decorator(registry: TaskRegistry) -> Callable:
