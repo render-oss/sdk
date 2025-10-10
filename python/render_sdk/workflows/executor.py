@@ -9,7 +9,6 @@ from render_sdk.workflows.task import TaskRegistry, TaskResult, _current_client
 
 logger = logging.getLogger(__name__)
 
-
 class TaskExecutor:
     """Executes tasks received from the SDK server."""
 
@@ -44,7 +43,7 @@ class TaskExecutor:
 
     async def execute(self, task_name: str, input_args: list[Any]) -> Any:
         """Execute a task by name with the given input."""
-        logger.info(f"Starting execution of task: {task_name}")
+        logger.debug(f"Starting execution of task: {task_name}")
 
         sent_error = False
 
