@@ -13,7 +13,6 @@ Setup:
 """
 
 import asyncio
-import os
 from typing import Any
 
 from render_sdk.client import Client, ListTaskRunsParams
