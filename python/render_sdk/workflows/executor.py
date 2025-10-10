@@ -9,6 +9,7 @@ from render_sdk.workflows.task import TaskRegistry, TaskResult, _current_client
 
 logger = logging.getLogger(__name__)
 
+
 class TaskExecutor:
     """Executes tasks received from the SDK server."""
 

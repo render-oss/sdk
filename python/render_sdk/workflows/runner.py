@@ -54,7 +54,7 @@ async def run_async(socket_path: str) -> None:
 
         logger.debug(f"Executing task: {task_name}")
         await executor.execute(task_name, input_data)
-    except Exception as e:
+    except Exception:
         raise
 
 
