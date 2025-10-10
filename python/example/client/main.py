@@ -13,7 +13,6 @@ Setup:
 """
 
 import asyncio
-import os
 from typing import Any
 
 from render_sdk.client import Client, ListTaskRunsParams
@@ -22,16 +21,11 @@ from render_sdk.client.errors import RenderError, TaskRunError
 
 async def main():
     """Demonstrate async workflow operations."""
-    # Get API token from environment
-    token = os.getenv("RENDER_API_KEY")
-    if not token:
-        print("⚠️  RENDER_API_KEY environment variable not set")
-        return
     # Create client
-    client = Client(token)
+    client = Client()
 
     # Example task data - replace with your actual task
-    task_identifier = "package-renaming-slug/square"  # Replace with your task name
+    task_identifier = "my-workflow-slug/task-name"  # Replace with your task identifier
     input_data: list[Any] = [3]
 
     # Run the task

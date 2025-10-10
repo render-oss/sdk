@@ -36,8 +36,15 @@ func WithBaseURL(baseURL string) ClientOption {
 	}
 }
 
+func WithToken(token string) ClientOption {
+	return func(c *Client) error {
+		c.token = token
+		return nil
+	}
+}
+
 // NewClient creates a new Render API client
-func NewClient(token string, options ...ClientOption) (*Client, error) {
+func NewClient(options ...ClientOption) (*Client, error) {
 	// Create a temporary client to apply options
 	tempClient := &Client{}
 
@@ -45,6 +52,13 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 	for _, option := range options {
 		if err := option(tempClient); err != nil {
 			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
+	}
+
+	if tempClient.token == "" {
+		tempClient.token = os.Getenv("RENDER_API_KEY")
+		if tempClient.token == "" {
+			return nil, fmt.Errorf("RENDER_API_KEY environment variable is not set and no token was provided")
 		}
 	}
 
@@ -73,7 +87,7 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 	internalClient, err := client.NewClientWithResponses(
 		fmt.Sprintf("%s/v1", strings.TrimSuffix(baseURL, "/")),
 		client.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
-			req.Header.Set("Authorization", "Bearer "+token)
+			req.Header.Set("Authorization", "Bearer "+tempClient.token)
 			return nil
 		}),
 	)
@@ -84,7 +98,7 @@ func NewClient(token string, options ...ClientOption) (*Client, error) {
 	// Create the final client with all configuration
 	renderClient := &Client{
 		internal: internalClient,
-		token:    token,
+		token:    tempClient.token,
 		baseURL:  baseURL,
 	}
 
