@@ -1,5 +1,6 @@
 """Example usage of the Render Tasks Python SDK."""
 
+import asyncio
 import logging
 
 from render_sdk.workflows import Options, Retry, start, task
@@ -45,6 +46,14 @@ def greet(name: str) -> str:
     """Greet someone."""
     logger.info(f"Greeting {name}")
     return f"Hello, {name}!"
+
+
+@task
+async def fan_out(n: int) -> list[int]:
+    """Fan out a number into a list of numbers."""
+    squares = [square(i) for i in range(n)]
+    results = await asyncio.gather(*squares)
+    return results
 
 
 if __name__ == "__main__":
