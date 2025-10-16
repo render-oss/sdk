@@ -5,4 +5,4 @@ This package provides:
 2. REST API Client (render_sdk.client) for interacting with Render's API
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
