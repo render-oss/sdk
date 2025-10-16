@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/tasks"
+	"github.com/render-oss/sdk/go/pkg/tasks"
 )
 
 func runCommand(ctx context.Context, cmdStr string, args ...string) {

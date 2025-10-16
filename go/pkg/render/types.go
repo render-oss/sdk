@@ -4,8 +4,8 @@ package render
 // This allows users to avoid importing internal packages
 
 import (
-	"github.com/renderinc/workflow-sdk/go/pkg/render/internal/client"
-	workflows "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/workflows"
+	"github.com/render-oss/sdk/go/pkg/render/internal/client"
+	workflows "github.com/render-oss/sdk/go/pkg/render/internal/client/workflows"
 )
 
 // Types from workflows package

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/render/internal/client"
+	"github.com/render-oss/sdk/go/pkg/render/internal/client"
 )
 
 const (

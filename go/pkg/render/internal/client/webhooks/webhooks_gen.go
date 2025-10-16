@@ -9,7 +9,7 @@ package client
 import (
 	"time"
 
-	externalRef4 "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/eventtypes"
+	externalRef4 "github.com/render-oss/sdk/go/pkg/render/internal/client/eventtypes"
 )
 
 // EventFilter The event types that will trigger the webhook. An empty list means all event types will trigger the webhook.

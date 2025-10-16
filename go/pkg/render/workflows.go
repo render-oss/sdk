@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/render/internal/client"
-	workflows "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/workflows"
+	"github.com/render-oss/sdk/go/pkg/render/internal/client"
+	workflows "github.com/render-oss/sdk/go/pkg/render/internal/client/workflows"
 )
 
 // WorkflowsService handles workflow-related API operations

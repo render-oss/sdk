@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/render"
+	"github.com/render-oss/sdk/go/pkg/render"
 )
 
 func main() {

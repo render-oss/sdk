@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
+	"github.com/render-oss/sdk/go/pkg/internal/callbackapi"
 )
 
 func NewCallbackClient(unixSocketPath string) (*callbackapi.ClientWithResponses, error) {

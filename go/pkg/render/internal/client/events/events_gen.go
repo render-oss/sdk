@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/oapi-codegen/runtime"
-	externalRef0 "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/autoscaling"
-	externalRef2 "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/disks"
-	externalRef4 "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/eventtypes"
-	externalRef5 "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/jobs"
+	externalRef0 "github.com/render-oss/sdk/go/pkg/render/internal/client/autoscaling"
+	externalRef2 "github.com/render-oss/sdk/go/pkg/render/internal/client/disks"
+	externalRef4 "github.com/render-oss/sdk/go/pkg/render/internal/client/eventtypes"
+	externalRef5 "github.com/render-oss/sdk/go/pkg/render/internal/client/jobs"
 )
 
 // Defines values for CronJobRunStatus.

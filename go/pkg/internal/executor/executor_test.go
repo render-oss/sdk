@@ -12,9 +12,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
+	"github.com/render-oss/sdk/go/pkg/internal/callbackapi"
+	"github.com/render-oss/sdk/go/pkg/internal/executor"
+	"github.com/render-oss/sdk/go/pkg/internal/task"
 )
 
 func testTask(_ task.TaskContext) (interface{}, error) {

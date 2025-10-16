@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	workflows "github.com/renderinc/workflow-sdk/go/pkg/render/internal/client/workflows"
+	workflows "github.com/render-oss/sdk/go/pkg/render/internal/client/workflows"
 )
 
 const (

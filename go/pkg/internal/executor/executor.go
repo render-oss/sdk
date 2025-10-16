@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
+	"github.com/render-oss/sdk/go/pkg/internal/callbackapi"
+	"github.com/render-oss/sdk/go/pkg/internal/task"
 )
 
 type Executor struct {

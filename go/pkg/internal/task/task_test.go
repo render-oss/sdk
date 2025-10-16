@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
+	"github.com/render-oss/sdk/go/pkg/internal/task"
 	"github.com/stretchr/testify/require"
 )
 

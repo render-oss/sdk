@@ -25,10 +25,10 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/callbackapi"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/executor"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/task"
-	"github.com/renderinc/workflow-sdk/go/pkg/internal/uds"
+	"github.com/render-oss/sdk/go/pkg/internal/callbackapi"
+	"github.com/render-oss/sdk/go/pkg/internal/executor"
+	"github.com/render-oss/sdk/go/pkg/internal/task"
+	"github.com/render-oss/sdk/go/pkg/internal/uds"
 )
 
 var taskSingleton = task.NewTasks()

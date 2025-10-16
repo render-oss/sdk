@@ -1,4 +1,4 @@
-module github.com/renderinc/workflow-sdk/go
+module github.com/render-oss/sdk/go
 
 go 1.23
 
