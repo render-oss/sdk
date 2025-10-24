@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"sync"
 
 	"github.com/render-oss/sdk/go/pkg/tasks"
 )
@@ -31,35 +30,11 @@ func addSquares(ctx tasks.TaskContext, a int, b int) int {
 	return result1 + result2
 }
 
-func testCancellationWithSubtasks(ctx tasks.TaskContext, num int) {
-	var wg sync.WaitGroup
-	for i := 0; i < num; i++ {
-		wg.Add(1)
-
-		go func(i, num int) {
-			defer wg.Done()
-			_ = ctx.ExecuteTask(sleep)
-		}(i, num)
-	}
-	wg.Wait()
-}
-
 func main() {
-	err := tasks.RegisterTask(square)
-	if err != nil {
-		panic(err)
-	}
-	err = tasks.RegisterTask(addSquares)
-	if err != nil {
-		panic(err)
-	}
+	tasks.MustRegister(square)
+	tasks.MustRegister(addSquares)
 
-	tasks.MustRegister(burn_cpu_1m)
-	tasks.MustRegister(sleep)
-	tasks.MustRegister(measure_latency)
-	tasks.MustRegister(testCancellationWithSubtasks)
-
-	err = tasks.Start()
+	err := tasks.Start()
 	if err != nil {
 		panic(err)
 	}
