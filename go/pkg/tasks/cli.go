@@ -12,7 +12,13 @@ type Config struct {
 	SocketPath string `split_words:"true" required:"true"`
 }
 
-func Start() error {
+func Start() {
+	if err := StartE(); err != nil {
+		panic(err)
+	}
+}
+
+func StartE() error {
 	ctx := context.Background()
 
 	var cfg Config
@@ -24,6 +30,6 @@ func Start() error {
 	case "register":
 		return Register(ctx, cfg.SocketPath)
 	default:
-		return fmt.Errorf("unrecognized mode: %s", cfg.Mode)
+		return fmt.Errorf("unrecognized RENDER_SDK_MODE %q", cfg.Mode)
 	}
 }
