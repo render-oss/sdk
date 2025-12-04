@@ -1,0 +1,47 @@
+{
+  "name": "@render/sdk",
+  "version": "0.1.0",
+  "description": "Render Workflow SDK for TypeScript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "lint": "biome lint src",
+    "lint:fix": "biome lint --write src",
+    "format": "biome format --write src",
+    "format:check": "biome format src",
+    "check": "biome check --write src",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "render",
+    "workflow",
+    "sdk",
+    "typescript"
+  ],
+  "author": "Render",
+  "license": "MIT",
+  "devDependencies": {
+    "@biomejs/biome": "2.3.8",
+    "@types/eventsource": "^3.0.0",
+    "@types/node": "^20.0.0",
+    "openapi-typescript": "^7.10.1",
+    "typescript": "^5.9.3",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "eventsource": "^4.0.0",
+    "openapi-fetch": "^0.15.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "exports": {
+    "./workflows": {
+      "import": "./dist/workflows/index.js",
+      "require": "./dist/workflows/index.js",
+      "types": "./dist/workflows/index.d.ts"
+    }
+  }
+}

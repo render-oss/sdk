@@ -1,0 +1,16 @@
+{
+  "name": "render-sdk-task-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preinstall": "cd ../../ && npm i && npm run build",
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "@render/sdk": "file:../.."
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0"
+  }
+}
