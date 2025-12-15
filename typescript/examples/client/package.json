@@ -1,0 +1,16 @@
+{
+  "name": "render-sdk-client-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "@render/sdk": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "22.19.0",
+    "tsx": "^4.0.0"
+  }
+}
