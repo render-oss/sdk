@@ -28,8 +28,8 @@
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single",
-      "trailingCommas": "es5",
+      "quoteStyle": "double",
+      "trailingCommas": "all",
       "semicolons": "always",
       "quoteProperties": "asNeeded",
       "bracketSpacing": true,

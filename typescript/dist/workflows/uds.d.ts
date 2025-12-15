@@ -1,4 +1,4 @@
-import type { GetInputResponse, GetSubtaskResultResponse, TaskMetadata } from './types.js';
+import type { GetInputResponse, GetSubtaskResultResponse, TaskMetadata } from "./types.js";
 export declare class UDSClient {
     private socketPath;
     constructor(socketPath: string);

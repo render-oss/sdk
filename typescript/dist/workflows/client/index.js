@@ -14,8 +14,9 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Client = void 0;
+exports.createWorkflowsClient = exports.WorkflowsClient = void 0;
 var client_js_1 = require("./client.js");
-Object.defineProperty(exports, "Client", { enumerable: true, get: function () { return client_js_1.Client; } });
-__exportStar(require("./errors.js"), exports);
+Object.defineProperty(exports, "WorkflowsClient", { enumerable: true, get: function () { return client_js_1.WorkflowsClient; } });
+var create_client_js_1 = require("./create-client.js");
+Object.defineProperty(exports, "createWorkflowsClient", { enumerable: true, get: function () { return create_client_js_1.createWorkflowsClient; } });
 __exportStar(require("./types.js"), exports);

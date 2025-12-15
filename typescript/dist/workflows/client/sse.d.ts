@@ -1,4 +1,4 @@
-import type { TaskRunDetails } from './types.js';
+import type { TaskRunDetails } from "./types.js";
 export declare enum TaskEventType {
     COMPLETED = "task.completed",
     FAILED = "task.failed",

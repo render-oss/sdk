@@ -34,24 +34,33 @@ pnpm add @render/sdk
 
 ### REST API Client
 
-Use the client to run tasks and monitor their execution:
+Use the Render SDK to run tasks and monitor their execution:
 
 ```typescript
-import { Client } from '@render/sdk/workflows';
+import { Render } from '@render/sdk';
 
-// Create a client (uses RENDER_API_KEY from environment)
-const client = new Client();
+// Create a Render SDK instance (uses RENDER_API_KEY from environment)
+const render = new Render();
 
 // Run a task and wait for completion
-const result = await client.runTask('my-workflow/my-task', [42, 'hello']);
+const result = await render.workflows.runTask('my-workflow/my-task', [42, 'hello']);
 console.log('Status:', result.status);
 console.log('Results:', result.results);
 
 // List recent task runs
-const taskRuns = await client.listTaskRuns({ limit: 10 });
+const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 
 // Get specific task run
-const details = await client.getTaskRun(result.id);
+const details = await render.workflows.getTaskRun(result.id);
+```
+
+Alternatively, you can create a workflows client directly:
+
+```typescript
+import { createWorkflowsClient } from '@render/sdk/workflows';
+
+const client = createWorkflowsClient();
+const result = await client.runTask('my-workflow/my-task', [42, 'hello']);
 ```
 
 ### Task Definition
@@ -101,11 +110,11 @@ await startTaskServer();
 
 ## API Reference
 
-### Client API
+### Render SDK
 
-#### `new Client(options?)`
+#### `new Render(options?)`
 
-Creates a new Render SDK client.
+Creates a new Render SDK instance with access to all Render products.
 
 **Options:**
 - `token?: string` - API token (defaults to `RENDER_API_KEY` env var)
@@ -113,17 +122,38 @@ Creates a new Render SDK client.
 - `useLocalDev?: boolean` - Use local development mode
 - `localDevUrl?: string` - Local development URL
 
+**Properties:**
+- `workflows` - WorkflowsClient instance for managing workflow tasks
+
 **Example:**
 ```typescript
-const client = new Client({
+import { Render } from '@render/sdk';
+
+const render = new Render({
+  token: 'your-api-token',
+  baseUrl: 'https://api.render.com',
+});
+
+// Access workflows client
+const result = await render.workflows.runTask('my-workflow/task', [42]);
+```
+
+### Workflows Client API
+
+The workflows client is accessible via `render.workflows` or can be created directly using `createWorkflowsClient`:
+
+```typescript
+import { createWorkflowsClient } from '@render/sdk/workflows';
+
+const client = createWorkflowsClient({
   token: 'your-api-token',
   baseUrl: 'https://api.render.com',
 });
 ```
 
-### Client Methods
+### Workflows Client Methods
 
-#### `client.runTask(taskIdentifier, inputData, signal?)`
+#### `render.workflows.runTask(taskIdentifier, inputData, signal?)`
 
 Runs a task and waits for completion.
 
@@ -136,11 +166,12 @@ Runs a task and waits for completion.
 
 **Example:**
 ```typescript
-const result = await client.runTask('my-workflow/square', [5]);
+const render = new Render();
+const result = await render.workflows.runTask('my-workflow/square', [5]);
 console.log('Results:', result.results);
 ```
 
-#### `client.getTaskRun(taskRunId)`
+#### `render.workflows.getTaskRun(taskRunId)`
 
 Gets task run details by ID.
 
@@ -151,10 +182,11 @@ Gets task run details by ID.
 
 **Example:**
 ```typescript
-const details = await client.getTaskRun('task-run-id');
+const render = new Render();
+const details = await render.workflows.getTaskRun('task-run-id');
 ```
 
-#### `client.listTaskRuns(params)`
+#### `render.workflows.listTaskRuns(params)`
 
 Lists task runs with optional filters.
 
@@ -167,7 +199,8 @@ Lists task runs with optional filters.
 
 **Example:**
 ```typescript
-const taskRuns = await client.listTaskRuns({ limit: 10 });
+const render = new Render();
+const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 ```
 
 ### Task API
@@ -294,15 +327,18 @@ interface RegisterTaskOptions {
 The SDK provides several error classes:
 
 ```typescript
+import { Render } from '@render/sdk';
 import {
   RenderError,
   ClientError,
   ServerError,
   AbortError,
-} from '@render/sdk/workflows';
+} from '@render/sdk';
+
+const render = new Render();
 
 try {
-  const result = await client.runTask('my-workflow/task', [42]);
+  const result = await render.workflows.runTask('my-workflow/task', [42]);
 } catch (error) {
   if (error instanceof ClientError) {
     console.error('Client error:', error.statusCode, error.cause);
@@ -329,14 +365,16 @@ try {
 ### Example 1: Running a Task
 
 ```typescript
-import { Client } from '@render/sdk/workflows';
+import { Render } from '@render/sdk';
 
-const client = new Client();
+const render = new Render();
 
 async function runSquareTask() {
-  const result = await client.runTask('my-workflow/square', [5]);
+  const result = await render.workflows.runTask('my-workflow/square', [5]);
   console.log('Square of 5 is:', result.results[0]); // 25
 }
+
+runSquareTask();
 ```
 
 ### Example 2: Defining Tasks with Subtasks
@@ -400,9 +438,9 @@ task(
 ### Example 4: Using AbortSignal for Cancellation
 
 ```typescript
-import { Client, AbortError } from '@render/sdk/workflows';
+import { Render, AbortError } from '@render/sdk';
 
-const client = new Client();
+const render = new Render();
 
 async function runTaskWithCancellation() {
   const abortController = new AbortController();
@@ -411,7 +449,7 @@ async function runTaskWithCancellation() {
   setTimeout(() => abortController.abort(), 5000);
 
   try {
-    const result = await client.runTask(
+    const result = await render.workflows.runTask(
       'my-workflow/long-running-task',
       [42],
       abortController.signal
@@ -425,6 +463,44 @@ async function runTaskWithCancellation() {
     }
   }
 }
+
+runTaskWithCancellation();
+```
+
+### Example 5: Using the Unified Render SDK
+
+```typescript
+import { Render } from '@render/sdk';
+
+// Single entry point for all Render products
+const render = new Render({
+  token: process.env.RENDER_API_KEY,
+});
+
+async function workflowExample() {
+  try {
+    // Run a workflow task
+    const result = await render.workflows.runTask('my-workflow/process-data', [
+      { userId: 123, data: 'example' },
+    ]);
+
+    console.log('Workflow completed:', result.status);
+    console.log('Results:', result.results);
+
+    // List and monitor recent task runs
+    const recentRuns = await render.workflows.listTaskRuns({ limit: 5 });
+    console.log(`\nRecent task runs: ${recentRuns.length}`);
+
+    for (const run of recentRuns) {
+      const details = await render.workflows.getTaskRun(run.id);
+      console.log(`- ${run.taskId}: ${details.status}`);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+workflowExample();
 ```
 
 ## Development
@@ -458,22 +534,25 @@ npm run format
 ```
 typescript/
 ├── src/
-│   ├── client/              # REST API client
-│   │   ├── client.ts        # Main Client class
-│   │   ├── workflows.ts     # WorkflowsService
-│   │   ├── sse.ts           # SSE client
-│   │   ├── types.ts         # Type definitions
-│   │   ├── errors.ts        # Error classes
-│   │   └── index.ts         # Exports
-│   ├── workflows/           # Task execution SDK
-│   │   ├── task.ts          # @task decorator
-│   │   ├── runner.ts        # start() and run()
-│   │   ├── executor.ts      # TaskExecutor
-│   │   ├── registry.ts      # TaskRegistry
-│   │   ├── uds.ts           # Unix socket client
-│   │   ├── types.ts         # Type definitions
-│   │   └── index.ts         # Exports
-│   └── index.ts             # Main exports
+│   ├── render.ts            # Main Render SDK class
+│   ├── index.ts             # Main exports
+│   └── workflows/           # Workflows functionality
+│       ├── client/          # REST API client
+│       │   ├── client.ts    # WorkflowsClient class
+│       │   ├── workflows.ts # WorkflowsService
+│       │   ├── sse.ts       # SSE client
+│       │   ├── types.ts     # Type definitions
+│       │   ├── errors.ts    # Error classes
+│       │   └── index.ts     # Exports
+│       ├── task/            # Task execution SDK
+│       │   ├── task.ts      # task() function
+│       │   ├── runner.ts    # start() and run()
+│       │   ├── executor.ts  # TaskExecutor
+│       │   ├── registry.ts  # TaskRegistry
+│       │   ├── uds.ts       # Unix socket client
+│       │   ├── types.ts     # Type definitions
+│       │   └── index.ts     # Exports
+│       └── index.ts         # Workflows exports
 ├── examples/
 │   ├── client/              # Client example
 │   │   ├── main.ts

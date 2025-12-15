@@ -1,4 +1,4 @@
-import type { RegisterTaskOptions, TaskFunction, TaskMetadata } from './types.js';
+import type { RegisterTaskOptions, TaskFunction, TaskMetadata } from "./types.js";
 export declare class TaskRegistry {
     private static instance;
     private tasks;

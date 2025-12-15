@@ -1,23 +1,23 @@
-import { RenderError } from './client/errors.js';
-import { TaskExecutor } from './executor.js';
+import { RenderError } from "../errors.js";
+import { TaskExecutor } from "./executor.js";
 
 /**
  * Start the task server and listen for task execution requests
  */
 export async function startTaskServer(): Promise<void> {
-  const mode = process.env.RENDER_SDK_MODE || 'run';
+  const mode = process.env.RENDER_SDK_MODE || "run";
   const socketPath = process.env.RENDER_SDK_SOCKET_PATH;
 
   if (!socketPath) {
-    throw new RenderError('RENDER_SDK_SOCKET_PATH environment variable is required');
+    throw new RenderError("RENDER_SDK_SOCKET_PATH environment variable is required");
   }
 
   const executor = new TaskExecutor(socketPath);
 
-  if (mode === 'register') {
+  if (mode === "register") {
     // Register tasks mode
     await executor.registerTasks();
-  } else if (mode === 'run') {
+  } else if (mode === "run") {
     // Run task mode
     await executor.executeTask();
   } else {

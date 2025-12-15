@@ -1,4 +1,4 @@
-import type { components, paths } from './schema';
+import type { components, paths } from "../../utils/schema";
 
 /**
  * Task identifier in the format "workflow-slug/task-name"
@@ -14,28 +14,28 @@ export type TaskData = Array<any>;
  * Task run status enum
  */
 export enum TaskRunStatus {
-  PENDING = 'pending',
-  RUNNING = 'running',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
+  PENDING = "pending",
+  RUNNING = "running",
+  COMPLETED = "completed",
+  FAILED = "failed",
 }
 
 /**
  * Basic task run information
  */
 
-export type TaskRun = components['schemas']['TaskRun'];
+export type TaskRun = components["schemas"]["TaskRun"];
 
 /**
  * Detailed task run information including results and errors
  */
 
-export type TaskRunDetails = components['schemas']['TaskRunDetails'];
+export type TaskRunDetails = components["schemas"]["TaskRunDetails"];
 
 /**
  * Parameters for listing task runs
  */
-export type ListTaskRunsParams = paths['/task-runs']['get']['parameters']['query'];
+export type ListTaskRunsParams = paths["/task-runs"]["get"]["parameters"]["query"];
 
 /**
  * Request body for running a task

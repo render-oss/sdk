@@ -1,7 +1,7 @@
 {
   "name": "@render/sdk",
   "version": "0.1.0",
-  "description": "Render Workflow SDK for TypeScript",
+  "description": "Render SDK for TypeScript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -24,7 +24,6 @@
   "license": "MIT",
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
-    "@types/eventsource": "^3.0.0",
     "@types/node": "^20.0.0",
     "openapi-typescript": "^7.10.1",
     "typescript": "^5.9.3",
@@ -38,6 +37,11 @@
     "node": ">=18.0.0"
   },
   "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
     "./workflows": {
       "import": "./dist/workflows/index.js",
       "require": "./dist/workflows/index.js",

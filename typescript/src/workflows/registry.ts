@@ -1,4 +1,4 @@
-import type { RegisterTaskOptions, TaskFunction, TaskMetadata, TaskOptions } from './types.js';
+import type { RegisterTaskOptions, TaskFunction, TaskMetadata, TaskOptions } from "./types.js";
 
 /**
  * Global task registry
@@ -22,7 +22,7 @@ export class TaskRegistry {
   register(func: TaskFunction, options: RegisterTaskOptions): void {
     const taskName = options.name;
     if (!taskName) {
-      throw new Error('Task function must have a name or name must be provided');
+      throw new Error("Task function must have a name or name must be provided");
     }
 
     let taskOptions: TaskOptions | undefined;
@@ -31,8 +31,8 @@ export class TaskRegistry {
       taskOptions = {
         retry: {
           max_retries: options.retry.maxRetries,
-          wait_duration_ms: options.retry.maxRetries,
-          factor: options.retry.factor,
+          wait_duration_ms: options.retry.waitDuration,
+          factor: options.retry.backoffScaling,
         },
       };
     }

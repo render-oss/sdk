@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-  '/input': {
+  "/input": {
     parameters: {
       query?: never;
       header?: never;
@@ -27,7 +27,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            'application/json': components['schemas']['InputResponse'];
+            "application/json": components["schemas"]["InputResponse"];
           };
         };
         /** @description Internal server error */
@@ -47,7 +47,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/callback': {
+  "/callback": {
     parameters: {
       query?: never;
       header?: never;
@@ -66,7 +66,7 @@ export interface paths {
       };
       requestBody?: {
         content: {
-          'application/json': components['schemas']['CallbackRequest'];
+          "application/json": components["schemas"]["CallbackRequest"];
         };
       };
       responses: {
@@ -113,7 +113,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/register-tasks': {
+  "/register-tasks": {
     parameters: {
       query?: never;
       header?: never;
@@ -132,7 +132,7 @@ export interface paths {
       };
       requestBody?: {
         content: {
-          'application/json': components['schemas']['Tasks'];
+          "application/json": components["schemas"]["Tasks"];
         };
       };
       responses: {
@@ -165,7 +165,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/run-subtask': {
+  "/run-subtask": {
     parameters: {
       query?: never;
       header?: never;
@@ -184,7 +184,7 @@ export interface paths {
       };
       requestBody?: {
         content: {
-          'application/json': components['schemas']['RunSubtaskRequest'];
+          "application/json": components["schemas"]["RunSubtaskRequest"];
         };
       };
       responses: {
@@ -194,7 +194,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            'application/json': components['schemas']['RunSubtaskResponse'];
+            "application/json": components["schemas"]["RunSubtaskResponse"];
           };
         };
         /** @description Internal server error */
@@ -212,7 +212,7 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
-  '/get-subtask-result': {
+  "/get-subtask-result": {
     parameters: {
       query?: never;
       header?: never;
@@ -231,7 +231,7 @@ export interface paths {
       };
       requestBody?: {
         content: {
-          'application/json': components['schemas']['SubtaskResultRequest'];
+          "application/json": components["schemas"]["SubtaskResultRequest"];
         };
       };
       responses: {
@@ -241,7 +241,7 @@ export interface paths {
             [name: string]: unknown;
           };
           content: {
-            'application/json': components['schemas']['SubtaskResultResponse'];
+            "application/json": components["schemas"]["SubtaskResultResponse"];
           };
         };
         /** @description Internal server error */
@@ -264,8 +264,8 @@ export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     CallbackRequest: {
-      error?: components['schemas']['TaskError'];
-      complete?: components['schemas']['TaskComplete'];
+      error?: components["schemas"]["TaskError"];
+      complete?: components["schemas"]["TaskComplete"];
     };
     TaskError: {
       details: string;
@@ -288,8 +288,8 @@ export interface components {
     };
     SubtaskResultResponse: {
       still_running: boolean;
-      error?: components['schemas']['TaskError'];
-      complete?: components['schemas']['TaskComplete'];
+      error?: components["schemas"]["TaskError"];
+      complete?: components["schemas"]["TaskComplete"];
     };
     InputResponse: {
       task_name: string;
@@ -297,14 +297,14 @@ export interface components {
       input: string;
     };
     Tasks: {
-      tasks: components['schemas']['Task'][];
+      tasks: components["schemas"]["Task"][];
     };
     Task: {
       name: string;
-      options?: components['schemas']['TaskOptions'];
+      options?: components["schemas"]["TaskOptions"];
     };
     TaskOptions: {
-      retry?: components['schemas']['RetryConfig'];
+      retry?: components["schemas"]["RetryConfig"];
     };
     RetryConfig: {
       /** @description Maximum number of retry attempts */

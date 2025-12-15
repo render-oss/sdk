@@ -1,6 +1,6 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-import { TaskRegistry } from './registry.js';
-import type { RegisterTaskOptions, TaskContext, TaskFunction } from './types.js';
+import { AsyncLocalStorage } from "node:async_hooks";
+import { TaskRegistry } from "./registry.js";
+import type { RegisterTaskOptions, TaskContext, TaskFunction } from "./types.js";
 
 /**
  * Storage for the current task execution context
@@ -30,7 +30,7 @@ export function setCurrentContext<T>(context: TaskContext, fn: () => Promise<T>)
  */
 export function task<TArgs extends any[], TResult>(
   options: RegisterTaskOptions,
-  func: TaskFunction<TArgs, TResult>
+  func: TaskFunction<TArgs, TResult>,
 ): TaskFunction<TArgs, TResult> {
   const registry = TaskRegistry.getInstance();
   registry.register(func, options);

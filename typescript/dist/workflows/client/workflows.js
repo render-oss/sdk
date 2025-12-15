@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WorkflowsService = void 0;
-const errors_js_1 = require("./errors.js");
+const errors_js_1 = require("../../errors.js");
 function handleApiError(error, response, context) {
     const statusCode = response.status;
     const errorMessage = `${context}: ${error}`;

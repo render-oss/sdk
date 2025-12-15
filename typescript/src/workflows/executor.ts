@@ -1,8 +1,8 @@
-import { RenderError } from './client/errors.js';
-import { TaskRegistry } from './registry.js';
-import { setCurrentContext } from './task.js';
-import type { TaskContext, TaskFunction, TaskResult } from './types.js';
-import { UDSClient } from './uds.js';
+import { RenderError } from "../errors.js";
+import { TaskRegistry } from "./registry.js";
+import { setCurrentContext } from "./task.js";
+import type { TaskContext, TaskFunction, TaskResult } from "./types.js";
+import { UDSClient } from "./uds.js";
 
 /**
  * Implementation of TaskResult
@@ -10,20 +10,19 @@ import { UDSClient } from './uds.js';
 class TaskResultImpl<T> implements TaskResult<T> {
   constructor(
     private subtaskId: string,
-    private udsClient: UDSClient
+    private udsClient: UDSClient,
   ) {}
 
   async get(): Promise<T> {
     // Poll for subtask result
-    const maxAttempts = 120; // 10 minutes with 5 second intervals
-    const pollInterval = 500; // half a second seconds
+    const pollInterval = 500; // half a second
 
-    for (let i = 0; i < maxAttempts; i++) {
+    while (true) {
       const result = await this.udsClient.getSubtaskResult(this.subtaskId);
 
       if (!result.still_running && result.complete) {
         if (result.complete.output) {
-          const json = Buffer.from(result.complete.output, 'base64').toString();
+          const json = Buffer.from(result.complete.output, "base64").toString();
           const decoded = JSON.parse(json);
           return decoded[0];
         }
@@ -35,8 +34,6 @@ class TaskResultImpl<T> implements TaskResult<T> {
       // Still pending, wait and retry
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
     }
-
-    throw new RenderError('Subtask did not complete within timeout');
   }
 }
 
@@ -93,7 +90,7 @@ export class TaskExecutor {
       // Get task input
       const input = await this.udsClient.getInput();
       const taskName = input.task_name;
-      const inputData = JSON.parse(Buffer.from(input.input, 'base64').toString());
+      const inputData = JSON.parse(Buffer.from(input.input, "base64").toString());
 
       // Get task from registry
       const taskMetadata = registry.get(taskName);

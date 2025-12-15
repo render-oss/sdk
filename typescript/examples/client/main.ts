@@ -1,16 +1,16 @@
-import { Client, ServerError } from '@render/sdk/workflows';
+import { Render, ServerError } from '@render/sdk';
 
 /**
  * Example: Using the REST API client to run tasks
  */
 async function main() {
-  const client = new Client();
+  const render = new Render();
 
   try {
     // Run a task
     console.log('Running task...');
 
-    const result = await client.runTask('scott-go/square', [4]);
+    const result = await render.workflows.runTask('scott-go/square', [4]);
 
     console.log('Task completed!');
     console.log('Status:', result.status);
@@ -18,7 +18,7 @@ async function main() {
 
     // List recent task runs
     console.log('\nListing recent task runs...');
-    const taskRuns = await client.listTaskRuns({ limit: 5 });
+    const taskRuns = await render.workflows.listTaskRuns({ limit: 5 });
     console.log(`Found ${taskRuns.length} task runs:`);
     taskRuns.forEach((run) => {
       console.log(`  - ${run.id}: ${run.status} (${run.taskId})`);
@@ -27,7 +27,7 @@ async function main() {
     if (result) {
     // Get specific task run details
       console.log('\nGetting task run details...');
-      const details = await client.getTaskRun(result.id);
+      const details = await render.workflows.getTaskRun(result.id);
       console.log('Task run details:', details);
     }
   } catch (error) {

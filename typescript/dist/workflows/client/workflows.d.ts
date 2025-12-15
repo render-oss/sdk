@@ -1,5 +1,5 @@
 import type { Client } from 'openapi-fetch';
-import type { paths } from './schema.js';
+import type { paths } from '../../utils/schema.js';
 import type { SSEClient } from './sse.js';
 import type { ListTaskRunsParams, TaskData, TaskIdentifier, TaskRun, TaskRunDetails } from './types.js';
 export declare class WorkflowsService {

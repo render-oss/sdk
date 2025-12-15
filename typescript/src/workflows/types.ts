@@ -1,4 +1,4 @@
-import type { components } from './schema.js';
+import type { components } from "./schema.js";
 
 /**
  * Task function signature
@@ -7,7 +7,7 @@ export type TaskFunction<TArgs extends any[] = any[], TResult = any> = (
   ...args: TArgs
 ) => TResult | Promise<TResult>;
 
-export type TaskOptions = components['schemas']['TaskOptions'];
+export type TaskOptions = components["schemas"]["TaskOptions"];
 
 /**
  * Task metadata
@@ -48,27 +48,27 @@ export interface TaskInput {
  * Task callback request/response types
  */
 
-export type CallbackRequest = components['schemas']['CallbackRequest'];
+export type CallbackRequest = components["schemas"]["CallbackRequest"];
 
-export type GetInputResponse = components['schemas']['InputResponse'];
+export type GetInputResponse = components["schemas"]["InputResponse"];
 
-export type RunSubtaskRequest = components['schemas']['RunSubtaskRequest'];
+export type RunSubtaskRequest = components["schemas"]["RunSubtaskRequest"];
 
-export type RunSubtaskResponse = components['schemas']['RunSubtaskResponse'];
+export type RunSubtaskResponse = components["schemas"]["RunSubtaskResponse"];
 
-export type GetSubtaskResultRequest = components['schemas']['SubtaskResultRequest'];
+export type GetSubtaskResultRequest = components["schemas"]["SubtaskResultRequest"];
 
-export type GetSubtaskResultResponse = components['schemas']['SubtaskResultResponse'];
+export type GetSubtaskResultResponse = components["schemas"]["SubtaskResultResponse"];
 
-export type RegisterTasksRequest = components['schemas']['Tasks'];
+export type RegisterTasksRequest = components["schemas"]["Tasks"];
 
 /**
  * Retry configuration for task execution
  */
 export interface Retry {
   maxRetries: number;
-  waitDurationMs: number;
-  factor?: number; // default 1.5
+  waitDuration: number;
+  backoffScaling?: number; // default 1.5
 }
 
 /**

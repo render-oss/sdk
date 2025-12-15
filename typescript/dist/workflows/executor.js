@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TaskExecutor = void 0;
-const errors_js_1 = require("./client/errors.js");
+const errors_js_1 = require("../errors.js");
 const registry_js_1 = require("./registry.js");
 const task_js_1 = require("./task.js");
 const uds_js_1 = require("./uds.js");
@@ -11,13 +11,12 @@ class TaskResultImpl {
         this.udsClient = udsClient;
     }
     async get() {
-        const maxAttempts = 120;
         const pollInterval = 500;
-        for (let i = 0; i < maxAttempts; i++) {
+        while (true) {
             const result = await this.udsClient.getSubtaskResult(this.subtaskId);
             if (!result.still_running && result.complete) {
                 if (result.complete.output) {
-                    const json = Buffer.from(result.complete.output, 'base64').toString();
+                    const json = Buffer.from(result.complete.output, "base64").toString();
                     const decoded = JSON.parse(json);
                     return decoded[0];
                 }
@@ -28,7 +27,6 @@ class TaskResultImpl {
             }
             await new Promise((resolve) => setTimeout(resolve, pollInterval));
         }
-        throw new errors_js_1.RenderError('Subtask did not complete within timeout');
     }
 }
 class TaskContextImpl {
@@ -60,7 +58,7 @@ class TaskExecutor {
         try {
             const input = await this.udsClient.getInput();
             const taskName = input.task_name;
-            const inputData = JSON.parse(Buffer.from(input.input, 'base64').toString());
+            const inputData = JSON.parse(Buffer.from(input.input, "base64").toString());
             const taskMetadata = registry.get(taskName);
             if (!taskMetadata) {
                 throw new errors_js_1.RenderError(`Task '${taskName}' not found in registry`);

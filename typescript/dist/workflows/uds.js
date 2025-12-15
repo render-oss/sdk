@@ -40,17 +40,20 @@ class UDSClient {
         this.socketPath = socketPath;
     }
     async getInput() {
-        return this.request('/input', 'GET');
+        return this.request("/input", "GET");
     }
     buildCallbackBody(results, error) {
-        if (results) {
+        if (results !== undefined) {
             const resultsArray = [results];
-            const output = Buffer.from(JSON.stringify(resultsArray)).toString('base64');
+            const output = Buffer.from(JSON.stringify(resultsArray)).toString("base64");
             return {
                 complete: {
                     output,
                 },
             };
+        }
+        if (error === undefined) {
+            throw new Error("Either results or error must be provided");
         }
         return {
             error: {
@@ -59,22 +62,22 @@ class UDSClient {
         };
     }
     async sendCallback(results, error) {
-        await this.request('/callback', 'POST', this.buildCallbackBody(results, error));
+        await this.request("/callback", "POST", this.buildCallbackBody(results, error));
     }
     async runSubtask(taskName, input) {
-        const inputBase64 = Buffer.from(JSON.stringify(input)).toString('base64');
+        const inputBase64 = Buffer.from(JSON.stringify(input)).toString("base64");
         const body = {
             task_name: taskName,
             input: inputBase64,
         };
-        const response = await this.request('/run-subtask', 'POST', body);
+        const response = await this.request("/run-subtask", "POST", body);
         return response.task_run_id;
     }
     async getSubtaskResult(subtaskId) {
         const body = {
             task_run_id: subtaskId,
         };
-        return this.request('/get-subtask-result', 'POST', body);
+        return this.request("/get-subtask-result", "POST", body);
     }
     async registerTasks(tasks) {
         const body = {
@@ -83,23 +86,23 @@ class UDSClient {
                 options: task.options,
             })),
         };
-        await this.request('/register-tasks', 'POST', body);
+        await this.request("/register-tasks", "POST", body);
     }
     async request(path, method, body) {
         return new Promise((resolve, reject) => {
             const client = net.createConnection({ path: this.socketPath }, () => {
-                const bodyStr = body ? JSON.stringify(body) : '';
+                const bodyStr = body ? JSON.stringify(body) : "";
                 const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\n\r\n${bodyStr}`;
                 client.write(request);
             });
-            let data = '';
+            let data = "";
             let contentLength = null;
             let headersParsed = false;
             let bodyStartIndex = -1;
-            client.on('data', (chunk) => {
+            client.on("data", (chunk) => {
                 data += chunk.toString();
                 if (!headersParsed) {
-                    const headerEndIndex = data.indexOf('\r\n\r\n');
+                    const headerEndIndex = data.indexOf("\r\n\r\n");
                     if (headerEndIndex !== -1) {
                         headersParsed = true;
                         bodyStartIndex = headerEndIndex + 4;
@@ -117,22 +120,22 @@ class UDSClient {
                     }
                 }
             });
-            client.on('end', () => {
+            client.on("end", () => {
                 try {
-                    const lines = data.split('\r\n');
+                    const lines = data.split("\r\n");
                     const statusLine = lines[0];
-                    const statusCode = parseInt(statusLine.split(' ')[1], 10);
+                    const statusCode = parseInt(statusLine.split(" ")[1], 10);
                     if (statusCode >= 400) {
                         reject(new Error(`HTTP ${statusCode}: ${data}`));
                         return;
                     }
-                    const emptyLineIndex = lines.indexOf('');
+                    const emptyLineIndex = lines.indexOf("");
                     if (emptyLineIndex === -1) {
                         resolve(undefined);
                         return;
                     }
                     const bodyLines = lines.slice(emptyLineIndex + 1);
-                    const responseBody = bodyLines.join('\r\n').trim();
+                    const responseBody = bodyLines.join("\r\n").trim();
                     if (!responseBody) {
                         resolve(undefined);
                         return;
@@ -143,7 +146,7 @@ class UDSClient {
                     reject(error);
                 }
             });
-            client.on('error', (error) => {
+            client.on("error", (error) => {
                 reject(error);
             });
         });

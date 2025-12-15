@@ -14,15 +14,15 @@ class TaskRegistry {
     register(func, options) {
         const taskName = options.name;
         if (!taskName) {
-            throw new Error('Task function must have a name or name must be provided');
+            throw new Error("Task function must have a name or name must be provided");
         }
         let taskOptions;
         if (options.retry) {
             taskOptions = {
                 retry: {
                     max_retries: options.retry.maxRetries,
-                    wait_duration_ms: options.retry.maxRetries,
-                    factor: options.retry.factor,
+                    wait_duration_ms: options.retry.waitDuration,
+                    factor: options.retry.backoffScaling,
                 },
             };
         }

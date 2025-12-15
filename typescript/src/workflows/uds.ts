@@ -1,4 +1,4 @@
-import * as net from 'node:net';
+import * as net from "node:net";
 import type {
   CallbackRequest,
   GetInputResponse,
@@ -8,7 +8,7 @@ import type {
   RunSubtaskRequest,
   RunSubtaskResponse,
   TaskMetadata,
-} from './types.js';
+} from "./types.js";
 
 /**
  * Unix Domain Socket client for communicating with the workflow system
@@ -20,22 +20,27 @@ export class UDSClient {
    * Get task input and name
    */
   async getInput(): Promise<GetInputResponse> {
-    return this.request<GetInputResponse>('/input', 'GET');
+    return this.request<GetInputResponse>("/input", "GET");
   }
 
   private buildCallbackBody(results?: any, error?: string): CallbackRequest {
-    if (results) {
+    if (results !== undefined) {
       const resultsArray = [results];
-      const output = Buffer.from(JSON.stringify(resultsArray)).toString('base64');
+      const output = Buffer.from(JSON.stringify(resultsArray)).toString("base64");
       return {
         complete: {
           output,
         },
       };
     }
+
+    if (error === undefined) {
+      throw new Error("Either results or error must be provided");
+    }
+
     return {
       error: {
-        details: error!,
+        details: error,
       },
     };
   }
@@ -44,19 +49,19 @@ export class UDSClient {
    * Send task result or error
    */
   async sendCallback(results?: any, error?: string): Promise<void> {
-    await this.request<void>('/callback', 'POST', this.buildCallbackBody(results, error));
+    await this.request<void>("/callback", "POST", this.buildCallbackBody(results, error));
   }
 
   /**
    * Run a subtask
    */
   async runSubtask(taskName: string, input: any[]): Promise<string> {
-    const inputBase64 = Buffer.from(JSON.stringify(input)).toString('base64');
+    const inputBase64 = Buffer.from(JSON.stringify(input)).toString("base64");
     const body: RunSubtaskRequest = {
       task_name: taskName,
       input: inputBase64,
     };
-    const response = await this.request<RunSubtaskResponse>('/run-subtask', 'POST', body);
+    const response = await this.request<RunSubtaskResponse>("/run-subtask", "POST", body);
     return response.task_run_id;
   }
 
@@ -67,7 +72,7 @@ export class UDSClient {
     const body: GetSubtaskResultRequest = {
       task_run_id: subtaskId,
     };
-    return this.request<GetSubtaskResultResponse>('/get-subtask-result', 'POST', body);
+    return this.request<GetSubtaskResultResponse>("/get-subtask-result", "POST", body);
   }
 
   /**
@@ -80,7 +85,7 @@ export class UDSClient {
         options: task.options,
       })),
     };
-    await this.request<void>('/register-tasks', 'POST', body);
+    await this.request<void>("/register-tasks", "POST", body);
   }
 
   /**
@@ -89,22 +94,22 @@ export class UDSClient {
   private async request<T>(path: string, method: string, body?: any): Promise<T> {
     return new Promise((resolve, reject) => {
       const client = net.createConnection({ path: this.socketPath }, () => {
-        const bodyStr = body ? JSON.stringify(body) : '';
+        const bodyStr = body ? JSON.stringify(body) : "";
         const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\n\r\n${bodyStr}`;
         client.write(request);
       });
 
-      let data = '';
+      let data = "";
       let contentLength: number | null = null;
       let headersParsed = false;
       let bodyStartIndex = -1;
 
-      client.on('data', (chunk) => {
+      client.on("data", (chunk) => {
         data += chunk.toString();
 
         // Check if we have received the full response
         if (!headersParsed) {
-          const headerEndIndex = data.indexOf('\r\n\r\n');
+          const headerEndIndex = data.indexOf("\r\n\r\n");
           if (headerEndIndex !== -1) {
             headersParsed = true;
             bodyStartIndex = headerEndIndex + 4;
@@ -128,12 +133,12 @@ export class UDSClient {
         }
       });
 
-      client.on('end', () => {
+      client.on("end", () => {
         try {
           // Parse HTTP response
-          const lines = data.split('\r\n');
+          const lines = data.split("\r\n");
           const statusLine = lines[0];
-          const statusCode = parseInt(statusLine.split(' ')[1], 10);
+          const statusCode = parseInt(statusLine.split(" ")[1], 10);
 
           if (statusCode >= 400) {
             reject(new Error(`HTTP ${statusCode}: ${data}`));
@@ -141,14 +146,14 @@ export class UDSClient {
           }
 
           // Find empty line (separates headers from body)
-          const emptyLineIndex = lines.indexOf('');
+          const emptyLineIndex = lines.indexOf("");
           if (emptyLineIndex === -1) {
             resolve(undefined as T);
             return;
           }
 
           const bodyLines = lines.slice(emptyLineIndex + 1);
-          const responseBody = bodyLines.join('\r\n').trim();
+          const responseBody = bodyLines.join("\r\n").trim();
 
           if (!responseBody) {
             resolve(undefined as T);
@@ -161,7 +166,7 @@ export class UDSClient {
         }
       });
 
-      client.on('error', (error) => {
+      client.on("error", (error) => {
         reject(error);
       });
     });

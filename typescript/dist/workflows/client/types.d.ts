@@ -1,4 +1,4 @@
-import type { components, paths } from './schema';
+import type { components, paths } from "../../utils/schema";
 export type TaskIdentifier = string;
 export type TaskData = Array<any>;
 export declare enum TaskRunStatus {
@@ -7,9 +7,9 @@ export declare enum TaskRunStatus {
     COMPLETED = "completed",
     FAILED = "failed"
 }
-export type TaskRun = components['schemas']['TaskRun'];
-export type TaskRunDetails = components['schemas']['TaskRunDetails'];
-export type ListTaskRunsParams = paths['/task-runs']['get']['parameters']['query'];
+export type TaskRun = components["schemas"]["TaskRun"];
+export type TaskRunDetails = components["schemas"]["TaskRunDetails"];
+export type ListTaskRunsParams = paths["/task-runs"]["get"]["parameters"]["query"];
 export interface RunTaskRequest {
     task: TaskIdentifier;
     input: TaskData;

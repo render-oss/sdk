@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SSEClient = exports.TaskEventType = void 0;
 const eventsource_1 = require("eventsource");
-const errors_js_1 = require("./errors.js");
+const errors_js_1 = require("../../errors.js");
 var TaskEventType;
 (function (TaskEventType) {
     TaskEventType["COMPLETED"] = "task.completed";
@@ -26,11 +26,11 @@ class SSEClient {
                 if (eventSource) {
                     eventSource.removeEventListener(TaskEventType.COMPLETED, eventHandler);
                     eventSource.removeEventListener(TaskEventType.FAILED, eventHandler);
-                    eventSource.removeEventListener('error', errorHandler);
+                    eventSource.removeEventListener("error", errorHandler);
                     eventSource.close();
                     eventSource = null;
                 }
-                signal?.removeEventListener('abort', abortHandler);
+                signal?.removeEventListener("abort", abortHandler);
             };
             const eventHandler = (event) => {
                 try {
@@ -45,16 +45,16 @@ class SSEClient {
             };
             const errorHandler = (error) => {
                 cleanup();
-                reject(new Error(`SSE connection error: ${error.message || 'Unknown error'}`));
+                reject(new Error(`SSE connection error: ${error.message || "Unknown error"}`));
             };
             if (signal?.aborted) {
                 reject(new errors_js_1.AbortError());
                 return;
             }
-            signal?.addEventListener('abort', abortHandler);
+            signal?.addEventListener("abort", abortHandler);
             try {
-                const url = new URL('/v1/task-runs/events', this.baseUrl);
-                url.searchParams.append('taskRunIds', taskRunId);
+                const url = new URL("/v1/task-runs/events", this.baseUrl);
+                url.searchParams.append("taskRunIds", taskRunId);
                 eventSource = new eventsource_1.EventSource(url.toString(), {
                     fetch: (input, init) => fetch(input, {
                         ...init,
@@ -66,7 +66,7 @@ class SSEClient {
                 });
                 eventSource.addEventListener(TaskEventType.COMPLETED, eventHandler);
                 eventSource.addEventListener(TaskEventType.FAILED, eventHandler);
-                eventSource.addEventListener('error', errorHandler);
+                eventSource.addEventListener("error", errorHandler);
             }
             catch (e) {
                 cleanup();
