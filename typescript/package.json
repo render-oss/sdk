@@ -22,6 +22,15 @@
   ],
   "author": "Render",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/render-oss/sdk.git",
+    "directory": "typescript"
+  },
+  "homepage": "https://github.com/render-oss/sdk/tree/main/typescript#readme",
+  "bugs": {
+    "url": "https://github.com/render-oss/sdk/issues"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@types/node": "^20.0.0",
@@ -47,5 +56,10 @@
       "require": "./dist/workflows/index.js",
       "types": "./dist/workflows/index.d.ts"
     }
-  }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
 }
