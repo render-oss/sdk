@@ -53,46 +53,49 @@ type TaskContext = task.TaskContext
 type Options = task.Options
 type Retry = task.Retry
 
-func Run(ctx context.Context, unixSocketPath string) (_err error) {
+// Run is the entrypoint for executing a task. It initiates the callback client,
+// and ensures that errors and panics are reported correctly.
+func Run(ctx context.Context, unixSocketPath string) error {
 	callbackerClient, err := uds.NewCallbackClient(unixSocketPath)
 	if err != nil {
-		return fmt.Errorf("failed to create callbacker: %w", err)
+		return fmt.Errorf("failed to create callback client at %s: %w", unixSocketPath, err)
 	}
+	if taskErr := executeTaskWithRecovery(ctx, callbackerClient); taskErr != nil {
+		resp, err := callbackerClient.PostCallbackWithResponse(ctx, callbackapi.PostCallbackJSONRequestBody{
+			Error: taskErr,
+		})
+		if err != nil || (resp != nil && resp.StatusCode() != 200) {
+			return fmt.Errorf("failed to report error with callback client; original error is %s; error from callback is %w", taskErr.Details, err)
+		}
+	}
+	return nil
+}
 
+// executeTaskWithRecovery calls executeTask, and wraps the error returned
+// (if any) in a *callbackapi.TaskError. If executeTask panics, then the panic
+// message and the stack trace get passed upwards.
+func executeTaskWithRecovery(ctx context.Context, callbackerClient *callbackapi.ClientWithResponses) (_taskErr *callbackapi.TaskError) {
 	defer func() {
-		var callbackTaskErr *callbackapi.TaskError
-
 		if r := recover(); r != nil {
 			stackTrace := string(debug.Stack())
-			callbackTaskErr = &callbackapi.TaskError{
+			_taskErr = &callbackapi.TaskError{
 				Details:    fmt.Sprintf("task panicked: %v", r),
 				StackTrace: &stackTrace,
 			}
-		} else if _err != nil {
-			callbackTaskErr = &callbackapi.TaskError{
-				Details: fmt.Sprintf("task failed: %v", _err),
-			}
-			_err = nil
-		} else {
-			// No error, nothing to do
-			return
-		}
-
-		resp, callbackErr := callbackerClient.PostCallbackWithResponse(ctx, callbackapi.PostCallbackJSONRequestBody{
-			Error: callbackTaskErr,
-		})
-		// todo better handle errs?
-		if callbackErr != nil {
-			_err = callbackErr
-			return
-		}
-		if resp.StatusCode() != 200 {
-			_err = fmt.Errorf("callback failed with status code %d", resp.StatusCode())
-			return
 		}
 	}()
 
-	executor := executor.NewExecutor(taskSingleton, callbackerClient)
+	if err := executeTask(ctx, callbackerClient); err != nil {
+		return &callbackapi.TaskError{
+			Details: fmt.Sprintf("task failed: %v", err),
+		}
+	}
+	return nil
+}
+
+// executeTask executes a single task, returning idiomatic errors.
+func executeTask(ctx context.Context, callbackerClient *callbackapi.ClientWithResponses) error {
+	execer := executor.NewExecutor(taskSingleton, callbackerClient)
 
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {
@@ -110,7 +113,7 @@ func Run(ctx context.Context, unixSocketPath string) (_err error) {
 	}
 
 	// We use this to avoid idempotency checks by the server adapter
-	err = executor.Execute(ctx, taskName, input...)
+	err = execer.Execute(ctx, taskName, input...)
 	if err != nil {
 		return err
 	}
