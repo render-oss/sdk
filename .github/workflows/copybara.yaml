@@ -1,0 +1,37 @@
+name: copybara
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: oracle
+          java-version: 21
+      - name: Generate a app token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.SSH_KEY }}
+      - name: Set up credentials
+        env:
+          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_rsa
+      - name: Set up copybara
+        run: |
+          wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
+          java -jar copybara_deploy.jar version
+          java -jar copybara_deploy.jar valiate copy.bara.sky
+      - name: Run workflow
+        run: java -jar copybara_deploy.jar copy.bara.sky push
