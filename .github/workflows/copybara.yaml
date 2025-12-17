@@ -14,12 +14,13 @@ jobs:
         with:
           distribution: oracle
           java-version: 21
-      - name: Generate a app token
+      - name: Generate an app token
         id: generate-token
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.SSH_KEY }}
+          private-key: ${{ secrets.APP_KEY }}
+          owner: render-oss
       - name: Set up credentials
         env:
           APP_TOKEN: ${{ steps.generate-token.outputs.token }}
