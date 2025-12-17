@@ -33,6 +33,6 @@ jobs:
         run: |
           wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
           java -jar copybara_deploy.jar version
-          java -jar copybara_deploy.jar valiate copy.bara.sky
+          java -jar copybara_deploy.jar validate copy.bara.sky
       - name: Run workflow
-        run: java -jar copybara_deploy.jar copy.bara.sky push
+        run: java -jar copybara_deploy.jar copy.bara.sky push --force
