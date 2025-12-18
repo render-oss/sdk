@@ -1,0 +1,58 @@
+name: copybara
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: oracle
+          java-version: 21
+      - name: Generate an app token for render-oss
+        id: generate-token-oss
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_KEY }}
+          owner: render-oss
+      - name: Generate an app token for renderinc
+        id: generate-token-renderinc
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_KEY }}
+          owner: renderinc
+      - name: Get GitHub App User ID
+        id: get-user-id
+        env:
+          GH_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          APP_SLUG: ${{ steps.generate-token-renderinc.outputs.app-slug }}
+        run: echo "user-id=$(gh api "/users/$APP_SLUG[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+      - name: Set up credentials
+        env:
+          APP_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          APP_SLUG: ${{ steps.generate-token-renderinc.outputs.app-slug }}
+          USER_ID: ${{ steps.get-user-id.outputs.user-id }}
+        run: |
+          echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
+          echo "https://$USER:$APP_TOKEN@github.com" >> ~/.git-credentials
+          git config --global user.name "$APP_SLUG[bot]"
+          git config --global user.email "$USER_ID+$APP_SLUG[bot]@users.noreply.github.com"
+      - name: Set up copybara
+        run: |
+          wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
+          java -jar copybara_deploy.jar version
+          java -jar copybara_deploy.jar validate copy.bara.sky
+      - name: Run workflow
+        env:
+          DESTINATION_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
+        run: |
+          java -jar copybara_deploy.jar copy.bara.sky push \
+            --git-destination-url "https://$USER:$DESTINATION_TOKEN@github.com/render-oss/sdk.git" \
+            --force

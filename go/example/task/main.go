@@ -34,8 +34,5 @@ func main() {
 	tasks.MustRegister(square)
 	tasks.MustRegister(addSquares)
 
-	err := tasks.Start()
-	if err != nil {
-		panic(err)
-	}
+	tasks.Start()
 }

@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.4.0
+    hooks:
+      - id: golangci-lint
+        entry: bash -c 'cd go && golangci-lint run'
+        files: ^go/.*$
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: go fmt
+        entry: bash
+        language: system
+        args:
+          - -c
+          - |
+            echo "Running go fmt on go/..."
+            cd go && go fmt ./...
+        types: [go]
