@@ -24,11 +24,9 @@ jobs:
       - name: Set up credentials
         env:
           APP_TOKEN: ${{ steps.generate-token.outputs.token }}
-          SSH_KEY: ${{ secrets.SSH_KEY }}
         run: |
           echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
-          mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
+          echo "https://$USER:$APP_TOKEN@github.com" >> ~/.git-credentials
       - name: Set up copybara
         run: |
           wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
