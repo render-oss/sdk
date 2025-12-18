@@ -14,16 +14,23 @@ jobs:
         with:
           distribution: oracle
           java-version: 21
-      - name: Generate an app token
-        id: generate-token
+      - name: Generate an app token for render-oss
+        id: generate-token-oss
         uses: actions/create-github-app-token@v2
         with:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
           owner: render-oss
+      - name: Generate an app token for renderinc
+        id: generate-token-renderinc
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_KEY }}
+          owner: renderinc
       - name: Set up credentials
         env:
-          APP_TOKEN: ${{ steps.generate-token.outputs.token }}
+          APP_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
         run: |
           echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
           echo "https://$USER:$APP_TOKEN@github.com" >> ~/.git-credentials
@@ -33,4 +40,9 @@ jobs:
           java -jar copybara_deploy.jar version
           java -jar copybara_deploy.jar validate copy.bara.sky
       - name: Run workflow
-        run: java -jar copybara_deploy.jar copy.bara.sky push --force
+        env:
+          DESTINATION_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
+        run: |
+          java -jar copybara_deploy.jar copy.bara.sky push \
+            --git-destination-url "https://$USER:$DESTINATION_TOKEN@github.com/render-oss/sdk.git" \
+            --force

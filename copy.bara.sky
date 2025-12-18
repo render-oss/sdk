@@ -22,7 +22,7 @@ DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"
 # Push workflow
 core.workflow(
     name = "push",
-    origin = git.origin(
+    origin = git.github_origin(
         url = SOT_REPO,
         ref = SOT_BRANCH,
     ),
