@@ -6,7 +6,7 @@ on:
 
 jobs:
   copy:
-    if: ${{ github.repository == "render-oss/sdk" }}
+    if: ${{ github.repository == 'render-oss/sdk' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

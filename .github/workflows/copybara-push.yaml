@@ -6,7 +6,7 @@ on:
 
 jobs:
   copy:
-    if: ${{ github.repository == "renderinc/sdk" }}
+    if: ${{ github.repository == 'renderinc/sdk' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
