@@ -1,4 +1,4 @@
-SOT_REPO = "https://github.com/renderinc/sdk.git"
+SOT_REPO = "https://github.com/renderinc/workflow-sdk.git"
 SOT_BRANCH = "main"
 DESTINATION_REPO = "https://github.com/render-oss/sdk.git"
 DESTINATION_BRANCH = "main"
@@ -58,5 +58,5 @@ core.workflow(
     transformations = [
         metadata.save_author("ORIGINAL_AUTHOR"),
         metadata.expose_label("GITHUB_PR_NUMBER", new_name = "Closes", separator = DESTINATION_REPO.replace("https://github.com/", " ").replace(".git", "#")),
-    ], 
+    ],
 )
