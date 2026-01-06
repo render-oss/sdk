@@ -1,4 +1,4 @@
-SOT_REPO = "https://github.com/renderinc/workflow-sdk.git"
+SOT_REPO = "https://github.com/renderinc/sdk.git"
 SOT_BRANCH = "main"
 DESTINATION_REPO = "https://github.com/render-oss/sdk.git"
 DESTINATION_BRANCH = "main"
