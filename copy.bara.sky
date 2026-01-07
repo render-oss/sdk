@@ -1,4 +1,4 @@
-SOT_REPO = "https://github.com/renderinc/workflow-sdk.git"
+SOT_REPO = "https://github.com/renderinc/sdk.git"
 SOT_BRANCH = "main"
 DESTINATION_REPO = "https://github.com/render-oss/sdk.git"
 DESTINATION_BRANCH = "main"
@@ -14,7 +14,8 @@ DESTINATION_FILES = [
 ]
 
 DESTINATION_FILES_EXCLUDE = [
-  "go/example/task/performance.go"
+  "go/example/task/performance.go",
+  ".github/workflows/copybara-push.yaml",
 ]
 
 DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"
@@ -56,6 +57,6 @@ core.workflow(
     set_rev_id = False,
     transformations = [
         metadata.save_author("ORIGINAL_AUTHOR"),
-        metadata.expose_label("GITHUB_PR_NUMBER", new_name = "Closes", separator = DESTINATION_REPO.replace("git@github.com:", " ").replace(".git", "#")),
-    ], 
+        metadata.expose_label("GITHUB_PR_NUMBER", new_name = "Closes", separator = DESTINATION_REPO.replace("https://github.com/", " ").replace(".git", "#")),
+    ],
 )

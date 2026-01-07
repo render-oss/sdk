@@ -1,11 +1,12 @@
-name: copybara
+name: copybara-pr
 
 on:
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
   copy:
+    if: ${{ github.repository == 'render-oss/sdk' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,8 +37,8 @@ jobs:
         run: echo "user-id=$(gh api "/users/$APP_SLUG[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
       - name: Set up credentials
         env:
-          APP_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
-          APP_SLUG: ${{ steps.generate-token-renderinc.outputs.app-slug }}
+          APP_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
+          APP_SLUG: ${{ steps.generate-token-oss.outputs.app-slug }}
           USER_ID: ${{ steps.get-user-id.outputs.user-id }}
         run: |
           echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
@@ -51,8 +52,8 @@ jobs:
           java -jar copybara_deploy.jar validate copy.bara.sky
       - name: Run workflow
         env:
-          DESTINATION_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
+          DESTINATION_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
         run: |
-          java -jar copybara_deploy.jar copy.bara.sky push \
-            --git-destination-url "https://$USER:$DESTINATION_TOKEN@github.com/render-oss/sdk.git" \
+          java -jar copybara_deploy.jar copy.bara.sky pr \
+            --git-destination-url "https://$USER:$DESTINATION_TOKEN@github.com/renderinc/sdk.git" \
             --force

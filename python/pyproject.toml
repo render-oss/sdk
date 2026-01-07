@@ -24,7 +24,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiohttp = "^3.8.0"
+aiohttp = "^3.12.14"
 openapi-python-client = "^0.26.1"
 httpx = "^0.28.1"
 
