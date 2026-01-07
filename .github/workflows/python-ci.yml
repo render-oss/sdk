@@ -42,7 +42,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ./python/.venv
-        key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ github.repository }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
@@ -88,7 +88,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ./python/.venv
-        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+        key: venv-${{ github.repository }}-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install dependencies
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
