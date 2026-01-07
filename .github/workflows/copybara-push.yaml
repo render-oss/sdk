@@ -6,6 +6,7 @@ on:
 
 jobs:
   copy:
+    if: ${{ github.repository == 'renderinc/sdk' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -21,6 +22,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
           owner: render-oss
+          repositories: sdk
       - name: Generate an app token for renderinc
         id: generate-token-renderinc
         uses: actions/create-github-app-token@v2
@@ -28,6 +30,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
           owner: renderinc
+          repositories: sdk
       - name: Get GitHub App User ID
         id: get-user-id
         env:
@@ -37,6 +40,7 @@ jobs:
       - name: Set up credentials
         env:
           APP_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          DESTINATION_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
           APP_SLUG: ${{ steps.generate-token-renderinc.outputs.app-slug }}
           USER_ID: ${{ steps.get-user-id.outputs.user-id }}
         run: |
@@ -44,6 +48,10 @@ jobs:
           echo "https://$USER:$APP_TOKEN@github.com" >> ~/.git-credentials
           git config --global user.name "$APP_SLUG[bot]"
           git config --global user.email "$USER_ID+$APP_SLUG[bot]@users.noreply.github.com"
+          git config --global url."https://$USER:${APP_TOKEN}@github.com/renderinc".insteadOf "git@github.com:renderinc"
+          git config --global url."https://$USER:${APP_TOKEN}@github.com/renderinc".insteadOf "https://github.com/renderinc"
+          git config --global url."https://$USER:${DESTINATION_TOKEN}@github.com/render-oss".insteadOf "git@github.com:render-oss"
+          git config --global url."https://$USER:${DESTINATION_TOKEN}@github.com/render-oss".insteadOf "https://github.com/render-oss"
       - name: Set up copybara
         run: |
           wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
