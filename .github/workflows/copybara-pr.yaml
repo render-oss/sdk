@@ -22,6 +22,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
           owner: render-oss
+          repositories: sdk
       - name: Generate an app token for renderinc
         id: generate-token-renderinc
         uses: actions/create-github-app-token@v2
@@ -29,6 +30,7 @@ jobs:
           app-id: ${{ vars.APP_ID }}
           private-key: ${{ secrets.APP_KEY }}
           owner: renderinc
+          repositories: sdk
       - name: Get GitHub App User ID
         id: get-user-id
         env:
@@ -42,8 +44,8 @@ jobs:
           APP_SLUG: ${{ steps.generate-token-oss.outputs.app-slug }}
           USER_ID: ${{ steps.get-user-id.outputs.user-id }}
         run: |
-          echo "https://$USER:$RENDER_OSS_TOKEN@api.github.com" > ~/.git-credentials
-          echo "https://$USER:$RENDER_OSS_TOKEN@github.com" >> ~/.git-credentials
+          echo "https://$USER:$RENDERINC_TOKEN@api.github.com" > ~/.git-credentials
+          echo "https://$USER:$RENDERINC_TOKEN@github.com" >> ~/.git-credentials
           git config --global user.name "$APP_SLUG[bot]"
           git config --global user.email "$USER_ID+$APP_SLUG[bot]@users.noreply.github.com"
           git config --global url."https://$USER:${RENDERINC_TOKEN}@github.com/renderinc".insteadOf "git@github.com:renderinc"
