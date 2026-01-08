@@ -33,7 +33,7 @@ core.workflow(
     ),
     origin_files = glob(DESTINATION_FILES, exclude = DESTINATION_FILES_EXCLUDE),
     authoring = authoring.pass_thru(default = DEFAULT_COMITTER),
-    mode = "SQUASH",
+    mode = "ITERATIVE",
     transformations = [
         metadata.restore_author("ORIGINAL_AUTHOR", search_all_changes = True),
     ],
