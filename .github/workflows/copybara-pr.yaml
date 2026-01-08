@@ -37,14 +37,19 @@ jobs:
         run: echo "user-id=$(gh api "/users/$APP_SLUG[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
       - name: Set up credentials
         env:
-          APP_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
+          RENDERINC_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          RENDER_OSS_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
           APP_SLUG: ${{ steps.generate-token-oss.outputs.app-slug }}
           USER_ID: ${{ steps.get-user-id.outputs.user-id }}
         run: |
-          echo "https://$USER:$APP_TOKEN@api.github.com" > ~/.git-credentials
-          echo "https://$USER:$APP_TOKEN@github.com" >> ~/.git-credentials
+          echo "https://$USER:$RENDER_OSS_TOKEN@api.github.com" > ~/.git-credentials
+          echo "https://$USER:$RENDER_OSS_TOKEN@github.com" >> ~/.git-credentials
           git config --global user.name "$APP_SLUG[bot]"
           git config --global user.email "$USER_ID+$APP_SLUG[bot]@users.noreply.github.com"
+          git config --global url."https://$USER:${RENDERINC_TOKEN}@github.com/renderinc".insteadOf "git@github.com:renderinc"
+          git config --global url."https://$USER:${RENDERINC_TOKEN}@github.com/renderinc".insteadOf "https://github.com/renderinc"
+          git config --global url."https://$USER:${RENDER_OSS_TOKEN}@github.com/render-oss".insteadOf "git@github.com:render-oss"
+          git config --global url."https://$USER:${RENDER_OSS_TOKEN}@github.com/render-oss".insteadOf "https://github.com/render-oss"
       - name: Set up copybara
         run: |
           wget https://github.com/google/copybara/releases/download/v20251215/copybara_deploy.jar
@@ -52,8 +57,8 @@ jobs:
           java -jar copybara_deploy.jar validate copy.bara.sky
       - name: Run workflow
         env:
-          DESTINATION_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          RENDERINC_TOKEN: ${{ steps.generate-token-renderinc.outputs.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          java -jar copybara_deploy.jar copy.bara.sky pr \
-            --git-destination-url "https://$USER:$DESTINATION_TOKEN@github.com/renderinc/sdk.git" \
-            --force
+          java -jar copybara_deploy.jar copy.bara.sky pr $PR_NUMBER \
+            --git-destination-url "https://$USER:$RENDERINC_TOKEN@github.com/renderinc/sdk.git" \
