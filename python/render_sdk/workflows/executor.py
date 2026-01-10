@@ -17,7 +17,9 @@ class TaskExecutor:
         self.task_registry = task_registry
         self.client = client
 
-    async def _execute_task(self, task_name: str, input_args: list[Any]) -> Any:
+    async def _execute_task(
+        self, task_name: str, input_data: list[Any] | dict[str, Any]
+    ) -> Any:
         """Execute a task by name with the given input."""
         func = self.task_registry.get_function(task_name)
         if not func:
@@ -28,11 +30,19 @@ class TaskExecutor:
             context = _current_client.set(self.client)
 
             try:
-                # Check if the function is async
-                if inspect.iscoroutinefunction(func):
-                    result = await func(*input_args)
+                # Determine how to call the function based on input type
+                if isinstance(input_data, dict):
+                    # Named parameters: pass as keyword arguments
+                    if inspect.iscoroutinefunction(func):
+                        result = await func(**input_data)
+                    else:
+                        result = func(**input_data)
                 else:
-                    result = func(*input_args)
+                    # Positional parameters: unpack list
+                    if inspect.iscoroutinefunction(func):
+                        result = await func(*input_data)
+                    else:
+                        result = func(*input_data)
 
                 return TaskResult(result=result)
             finally:
@@ -42,7 +52,9 @@ class TaskExecutor:
         except Exception as e:
             return TaskResult(error=e)
 
-    async def execute(self, task_name: str, input_args: list[Any]) -> Any:
+    async def execute(
+        self, task_name: str, input_data: list[Any] | dict[str, Any]
+    ) -> Any:
         """Execute a task by name with the given input."""
         logger.debug(f"Starting execution of task: {task_name}")
 
@@ -50,7 +62,7 @@ class TaskExecutor:
 
         try:
             # Execute the task
-            result = await self._execute_task(task_name, input_args)
+            result = await self._execute_task(task_name, input_data)
             if result.error:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)

@@ -11,6 +11,7 @@ from .task import Task
 from .task_complete import TaskComplete
 from .task_error import TaskError
 from .task_options import TaskOptions
+from .task_parameter import TaskParameter
 from .tasks import Tasks
 
 __all__ = (
@@ -25,5 +26,6 @@ __all__ = (
     "TaskComplete",
     "TaskError",
     "TaskOptions",
+    "TaskParameter",
     "Tasks",
 )

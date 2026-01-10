@@ -11,7 +11,8 @@ from render_sdk.public_api.models.task_run_status import TaskRunStatus as _TaskR
 
 # Type aliases to match Go client interface
 TaskIdentifier = str
-TaskData = list[Any]
+# TaskData can be either positional (list) or named (dict) parameters
+TaskData = list[Any] | dict[str, Any]
 
 # Re-export model classes with cleaner names
 TaskRun = _TaskRun

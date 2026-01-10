@@ -125,7 +125,9 @@ class WorkflowsService:
 
         Args:
             task_identifier: The identifier of the task to run
-            input_data: The input data for the task
+            input_data: The input data for the task. Can be either:
+                - A list for positional arguments: [arg1, arg2, arg3]
+                - A dict for named parameters: {"param1": value1, "param2": value2}
 
         Returns:
             AwaitableTaskRun: An awaitable task run object
