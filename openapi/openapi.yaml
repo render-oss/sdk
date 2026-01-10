@@ -130,6 +130,11 @@ components:
           type: string
         options:
           $ref: '#/components/schemas/TaskOptions'
+        parameters:
+          type: array
+          description: Parameter schema extracted from the task function signature
+          items:
+            $ref: '#/components/schemas/TaskParameter'
       required:
       - name
     TaskOptions:
@@ -150,3 +155,22 @@ components:
         factor:
           type: number
           description: Backoff factor for exponential retry
+    TaskParameter:
+      type: object
+      description: Information about a task parameter extracted from function signature
+      properties:
+        name:
+          type: string
+          description: Parameter name
+        type:
+          type: string
+          description: String representation of the parameter type hint
+        has_default:
+          type: boolean
+          description: Whether the parameter has a default value
+        default_value:
+          type: string
+          description: JSON-encoded default value (if has_default is true)
+      required:
+      - name
+      - has_default

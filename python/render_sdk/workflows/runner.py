@@ -10,11 +10,13 @@ from render_sdk.workflows.callback_api.models import (
     RetryConfig,
     Task,
     TaskOptions,
+    TaskParameter,
     Tasks,
 )
+from render_sdk.workflows.callback_api.types import UNSET, Unset
 from render_sdk.workflows.client import UDSClient
 from render_sdk.workflows.executor import TaskExecutor
-from render_sdk.workflows.task import get_task_registry
+from render_sdk.workflows.task import ParameterInfo, get_task_registry
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +96,14 @@ async def register_async(socket_path: str) -> None:
                     factor=retry.backoff_scaling,
                 )
 
-            task_def = Task(name=name, options=options)
+            parameters: list[TaskParameter] | Unset = UNSET
+            if task_info and task_info.parameters:
+                parameters = [
+                    _convert_parameter_info_to_api_model(param)
+                    for param in task_info.parameters
+                ]
+
+            task_def = Task(name=name, options=options, parameters=parameters)
             tasks.append(task_def)
 
         # Register tasks with server
@@ -138,3 +147,22 @@ def start() -> None:
         register(socket_path)
     else:
         raise ValueError(f"Unknown mode: {mode}")
+
+
+def _convert_parameter_info_to_api_model(param_info: ParameterInfo) -> TaskParameter:
+    """Convert internal ParameterInfo to API TaskParameter model."""
+    # JSON-encode the default value if it exists
+    default_value_str = None
+    if param_info.has_default and param_info.default_value is not None:
+        try:
+            default_value_str = json.dumps(param_info.default_value)
+        except (TypeError, ValueError):
+            # If the default can't be serialized, skip it
+            default_value_str = None
+
+    return TaskParameter(
+        name=param_info.name,
+        has_default=param_info.has_default,
+        type_=param_info.type_hint if param_info.type_hint is not None else UNSET,
+        default_value=default_value_str if default_value_str is not None else UNSET,
+    )

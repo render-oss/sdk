@@ -26,7 +26,9 @@ async def main():
 
     # Example task data - replace with your actual task
     task_identifier = "my-workflow-slug/task-name"  # Replace with your task identifier
-    input_data: list[Any] = [3]
+    # Input data can be specified as a list of positional arguments or a
+    # dictionary of named arguments
+    input_data: dict[str, Any] = {"arg1": 3}
 
     # Run the task
     try:

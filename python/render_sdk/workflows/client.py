@@ -134,13 +134,17 @@ class UDSClient:
         async with self.get_client() as client:
             return await post_callback.asyncio_detailed(client=client, body=data)
 
-    async def run_subtask(self, task_name: str, input_data: Any = None) -> Any:
+    async def run_subtask(
+        self, task_name: str, input_data: list[Any] | dict[str, Any] | None = None
+    ) -> Any:
         """
         Run a subtask and wait for its completion.
 
         Args:
             task_name: Name of the task to run
-            input_data: Input data to pass to the task
+            input_data: Input data to pass to the task. Can be either:
+                - A list for positional arguments: [arg1, arg2, arg3]
+                - A dict for named parameters: {"param1": value1, "param2": value2}
 
         Returns:
             The result of the subtask execution

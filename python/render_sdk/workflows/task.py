@@ -3,6 +3,7 @@
 import asyncio
 import contextvars
 import functools
+import inspect
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -28,6 +29,19 @@ class Options:
     """Configuration options for a task."""
 
     retry: Retry | None = None
+
+
+@dataclass
+class ParameterInfo:
+    """
+    Information about a task parameter extracted from the task's function
+    signature.
+    """
+
+    name: str
+    type_hint: str | None
+    has_default: bool
+    default_value: Any | None = None
 
 
 class TaskResult:
@@ -59,10 +73,17 @@ class TaskContext(ABC):
 class TaskInfo:
     """Information about a registered task."""
 
-    def __init__(self, func: Callable, name: str, options: Options | None = None):
+    def __init__(
+        self,
+        func: Callable,
+        name: str,
+        options: Options | None = None,
+        parameters: list[ParameterInfo] | None = None,
+    ):
         self.func = func
         self.name = name
         self.options = options or Options()
+        self.parameters = parameters
 
 
 class TaskRegistry:
@@ -70,6 +91,35 @@ class TaskRegistry:
 
     def __init__(self) -> None:
         self._tasks: dict[str, TaskInfo] = {}
+
+    def _extract_parameters(self, func: Callable) -> list[ParameterInfo]:
+        """Extract parameter information from a function signature."""
+        sig = inspect.signature(func)
+        parameters: list[ParameterInfo] = []
+
+        for param_name, param in sig.parameters.items():
+            # Get type hint as string if available
+            type_hint: str | None = None
+            if param.annotation is not inspect.Parameter.empty:
+                if hasattr(param.annotation, "__name__"):
+                    type_hint = param.annotation.__name__
+                else:
+                    type_hint = str(param.annotation)
+
+            # Check if the parameter has a default value
+            has_default = param.default is not inspect.Parameter.empty
+            default_value = param.default if has_default else None
+
+            parameters.append(
+                ParameterInfo(
+                    name=param_name,
+                    type_hint=type_hint,
+                    has_default=has_default,
+                    default_value=default_value,
+                )
+            )
+
+        return parameters
 
     def register(
         self,
@@ -80,7 +130,9 @@ class TaskRegistry:
         """Register a task function."""
         task_name = name or func.__name__
 
-        task_info = TaskInfo(func, task_name, options)
+        parameters = self._extract_parameters(func)
+
+        task_info = TaskInfo(func, task_name, options, parameters)
 
         if task_name in self._tasks:
             raise ValueError(f"Task '{task_name}' already registered")
@@ -139,8 +191,26 @@ class TaskCallable:
     def __call__(self, *args, **kwargs):
         # Create a new TaskInstance for each call
         client = _current_client.get()
+
+        # Error on mixed positional and kw args
+        if args and kwargs:
+            raise ValueError(
+                "Cannot mix positional and keyword arguments when calling a task. "
+                "Use either positional arguments (e.g., task(arg1, arg2)) or "
+                "keyword arguments (e.g., task(param1=value1, param2=value2)), "
+                "but not both."
+            )
+
+        # Determine input data type based on how the task was called
+        if kwargs:
+            # Named parameters: pass as dict
+            input_data: dict[str, Any] = kwargs
+        else:
+            # Positional parameters: pass as list
+            input_data = list(args)
+
         # Start execution immediately
-        future = asyncio.create_task(client.run_subtask(self._name, list(args)))
+        future = asyncio.create_task(client.run_subtask(self._name, input_data))
         return TaskInstance(self._name, future)
 
 
