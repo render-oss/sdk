@@ -93,7 +93,9 @@ def test_task_registration_with_options_object():
 
     # Task with only retry options
     @task_decorator(
-        options=Options(retry=Retry(max_retries=1, wait_duration_ms=500, factor=1.0)),
+        options=Options(
+            retry=Retry(max_retries=1, wait_duration=500, backoff_scaling=1.0)
+        ),
     )
     def task_with_retry_only(x: int) -> int:
         return x
