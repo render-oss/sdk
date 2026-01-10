@@ -19,8 +19,8 @@ class Retry:
     """Retry configuration for a task."""
 
     max_retries: int
-    wait_duration_ms: int
-    factor: float = 1.5
+    wait_duration: int
+    backoff_scaling: float = 1.5
 
 
 @dataclass

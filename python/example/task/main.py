@@ -34,7 +34,7 @@ async def add_squares(a: int, b: int) -> int:
 
 @task(
     name="custom_add",
-    options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000)),
+    options=Options(retry=Retry(max_retries=3, wait_duration=1000)),
 )
 def add_numbers(a: int, b: int) -> int:
     """Add two numbers with retry configuration."""

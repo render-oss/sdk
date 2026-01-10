@@ -70,7 +70,9 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
         return f"Hello {msg}"
 
     @task_decorator(
-        options=Options(retry=Retry(max_retries=3, wait_duration_ms=1000, factor=1.5)),
+        options=Options(
+            retry=Retry(max_retries=3, wait_duration=1000, backoff_scaling=1.5)
+        ),
     )
     def retry_task(data: str) -> str:
         return data.upper()
