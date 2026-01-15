@@ -76,5 +76,6 @@ export interface Retry {
  */
 export interface RegisterTaskOptions {
   retry?: Retry;
+  timeoutSeconds?: number;
   name: string;
 }

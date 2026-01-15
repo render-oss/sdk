@@ -130,3 +130,58 @@ def test_task_registration_preserves_function_attributes(task_registry, task_dec
     # Verify the original function attributes are preserved
     assert documented_task.__name__ == "documented_task"
     assert documented_task.__doc__ == "This is a documented function."
+
+
+def test_task_registration_with_timeout_seconds():
+    """Test task registration with timeout_seconds option."""
+    registry = TaskRegistry()
+    task_decorator = create_task_decorator(registry)
+
+    # Task with timeout_seconds
+    @task_decorator(options=Options(timeout_seconds=120))
+    def task_with_timeout(x: int) -> int:
+        return x
+
+    # Verify task registered correctly
+    task_names = registry.get_task_names()
+    assert "task_with_timeout" in task_names
+
+    # Verify timeout_seconds is set
+    task_info = registry.get_task("task_with_timeout")
+    assert task_info.options is not None
+    assert task_info.options.timeout_seconds == 120
+
+
+def test_task_registration_without_timeout_seconds():
+    """Test task registration without timeout_seconds defaults to None."""
+    registry = TaskRegistry()
+    task_decorator = create_task_decorator(registry)
+
+    @task_decorator
+    def task_without_timeout(x: int) -> int:
+        return x
+
+    task_info = registry.get_task("task_without_timeout")
+    assert task_info.options is not None
+    assert task_info.options.timeout_seconds is None
+
+
+def test_task_registration_with_timeout_and_retry():
+    """Test task registration with both timeout_seconds and retry options."""
+    registry = TaskRegistry()
+    task_decorator = create_task_decorator(registry)
+
+    @task_decorator(
+        options=Options(
+            timeout_seconds=300,
+            retry=Retry(max_retries=3, wait_duration=1000, backoff_scaling=2.0),
+        )
+    )
+    def task_with_both(x: int) -> int:
+        return x
+
+    task_info = registry.get_task("task_with_both")
+    assert task_info.options is not None
+    assert task_info.options.timeout_seconds == 300
+    assert task_info.options.retry is not None
+    assert task_info.options.retry.max_retries == 3

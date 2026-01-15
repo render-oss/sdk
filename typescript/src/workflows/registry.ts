@@ -27,14 +27,20 @@ export class TaskRegistry {
 
     let taskOptions: TaskOptions | undefined;
 
-    if (options.retry) {
-      taskOptions = {
-        retry: {
+    if (options.retry || options.timeoutSeconds) {
+      taskOptions = {};
+
+      if (options.retry) {
+        taskOptions.retry = {
           max_retries: options.retry.maxRetries,
           wait_duration_ms: options.retry.waitDuration,
           factor: options.retry.backoffScaling,
-        },
-      };
+        };
+      }
+
+      if (options.timeoutSeconds) {
+        taskOptions.timeout_seconds = options.timeoutSeconds;
+      }
     }
 
     this.tasks.set(taskName, {

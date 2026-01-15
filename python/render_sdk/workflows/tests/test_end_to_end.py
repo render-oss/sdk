@@ -122,6 +122,74 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     assert retry_options.factor == 1.5
 
 
+def test_task_registration_with_timeout_seconds(task_registry, task_decorator, mocker):
+    """
+    Test that task registration correctly serializes timeout_seconds
+    in the network payload.
+    """
+    from render_sdk.workflows.callback_api.types import UNSET
+
+    # Mock the UDSClient class
+    mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
+
+    # Set up the mock instance
+    mock_client_instance = mocker.Mock()
+    mock_uds_client_class.return_value = mock_client_instance
+    mock_client_instance.register_tasks = mocker.AsyncMock(
+        return_value={"status": "success"},
+    )
+    mock_client_instance.disconnect = mocker.AsyncMock()
+
+    # Define a task with timeout_seconds
+    @task_decorator(options=Options(timeout_seconds=120))
+    def timeout_task(x: int) -> int:
+        return x * 2
+
+    # Define a task without timeout_seconds
+    @task_decorator
+    def no_timeout_task(x: int) -> int:
+        return x * 3
+
+    # Define a task with both timeout_seconds and retry
+    @task_decorator(
+        options=Options(
+            timeout_seconds=300,
+            retry=Retry(max_retries=2, wait_duration=500, backoff_scaling=1.5),
+        )
+    )
+    def timeout_and_retry_task(x: int) -> int:
+        return x * 4
+
+    # Mock get_task_registry to return our test registry
+    mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
+    mock_get_registry.return_value = task_registry
+
+    register("/tmp/test.sock")  # noqa:S108
+
+    # Get the actual payload that was sent
+    sent_tasks = mock_client_instance.register_tasks.call_args[0][0]
+
+    # Find tasks by name
+    task_by_name = {task.name: task for task in sent_tasks.tasks}
+
+    # Verify task with timeout_seconds
+    assert "timeout_task" in task_by_name
+    timeout_task_payload = task_by_name["timeout_task"]
+    assert timeout_task_payload.options.timeout_seconds == 120
+
+    # Verify task without timeout_seconds has UNSET timeout
+    assert "no_timeout_task" in task_by_name
+    no_timeout_payload = task_by_name["no_timeout_task"]
+    assert no_timeout_payload.options.timeout_seconds is UNSET
+
+    # Verify task with both timeout and retry
+    assert "timeout_and_retry_task" in task_by_name
+    combined_payload = task_by_name["timeout_and_retry_task"]
+    assert combined_payload.options.timeout_seconds == 300
+    assert combined_payload.options.retry is not UNSET
+    assert combined_payload.options.retry.max_retries == 2
+
+
 @pytest.mark.asyncio
 async def test_callback_payloads_with_mocked_client(
     task_registry,

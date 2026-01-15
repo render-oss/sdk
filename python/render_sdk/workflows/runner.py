@@ -88,13 +88,16 @@ async def register_async(socket_path: str) -> None:
 
             options = TaskOptions()
             # Add options if present
-            if task_info and task_info.options and task_info.options.retry:
-                retry = task_info.options.retry
-                options.retry = RetryConfig(
-                    max_retries=retry.max_retries,
-                    wait_duration_ms=retry.wait_duration,
-                    factor=retry.backoff_scaling,
-                )
+            if task_info and task_info.options:
+                if task_info.options.retry:
+                    retry = task_info.options.retry
+                    options.retry = RetryConfig(
+                        max_retries=retry.max_retries,
+                        wait_duration_ms=retry.wait_duration,
+                        factor=retry.backoff_scaling,
+                    )
+                if task_info.options.timeout_seconds:
+                    options.timeout_seconds = task_info.options.timeout_seconds
 
             parameters: list[TaskParameter] | Unset = UNSET
             if task_info and task_info.parameters:

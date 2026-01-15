@@ -142,6 +142,10 @@ components:
       properties:
         retry:
           $ref: '#/components/schemas/RetryConfig'
+        timeout_seconds:
+          type: integer
+          format: int64
+          description: Task execution timeout in seconds (30-86400)
     RetryConfig:
       type: object
       properties:
