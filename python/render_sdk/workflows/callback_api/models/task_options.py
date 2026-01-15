@@ -1,5 +1,10 @@
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    TypeVar,
+    Union,
+)
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,9 +23,11 @@ class TaskOptions:
     """
     Attributes:
         retry (Union[Unset, RetryConfig]):
+        timeout_seconds (Union[Unset, int]): Task execution timeout in seconds (30-86400)
     """
 
     retry: Union[Unset, "RetryConfig"] = UNSET
+    timeout_seconds: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -28,11 +35,15 @@ class TaskOptions:
         if not isinstance(self.retry, Unset):
             retry = self.retry.to_dict()
 
+        timeout_seconds = self.timeout_seconds
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
         if retry is not UNSET:
             field_dict["retry"] = retry
+        if timeout_seconds is not UNSET:
+            field_dict["timeout_seconds"] = timeout_seconds
 
         return field_dict
 
@@ -48,8 +59,11 @@ class TaskOptions:
         else:
             retry = RetryConfig.from_dict(_retry)
 
+        timeout_seconds = d.pop("timeout_seconds", UNSET)
+
         task_options = cls(
             retry=retry,
+            timeout_seconds=timeout_seconds,
         )
 
         task_options.additional_properties = d

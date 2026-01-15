@@ -305,6 +305,11 @@ export interface components {
     };
     TaskOptions: {
       retry?: components["schemas"]["RetryConfig"];
+      /**
+       * Format: int64
+       * @description Task execution timeout in seconds (30-86400)
+       */
+      timeout_seconds?: number;
     };
     RetryConfig: {
       /** @description Maximum number of retry attempts */

@@ -29,6 +29,7 @@ class Options:
     """Configuration options for a task."""
 
     retry: Retry | None = None
+    timeout_seconds: int | None = None
 
 
 @dataclass
