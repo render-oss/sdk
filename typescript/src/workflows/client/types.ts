@@ -1,4 +1,4 @@
-import type { components, paths } from "../../utils/schema";
+import type { components, paths } from "../../generated/schema";
 
 /**
  * Task identifier in the format "workflow-slug/task-name"

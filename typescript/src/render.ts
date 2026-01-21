@@ -1,16 +1,18 @@
 import type { Client } from "openapi-fetch";
 import { WorkflowsClient } from "./workflows/client/index.js";
 import type { ClientOptions } from "./workflows/client/types.js";
-import type { paths } from "./utils/schema.js";
+import type { paths } from "./generated/schema.js";
 import { createApiClient } from "./utils/create-api-client.js";
 import { getBaseUrl } from "./utils/get-base-url.js";
 import { RenderError } from "./errors.js";
+import { ExperimentalClient } from "./experimental/experimental.js";
 
 /**
  * Main Render SDK class providing access to all Render products
  */
 export class Render {
   public readonly workflows: WorkflowsClient;
+  public readonly experimental: ExperimentalClient;
 
   private readonly apiClient: Client<paths>;
 
@@ -28,5 +30,6 @@ export class Render {
     const baseUrl = getBaseUrl(options);
     this.apiClient = createApiClient(baseUrl, token);
     this.workflows = new WorkflowsClient(this.apiClient, baseUrl, token);
+    this.experimental = new ExperimentalClient(this.apiClient);
   }
 }
