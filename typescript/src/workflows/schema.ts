@@ -310,6 +310,11 @@ export interface components {
        * @description Task execution timeout in seconds (30-86400)
        */
       timeout_seconds?: number;
+      /**
+       * @description Resource plan for task execution (starter=0.5CPU/512MB, standard=1CPU/2GB, pro=2CPU/4GB)
+       * @enum {string}
+       */
+      plan?: "starter" | "standard" | "pro";
     };
     RetryConfig: {
       /** @description Maximum number of retry attempts */

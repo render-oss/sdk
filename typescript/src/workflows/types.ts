@@ -77,5 +77,12 @@ export interface Retry {
 export interface RegisterTaskOptions {
   retry?: Retry;
   timeoutSeconds?: number;
+  /**
+   * Resource plan for task execution.
+   * - "starter": 0.5 CPU, 512MB memory
+   * - "standard": 1 CPU, 2GB memory (default)
+   * - "pro": 2 CPU, 4GB memory
+   */
+  plan?: "starter" | "standard" | "pro";
   name: string;
 }

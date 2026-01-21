@@ -146,6 +146,10 @@ components:
           type: integer
           format: int64
           description: Task execution timeout in seconds (30-86400)
+        plan:
+          type: string
+          enum: [starter, standard, pro]
+          description: Resource plan for task execution (starter=0.5CPU/512MB, standard=1CPU/2GB, pro=2CPU/4GB)
     RetryConfig:
       type: object
       properties:

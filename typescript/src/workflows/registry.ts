@@ -27,7 +27,7 @@ export class TaskRegistry {
 
     let taskOptions: TaskOptions | undefined;
 
-    if (options.retry || options.timeoutSeconds) {
+    if (options.retry || options.timeoutSeconds || options.plan) {
       taskOptions = {};
 
       if (options.retry) {
@@ -40,6 +40,10 @@ export class TaskRegistry {
 
       if (options.timeoutSeconds) {
         taskOptions.timeout_seconds = options.timeoutSeconds;
+      }
+
+      if (options.plan) {
+        taskOptions.plan = options.plan;
       }
     }
 
