@@ -26,10 +26,18 @@ class Retry:
 
 @dataclass
 class Options:
-    """Configuration options for a task."""
+    """Configuration options for a task.
+
+    Attributes:
+        retry: Retry configuration for automatic task retries.
+        timeout_seconds: Task execution timeout in seconds (30-86400).
+        plan: Resource plan for task execution. Options: "starter" (0.5CPU/512MB),
+              "standard" (1CPU/2GB), "pro" (2CPU/4GB). Defaults to "standard".
+    """
 
     retry: Retry | None = None
     timeout_seconds: int | None = None
+    plan: str | None = None
 
 
 @dataclass

@@ -1,14 +1,10 @@
 from collections.abc import Mapping
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.task_options_plan import TaskOptionsPlan
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -24,10 +20,12 @@ class TaskOptions:
     Attributes:
         retry (Union[Unset, RetryConfig]):
         timeout_seconds (Union[Unset, int]): Task execution timeout in seconds (30-86400)
+        plan (Union[Unset, TaskOptionsPlan]): Resource plan for task execution
     """
 
     retry: Union[Unset, "RetryConfig"] = UNSET
     timeout_seconds: Union[Unset, int] = UNSET
+    plan: Union[Unset, TaskOptionsPlan] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -37,6 +35,10 @@ class TaskOptions:
 
         timeout_seconds = self.timeout_seconds
 
+        plan: Union[Unset, str] = UNSET
+        if not isinstance(self.plan, Unset):
+            plan = self.plan.value
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
@@ -44,6 +46,8 @@ class TaskOptions:
             field_dict["retry"] = retry
         if timeout_seconds is not UNSET:
             field_dict["timeout_seconds"] = timeout_seconds
+        if plan is not UNSET:
+            field_dict["plan"] = plan
 
         return field_dict
 
@@ -61,9 +65,17 @@ class TaskOptions:
 
         timeout_seconds = d.pop("timeout_seconds", UNSET)
 
+        _plan = d.pop("plan", UNSET)
+        plan: Union[Unset, TaskOptionsPlan]
+        if isinstance(_plan, Unset):
+            plan = UNSET
+        else:
+            plan = TaskOptionsPlan(_plan)
+
         task_options = cls(
             retry=retry,
             timeout_seconds=timeout_seconds,
+            plan=plan,
         )
 
         task_options.additional_properties = d
