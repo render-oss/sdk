@@ -46,6 +46,11 @@
       "import": "./dist/workflows/index.js",
       "require": "./dist/workflows/index.js",
       "types": "./dist/workflows/index.d.ts"
+    },
+    "./experimental": {
+      "import": "./dist/experimental/index.js",
+      "require": "./dist/experimental/index.js",
+      "types": "./dist/experimental/index.d.ts"
     }
   }
 }
