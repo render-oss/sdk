@@ -1,4 +1,4 @@
-import { task, startTaskServer } from '@render/sdk/workflows';
+import { task } from '@render/sdk/workflows';
 
 /**
  * Simple task that squares a number
@@ -87,17 +87,7 @@ task(
   }
 )
 
-/**
- * Start the task server
- */
-console.log('Starting task server...');
-
-(async () => {
-  try {
-    await startTaskServer();
-    console.log('Task server started successfully');
-  } catch (error) {
-    console.error('Failed to start task server:', error);
-    process.exit(1);
-  }
-})();
+// The task server starts automatically when running in a workflow environment
+// (when RENDER_SDK_SOCKET_PATH is set). No need to call startTaskServer() explicitly.
+//
+// To disable auto-start, set RENDER_SDK_AUTO_START=false in your environment.

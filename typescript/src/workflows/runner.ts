@@ -1,5 +1,6 @@
 import { RenderError } from "../errors.js";
 import { TaskExecutor } from "./executor.js";
+import { markServerStarted } from "./task.js";
 
 /**
  * Start the task server and listen for task execution requests
@@ -13,6 +14,9 @@ export async function startTaskServer(): Promise<void> {
   }
 
   const executor = new TaskExecutor(socketPath);
+
+  // Mark server as started to warn about late task registrations
+  markServerStarted();
 
   if (mode === "register") {
     // Register tasks mode
