@@ -20,7 +20,7 @@ class Retry:
     """Retry configuration for a task."""
 
     max_retries: int
-    wait_duration: int
+    wait_duration_ms: int
     backoff_scaling: float = 1.5
 
 
