@@ -79,10 +79,11 @@ export interface RegisterTaskOptions {
   timeoutSeconds?: number;
   /**
    * Resource plan for task execution.
+   * Common plans include:
    * - "starter": 0.5 CPU, 512MB memory
    * - "standard": 1 CPU, 2GB memory (default)
    * - "pro": 2 CPU, 4GB memory
    */
-  plan?: "starter" | "standard" | "pro";
+  plan?: string;
   name: string;
 }

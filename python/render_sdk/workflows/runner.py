@@ -10,7 +10,6 @@ from render_sdk.workflows.callback_api.models import (
     RetryConfig,
     Task,
     TaskOptions,
-    TaskOptionsPlan,
     TaskParameter,
     Tasks,
 )
@@ -100,7 +99,7 @@ async def register_async(socket_path: str) -> None:
                 if task_info.options.timeout_seconds:
                     options.timeout_seconds = task_info.options.timeout_seconds
                 if task_info.options.plan:
-                    options.plan = TaskOptionsPlan(task_info.options.plan)
+                    options.plan = task_info.options.plan
 
             parameters: list[TaskParameter] | Unset = UNSET
             if task_info and task_info.parameters:

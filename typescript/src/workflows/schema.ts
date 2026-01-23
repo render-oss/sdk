@@ -302,6 +302,19 @@ export interface components {
     Task: {
       name: string;
       options?: components["schemas"]["TaskOptions"];
+      /** @description Parameter schema extracted from the task function signature */
+      parameters?: components["schemas"]["TaskParameter"][];
+    };
+    /** @description Information about a task parameter extracted from function signature */
+    TaskParameter: {
+      /** @description Parameter name */
+      name: string;
+      /** @description String representation of the parameter type hint */
+      type?: string;
+      /** @description Whether the parameter has a default value */
+      has_default: boolean;
+      /** @description JSON-encoded default value (if has_default is true) */
+      default_value?: string;
     };
     TaskOptions: {
       retry?: components["schemas"]["RetryConfig"];
@@ -310,11 +323,8 @@ export interface components {
        * @description Task execution timeout in seconds (30-86400)
        */
       timeout_seconds?: number;
-      /**
-       * @description Resource plan for task execution (starter=0.5CPU/512MB, standard=1CPU/2GB, pro=2CPU/4GB)
-       * @enum {string}
-       */
-      plan?: "starter" | "standard" | "pro";
+      /** @description Resource plan for task execution */
+      plan?: string;
     };
     RetryConfig: {
       /** @description Maximum number of retry attempts */
