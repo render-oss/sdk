@@ -8,6 +8,7 @@ import os
 from render_sdk.client.sse import SSEClient
 from render_sdk.client.workflows import WorkflowsService
 from render_sdk.public_api.client import AuthenticatedClient
+from render_sdk.version import get_user_agent
 
 
 class Client:
@@ -71,6 +72,7 @@ class Client:
         self.internal = AuthenticatedClient(
             base_url=api_base,
             token=self.token,
+            headers={"User-Agent": get_user_agent()},
         )
 
         # Initialize service clients

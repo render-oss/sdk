@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/render-oss/sdk/go/pkg/internal/callbackapi"
+	"github.com/render-oss/sdk/go/pkg/internal/version"
 )
 
 func NewCallbackClient(unixSocketPath string) (*callbackapi.ClientWithResponses, error) {
@@ -28,6 +29,10 @@ func NewCallbackClient(unixSocketPath string) (*callbackapi.ClientWithResponses,
 	callbackClient, err := callbackapi.NewClientWithResponses(
 		"http://unix",
 		callbackapi.WithHTTPClient(retryingHTTPClient.StandardClient()),
+		callbackapi.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("User-Agent", version.UserAgent())
+			return nil
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create UDS callback API client: %w", err)

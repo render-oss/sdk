@@ -1,6 +1,7 @@
 import { EventSource } from "eventsource";
 import { AbortError } from "../../errors.js";
 import type { TaskRunDetails } from "./types.js";
+import { getUserAgent } from "../../version.js";
 
 /**
  * Task event types emitted by the SSE stream
@@ -77,6 +78,7 @@ export class SSEClient {
               headers: {
                 ...init?.headers,
                 Authorization: `Bearer ${this.token}`,
+                "User-Agent": getUserAgent(),
               },
             }),
         });
