@@ -9,6 +9,7 @@ import type {
   RunSubtaskResponse,
   TaskMetadata,
 } from "./types.js";
+import { getUserAgent } from "../version.js";
 
 /**
  * Unix Domain Socket client for communicating with the workflow system
@@ -95,7 +96,8 @@ export class UDSClient {
     return new Promise((resolve, reject) => {
       const client = net.createConnection({ path: this.socketPath }, () => {
         const bodyStr = body ? JSON.stringify(body) : "";
-        const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\n\r\n${bodyStr}`;
+        const userAgent = getUserAgent();
+        const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\nUser-Agent: ${userAgent}\r\n\r\n${bodyStr}`;
         client.write(request);
       });
 

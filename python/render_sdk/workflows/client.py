@@ -2,7 +2,6 @@
 
 import asyncio
 import base64
-import importlib.metadata
 import json
 import time
 from dataclasses import dataclass
@@ -13,6 +12,7 @@ import httpx
 
 from render_sdk.client.errors import RenderError, TaskRunError
 from render_sdk.client.util import handle_http_errors
+from render_sdk.version import get_user_agent
 from render_sdk.workflows.callback_api.api.default import (
     get_input,
     post_callback,
@@ -65,11 +65,6 @@ POLLING_INTERVAL = 1.0
 POLLING_TIMEOUT = 24 * 60 * 60  # 24 hours
 QUERY_TIMEOUT = 15  # 15 seconds
 
-try:
-    version = importlib.metadata.version("render")
-except importlib.metadata.PackageNotFoundError:
-    version = "unknown"  # fallback version
-
 
 class UDSClient:
     """Client for communicating with the SDK server over Unix Domain Socket."""
@@ -80,7 +75,7 @@ class UDSClient:
     def get_client(self) -> Client:
         return Client(
             base_url="http://localhost",
-            headers={"User-Agent": f"render-workflows-python-sdk/{version}"},
+            headers={"User-Agent": get_user_agent()},
             httpx_args={
                 "transport": httpx.AsyncHTTPTransport(uds=self.socket_path),
             },

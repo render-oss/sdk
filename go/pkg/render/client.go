@@ -88,6 +88,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		fmt.Sprintf("%s/v1", strings.TrimSuffix(baseURL, "/")),
 		client.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
 			req.Header.Set("Authorization", "Bearer "+tempClient.token)
+			req.Header.Set("User-Agent", UserAgent())
 			return nil
 		}),
 	)
@@ -120,6 +121,10 @@ func NewSocketClient(unixSocketPath string) (*Client, error) {
 	c, err := client.NewClientWithResponses(
 		"http://unix",
 		client.WithHTTPClient(httpClient),
+		client.WithRequestEditorFn(func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("User-Agent", UserAgent())
+			return nil
+		}),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
