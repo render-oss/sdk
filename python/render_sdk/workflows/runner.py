@@ -93,7 +93,7 @@ async def register_async(socket_path: str) -> None:
                     retry = task_info.options.retry
                     options.retry = RetryConfig(
                         max_retries=retry.max_retries,
-                        wait_duration_ms=retry.wait_duration,
+                        wait_duration_ms=retry.wait_duration_ms,
                         factor=retry.backoff_scaling,
                     )
                 if task_info.options.timeout_seconds:

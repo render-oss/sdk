@@ -94,7 +94,7 @@ def test_task_registration_with_options_object():
     # Task with only retry options
     @task_decorator(
         options=Options(
-            retry=Retry(max_retries=1, wait_duration=500, backoff_scaling=1.0)
+            retry=Retry(max_retries=1, wait_duration_ms=500, backoff_scaling=1.0)
         ),
     )
     def task_with_retry_only(x: int) -> int:
@@ -174,7 +174,7 @@ def test_task_registration_with_timeout_and_retry():
     @task_decorator(
         options=Options(
             timeout_seconds=300,
-            retry=Retry(max_retries=3, wait_duration=1000, backoff_scaling=2.0),
+            retry=Retry(max_retries=3, wait_duration_ms=1000, backoff_scaling=2.0),
         )
     )
     def task_with_both(x: int) -> int:

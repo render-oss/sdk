@@ -44,7 +44,7 @@ describe("TaskRegistry", () => {
         timeoutSeconds: 300,
         retry: {
           maxRetries: 3,
-          waitDuration: 1000,
+          waitDurationMs: 1000,
           backoffScaling: 2.0,
         },
       });
@@ -64,7 +64,7 @@ describe("TaskRegistry", () => {
         name: "retry_only_task",
         retry: {
           maxRetries: 2,
-          waitDuration: 500,
+          waitDurationMs: 500,
         },
       });
 

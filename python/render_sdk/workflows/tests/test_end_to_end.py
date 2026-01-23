@@ -71,7 +71,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
 
     @task_decorator(
         options=Options(
-            retry=Retry(max_retries=3, wait_duration=1000, backoff_scaling=1.5)
+            retry=Retry(max_retries=3, wait_duration_ms=1000, backoff_scaling=1.5)
         ),
     )
     def retry_task(data: str) -> str:
@@ -154,7 +154,7 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
     @task_decorator(
         options=Options(
             timeout_seconds=300,
-            retry=Retry(max_retries=2, wait_duration=500, backoff_scaling=1.5),
+            retry=Retry(max_retries=2, wait_duration_ms=500, backoff_scaling=1.5),
         )
     )
     def timeout_and_retry_task(x: int) -> int:

@@ -67,7 +67,7 @@ export type RegisterTasksRequest = components["schemas"]["Tasks"];
  */
 export interface Retry {
   maxRetries: number;
-  waitDuration: number;
+  waitDurationMs: number;
   backoffScaling?: number; // default 1.5
 }
 
