@@ -12,7 +12,9 @@ import httpx
 
 from render_sdk.client.types import TaskRunDetails
 from render_sdk.client.util import handle_http_error, handle_httpx_exception
-from render_sdk.public_api.api.workflows.stream_task_runs_events import _get_kwargs
+from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import (
+    _get_kwargs,
+)
 from render_sdk.version import get_user_agent
 
 if TYPE_CHECKING:

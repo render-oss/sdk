@@ -1,14 +1,12 @@
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
-if TYPE_CHECKING:
-    from ..models.image_version import ImageVersion
-
+from ..models.workflow_version_status import WorkflowVersionStatus
 
 T = TypeVar("T", bound="WorkflowVersion")
 
@@ -20,15 +18,15 @@ class WorkflowVersion:
         id (str):
         workflow_id (str):
         name (str):
-        image (ImageVersion):
         created_at (datetime.datetime):
+        status (WorkflowVersionStatus):
     """
 
     id: str
     workflow_id: str
     name: str
-    image: "ImageVersion"
     created_at: datetime.datetime
+    status: WorkflowVersionStatus
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -38,9 +36,9 @@ class WorkflowVersion:
 
         name = self.name
 
-        image = self.image.to_dict()
-
         created_at = self.created_at.isoformat()
+
+        status = self.status.value
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -49,8 +47,8 @@ class WorkflowVersion:
                 "id": id,
                 "workflowId": workflow_id,
                 "name": name,
-                "image": image,
                 "createdAt": created_at,
+                "status": status,
             }
         )
 
@@ -58,8 +56,6 @@ class WorkflowVersion:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.image_version import ImageVersion
-
         d = dict(src_dict)
         id = d.pop("id")
 
@@ -67,16 +63,16 @@ class WorkflowVersion:
 
         name = d.pop("name")
 
-        image = ImageVersion.from_dict(d.pop("image"))
-
         created_at = isoparse(d.pop("createdAt"))
+
+        status = WorkflowVersionStatus(d.pop("status"))
 
         workflow_version = cls(
             id=id,
             workflow_id=workflow_id,
             name=name,
-            image=image,
             created_at=created_at,
+            status=status,
         )
 
         workflow_version.additional_properties = d

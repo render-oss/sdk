@@ -6,8 +6,10 @@ class OtelProviderType(str, Enum):
     CUSTOM = "CUSTOM"
     DATADOG = "DATADOG"
     GRAFANA = "GRAFANA"
+    GROUNDSOURCE = "GROUNDSOURCE"
     HONEYCOMB = "HONEYCOMB"
     NEW_RELIC = "NEW_RELIC"
+    SIGNOZ = "SIGNOZ"
 
     def __str__(self) -> str:
         return str(self.value)

@@ -1,11 +1,15 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.protected_status import ProtectedStatus
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.cidr_block_and_description import CidrBlockAndDescription
+
 
 T = TypeVar("T", bound="ProjectPOSTEnvironmentInput")
 
@@ -19,11 +23,13 @@ class ProjectPOSTEnvironmentInput:
             `protected`. Only admin users can perform destructive actions in `protected` environments.
         network_isolation_enabled (Union[Unset, bool]): Indicates whether network connections across environments are
             allowed.
+        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
     """
 
     name: str
     protected_status: Union[Unset, ProtectedStatus] = UNSET
     network_isolation_enabled: Union[Unset, bool] = UNSET
+    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -34,6 +40,13 @@ class ProjectPOSTEnvironmentInput:
             protected_status = self.protected_status.value
 
         network_isolation_enabled = self.network_isolation_enabled
+
+        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.ip_allow_list, Unset):
+            ip_allow_list = []
+            for ip_allow_list_item_data in self.ip_allow_list:
+                ip_allow_list_item = ip_allow_list_item_data.to_dict()
+                ip_allow_list.append(ip_allow_list_item)
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -46,11 +59,15 @@ class ProjectPOSTEnvironmentInput:
             field_dict["protectedStatus"] = protected_status
         if network_isolation_enabled is not UNSET:
             field_dict["networkIsolationEnabled"] = network_isolation_enabled
+        if ip_allow_list is not UNSET:
+            field_dict["ipAllowList"] = ip_allow_list
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.cidr_block_and_description import CidrBlockAndDescription
+
         d = dict(src_dict)
         name = d.pop("name")
 
@@ -63,10 +80,18 @@ class ProjectPOSTEnvironmentInput:
 
         network_isolation_enabled = d.pop("networkIsolationEnabled", UNSET)
 
+        ip_allow_list = []
+        _ip_allow_list = d.pop("ipAllowList", UNSET)
+        for ip_allow_list_item_data in _ip_allow_list or []:
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+
+            ip_allow_list.append(ip_allow_list_item)
+
         project_post_environment_input = cls(
             name=name,
             protected_status=protected_status,
             network_isolation_enabled=network_isolation_enabled,
+            ip_allow_list=ip_allow_list,
         )
 
         project_post_environment_input.additional_properties = d

@@ -9,6 +9,7 @@ class PostgresVersion(str, Enum):
     VALUE_4 = "15"
     VALUE_5 = "16"
     VALUE_6 = "17"
+    VALUE_7 = "18"
 
     def __str__(self) -> str:
         return str(self.value)
