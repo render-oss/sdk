@@ -1,15 +1,12 @@
-import { task } from '@render/sdk/workflows';
+import { task } from "@render/sdk/workflows";
 
 /**
  * Simple task that squares a number
  */
-const square = task(
-    { name: "square" },
-  function square(a: number): number {
-    console.log(`Calculating square of ${a}`);
-    return a * a;
-  }
-)
+const square = task({ name: "square" }, function square(a: number): number {
+  console.log(`Calculating square of ${a}`);
+  return a * a;
+});
 
 /**
  * Async task that adds two squared numbers with custom options
@@ -30,13 +27,13 @@ task(
     const result1 = await square(a);
     console.log("result 1", result1);
     const result2 = await square(b);
-    console.log("result 2", result2)
+    console.log("result 2", result2);
 
     const sum = result1 + result2;
     console.log(`Result: ${result1} + ${result2} = ${sum}`);
     return sum;
-  }
-)
+  },
+);
 
 /**
  * Task with error handling
@@ -45,10 +42,10 @@ const divide = task(
   { name: "divide" },
   async function divide(a: number, b: number): Promise<number> {
     if (b === 0) {
-      throw new Error('Cannot divide by zero');
+      throw new Error("Cannot divide by zero");
     }
     return a / b;
-  }
+  },
 );
 
 /**
@@ -71,7 +68,7 @@ task(
 
     console.log(`Complex result: (${x}^2 + ${y}^2) / ${z} = ${result}`);
     return result;
-  }
+  },
 );
 
 task(
@@ -79,13 +76,13 @@ task(
     name: "errorFunction",
     retry: {
       maxRetries: 10,
-      waitDurationMs: 1000
-    }
+      waitDurationMs: 1000,
+    },
   },
-  function () {
-    throw new Error("this failed on purpose")
-  }
-)
+  () => {
+    throw new Error("this failed on purpose");
+  },
+);
 
 // The task server starts automatically when running in a workflow environment
 // (when RENDER_SDK_SOCKET_PATH is set). No need to call startTaskServer() explicitly.
