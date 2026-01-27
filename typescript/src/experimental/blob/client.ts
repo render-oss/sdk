@@ -1,17 +1,16 @@
 import type { Client } from "openapi-fetch";
-import type { Readable } from "node:stream";
 import type { paths } from "../../generated/schema.js";
 import { RenderError } from "../../errors.js";
-import {
-  type PutBlobInput,
-  type GetBlobInput,
-  type DeleteBlobInput,
-  type BlobData,
-  type PutBlobResult,
-  type BlobScope,
-  type ScopedPutBlobInput,
-  type ScopedGetBlobInput,
-  type ScopedDeleteBlobInput,
+import type {
+  PutBlobInput,
+  GetBlobInput,
+  DeleteBlobInput,
+  BlobData,
+  PutBlobResult,
+  BlobScope,
+  ScopedPutBlobInput,
+  ScopedGetBlobInput,
+  ScopedDeleteBlobInput,
   Region,
 } from "./types.js";
 
@@ -92,8 +91,7 @@ export class BlobClient {
     const response = await fetch(data.url, {
       method: "PUT",
       headers,
-      body: input.data as any,
-      // @ts-ignore - duplex is required for streaming request bodies in Node.js
+      body: input.data,
       duplex: "half",
     });
 
