@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.cidr_block_and_description import CidrBlockAndDescription
+    from ..models.postgres_parameter_overrides import PostgresParameterOverrides
     from ..models.read_replica_input import ReadReplicaInput
 
 
@@ -33,8 +34,10 @@ class PostgresPOSTInput:
         enable_high_availability (Union[Unset, bool]):  Default: False.
         environment_id (Union[Unset, str]):
         disk_size_gb (Union[Unset, int]): The number of gigabytes of disk space to allocate for the database
+        enable_disk_autoscaling (Union[Unset, bool]):  Default: False.
         region (Union[Unset, str]):
         ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        parameter_overrides (Union[Unset, PostgresParameterOverrides]):
         read_replicas (Union[Unset, list['ReadReplicaInput']]):
     """
 
@@ -49,8 +52,10 @@ class PostgresPOSTInput:
     enable_high_availability: Union[Unset, bool] = False
     environment_id: Union[Unset, str] = UNSET
     disk_size_gb: Union[Unset, int] = UNSET
+    enable_disk_autoscaling: Union[Unset, bool] = False
     region: Union[Unset, str] = UNSET
     ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    parameter_overrides: Union[Unset, "PostgresParameterOverrides"] = UNSET
     read_replicas: Union[Unset, list["ReadReplicaInput"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -77,6 +82,8 @@ class PostgresPOSTInput:
 
         disk_size_gb = self.disk_size_gb
 
+        enable_disk_autoscaling = self.enable_disk_autoscaling
+
         region = self.region
 
         ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
@@ -85,6 +92,10 @@ class PostgresPOSTInput:
             for ip_allow_list_item_data in self.ip_allow_list:
                 ip_allow_list_item = ip_allow_list_item_data.to_dict()
                 ip_allow_list.append(ip_allow_list_item)
+
+        parameter_overrides: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.parameter_overrides, Unset):
+            parameter_overrides = self.parameter_overrides.to_dict()
 
         read_replicas: Union[Unset, list[dict[str, Any]]] = UNSET
         if not isinstance(self.read_replicas, Unset):
@@ -117,10 +128,14 @@ class PostgresPOSTInput:
             field_dict["environmentId"] = environment_id
         if disk_size_gb is not UNSET:
             field_dict["diskSizeGB"] = disk_size_gb
+        if enable_disk_autoscaling is not UNSET:
+            field_dict["enableDiskAutoscaling"] = enable_disk_autoscaling
         if region is not UNSET:
             field_dict["region"] = region
         if ip_allow_list is not UNSET:
             field_dict["ipAllowList"] = ip_allow_list
+        if parameter_overrides is not UNSET:
+            field_dict["parameterOverrides"] = parameter_overrides
         if read_replicas is not UNSET:
             field_dict["readReplicas"] = read_replicas
 
@@ -129,6 +144,7 @@ class PostgresPOSTInput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cidr_block_and_description import CidrBlockAndDescription
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
         from ..models.read_replica_input import ReadReplicaInput
 
         d = dict(src_dict)
@@ -154,6 +170,8 @@ class PostgresPOSTInput:
 
         disk_size_gb = d.pop("diskSizeGB", UNSET)
 
+        enable_disk_autoscaling = d.pop("enableDiskAutoscaling", UNSET)
+
         region = d.pop("region", UNSET)
 
         ip_allow_list = []
@@ -162,6 +180,13 @@ class PostgresPOSTInput:
             ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
             ip_allow_list.append(ip_allow_list_item)
+
+        _parameter_overrides = d.pop("parameterOverrides", UNSET)
+        parameter_overrides: Union[Unset, PostgresParameterOverrides]
+        if isinstance(_parameter_overrides, Unset):
+            parameter_overrides = UNSET
+        else:
+            parameter_overrides = PostgresParameterOverrides.from_dict(_parameter_overrides)
 
         read_replicas = []
         _read_replicas = d.pop("readReplicas", UNSET)
@@ -184,8 +209,10 @@ class PostgresPOSTInput:
             enable_high_availability=enable_high_availability,
             environment_id=environment_id,
             disk_size_gb=disk_size_gb,
+            enable_disk_autoscaling=enable_disk_autoscaling,
             region=region,
             ip_allow_list=ip_allow_list,
+            parameter_overrides=parameter_overrides,
             read_replicas=read_replicas,
         )
 

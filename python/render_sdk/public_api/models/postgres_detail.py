@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from ..models.cidr_block_and_description import CidrBlockAndDescription
     from ..models.maintenance_run import MaintenanceRun
     from ..models.owner import Owner
+    from ..models.postgres_parameter_overrides import PostgresParameterOverrides
     from ..models.read_replica import ReadReplica
 
 
@@ -47,11 +48,13 @@ class PostgresDetail:
         version (PostgresVersion): The PostgreSQL version
         suspended (PostgresDetailSuspended):
         suspenders (list[SuspenderType]):
+        disk_autoscaling_enabled (bool):
         expires_at (Union[Unset, datetime.datetime]): The time at which the database will be expire. Applies to free
             tier databases only.
         environment_id (Union[Unset, str]):
         maintenance (Union[Unset, MaintenanceRun]):
         disk_size_gb (Union[Unset, int]):
+        parameter_overrides (Union[Unset, PostgresParameterOverrides]):
         primary_postgres_id (Union[Unset, str]):
     """
 
@@ -73,10 +76,12 @@ class PostgresDetail:
     version: PostgresVersion
     suspended: PostgresDetailSuspended
     suspenders: list[SuspenderType]
+    disk_autoscaling_enabled: bool
     expires_at: Union[Unset, datetime.datetime] = UNSET
     environment_id: Union[Unset, str] = UNSET
     maintenance: Union[Unset, "MaintenanceRun"] = UNSET
     disk_size_gb: Union[Unset, int] = UNSET
+    parameter_overrides: Union[Unset, "PostgresParameterOverrides"] = UNSET
     primary_postgres_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -126,6 +131,8 @@ class PostgresDetail:
             suspenders_item = suspenders_item_data.value
             suspenders.append(suspenders_item)
 
+        disk_autoscaling_enabled = self.disk_autoscaling_enabled
+
         expires_at: Union[Unset, str] = UNSET
         if not isinstance(self.expires_at, Unset):
             expires_at = self.expires_at.isoformat()
@@ -137,6 +144,10 @@ class PostgresDetail:
             maintenance = self.maintenance.to_dict()
 
         disk_size_gb = self.disk_size_gb
+
+        parameter_overrides: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.parameter_overrides, Unset):
+            parameter_overrides = self.parameter_overrides.to_dict()
 
         primary_postgres_id = self.primary_postgres_id
 
@@ -162,6 +173,7 @@ class PostgresDetail:
                 "version": version,
                 "suspended": suspended,
                 "suspenders": suspenders,
+                "diskAutoscalingEnabled": disk_autoscaling_enabled,
             }
         )
         if expires_at is not UNSET:
@@ -172,6 +184,8 @@ class PostgresDetail:
             field_dict["maintenance"] = maintenance
         if disk_size_gb is not UNSET:
             field_dict["diskSizeGB"] = disk_size_gb
+        if parameter_overrides is not UNSET:
+            field_dict["parameterOverrides"] = parameter_overrides
         if primary_postgres_id is not UNSET:
             field_dict["primaryPostgresID"] = primary_postgres_id
 
@@ -182,6 +196,7 @@ class PostgresDetail:
         from ..models.cidr_block_and_description import CidrBlockAndDescription
         from ..models.maintenance_run import MaintenanceRun
         from ..models.owner import Owner
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
         from ..models.read_replica import ReadReplica
 
         d = dict(src_dict)
@@ -236,6 +251,8 @@ class PostgresDetail:
 
             suspenders.append(suspenders_item)
 
+        disk_autoscaling_enabled = d.pop("diskAutoscalingEnabled")
+
         _expires_at = d.pop("expiresAt", UNSET)
         expires_at: Union[Unset, datetime.datetime]
         if isinstance(_expires_at, Unset):
@@ -253,6 +270,13 @@ class PostgresDetail:
             maintenance = MaintenanceRun.from_dict(_maintenance)
 
         disk_size_gb = d.pop("diskSizeGB", UNSET)
+
+        _parameter_overrides = d.pop("parameterOverrides", UNSET)
+        parameter_overrides: Union[Unset, PostgresParameterOverrides]
+        if isinstance(_parameter_overrides, Unset):
+            parameter_overrides = UNSET
+        else:
+            parameter_overrides = PostgresParameterOverrides.from_dict(_parameter_overrides)
 
         primary_postgres_id = d.pop("primaryPostgresID", UNSET)
 
@@ -275,10 +299,12 @@ class PostgresDetail:
             version=version,
             suspended=suspended,
             suspenders=suspenders,
+            disk_autoscaling_enabled=disk_autoscaling_enabled,
             expires_at=expires_at,
             environment_id=environment_id,
             maintenance=maintenance,
             disk_size_gb=disk_size_gb,
+            parameter_overrides=parameter_overrides,
             primary_postgres_id=primary_postgres_id,
         )
 

@@ -46,6 +46,7 @@ class Postgres:
         suspended (PostgresSuspended):
         suspenders (list[SuspenderType]):
         dashboard_url (str): The URL to view the Postgres instance in the Render Dashboard
+        disk_autoscaling_enabled (bool):
         expires_at (Union[Unset, datetime.datetime]): The time at which the database will be expire. Applies to free
             tier databases only.
         environment_id (Union[Unset, str]):
@@ -71,6 +72,7 @@ class Postgres:
     suspended: PostgresSuspended
     suspenders: list[SuspenderType]
     dashboard_url: str
+    disk_autoscaling_enabled: bool
     expires_at: Union[Unset, datetime.datetime] = UNSET
     environment_id: Union[Unset, str] = UNSET
     disk_size_gb: Union[Unset, int] = UNSET
@@ -123,6 +125,8 @@ class Postgres:
 
         dashboard_url = self.dashboard_url
 
+        disk_autoscaling_enabled = self.disk_autoscaling_enabled
+
         expires_at: Union[Unset, str] = UNSET
         if not isinstance(self.expires_at, Unset):
             expires_at = self.expires_at.isoformat()
@@ -155,6 +159,7 @@ class Postgres:
                 "suspended": suspended,
                 "suspenders": suspenders,
                 "dashboardUrl": dashboard_url,
+                "diskAutoscalingEnabled": disk_autoscaling_enabled,
             }
         )
         if expires_at is not UNSET:
@@ -226,6 +231,8 @@ class Postgres:
 
         dashboard_url = d.pop("dashboardUrl")
 
+        disk_autoscaling_enabled = d.pop("diskAutoscalingEnabled")
+
         _expires_at = d.pop("expiresAt", UNSET)
         expires_at: Union[Unset, datetime.datetime]
         if isinstance(_expires_at, Unset):
@@ -258,6 +265,7 @@ class Postgres:
             suspended=suspended,
             suspenders=suspenders,
             dashboard_url=dashboard_url,
+            disk_autoscaling_enabled=disk_autoscaling_enabled,
             expires_at=expires_at,
             environment_id=environment_id,
             disk_size_gb=disk_size_gb,

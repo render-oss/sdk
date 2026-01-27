@@ -38,6 +38,7 @@ async def test_parse_stream_completed():
         parent_task_run_id="trn-test123",
         root_task_run_id="trn-test123",
         retries=0,
+        attempts=[],
     )
     sse_data = [
         b"event: task.completed\ndata: "

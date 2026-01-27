@@ -4,6 +4,7 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.team_member_role import TeamMemberRole
 from ..models.team_member_status import TeamMemberStatus
 
 T = TypeVar("T", bound="TeamMember")
@@ -17,7 +18,7 @@ class TeamMember:
         name (str):
         email (str):
         status (TeamMemberStatus):
-        role (str):
+        role (TeamMemberRole): The member's workspace role. Values are always returned in uppercase. Example: DEVELOPER.
         mfa_enabled (bool):
     """
 
@@ -25,7 +26,7 @@ class TeamMember:
     name: str
     email: str
     status: TeamMemberStatus
-    role: str
+    role: TeamMemberRole
     mfa_enabled: bool
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -38,7 +39,7 @@ class TeamMember:
 
         status = self.status.value
 
-        role = self.role
+        role = self.role.value
 
         mfa_enabled = self.mfa_enabled
 
@@ -68,7 +69,7 @@ class TeamMember:
 
         status = TeamMemberStatus(d.pop("status"))
 
-        role = d.pop("role")
+        role = TeamMemberRole(d.pop("role"))
 
         mfa_enabled = d.pop("mfaEnabled")
 

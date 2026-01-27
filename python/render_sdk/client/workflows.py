@@ -15,7 +15,7 @@ from render_sdk.client.types import (
     TaskRunStatusValues,
 )
 from render_sdk.client.util import handle_http_errors, retry_with_backoff
-from render_sdk.public_api.api.workflows import (
+from render_sdk.public_api.api.workflow_tasks_ea import (
     cancel_task_run,
     create_task,
     get_task_run,
@@ -23,6 +23,7 @@ from render_sdk.public_api.api.workflows import (
 )
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.run_task import RunTask
+from render_sdk.public_api.models.task_data_type_1 import TaskDataType1
 from render_sdk.public_api.types import UNSET, Response
 
 if TYPE_CHECKING:
@@ -149,10 +150,17 @@ class WorkflowsService:
         self, task_identifier: TaskIdentifier, input_data: TaskData
     ) -> Response[Error | TaskRun]:
         """Internal method to make the create task API call."""
+        # Convert dict to TaskDataType1 for named parameters
+        task_data_input: TaskDataType1 | list[Any]
+        if isinstance(input_data, dict):
+            task_data_input = TaskDataType1.from_dict(input_data)
+        else:
+            task_data_input = input_data
+
         # Create the request body
         run_task = RunTask(
             task=task_identifier,
-            input_=input_data,
+            input_=task_data_input,
         )
 
         # Make the API call

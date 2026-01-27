@@ -5,6 +5,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.create_deploy_body_clear_cache import CreateDeployBodyClearCache
+from ..models.deploy_mode import DeployMode
 from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="CreateDeployBody")
@@ -29,11 +30,19 @@ class CreateDeployBody:
         image_url (Union[Unset, str]): The URL of the image to deploy for an image-backed service.
 
             The host, repository, and image name all must match the currently configured image for the service.
+        deploy_mode (Union[Unset, DeployMode]): Controls deployment behavior when triggering a deploy.
+
+            - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
+            - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
+
+            **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
+            as those are build related fields.
     """
 
     clear_cache: Union[Unset, CreateDeployBodyClearCache] = CreateDeployBodyClearCache.DO_NOT_CLEAR
     commit_id: Union[Unset, str] = UNSET
     image_url: Union[Unset, str] = UNSET
+    deploy_mode: Union[Unset, DeployMode] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -45,6 +54,10 @@ class CreateDeployBody:
 
         image_url = self.image_url
 
+        deploy_mode: Union[Unset, str] = UNSET
+        if not isinstance(self.deploy_mode, Unset):
+            deploy_mode = self.deploy_mode.value
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
@@ -54,6 +67,8 @@ class CreateDeployBody:
             field_dict["commitId"] = commit_id
         if image_url is not UNSET:
             field_dict["imageUrl"] = image_url
+        if deploy_mode is not UNSET:
+            field_dict["deployMode"] = deploy_mode
 
         return field_dict
 
@@ -71,10 +86,18 @@ class CreateDeployBody:
 
         image_url = d.pop("imageUrl", UNSET)
 
+        _deploy_mode = d.pop("deployMode", UNSET)
+        deploy_mode: Union[Unset, DeployMode]
+        if isinstance(_deploy_mode, Unset):
+            deploy_mode = UNSET
+        else:
+            deploy_mode = DeployMode(_deploy_mode)
+
         create_deploy_body = cls(
             clear_cache=clear_cache,
             commit_id=commit_id,
             image_url=image_url,
+            deploy_mode=deploy_mode,
         )
 
         create_deploy_body.additional_properties = d

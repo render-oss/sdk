@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -8,6 +8,11 @@ from dateutil.parser import isoparse
 
 from ..models.task_run_status import TaskRunStatus
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.task_attempt_details import TaskAttemptDetails
+    from ..models.task_data_type_1 import TaskDataType1
+
 
 T = TypeVar("T", bound="TaskRunDetails")
 
@@ -20,10 +25,12 @@ class TaskRunDetails:
         task_id (str):
         status (TaskRunStatus):
         results (list[Any]):
-        input_ (list[Any]):
+        input_ (Union['TaskDataType1', list[Any]]): Input data for a task. Can be either an array (for positional
+            arguments) or an object (for named parameters).
         parent_task_run_id (str):
         root_task_run_id (str):
         retries (int):
+        attempts (list['TaskAttemptDetails']):
         error (Union[Unset, str]): Error message if the task run failed.
         started_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
@@ -33,10 +40,11 @@ class TaskRunDetails:
     task_id: str
     status: TaskRunStatus
     results: list[Any]
-    input_: list[Any]
+    input_: Union["TaskDataType1", list[Any]]
     parent_task_run_id: str
     root_task_run_id: str
     retries: int
+    attempts: list["TaskAttemptDetails"]
     error: Union[Unset, str] = UNSET
     started_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
@@ -51,13 +59,23 @@ class TaskRunDetails:
 
         results = self.results
 
-        input_ = self.input_
+        input_: Union[dict[str, Any], list[Any]]
+        if isinstance(self.input_, list):
+            input_ = self.input_
+
+        else:
+            input_ = self.input_.to_dict()
 
         parent_task_run_id = self.parent_task_run_id
 
         root_task_run_id = self.root_task_run_id
 
         retries = self.retries
+
+        attempts = []
+        for attempts_item_data in self.attempts:
+            attempts_item = attempts_item_data.to_dict()
+            attempts.append(attempts_item)
 
         error = self.error
 
@@ -81,6 +99,7 @@ class TaskRunDetails:
                 "parentTaskRunId": parent_task_run_id,
                 "rootTaskRunId": root_task_run_id,
                 "retries": retries,
+                "attempts": attempts,
             }
         )
         if error is not UNSET:
@@ -94,6 +113,9 @@ class TaskRunDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.task_attempt_details import TaskAttemptDetails
+        from ..models.task_data_type_1 import TaskDataType1
+
         d = dict(src_dict)
         id = d.pop("id")
 
@@ -103,13 +125,35 @@ class TaskRunDetails:
 
         results = cast(list[Any], d.pop("results"))
 
-        input_ = cast(list[Any], d.pop("input"))
+        def _parse_input_(data: object) -> Union["TaskDataType1", list[Any]]:
+            try:
+                if not isinstance(data, list):
+                    raise TypeError()
+                componentsschemas_task_data_type_0 = cast(list[Any], data)
+
+                return componentsschemas_task_data_type_0
+            except:  # noqa: E722
+                pass
+            if not isinstance(data, dict):
+                raise TypeError()
+            componentsschemas_task_data_type_1 = TaskDataType1.from_dict(data)
+
+            return componentsschemas_task_data_type_1
+
+        input_ = _parse_input_(d.pop("input"))
 
         parent_task_run_id = d.pop("parentTaskRunId")
 
         root_task_run_id = d.pop("rootTaskRunId")
 
         retries = d.pop("retries")
+
+        attempts = []
+        _attempts = d.pop("attempts")
+        for attempts_item_data in _attempts:
+            attempts_item = TaskAttemptDetails.from_dict(attempts_item_data)
+
+            attempts.append(attempts_item)
 
         error = d.pop("error", UNSET)
 
@@ -136,6 +180,7 @@ class TaskRunDetails:
             parent_task_run_id=parent_task_run_id,
             root_task_run_id=root_task_run_id,
             retries=retries,
+            attempts=attempts,
             error=error,
             started_at=started_at,
             completed_at=completed_at,

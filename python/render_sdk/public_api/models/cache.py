@@ -4,6 +4,8 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
+from ..models.cache_profile import CacheProfile
+
 T = TypeVar("T", bound="Cache")
 
 
@@ -11,14 +13,14 @@ T = TypeVar("T", bound="Cache")
 class Cache:
     """
     Attributes:
-        profile (str):
+        profile (CacheProfile):  Default: CacheProfile.NO_CACHE.
     """
 
-    profile: str
+    profile: CacheProfile = CacheProfile.NO_CACHE
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        profile = self.profile
+        profile = self.profile.value
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -33,7 +35,7 @@ class Cache:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        profile = d.pop("profile")
+        profile = CacheProfile(d.pop("profile"))
 
         cache = cls(
             profile=profile,

@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -8,6 +8,10 @@ from dateutil.parser import isoparse
 
 from ..models.task_run_status import TaskRunStatus
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.task_attempt import TaskAttempt
+
 
 T = TypeVar("T", bound="TaskRun")
 
@@ -22,6 +26,7 @@ class TaskRun:
         parent_task_run_id (str):
         root_task_run_id (str):
         retries (int):
+        attempts (list['TaskAttempt']):
         started_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
     """
@@ -32,6 +37,7 @@ class TaskRun:
     parent_task_run_id: str
     root_task_run_id: str
     retries: int
+    attempts: list["TaskAttempt"]
     started_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -48,6 +54,11 @@ class TaskRun:
         root_task_run_id = self.root_task_run_id
 
         retries = self.retries
+
+        attempts = []
+        for attempts_item_data in self.attempts:
+            attempts_item = attempts_item_data.to_dict()
+            attempts.append(attempts_item)
 
         started_at: Union[Unset, str] = UNSET
         if not isinstance(self.started_at, Unset):
@@ -67,6 +78,7 @@ class TaskRun:
                 "parentTaskRunId": parent_task_run_id,
                 "rootTaskRunId": root_task_run_id,
                 "retries": retries,
+                "attempts": attempts,
             }
         )
         if started_at is not UNSET:
@@ -78,6 +90,8 @@ class TaskRun:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.task_attempt import TaskAttempt
+
         d = dict(src_dict)
         id = d.pop("id")
 
@@ -90,6 +104,13 @@ class TaskRun:
         root_task_run_id = d.pop("rootTaskRunId")
 
         retries = d.pop("retries")
+
+        attempts = []
+        _attempts = d.pop("attempts")
+        for attempts_item_data in _attempts:
+            attempts_item = TaskAttempt.from_dict(attempts_item_data)
+
+            attempts.append(attempts_item)
 
         _started_at = d.pop("startedAt", UNSET)
         started_at: Union[Unset, datetime.datetime]
@@ -112,6 +133,7 @@ class TaskRun:
             parent_task_run_id=parent_task_run_id,
             root_task_run_id=root_task_run_id,
             retries=retries,
+            attempts=attempts,
             started_at=started_at,
             completed_at=completed_at,
         )

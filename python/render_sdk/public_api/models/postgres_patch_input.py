@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.cidr_block_and_description import CidrBlockAndDescription
+    from ..models.postgres_parameter_overrides import PostgresParameterOverrides
     from ..models.read_replica_input import ReadReplicaInput
 
 
@@ -22,22 +23,26 @@ class PostgresPATCHInput:
         name (Union[Unset, str]):
         plan (Union[Unset, PostgresPlans]):
         disk_size_gb (Union[Unset, int]): The number of gigabytes of disk space to allocate for the database
+        enable_disk_autoscaling (Union[Unset, bool]):
         enable_high_availability (Union[Unset, bool]):
         datadog_api_key (Union[Unset, str]): The Datadog API key for the Datadog agent to monitor the database. Pass
             empty string to remove. Restarts Postgres on change.
         datadog_site (Union[Unset, str]): Datadog region to use for monitoring the new database. Defaults to 'US1'.
             Example: US1.
         ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        parameter_overrides (Union[Unset, PostgresParameterOverrides]):
         read_replicas (Union[Unset, list['ReadReplicaInput']]):
     """
 
     name: Union[Unset, str] = UNSET
     plan: Union[Unset, PostgresPlans] = UNSET
     disk_size_gb: Union[Unset, int] = UNSET
+    enable_disk_autoscaling: Union[Unset, bool] = UNSET
     enable_high_availability: Union[Unset, bool] = UNSET
     datadog_api_key: Union[Unset, str] = UNSET
     datadog_site: Union[Unset, str] = UNSET
     ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    parameter_overrides: Union[Unset, "PostgresParameterOverrides"] = UNSET
     read_replicas: Union[Unset, list["ReadReplicaInput"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -49,6 +54,8 @@ class PostgresPATCHInput:
             plan = self.plan.value
 
         disk_size_gb = self.disk_size_gb
+
+        enable_disk_autoscaling = self.enable_disk_autoscaling
 
         enable_high_availability = self.enable_high_availability
 
@@ -62,6 +69,10 @@ class PostgresPATCHInput:
             for ip_allow_list_item_data in self.ip_allow_list:
                 ip_allow_list_item = ip_allow_list_item_data.to_dict()
                 ip_allow_list.append(ip_allow_list_item)
+
+        parameter_overrides: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.parameter_overrides, Unset):
+            parameter_overrides = self.parameter_overrides.to_dict()
 
         read_replicas: Union[Unset, list[dict[str, Any]]] = UNSET
         if not isinstance(self.read_replicas, Unset):
@@ -79,6 +90,8 @@ class PostgresPATCHInput:
             field_dict["plan"] = plan
         if disk_size_gb is not UNSET:
             field_dict["diskSizeGB"] = disk_size_gb
+        if enable_disk_autoscaling is not UNSET:
+            field_dict["enableDiskAutoscaling"] = enable_disk_autoscaling
         if enable_high_availability is not UNSET:
             field_dict["enableHighAvailability"] = enable_high_availability
         if datadog_api_key is not UNSET:
@@ -87,6 +100,8 @@ class PostgresPATCHInput:
             field_dict["datadogSite"] = datadog_site
         if ip_allow_list is not UNSET:
             field_dict["ipAllowList"] = ip_allow_list
+        if parameter_overrides is not UNSET:
+            field_dict["parameterOverrides"] = parameter_overrides
         if read_replicas is not UNSET:
             field_dict["readReplicas"] = read_replicas
 
@@ -95,6 +110,7 @@ class PostgresPATCHInput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.cidr_block_and_description import CidrBlockAndDescription
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
         from ..models.read_replica_input import ReadReplicaInput
 
         d = dict(src_dict)
@@ -109,6 +125,8 @@ class PostgresPATCHInput:
 
         disk_size_gb = d.pop("diskSizeGB", UNSET)
 
+        enable_disk_autoscaling = d.pop("enableDiskAutoscaling", UNSET)
+
         enable_high_availability = d.pop("enableHighAvailability", UNSET)
 
         datadog_api_key = d.pop("datadogAPIKey", UNSET)
@@ -121,6 +139,13 @@ class PostgresPATCHInput:
             ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
             ip_allow_list.append(ip_allow_list_item)
+
+        _parameter_overrides = d.pop("parameterOverrides", UNSET)
+        parameter_overrides: Union[Unset, PostgresParameterOverrides]
+        if isinstance(_parameter_overrides, Unset):
+            parameter_overrides = UNSET
+        else:
+            parameter_overrides = PostgresParameterOverrides.from_dict(_parameter_overrides)
 
         read_replicas = []
         _read_replicas = d.pop("readReplicas", UNSET)
@@ -135,10 +160,12 @@ class PostgresPATCHInput:
             name=name,
             plan=plan,
             disk_size_gb=disk_size_gb,
+            enable_disk_autoscaling=enable_disk_autoscaling,
             enable_high_availability=enable_high_availability,
             datadog_api_key=datadog_api_key,
             datadog_site=datadog_site,
             ip_allow_list=ip_allow_list,
+            parameter_overrides=parameter_overrides,
             read_replicas=read_replicas,
         )
 

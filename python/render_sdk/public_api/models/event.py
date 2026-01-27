@@ -64,7 +64,6 @@ if TYPE_CHECKING:
     from ..models.server_failed import ServerFailed
     from ..models.server_hardware_failure import ServerHardwareFailure
     from ..models.server_restarted import ServerRestarted
-    from ..models.server_unhealthy import ServerUnhealthy
     from ..models.service_resumed import ServiceResumed
     from ..models.service_suspended import ServiceSuspended
     from ..models.suspender_added import SuspenderAdded
@@ -96,9 +95,8 @@ class Event:
             'PostgresPITRCheckpointFailed', 'PostgresPITRCheckpointStarted', 'PostgresReadReplicaStale',
             'PostgresReadReplicasChanged', 'PostgresRestarted', 'PostgresUnavailable', 'PostgresUpgradeFailed',
             'PostgresUpgradeStarted', 'PostgresUpgradeSucceeded', 'PreDeployEnded', 'PreDeployStarted', 'ServerAvailable',
-            'ServerFailed', 'ServerHardwareFailure', 'ServerRestarted', 'ServerUnhealthy', 'ServiceResumed',
-            'ServiceSuspended', 'SuspenderAdded', 'SuspenderRemoved', 'ZeroDowntimeRedeployEnded',
-            'ZeroDowntimeRedeployStarted']):
+            'ServerFailed', 'ServerHardwareFailure', 'ServerRestarted', 'ServiceResumed', 'ServiceSuspended',
+            'SuspenderAdded', 'SuspenderRemoved', 'ZeroDowntimeRedeployEnded', 'ZeroDowntimeRedeployStarted']):
     """
 
     id: str
@@ -161,7 +159,6 @@ class Event:
         "ServerFailed",
         "ServerHardwareFailure",
         "ServerRestarted",
-        "ServerUnhealthy",
         "ServiceResumed",
         "ServiceSuspended",
         "SuspenderAdded",
@@ -226,7 +223,6 @@ class Event:
         from ..models.server_failed import ServerFailed
         from ..models.server_hardware_failure import ServerHardwareFailure
         from ..models.server_restarted import ServerRestarted
-        from ..models.server_unhealthy import ServerUnhealthy
         from ..models.service_resumed import ServiceResumed
         from ..models.service_suspended import ServiceSuspended
         from ..models.suspender_added import SuspenderAdded
@@ -304,8 +300,6 @@ class Event:
         elif isinstance(self.details, ServerHardwareFailure):
             details = self.details.to_dict()
         elif isinstance(self.details, ServerRestarted):
-            details = self.details.to_dict()
-        elif isinstance(self.details, ServerUnhealthy):
             details = self.details.to_dict()
         elif isinstance(self.details, ServiceResumed):
             details = self.details.to_dict()
@@ -439,7 +433,6 @@ class Event:
         from ..models.server_failed import ServerFailed
         from ..models.server_hardware_failure import ServerHardwareFailure
         from ..models.server_restarted import ServerRestarted
-        from ..models.server_unhealthy import ServerUnhealthy
         from ..models.service_resumed import ServiceResumed
         from ..models.service_suspended import ServiceSuspended
         from ..models.suspender_added import SuspenderAdded
@@ -514,7 +507,6 @@ class Event:
             "ServerFailed",
             "ServerHardwareFailure",
             "ServerRestarted",
-            "ServerUnhealthy",
             "ServiceResumed",
             "ServiceSuspended",
             "SuspenderAdded",
@@ -773,7 +765,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_31 = ServerUnhealthy.from_dict(data)
+                componentsschemasservice_event_details_type_31 = ServiceResumed.from_dict(data)
 
                 return componentsschemasservice_event_details_type_31
             except:  # noqa: E722
@@ -781,7 +773,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_32 = ServiceResumed.from_dict(data)
+                componentsschemasservice_event_details_type_32 = ServiceSuspended.from_dict(data)
 
                 return componentsschemasservice_event_details_type_32
             except:  # noqa: E722
@@ -789,7 +781,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_33 = ServiceSuspended.from_dict(data)
+                componentsschemasservice_event_details_type_33 = SuspenderAdded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_33
             except:  # noqa: E722
@@ -797,7 +789,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_34 = SuspenderAdded.from_dict(data)
+                componentsschemasservice_event_details_type_34 = SuspenderRemoved.from_dict(data)
 
                 return componentsschemasservice_event_details_type_34
             except:  # noqa: E722
@@ -805,7 +797,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_35 = SuspenderRemoved.from_dict(data)
+                componentsschemasservice_event_details_type_35 = ZeroDowntimeRedeployEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_35
             except:  # noqa: E722
@@ -813,7 +805,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_36 = ZeroDowntimeRedeployEnded.from_dict(data)
+                componentsschemasservice_event_details_type_36 = ZeroDowntimeRedeployStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_36
             except:  # noqa: E722
@@ -821,7 +813,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_37 = ZeroDowntimeRedeployStarted.from_dict(data)
+                componentsschemasservice_event_details_type_37 = EdgeCacheDisabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_37
             except:  # noqa: E722
@@ -829,7 +821,7 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_38 = EdgeCacheDisabled.from_dict(data)
+                componentsschemasservice_event_details_type_38 = EdgeCacheEnabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_38
             except:  # noqa: E722
@@ -837,17 +829,9 @@ class Event:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasservice_event_details_type_39 = EdgeCacheEnabled.from_dict(data)
+                componentsschemasservice_event_details_type_39 = EdgeCachePurged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_39
-            except:  # noqa: E722
-                pass
-            try:
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemasservice_event_details_type_40 = EdgeCachePurged.from_dict(data)
-
-                return componentsschemasservice_event_details_type_40
             except:  # noqa: E722
                 pass
             try:
