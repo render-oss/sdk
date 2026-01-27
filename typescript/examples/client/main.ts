@@ -32,7 +32,7 @@ async function main() {
     }
   } catch (error) {
     if (error instanceof ServerError) {
-      console.error('server error', error.name, error.cause)
+      console.error('server error', error.name, error.message)
     }
     console.error('Error:', error);
     process.exit(1);
