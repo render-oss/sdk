@@ -1,24 +1,24 @@
 // Experimental client
-export { ExperimentalClient } from "./experimental.js";
 
 // Blob storage exports
 export {
   BlobApi,
   BlobClient,
-  ScopedBlobClient,
-  Region,
+  type BlobData,
   type BlobIdentifier,
+  type BlobScope,
+  type DeleteBlobInput,
+  type GetBlobInput,
+  type PresignedDownloadUrl,
+  type PresignedUploadUrl,
   type PutBlobInput,
   type PutBlobInputBuffer,
   type PutBlobInputStream,
-  type GetBlobInput,
-  type DeleteBlobInput,
-  type PresignedUploadUrl,
-  type PresignedDownloadUrl,
-  type BlobData,
   type PutBlobResult,
-  type BlobScope,
-  type ScopedPutBlobInput,
-  type ScopedGetBlobInput,
+  Region,
+  ScopedBlobClient,
   type ScopedDeleteBlobInput,
+  type ScopedGetBlobInput,
+  type ScopedPutBlobInput,
 } from "./blob/index.js";
+export { ExperimentalClient } from "./experimental.js";

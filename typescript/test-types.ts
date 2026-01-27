@@ -1,13 +1,14 @@
-import { Client } from './src/client/index.js';
+import { Render } from "./src";
 
-async function test() {
-  const client = Client.create({
+export async function test() {
+  const render = new Render({
     baseUrl: "https://api.localhost.render.com:8443",
-    token: "test"
+    token: "test",
   });
-  
-  const taskRun = await client.workflows.runTask('workflow-sdk/greet', ["Ruben"]);
-  
+
+  const taskRun = await render.workflows.runTask("workflow-sdk/greet", ["Ruben"]);
+
   // This should show the type
-  type TaskRunType = typeof taskRun;
+  const taskRunType = typeof taskRun;
+  console.log(taskRunType);
 }

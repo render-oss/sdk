@@ -1,7 +1,7 @@
 import { EventSource } from "eventsource";
 import { AbortError } from "../../errors.js";
-import type { TaskRunDetails } from "./types.js";
 import { getUserAgent } from "../../version.js";
+import type { TaskRunDetails } from "./types.js";
 
 /**
  * Task event types emitted by the SSE stream

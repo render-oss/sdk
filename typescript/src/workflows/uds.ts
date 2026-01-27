@@ -1,4 +1,5 @@
 import * as net from "node:net";
+import { getUserAgent } from "../version.js";
 import type {
   CallbackRequest,
   GetInputResponse,
@@ -9,7 +10,6 @@ import type {
   RunSubtaskResponse,
   TaskMetadata,
 } from "./types.js";
-import { getUserAgent } from "../version.js";
 
 /**
  * Unix Domain Socket client for communicating with the workflow system

@@ -1,11 +1,7 @@
 import type { Client } from "openapi-fetch";
-import type { paths } from "../../generated/schema.js";
 import { RenderError } from "../../errors.js";
-import type {
-  PresignedUploadUrl,
-  PresignedDownloadUrl,
-  Region,
-} from "./types.js";
+import type { paths } from "../../generated/schema.js";
+import type { PresignedDownloadUrl, PresignedUploadUrl, Region } from "./types.js";
 
 /**
  * Layer 2: Typed Blob API Client
@@ -33,18 +29,13 @@ export class BlobApi {
     key: string,
     sizeBytes: number,
   ): Promise<PresignedUploadUrl> {
-    const { data, error } = await this.apiClient.PUT(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: { path: { ownerId, region: region as Region, key } },
-        body: { sizeBytes },
-      },
-    );
+    const { data, error } = await this.apiClient.PUT("/blobs/{ownerId}/{region}/{key}", {
+      params: { path: { ownerId, region: region as Region, key } },
+      body: { sizeBytes },
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to get upload URL: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
     }
 
     return {
@@ -67,17 +58,12 @@ export class BlobApi {
     region: Region | string,
     key: string,
   ): Promise<PresignedDownloadUrl> {
-    const { data, error } = await this.apiClient.GET(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: { path: { ownerId, region: region as Region, key } },
-      },
-    );
+    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
+      params: { path: { ownerId, region: region as Region, key } },
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to get download URL: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to get download URL: ${error.message || "Unknown error"}`);
     }
 
     return {
@@ -94,17 +80,12 @@ export class BlobApi {
    * @param key - Object key (path)
    */
   async delete(ownerId: string, region: Region | string, key: string): Promise<void> {
-    const { error } = await this.apiClient.DELETE(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: { path: { ownerId, region: region as Region, key } },
-      },
-    );
+    const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
+      params: { path: { ownerId, region: region as Region, key } },
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to delete blob: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to delete blob: ${error.message || "Unknown error"}`);
     }
   }
 }

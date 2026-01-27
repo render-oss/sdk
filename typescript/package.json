@@ -7,11 +7,11 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest",
-    "lint": "biome lint src",
-    "lint:fix": "biome lint --write src",
-    "format": "biome format --write src",
-    "format:check": "biome format src",
-    "check": "biome check --write src",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "format": "biome format --write",
+    "format:check": "biome format",
+    "check": "biome check --write",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

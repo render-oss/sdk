@@ -1,17 +1,17 @@
 import type { Client } from "openapi-fetch";
-import type { paths } from "../../generated/schema.js";
 import { RenderError } from "../../errors.js";
+import type { paths } from "../../generated/schema.js";
 import type {
-  PutBlobInput,
-  GetBlobInput,
-  DeleteBlobInput,
   BlobData,
-  PutBlobResult,
   BlobScope,
-  ScopedPutBlobInput,
-  ScopedGetBlobInput,
-  ScopedDeleteBlobInput,
+  DeleteBlobInput,
+  GetBlobInput,
+  PutBlobInput,
+  PutBlobResult,
   Region,
+  ScopedDeleteBlobInput,
+  ScopedGetBlobInput,
+  ScopedPutBlobInput,
 } from "./types.js";
 
 /**
@@ -59,24 +59,19 @@ export class BlobClient {
     const size = this.resolveSize(input);
 
     // Step 1: Get presigned upload URL from Render API
-    const { data, error } = await this.apiClient.PUT(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: {
-          path: {
-            ownerId: input.ownerId,
-            region: input.region as Region,
-            key: input.key,
-          },
+    const { data, error } = await this.apiClient.PUT("/blobs/{ownerId}/{region}/{key}", {
+      params: {
+        path: {
+          ownerId: input.ownerId,
+          region: input.region as Region,
+          key: input.key,
         },
-        body: { sizeBytes: size },
       },
-    );
+      body: { sizeBytes: size },
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to get upload URL: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
     }
 
     // Step 2: Upload to storage via presigned URL
@@ -96,9 +91,7 @@ export class BlobClient {
     });
 
     if (!response.ok) {
-      throw new RenderError(
-        `Upload failed: ${response.status} ${response.statusText}`,
-      );
+      throw new RenderError(`Upload failed: ${response.status} ${response.statusText}`);
     }
 
     return {
@@ -127,32 +120,25 @@ export class BlobClient {
    */
   async get(input: GetBlobInput): Promise<BlobData> {
     // Step 1: Get presigned download URL from Render API
-    const { data, error } = await this.apiClient.GET(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: {
-          path: {
-            ownerId: input.ownerId,
-            region: input.region as Region,
-            key: input.key,
-          },
+    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
+      params: {
+        path: {
+          ownerId: input.ownerId,
+          region: input.region as Region,
+          key: input.key,
         },
       },
-    );
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to get download URL: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to get download URL: ${error.message || "Unknown error"}`);
     }
 
     // Step 2: Download from storage via presigned URL
     const response = await fetch(data.url);
 
     if (!response.ok) {
-      throw new RenderError(
-        `Download failed: ${response.status} ${response.statusText}`,
-      );
+      throw new RenderError(`Download failed: ${response.status} ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -181,23 +167,18 @@ export class BlobClient {
    */
   async delete(input: DeleteBlobInput): Promise<void> {
     // DELETE goes directly to Render API (no presigned URL)
-    const { error } = await this.apiClient.DELETE(
-      "/blobs/{ownerId}/{region}/{key}",
-      {
-        params: {
-          path: {
-            ownerId: input.ownerId,
-            region: input.region as Region,
-            key: input.key,
-          },
+    const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
+      params: {
+        path: {
+          ownerId: input.ownerId,
+          region: input.region as Region,
+          key: input.key,
         },
       },
-    );
+    });
 
     if (error) {
-      throw new RenderError(
-        `Failed to delete blob: ${error.message || "Unknown error"}`,
-      );
+      throw new RenderError(`Failed to delete blob: ${error.message || "Unknown error"}`);
     }
   }
 
