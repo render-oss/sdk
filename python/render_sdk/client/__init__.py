@@ -16,6 +16,18 @@ from render_sdk.client.types import (
     TaskRunStatus,
 )
 from render_sdk.client.workflows import WorkflowsService
+from render_sdk.experimental import (
+    BlobApi,
+    BlobClient,
+    BlobData,
+    DownloadResponse,
+    ExperimentalService,
+    OwnerID,
+    PutBlobResult,
+    Region,
+    ScopedBlobClient,
+    UploadResponse,
+)
 
 __all__ = [
     "Client",
@@ -29,4 +41,15 @@ __all__ = [
     "LimitParam",
     "CursorParam",
     "OwnerIDParam",
+    # Experimental exports
+    "ExperimentalService",
+    "BlobApi",
+    "BlobClient",
+    "ScopedBlobClient",
+    "BlobData",
+    "DownloadResponse",
+    "OwnerID",
+    "PutBlobResult",
+    "Region",
+    "UploadResponse",
 ]
