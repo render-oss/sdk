@@ -9,8 +9,8 @@ import { UDSClient } from "./uds.js";
  */
 class TaskResultImpl<T> implements TaskResult<T> {
   constructor(
-    private subtaskId: string,
-    private udsClient: UDSClient,
+    private readonly subtaskId: string,
+    private readonly udsClient: UDSClient,
   ) {}
 
   async get(): Promise<T> {
@@ -41,7 +41,7 @@ class TaskResultImpl<T> implements TaskResult<T> {
  * Implementation of TaskContext
  */
 class TaskContextImpl implements TaskContext {
-  constructor(private udsClient: UDSClient) {}
+  constructor(private readonly udsClient: UDSClient) {}
 
   executeTask<TArgs extends any[], TResult>(
     _task: TaskFunction<TArgs, TResult>,
@@ -72,8 +72,8 @@ class TaskContextImpl implements TaskContext {
  * Task executor that runs tasks via Unix socket communication
  */
 export class TaskExecutor {
-  private udsClient: UDSClient;
-  private context: TaskContext;
+  private readonly udsClient: UDSClient;
+  private readonly context: TaskContext;
 
   constructor(socketPath: string) {
     this.udsClient = new UDSClient(socketPath);

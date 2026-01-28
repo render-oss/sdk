@@ -1,5 +1,8 @@
-import * as net from "node:net";
+import { createConnection } from "node:net";
 import { getUserAgent } from "../version.js";
+
+const CONTENT_LENGTH_REGEX = /Content-Length:\s*(\d+)/i;
+
 import type {
   CallbackRequest,
   GetInputResponse,
@@ -15,7 +18,7 @@ import type {
  * Unix Domain Socket client for communicating with the workflow system
  */
 export class UDSClient {
-  constructor(private socketPath: string) {}
+  constructor(private readonly socketPath: string) {}
 
   /**
    * Get task input and name
@@ -94,7 +97,7 @@ export class UDSClient {
    */
   private async request<T>(path: string, method: string, body?: any): Promise<T> {
     return new Promise((resolve, reject) => {
-      const client = net.createConnection({ path: this.socketPath }, () => {
+      const client = createConnection({ path: this.socketPath }, () => {
         const bodyStr = body ? JSON.stringify(body) : "";
         const userAgent = getUserAgent();
         const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\nUser-Agent: ${userAgent}\r\n\r\n${bodyStr}`;
@@ -118,9 +121,9 @@ export class UDSClient {
 
             // Parse Content-Length header
             const headers = data.substring(0, headerEndIndex);
-            const contentLengthMatch = headers.match(/Content-Length:\s*(\d+)/i);
+            const contentLengthMatch = headers.match(CONTENT_LENGTH_REGEX);
             if (contentLengthMatch) {
-              contentLength = parseInt(contentLengthMatch[1], 10);
+              contentLength = Number.parseInt(contentLengthMatch[1], 10);
             }
           }
         }
@@ -140,7 +143,7 @@ export class UDSClient {
           // Parse HTTP response
           const lines = data.split("\r\n");
           const statusLine = lines[0];
-          const statusCode = parseInt(statusLine.split(" ")[1], 10);
+          const statusCode = Number.parseInt(statusLine.split(" ")[1], 10);
 
           if (statusCode >= 400) {
             reject(new Error(`HTTP ${statusCode}: ${data}`));

@@ -5,7 +5,7 @@ import type { RegisterTaskOptions, TaskFunction, TaskMetadata, TaskOptions } fro
  */
 export class TaskRegistry {
   private static instance: TaskRegistry;
-  private tasks: Map<string, TaskMetadata> = new Map();
+  private readonly tasks: Map<string, TaskMetadata> = new Map();
 
   private constructor() {}
 

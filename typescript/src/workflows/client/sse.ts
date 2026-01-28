@@ -18,8 +18,8 @@ export enum TaskEventType {
  */
 export class SSEClient {
   constructor(
-    private baseUrl: string,
-    private token: string,
+    private readonly baseUrl: string,
+    private readonly token: string,
   ) {}
 
   async waitOnTaskRun(taskRunId: string, signal?: AbortSignal): Promise<TaskRunDetails> {

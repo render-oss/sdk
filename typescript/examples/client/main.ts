@@ -20,9 +20,9 @@ async function main() {
     console.log("\nListing recent task runs...");
     const taskRuns = await render.workflows.listTaskRuns({ limit: 5 });
     console.log(`Found ${taskRuns.length} task runs:`);
-    taskRuns.forEach((run) => {
+    for (const run of taskRuns) {
       console.log(`  - ${run.id}: ${run.status} (${run.taskId})`);
-    });
+    }
 
     if (result) {
       // Get specific task run details
