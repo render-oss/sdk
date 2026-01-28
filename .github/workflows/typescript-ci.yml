@@ -37,6 +37,9 @@ jobs:
       - name: Lint and format
         run: npx biome ci --error-on-warnings
 
+      - name: Type check
+        run: npm run typecheck
+
       - name: Test
         run: npm test
 
