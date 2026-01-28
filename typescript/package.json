@@ -1,5 +1,5 @@
 {
-  "name": "@render/sdk",
+  "name": "@renderinc/sdk",
   "version": "0.2.0",
   "description": "Render SDK for TypeScript",
   "main": "dist/index.js",

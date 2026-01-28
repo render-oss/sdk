@@ -1,4 +1,4 @@
-import { Render, ServerError } from "@render/sdk";
+import { Render, ServerError } from "@renderinc/sdk";
 
 /**
  * Example: Using the REST API client to run tasks

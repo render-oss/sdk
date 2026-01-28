@@ -7,7 +7,7 @@
     "start": "tsx main.ts"
   },
   "dependencies": {
-    "@render/sdk": "file:../.."
+    "@renderinc/sdk": "file:../.."
   },
   "devDependencies": {
     "@types/node": "22.19.0",

@@ -10,7 +10,7 @@ import { BlobClient } from "./blob/client.js";
  *
  * @example
  * ```typescript
- * import { Render } from '@render/sdk';
+ * import { Render } from '@renderinc/sdk';
  *
  * const render = new Render();
  *

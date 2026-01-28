@@ -8,7 +8,7 @@
     "start": "tsx main.ts"
   },
   "dependencies": {
-    "@render/sdk": "file:../.."
+    "@renderinc/sdk": "file:../.."
   },
   "devDependencies": {
     "tsx": "^4.0.0"
