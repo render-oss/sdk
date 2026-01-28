@@ -1,4 +1,4 @@
-import { task } from "@render/sdk/workflows";
+import { task } from "@renderinc/sdk/workflows";
 
 /**
  * Simple task that squares a number

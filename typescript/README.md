@@ -15,19 +15,19 @@ The official TypeScript SDK for Render Workflows, providing a simple and intuiti
 ## Installation
 
 ```bash
-npm install @render/sdk
+npm install @renderinc/sdk
 ```
 
 Or with yarn:
 
 ```bash
-yarn add @render/sdk
+yarn add @renderinc/sdk
 ```
 
 Or with pnpm:
 
 ```bash
-pnpm add @render/sdk
+pnpm add @renderinc/sdk
 ```
 
 ## Quick Start
@@ -37,7 +37,7 @@ pnpm add @render/sdk
 Use the Render SDK to run tasks and monitor their execution:
 
 ```typescript
-import { Render } from '@render/sdk';
+import { Render } from '@renderinc/sdk';
 
 // Create a Render SDK instance (uses RENDER_API_KEY from environment)
 const render = new Render();
@@ -57,7 +57,7 @@ const details = await render.workflows.getTaskRun(result.id);
 Alternatively, you can create a workflows client directly:
 
 ```typescript
-import { createWorkflowsClient } from '@render/sdk/workflows';
+import { createWorkflowsClient } from '@renderinc/sdk/workflows';
 
 const client = createWorkflowsClient();
 const result = await client.runTask('my-workflow/my-task', [42, 'hello']);
@@ -68,7 +68,7 @@ const result = await client.runTask('my-workflow/my-task', [42, 'hello']);
 Define tasks that can be executed by the workflow system:
 
 ```typescript
-import { task, startTaskServer } from '@render/sdk/workflows';
+import { task, startTaskServer } from '@renderinc/sdk/workflows';
 
 // Simple task
 const square = task(
@@ -127,7 +127,7 @@ Creates a new Render SDK instance with access to all Render products.
 
 **Example:**
 ```typescript
-import { Render } from '@render/sdk';
+import { Render } from '@renderinc/sdk';
 
 const render = new Render({
   token: 'your-api-token',
@@ -143,7 +143,7 @@ const result = await render.workflows.runTask('my-workflow/task', [42]);
 The workflows client is accessible via `render.workflows` or can be created directly using `createWorkflowsClient`:
 
 ```typescript
-import { createWorkflowsClient } from '@render/sdk/workflows';
+import { createWorkflowsClient } from '@renderinc/sdk/workflows';
 
 const client = createWorkflowsClient({
   token: 'your-api-token',
@@ -327,13 +327,13 @@ interface RegisterTaskOptions {
 The SDK provides several error classes:
 
 ```typescript
-import { Render } from '@render/sdk';
+import { Render } from '@renderinc/sdk';
 import {
   RenderError,
   ClientError,
   ServerError,
   AbortError,
-} from '@render/sdk';
+} from '@renderinc/sdk';
 
 const render = new Render();
 
@@ -365,7 +365,7 @@ try {
 ### Example 1: Running a Task
 
 ```typescript
-import { Render } from '@render/sdk';
+import { Render } from '@renderinc/sdk';
 
 const render = new Render();
 
@@ -380,7 +380,7 @@ runSquareTask();
 ### Example 2: Defining Tasks with Subtasks
 
 ```typescript
-import { task, startTaskServer } from '@render/sdk/workflows';
+import { task, startTaskServer } from '@renderinc/sdk/workflows';
 
 const square = task(
   { name: 'square' },
@@ -404,7 +404,7 @@ await startTaskServer();
 ### Example 3: Error Handling in Tasks
 
 ```typescript
-import { task } from '@render/sdk/workflows';
+import { task } from '@renderinc/sdk/workflows';
 
 const divide = task(
   { name: 'divide' },
@@ -438,7 +438,7 @@ task(
 ### Example 4: Using AbortSignal for Cancellation
 
 ```typescript
-import { Render, AbortError } from '@render/sdk';
+import { Render, AbortError } from '@renderinc/sdk';
 
 const render = new Render();
 
@@ -470,7 +470,7 @@ runTaskWithCancellation();
 ### Example 5: Using the Unified Render SDK
 
 ```typescript
-import { Render } from '@render/sdk';
+import { Render } from '@renderinc/sdk';
 
 // Single entry point for all Render products
 const render = new Render({

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the `@render/sdk` TypeScript SDK will be documented in this file.
+All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in this file.
 
 This project follows [Semantic Versioning](https://semver.org/).
 
@@ -20,7 +20,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 - Add initial TypeScript SDK for Render Workflows
-- Add task registration and execution via `@render/sdk/workflows`
+- Add task registration and execution via `@renderinc/sdk/workflows`
 - Add `TaskContext` for task metadata and subtask execution
 - Add configurable retry policies with exponential backoff
 - Add generated OpenAPI types for full type safety
