@@ -48,6 +48,17 @@
         "noNegationElse": "error",
         "noParameterAssign": "warn",
         "noRestrictedGlobals": "error",
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "vitest": {
+                "message": "Vitest functions are automatically imported.",
+                "allowImportNames": ["Mock"]
+              }
+            }
+          }
+        },
         "useDefaultParameterLast": "error",
         "useExponentiationOperator": "error",
         "useNodejsImportProtocol": "error",
