@@ -7,6 +7,7 @@ import os
 
 from render_sdk.client.sse import SSEClient
 from render_sdk.client.workflows import WorkflowsService
+from render_sdk.experimental.experimental import ExperimentalService
 from render_sdk.public_api.client import AuthenticatedClient
 from render_sdk.version import get_user_agent
 
@@ -22,6 +23,7 @@ class Client:
         token: The authentication token
         base_url: The API base URL
         workflows: Service client for workflow operations
+        experimental: Service client for experimental features
     """
 
     token: str
@@ -78,3 +80,4 @@ class Client:
         # Initialize service clients
         self.workflows = WorkflowsService(self)
         self.sse = SSEClient(self)
+        self.experimental = ExperimentalService(self)
