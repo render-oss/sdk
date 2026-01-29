@@ -2,17 +2,17 @@ import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
 import { RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
-import { BlobClient } from "./client.js";
-import type { PutBlobInput } from "./types.js";
+import { ObjectClient } from "./client.js";
+import type { PutObjectInput } from "./types.js";
 
-describe("BlobClient", () => {
+describe("ObjectClient", () => {
   describe("resolveSize (via put validation)", () => {
     // Test resolveSize indirectly by calling put() which will fail
     // at the API call stage, but size validation happens first.
     const putMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
     const mockApiClient = { PUT: putMock } as unknown as Client<paths>;
 
-    const client = new BlobClient(mockApiClient);
+    const client = new ObjectClient(mockApiClient);
 
     it("auto-calculates Buffer size", async () => {
       const buffer = Buffer.from("hello");
@@ -93,7 +93,7 @@ describe("BlobClient", () => {
         key: "test.txt",
         data: stream,
         // Intentionally omit size to test validation (invalid at runtime)
-      } as unknown as PutBlobInput;
+      } as unknown as PutObjectInput;
       await expect(client.put(invalidInput)).rejects.toThrow(RenderError);
       await expect(client.put(invalidInput)).rejects.toThrow("Size is required");
     });

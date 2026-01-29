@@ -32,8 +32,8 @@ class BackgroundWorkerDetails:
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails']):
         num_instances (int): For a *manually* scaled service, this is the number of instances the service is scaled to.
             DOES NOT indicate the number of running instances for an *autoscaled* service.
-        plan (Plan): The instance type to use for the preview instance. Note that base services with any paid instance
-            type can't create preview instances with the `free` instance type. Example: starter.
+        plan (Plan): The instance type to use. Note that base services on any paid instance type can't create preview
+            instances with the `free` instance type. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         build_plan (BuildPlan):

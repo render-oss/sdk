@@ -4,23 +4,23 @@ import type { paths } from "../../generated/schema.js";
 import type { PresignedDownloadUrl, PresignedUploadUrl, Region } from "./types.js";
 
 /**
- * Layer 2: Typed Blob API Client
+ * Layer 2: Typed Object API Client
  *
  * Provides idiomatic TypeScript wrapper around the raw OpenAPI client.
  * Handles presigned URL flow but still exposes the two-step nature
  * (get URL, then upload/download). Useful for advanced use cases
  * requiring fine-grained control.
  */
-export class BlobApi {
+export class ObjectApi {
   constructor(private readonly apiClient: Client<paths>) {}
 
   /**
-   * Get a presigned URL for uploading a blob
+   * Get a presigned URL for uploading an object
    *
    * @param ownerId - Owner ID (workspace team ID)
    * @param region - Storage region
    * @param key - Object key (path)
-   * @param sizeBytes - Size of the blob in bytes
+   * @param sizeBytes - Size of the object in bytes
    * @returns Presigned upload URL with expiration and size limit
    */
   async getUploadUrl(
@@ -46,7 +46,7 @@ export class BlobApi {
   }
 
   /**
-   * Get a presigned URL for downloading a blob
+   * Get a presigned URL for downloading an object
    *
    * @param ownerId - Owner ID (workspace team ID)
    * @param region - Storage region
@@ -73,7 +73,7 @@ export class BlobApi {
   }
 
   /**
-   * Delete a blob
+   * Delete an object
    *
    * @param ownerId - Owner ID (workspace team ID)
    * @param region - Storage region
@@ -85,7 +85,7 @@ export class BlobApi {
     });
 
     if (error) {
-      throw new RenderError(`Failed to delete blob: ${error.message || "Unknown error"}`);
+      throw new RenderError(`Failed to delete object: ${error.message || "Unknown error"}`);
     }
   }
 }

@@ -23,7 +23,7 @@ class BackgroundWorkerDetailsPATCH:
     """
     Attributes:
         env_specific_details (Union['DockerDetailsPATCH', 'NativeEnvironmentDetailsPATCH', Unset]):
-        plan (Union[Unset, PaidPlan]): Defaults to "starter"
+        plan (Union[Unset, PaidPlan]): Defaults to `starter` when creating a new database.
         pre_deploy_command (Union[Unset, str]):
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.

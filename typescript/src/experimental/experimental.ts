@@ -1,6 +1,29 @@
 import type { Client } from "openapi-fetch";
 import type { paths } from "../generated/schema.js";
-import { BlobClient } from "./blob/client.js";
+import { ObjectClient } from "./object/client.js";
+
+/**
+ * StorageClient provides access to experimental storage features
+ *
+ * @example
+ * ```typescript
+ * // Access object storage
+ * await render.experimental.storage.objects.put({
+ *   ownerId: "tea-xxxxx",
+ *   region: "oregon",
+ *   key: "file.png",
+ *   data: buffer
+ * });
+ * ```
+ */
+export class StorageClient {
+  /** Object storage client for managing binary objects */
+  public readonly objects: ObjectClient;
+
+  constructor(apiClient: Client<paths>) {
+    this.objects = new ObjectClient(apiClient);
+  }
+}
 
 /**
  * ExperimentalClient provides access to experimental Render SDK features
@@ -14,8 +37,8 @@ import { BlobClient } from "./blob/client.js";
  *
  * const render = new Render();
  *
- * // Access experimental blob storage
- * await render.experimental.blob.put({
+ * // Access experimental object storage
+ * await render.experimental.storage.objects.put({
  *   ownerId: "tea-xxxxx",
  *   region: "oregon",
  *   key: "file.png",
@@ -24,10 +47,10 @@ import { BlobClient } from "./blob/client.js";
  * ```
  */
 export class ExperimentalClient {
-  /** Blob storage client for managing binary objects */
-  public readonly blob: BlobClient;
+  /** Storage client for managing storage features */
+  public readonly storage: StorageClient;
 
   constructor(apiClient: Client<paths>) {
-    this.blob = new BlobClient(apiClient);
+    this.storage = new StorageClient(apiClient);
   }
 }

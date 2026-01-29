@@ -1,35 +1,35 @@
 import type { Readable } from "node:stream";
 
 /**
- * Supported regions for blob storage
+ * Supported regions for object storage
  */
 export type Region = "frankfurt" | "oregon" | "ohio" | "singapore" | "virginia";
 
 /**
- * Base identifier for a blob object
+ * Base identifier for a storage object
  */
-export interface BlobIdentifier {
+export interface ObjectIdentifier {
   /** Owner ID (workspace team ID) in format tea-xxxxx */
   ownerId: `tea-${string}`;
-  /** Region where the blob is stored */
+  /** Region where the object is stored */
   region: Region | string;
-  /** Object key (path) for the blob */
+  /** Object key (path) for the object */
   key: string;
 }
 
 /**
- * Base options for putting a blob
+ * Base options for putting an object
  */
-interface PutBlobInputBase extends BlobIdentifier {
+interface PutObjectInputBase extends ObjectIdentifier {
   /** MIME type of the content (optional, will be auto-detected if not provided) */
   contentType?: string;
 }
 
 /**
- * Put blob input for Buffer, Uint8Array, or string data
+ * Put object input for Buffer, Uint8Array, or string data
  * Size is optional and will be auto-calculated
  */
-export interface PutBlobInputBuffer extends PutBlobInputBase {
+export interface PutObjectInputBuffer extends PutObjectInputBase {
   /** Binary data as Buffer, Uint8Array, or string */
   data: Buffer | Uint8Array | string;
   /** Size in bytes (optional, auto-calculated for Buffer/Uint8Array) */
@@ -37,10 +37,10 @@ export interface PutBlobInputBuffer extends PutBlobInputBase {
 }
 
 /**
- * Put blob input for readable streams
+ * Put object input for readable streams
  * Size is required for streams
  */
-export interface PutBlobInputStream extends PutBlobInputBase {
+export interface PutObjectInputStream extends PutObjectInputBase {
   /** Readable stream */
   data: Readable;
   /** Size in bytes (required for streams) */
@@ -48,20 +48,20 @@ export interface PutBlobInputStream extends PutBlobInputBase {
 }
 
 /**
- * Input for uploading a blob
+ * Input for uploading an object
  * Discriminated union: size is optional for Buffer/Uint8Array, required for streams
  */
-export type PutBlobInput = PutBlobInputBuffer | PutBlobInputStream;
+export type PutObjectInput = PutObjectInputBuffer | PutObjectInputStream;
 
 /**
- * Input for downloading a blob
+ * Input for downloading an object
  */
-export interface GetBlobInput extends BlobIdentifier {}
+export interface GetObjectInput extends ObjectIdentifier {}
 
 /**
- * Input for deleting a blob
+ * Input for deleting an object
  */
-export interface DeleteBlobInput extends BlobIdentifier {}
+export interface DeleteObjectInput extends ObjectIdentifier {}
 
 /**
  * Presigned URL for uploading
@@ -86,9 +86,9 @@ export interface PresignedDownloadUrl {
 }
 
 /**
- * Downloaded blob data
+ * Downloaded object data
  */
-export interface BlobData {
+export interface ObjectData {
   /** Binary content */
   data: Buffer;
   /** MIME type if available */
@@ -98,34 +98,34 @@ export interface BlobData {
 }
 
 /**
- * Result from uploading a blob
+ * Result from uploading an object
  */
-export interface PutBlobResult {
+export interface PutObjectResult {
   /** ETag from storage provider */
   etag?: string;
 }
 
 /**
- * Scope configuration for scoped blob client
+ * Scope configuration for scoped object client
  */
-export interface BlobScope {
+export interface ObjectScope {
   /** Owner ID (workspace team ID) in format tea-xxxxx */
   ownerId: `tea-${string}`;
-  /** Region where the blob is stored */
+  /** Region where the object is stored */
   region: Region | string;
 }
 
 /**
- * Scoped input for uploading a blob (without ownerId/region)
+ * Scoped input for uploading an object (without ownerId/region)
  */
-export type ScopedPutBlobInput = Omit<PutBlobInput, keyof BlobScope>;
+export type ScopedPutObjectInput = Omit<PutObjectInput, keyof ObjectScope>;
 
 /**
- * Scoped input for downloading a blob (without ownerId/region)
+ * Scoped input for downloading an object (without ownerId/region)
  */
-export type ScopedGetBlobInput = Omit<GetBlobInput, keyof BlobScope>;
+export type ScopedGetObjectInput = Omit<GetObjectInput, keyof ObjectScope>;
 
 /**
- * Scoped input for deleting a blob (without ownerId/region)
+ * Scoped input for deleting an object (without ownerId/region)
  */
-export type ScopedDeleteBlobInput = Omit<DeleteBlobInput, keyof BlobScope>;
+export type ScopedDeleteObjectInput = Omit<DeleteObjectInput, keyof ObjectScope>;

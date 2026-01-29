@@ -1,6 +1,6 @@
-"""High-level blob storage client.
+"""High-level object storage client.
 
-Provides simple put/get/delete operations for blob storage.
+Provides simple put/get/delete operations for object storage.
 """
 
 from typing import TYPE_CHECKING, BinaryIO
@@ -9,23 +9,23 @@ import httpx
 
 from render_sdk.client.errors import RenderError
 from render_sdk.client.util import handle_http_error
-from render_sdk.experimental.blob.api import BlobApi
-from render_sdk.experimental.blob.types import BlobData, OwnerID, PutBlobResult
+from render_sdk.experimental.object.api import ObjectApi
+from render_sdk.experimental.object.types import ObjectData, OwnerID, PutObjectResult
 from render_sdk.public_api.models.region import Region
 
 if TYPE_CHECKING:
     from render_sdk.public_api.client import AuthenticatedClient
 
 
-class BlobClient:
-    """BlobClient is a high level client for interacting with blob storage.
+class ObjectClient:
+    """ObjectClient is a high level client for interacting with object storage.
 
-    It exposes methods to put/get/delete blobs.
+    It exposes methods to put/get/delete objects.
     """
 
     def __init__(self, client: "AuthenticatedClient"):
         self.client = client
-        self.api = BlobApi(client)
+        self.api = ObjectApi(client)
 
     async def put(
         self,
@@ -36,19 +36,19 @@ class BlobClient:
         data: bytes | BinaryIO,
         size: int | None = None,
         content_type: str | None = None,
-    ) -> PutBlobResult:
-        """Upload a blob to storage.
+    ) -> PutObjectResult:
+        """Upload an object to storage.
 
         Args:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
             data: Binary data as bytes or a file-like stream
             size: Size in bytes (optional for bytes, required for streams)
             content_type: MIME type of the content (optional)
 
         Returns:
-            PutBlobResult: Result with optional ETag
+            PutObjectResult: Result with optional ETag
 
         Raises:
             RenderError: If size validation fails or upload fails
@@ -59,7 +59,7 @@ class BlobClient:
         Example:
             ```python
             # Upload bytes
-            await blob_client.put(
+            await object_client.put(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png",
@@ -71,7 +71,7 @@ class BlobClient:
             with open("/path/to/file.zip", "rb") as f:
                 import os
                 size = os.path.getsize("/path/to/file.zip")
-                await blob_client.put(
+                await object_client.put(
                     owner_id="tea-xxxxx",
                     region="oregon",
                     key="file.zip",
@@ -109,24 +109,24 @@ class BlobClient:
                 content=data,
             )
 
-            handle_http_error(response, "upload blob")
+            handle_http_error(response, "upload object")
 
-            return PutBlobResult(
+            return PutObjectResult(
                 etag=response.headers.get("ETag"),
             )
 
     async def get(
         self, *, owner_id: OwnerID, region: Region | str, key: str
-    ) -> BlobData:
-        """Download a blob from storage.
+    ) -> ObjectData:
+        """Download an object from storage.
 
         Args:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
 
         Returns:
-            BlobData: Blob data with content
+            ObjectData: Object data with content
 
         Raises:
             ClientError: For 4xx client errors
@@ -135,15 +135,15 @@ class BlobClient:
 
         Example:
             ```python
-            blob = await blob_client.get(
+            obj = await object_client.get(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png"
             )
 
-            print(blob.size)           # Size in bytes
-            print(blob.content_type)   # MIME type if available
-            # blob.data is bytes
+            print(obj.size)           # Size in bytes
+            print(obj.content_type)   # MIME type if available
+            # obj.data is bytes
             ```
         """
         # Convert region to Region enum if it's a string
@@ -160,11 +160,11 @@ class BlobClient:
         async with httpx.AsyncClient() as http_client:
             response = await http_client.get(presigned.url)
 
-            handle_http_error(response, "download blob")
+            handle_http_error(response, "download object")
 
             data = response.content
 
-            return BlobData(
+            return ObjectData(
                 data=data,
                 size=len(data),
                 content_type=response.headers.get("Content-Type"),
@@ -173,12 +173,12 @@ class BlobClient:
     async def delete(
         self, *, owner_id: OwnerID, region: Region | str, key: str
     ) -> None:
-        """Delete a blob from storage.
+        """Delete an object from storage.
 
         Args:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
 
         Raises:
             ClientError: For 4xx client errors
@@ -187,7 +187,7 @@ class BlobClient:
 
         Example:
             ```python
-            await blob_client.delete(
+            await object_client.delete(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png"
@@ -204,20 +204,22 @@ class BlobClient:
             key=key,
         )
 
-    def scoped(self, *, owner_id: OwnerID, region: Region | str) -> "ScopedBlobClient":
-        """Create a scoped blob client for a specific owner and region.
+    def scoped(
+        self, *, owner_id: OwnerID, region: Region | str
+    ) -> "ScopedObjectClient":
+        """Create a scoped object client for a specific owner and region.
 
         Args:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
 
         Returns:
-            ScopedBlobClient: Scoped blob client that doesn't require
+            ScopedObjectClient: Scoped object client that doesn't require
                 owner_id/region on each call
 
         Example:
             ```python
-            scoped = blob_client.scoped(
+            scoped = object_client.scoped(
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
@@ -228,7 +230,7 @@ class BlobClient:
             await scoped.delete(key="file.png")
             ```
         """
-        return ScopedBlobClient(self, owner_id, region)
+        return ScopedObjectClient(self, owner_id, region)
 
     def _resolve_size(self, data: bytes | BinaryIO, size: int | None) -> int:
         """Resolve and validate the size for a put operation.
@@ -267,30 +269,30 @@ class BlobClient:
             return size
 
 
-class ScopedBlobClient:
-    """Scoped Blob Client
+class ScopedObjectClient:
+    """Scoped Object Client
 
     Pre-configured client for a specific owner and region.
     Eliminates the need to specify owner_id and region on every operation.
 
     Example:
         ```python
-        scoped = blob_client.scoped(
+        scoped = object_client.scoped(
             owner_id="tea-xxxxx",
             region="oregon"
         )
 
-        # Methods have the same signature as BlobClient but without owner_id/region
+        # Methods have the same signature as ObjectClient but without owner_id/region
         await scoped.put(key="file.png", data=b"content")
-        blob = await scoped.get(key="file.png")
+        obj = await scoped.get(key="file.png")
         await scoped.delete(key="file.png")
         ```
     """
 
     def __init__(
-        self, blob_client: BlobClient, owner_id: OwnerID, region: Region | str
+        self, object_client: ObjectClient, owner_id: OwnerID, region: Region | str
     ):
-        self._blob_client = blob_client
+        self._object_client = object_client
         self._owner_id = owner_id
         self._region = region
 
@@ -301,21 +303,21 @@ class ScopedBlobClient:
         data: bytes | BinaryIO,
         size: int | None = None,
         content_type: str | None = None,
-    ) -> PutBlobResult:
-        """Upload a blob to storage using scoped owner and region.
+    ) -> PutObjectResult:
+        """Upload an object to storage using scoped owner and region.
 
         Args:
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
             data: Binary data as bytes or a file-like stream
             size: Size in bytes (optional for bytes, required for streams)
             content_type: MIME type of the content (optional)
 
         Returns:
-            PutBlobResult: Result with optional ETag
+            PutObjectResult: Result with optional ETag
 
         Example:
             ```python
-            scoped = blob_client.scoped(
+            scoped = object_client.scoped(
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
@@ -326,7 +328,7 @@ class ScopedBlobClient:
             )
             ```
         """
-        return await self._blob_client.put(
+        return await self._object_client.put(
             owner_id=self._owner_id,
             region=self._region,
             key=key,
@@ -335,46 +337,46 @@ class ScopedBlobClient:
             content_type=content_type,
         )
 
-    async def get(self, *, key: str) -> BlobData:
-        """Download a blob from storage using scoped owner and region.
+    async def get(self, *, key: str) -> ObjectData:
+        """Download an object from storage using scoped owner and region.
 
         Args:
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
 
         Returns:
-            BlobData: Blob data with content
+            ObjectData: Object data with content
 
         Example:
             ```python
-            scoped = blob_client.scoped(
+            scoped = object_client.scoped(
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
-            blob = await scoped.get(key="file.png")
+            obj = await scoped.get(key="file.png")
             ```
         """
-        return await self._blob_client.get(
+        return await self._object_client.get(
             owner_id=self._owner_id,
             region=self._region,
             key=key,
         )
 
     async def delete(self, *, key: str) -> None:
-        """Delete a blob from storage using scoped owner and region.
+        """Delete an object from storage using scoped owner and region.
 
         Args:
-            key: Object key (path) for the blob
+            key: Object key (path) for the object
 
         Example:
             ```python
-            scoped = blob_client.scoped(
+            scoped = object_client.scoped(
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
             await scoped.delete(key="file.png")
             ```
         """
-        await self._blob_client.delete(
+        await self._object_client.delete(
             owner_id=self._owner_id,
             region=self._region,
             key=key,

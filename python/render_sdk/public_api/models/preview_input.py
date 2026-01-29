@@ -21,8 +21,8 @@ class PreviewInput:
             SHA can vary). Example: docker.io/library/nginx:latest.
         name (Union[Unset, str]): A name for the service preview instance. If not specified, Render generates the name
             using the base service's name and the specified tag or SHA. Example: preview.
-        plan (Union[Unset, Plan]): The instance type to use for the preview instance. Note that base services with any
-            paid instance type can't create preview instances with the `free` instance type. Example: starter.
+        plan (Union[Unset, Plan]): The instance type to use. Note that base services on any paid instance type can't
+            create preview instances with the `free` instance type. Example: starter.
     """
 
     image_path: str

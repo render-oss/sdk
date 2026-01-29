@@ -2,39 +2,39 @@ import type { Client } from "openapi-fetch";
 import { RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import type {
-  BlobData,
-  BlobScope,
-  DeleteBlobInput,
-  GetBlobInput,
-  PutBlobInput,
-  PutBlobResult,
+  DeleteObjectInput,
+  GetObjectInput,
+  ObjectData,
+  ObjectScope,
+  PutObjectInput,
+  PutObjectResult,
   Region,
-  ScopedDeleteBlobInput,
-  ScopedGetBlobInput,
-  ScopedPutBlobInput,
+  ScopedDeleteObjectInput,
+  ScopedGetObjectInput,
+  ScopedPutObjectInput,
 } from "./types.js";
 
 /**
- * Layer 3: High-Level Blob Client
+ * Layer 3: High-Level Object Client
  *
  * User-facing API that abstracts presigned URLs completely.
  * Provides simple put/get/delete operations that handle the
  * two-step presigned URL flow internally.
  */
-export class BlobClient {
+export class ObjectClient {
   constructor(private readonly apiClient: Client<paths>) {}
 
   /**
-   * Upload a blob to storage
+   * Upload an object to storage
    *
-   * @param input - Upload parameters including blob identifier and data
+   * @param input - Upload parameters including object identifier and data
    * @returns Result with optional ETag
    *
    * @example
    * ```typescript
    * // Upload a Buffer
    * const data = Buffer.from("binary content");
-   * await blobClient.put({
+   * await objectClient.put({
    *   ownerId: "tea-xxxxx",
    *   region: "oregon",
    *   key: "path/to/file.png",
@@ -45,7 +45,7 @@ export class BlobClient {
    * // Upload from stream
    * const stream = createReadStream("/path/to/file.zip");
    * const stats = statSync("/path/to/file.zip");
-   * await blobClient.put({
+   * await objectClient.put({
    *   ownerId: "tea-xxxxx",
    *   region: "oregon",
    *   key: "file.zip",
@@ -54,7 +54,7 @@ export class BlobClient {
    * });
    * ```
    */
-  async put(input: PutBlobInput): Promise<PutBlobResult> {
+  async put(input: PutObjectInput): Promise<PutObjectResult> {
     // Resolve and validate size
     const size = this.resolveSize(input);
 
@@ -100,25 +100,25 @@ export class BlobClient {
   }
 
   /**
-   * Download a blob from storage
+   * Download an object from storage
    *
-   * @param input - Download parameters including blob identifier
-   * @returns Blob data with content
+   * @param input - Download parameters including object identifier
+   * @returns Object data with content
    *
    * @example
    * ```typescript
-   * const blob = await blobClient.get({
+   * const obj = await objectClient.get({
    *   ownerId: "tea-xxxxx",
    *   region: "oregon",
    *   key: "path/to/file.png"
    * });
    *
-   * console.log(blob.size);           // Size in bytes
-   * console.log(blob.contentType);    // MIME type if available
-   * // blob.data is a Buffer
+   * console.log(obj.size);           // Size in bytes
+   * console.log(obj.contentType);    // MIME type if available
+   * // obj.data is a Buffer
    * ```
    */
-  async get(input: GetBlobInput): Promise<BlobData> {
+  async get(input: GetObjectInput): Promise<ObjectData> {
     // Step 1: Get presigned download URL from Render API
     const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
       params: {
@@ -152,20 +152,20 @@ export class BlobClient {
   }
 
   /**
-   * Delete a blob from storage
+   * Delete an object from storage
    *
-   * @param input - Delete parameters including blob identifier
+   * @param input - Delete parameters including object identifier
    *
    * @example
    * ```typescript
-   * await blobClient.delete({
+   * await objectClient.delete({
    *   ownerId: "tea-xxxxx",
    *   region: "oregon",
    *   key: "path/to/file.png"
    * });
    * ```
    */
-  async delete(input: DeleteBlobInput): Promise<void> {
+  async delete(input: DeleteObjectInput): Promise<void> {
     // DELETE goes directly to Render API (no presigned URL)
     const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
       params: {
@@ -178,19 +178,19 @@ export class BlobClient {
     });
 
     if (error) {
-      throw new RenderError(`Failed to delete blob: ${error.message || "Unknown error"}`);
+      throw new RenderError(`Failed to delete object: ${error.message || "Unknown error"}`);
     }
   }
 
   /**
-   * Create a scoped blob client for a specific owner and region
+   * Create a scoped object client for a specific owner and region
    *
    * @param scope - Owner ID and region to scope operations to
-   * @returns Scoped blob client that doesn't require ownerId/region on each call
+   * @returns Scoped object client that doesn't require ownerId/region on each call
    *
    * @example
    * ```typescript
-   * const scoped = blobClient.scoped({
+   * const scoped = objectClient.scoped({
    *   ownerId: "tea-xxxxx",
    *   region: "oregon"
    * });
@@ -201,8 +201,8 @@ export class BlobClient {
    * await scoped.delete({ key: "file.png" });
    * ```
    */
-  scoped(scope: BlobScope): ScopedBlobClient {
-    return new ScopedBlobClient(this.apiClient, scope);
+  scoped(scope: ObjectScope): ScopedObjectClient {
+    return new ScopedObjectClient(this.apiClient, scope);
   }
 
   /**
@@ -211,7 +211,7 @@ export class BlobClient {
    * - For Buffer/Uint8Array: auto-calculate size, validate if provided
    * - For streams/strings: require explicit size
    */
-  private resolveSize(input: PutBlobInput): number {
+  private resolveSize(input: PutObjectInput): number {
     if (Buffer.isBuffer(input.data) || input.data instanceof Uint8Array) {
       const actualSize = input.data.byteLength;
 
@@ -240,30 +240,30 @@ export class BlobClient {
 }
 
 /**
- * Scoped Blob Client
+ * Scoped Object Client
  *
  * Pre-configured client for a specific owner and region.
  * Eliminates the need to specify ownerId and region on every operation.
  */
-export class ScopedBlobClient {
-  private readonly blobClient: BlobClient;
+export class ScopedObjectClient {
+  private readonly objectClient: ObjectClient;
 
   constructor(
     apiClient: Client<paths>,
-    private readonly scope: BlobScope,
+    private readonly scope: ObjectScope,
   ) {
-    this.blobClient = new BlobClient(apiClient);
+    this.objectClient = new ObjectClient(apiClient);
   }
 
   /**
-   * Upload a blob to storage using scoped owner and region
+   * Upload an object to storage using scoped owner and region
    *
    * @param input - Upload parameters (key and data only)
    * @returns Result with optional ETag
    *
    * @example
    * ```typescript
-   * const scoped = blobClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
+   * const scoped = objectClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
    * await scoped.put({
    *   key: "file.png",
    *   data: Buffer.from("content"),
@@ -271,47 +271,47 @@ export class ScopedBlobClient {
    * });
    * ```
    */
-  async put(input: ScopedPutBlobInput): Promise<PutBlobResult> {
-    return this.blobClient.put({
+  async put(input: ScopedPutObjectInput): Promise<PutObjectResult> {
+    return this.objectClient.put({
       ...this.scope,
       ...input,
-    } as PutBlobInput);
+    } as PutObjectInput);
   }
 
   /**
-   * Download a blob from storage using scoped owner and region
+   * Download an object from storage using scoped owner and region
    *
    * @param input - Download parameters (key only)
-   * @returns Blob data with content
+   * @returns Object data with content
    *
    * @example
    * ```typescript
-   * const scoped = blobClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
-   * const blob = await scoped.get({ key: "file.png" });
+   * const scoped = objectClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
+   * const obj = await scoped.get({ key: "file.png" });
    * ```
    */
-  async get(input: ScopedGetBlobInput): Promise<BlobData> {
-    return this.blobClient.get({
+  async get(input: ScopedGetObjectInput): Promise<ObjectData> {
+    return this.objectClient.get({
       ...this.scope,
       ...input,
-    } as GetBlobInput);
+    } as GetObjectInput);
   }
 
   /**
-   * Delete a blob from storage using scoped owner and region
+   * Delete an object from storage using scoped owner and region
    *
    * @param input - Delete parameters (key only)
    *
    * @example
    * ```typescript
-   * const scoped = blobClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
+   * const scoped = objectClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
    * await scoped.delete({ key: "file.png" });
    * ```
    */
-  async delete(input: ScopedDeleteBlobInput): Promise<void> {
-    return this.blobClient.delete({
+  async delete(input: ScopedDeleteObjectInput): Promise<void> {
+    return this.objectClient.delete({
       ...this.scope,
       ...input,
-    } as DeleteBlobInput);
+    } as DeleteObjectInput);
   }
 }

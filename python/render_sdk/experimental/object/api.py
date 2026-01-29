@@ -1,4 +1,4 @@
-"""Layer 2: Typed Blob API Client
+"""Layer 2: Typed Object API Client
 
 Provides idiomatic Python wrapper around the raw OpenAPI client.
 Handles presigned URL flow but still exposes the two-step nature
@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from render_sdk.client.errors import RenderError
 from render_sdk.client.util import handle_http_errors
-from render_sdk.experimental.blob.types import DownloadResponse, UploadResponse
+from render_sdk.experimental.object.types import DownloadResponse, UploadResponse
 from render_sdk.public_api.api.blob_storage import delete_blob, get_blob, put_blob
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.get_blob_output import GetBlobOutput
@@ -25,8 +25,8 @@ if TYPE_CHECKING:
     from render_sdk.public_api.client import AuthenticatedClient
 
 
-class BlobApi:
-    """Layer 2: Typed Blob API Client
+class ObjectApi:
+    """Layer 2: Typed Object API Client
 
     Provides idiomatic Python wrapper around the raw OpenAPI client.
     Handles presigned URL flow but still exposes the two-step nature.
@@ -42,13 +42,13 @@ class BlobApi:
         key: str,
         size_bytes: int,
     ) -> UploadResponse:
-        """Get a presigned URL for uploading a blob.
+        """Get a presigned URL for uploading an object.
 
         Args:
             owner_id: Owner ID (workspace team ID)
             region: Storage region
             key: Object key (path)
-            size_bytes: Size of the blob in bytes
+            size_bytes: Size of the object in bytes
 
         Returns:
             UploadResponse: Upload URL with expiration and size limit
@@ -100,7 +100,7 @@ class BlobApi:
         region: Region | str,
         key: str,
     ) -> DownloadResponse:
-        """Get a presigned URL for downloading a blob.
+        """Get a presigned URL for downloading an object.
 
         Args:
             owner_id: Owner ID (workspace team ID)
@@ -150,7 +150,7 @@ class BlobApi:
         region: Region | str,
         key: str,
     ) -> None:
-        """Delete a blob.
+        """Delete an object.
 
         Args:
             owner_id: Owner ID (workspace team ID)
@@ -164,14 +164,14 @@ class BlobApi:
         """
         await self._delete_api_call(owner_id, region, key)
 
-    @handle_http_errors("delete blob")
+    @handle_http_errors("delete object")
     async def _delete_api_call(
         self,
         owner_id: str,
         region: Region | str,
         key: str,
     ) -> Response[Error | None]:
-        """Internal method to make the delete blob API call."""
+        """Internal method to make the delete object API call."""
         # Convert region to Region enum if it's a string
         if isinstance(region, str):
             region = Region(region)

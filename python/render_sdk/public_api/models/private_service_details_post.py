@@ -32,7 +32,7 @@ class PrivateServiceDetailsPOST:
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
         env_specific_details (Union['DockerDetailsPOST', 'NativeEnvironmentDetailsPOST', Unset]):
         num_instances (Union[Unset, int]): Defaults to 1 Default: 1.
-        plan (Union[Unset, PaidPlan]): Defaults to "starter"
+        plan (Union[Unset, PaidPlan]): Defaults to `starter` when creating a new database.
         pre_deploy_command (Union[Unset, str]):
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.

@@ -17,15 +17,16 @@ from render_sdk.client.types import (
 )
 from render_sdk.client.workflows import WorkflowsService
 from render_sdk.experimental import (
-    BlobApi,
-    BlobClient,
-    BlobData,
     DownloadResponse,
     ExperimentalService,
+    ObjectApi,
+    ObjectClient,
+    ObjectData,
     OwnerID,
-    PutBlobResult,
+    PutObjectResult,
     Region,
-    ScopedBlobClient,
+    ScopedObjectClient,
+    StorageService,
     UploadResponse,
 )
 
@@ -43,13 +44,14 @@ __all__ = [
     "OwnerIDParam",
     # Experimental exports
     "ExperimentalService",
-    "BlobApi",
-    "BlobClient",
-    "ScopedBlobClient",
-    "BlobData",
+    "StorageService",
+    "ObjectApi",
+    "ObjectClient",
+    "ScopedObjectClient",
     "DownloadResponse",
+    "ObjectData",
     "OwnerID",
-    "PutBlobResult",
+    "PutObjectResult",
     "Region",
     "UploadResponse",
 ]

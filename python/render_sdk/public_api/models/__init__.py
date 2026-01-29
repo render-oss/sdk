@@ -20,6 +20,8 @@ from .autoscaling_started import AutoscalingStarted
 from .background_worker_details import BackgroundWorkerDetails
 from .background_worker_details_patch import BackgroundWorkerDetailsPATCH
 from .background_worker_details_post import BackgroundWorkerDetailsPOST
+from .blob_metadata import BlobMetadata
+from .blob_with_cursor import BlobWithCursor
 from .blueprint import Blueprint
 from .blueprint_detail import BlueprintDetail
 from .blueprint_patch import BlueprintPATCH
@@ -328,6 +330,10 @@ from .update_env_group_secret_file_body import UpdateEnvGroupSecretFileBody
 from .update_registry_credential_body import UpdateRegistryCredentialBody
 from .update_workspace_member_body import UpdateWorkspaceMemberBody
 from .user import User
+from .validate_blueprint_request import ValidateBlueprintRequest
+from .validate_blueprint_response import ValidateBlueprintResponse
+from .validation_error import ValidationError
+from .validation_plan_summary import ValidationPlanSummary
 from .web_service_details import WebServiceDetails
 from .web_service_details_patch import WebServiceDetailsPATCH
 from .web_service_details_post import WebServiceDetailsPOST
@@ -368,6 +374,8 @@ __all__ = (
     "BackgroundWorkerDetails",
     "BackgroundWorkerDetailsPATCH",
     "BackgroundWorkerDetailsPOST",
+    "BlobMetadata",
+    "BlobWithCursor",
     "Blueprint",
     "BlueprintDetail",
     "BlueprintPATCH",
@@ -674,6 +682,10 @@ __all__ = (
     "UpdateRegistryCredentialBody",
     "UpdateWorkspaceMemberBody",
     "User",
+    "ValidateBlueprintRequest",
+    "ValidateBlueprintResponse",
+    "ValidationError",
+    "ValidationPlanSummary",
     "Webhook",
     "WebhookEvent",
     "WebhookEventWithCursor",
