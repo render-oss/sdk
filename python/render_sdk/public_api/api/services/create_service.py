@@ -92,7 +92,7 @@ def sync_detailed(
 ) -> Response[Error]:
     """Create service
 
-     Create a service.
+     Creates a new Render service in the specified workspace with the specified configuration.
 
     Args:
         body (ServicePOST):
@@ -123,7 +123,7 @@ def sync(
 ) -> Optional[Error]:
     """Create service
 
-     Create a service.
+     Creates a new Render service in the specified workspace with the specified configuration.
 
     Args:
         body (ServicePOST):
@@ -149,7 +149,7 @@ async def asyncio_detailed(
 ) -> Response[Error]:
     """Create service
 
-     Create a service.
+     Creates a new Render service in the specified workspace with the specified configuration.
 
     Args:
         body (ServicePOST):
@@ -178,7 +178,7 @@ async def asyncio(
 ) -> Optional[Error]:
     """Create service
 
-     Create a service.
+     Creates a new Render service in the specified workspace with the specified configuration.
 
     Args:
         body (ServicePOST):

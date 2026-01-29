@@ -27,6 +27,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/blueprints/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate Blueprint
+         * @description Validate a `render.yaml` Blueprint file without creating or modifying any resources. This endpoint checks the syntax and structure of the Blueprint, validates that all required fields are present, and returns a plan indicating the resources that would be created.
+         *
+         *     Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file cannot exceed 10MB in size.
+         */
+        post: operations["validate-blueprint"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/owners/{ownerId}/members/{userId}": {
         parameters: {
             query?: never;
@@ -512,7 +534,7 @@ export interface paths {
         put?: never;
         /**
          * Create service
-         * @description Create a service.
+         * @description Creates a new Render service in the specified workspace with the specified configuration.
          */
         post: operations["create-service"];
         delete?: never;
@@ -3262,6 +3284,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/blobs/{ownerId}/{region}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the workspace to return resources for */
+                ownerId: components["parameters"]["ownerIdPathParam"];
+                /** @description The region to return resources for */
+                region: components["parameters"]["regionPathParam"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List blobs
+         * @description List blobs in the specified region for a workspace.
+         */
+        get: operations["list-blobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/blobs/{ownerId}/{region}/{key}": {
         parameters: {
             query?: never;
@@ -3603,23 +3650,25 @@ export interface components {
         };
         servicePOST: {
             type: components["schemas"]["serviceType"];
+            /** @description The service's name. Must be unique within the workspace. */
             name: string;
+            /** @description The ID of the workspace the service belongs to. Obtain your workspace's ID from its Settings page in the Render Dashboard. */
             ownerId: string;
             /**
-             * @description Do not include the branch in the repo string. You can instead supply a 'branch' parameter.
+             * @description The service's repository URL. Do not specify a branch in this string (use the `branch` parameter instead).
              * @example https://github.com/render-examples/flask-hello-world
              */
             repo?: string;
             autoDeploy?: components["schemas"]["autoDeploy"];
             autoDeployTrigger?: components["schemas"]["autoDeployTrigger"];
-            /** @description If left empty, this will fall back to the default branch of the repository */
+            /** @description The repo branch to pull, build, and deploy. If omitted, uses the repository's default branch. */
             branch?: string;
             image?: components["schemas"]["image"];
             buildFilter?: components["schemas"]["buildFilter"];
             rootDir?: string;
             envVars?: components["schemas"]["envVarInputArray"];
             secretFiles?: components["schemas"]["secretFileInput"][];
-            /** @description The ID of the environment the service is associated with */
+            /** @description The ID of the environment the service belongs to, if any. Obtain an environment's ID from its Settings page in the Render Dashboard. */
             environmentId?: string;
             serviceDetails?: components["schemas"]["staticSiteDetailsPOST"] | components["schemas"]["webServiceDetailsPOST"] | components["schemas"]["privateServiceDetailsPOST"] | components["schemas"]["backgroundWorkerDetailsPOST"] | components["schemas"]["cronJobDetailsPOST"];
         };
@@ -3656,7 +3705,11 @@ export interface components {
             maintenanceMode?: components["schemas"]["maintenanceMode"];
             /** @description Defaults to 1 */
             numInstances?: number;
-            plan?: components["schemas"]["paidPlan"];
+            /**
+             * @description The instance type to use. If omitted, defaults to `starter` when creating a new service.
+             * @default starter
+             */
+            plan: components["schemas"]["plan"];
             preDeployCommand?: string;
             pullRequestPreviewsEnabled?: components["schemas"]["pullRequestPreviewsEnabled"];
             previews?: components["schemas"]["previews"];
@@ -3742,7 +3795,7 @@ export interface components {
             envSpecificDetails?: components["schemas"]["envSpecificDetailsPATCH"];
             healthCheckPath?: string;
             maintenanceMode?: components["schemas"]["maintenanceMode"];
-            plan?: components["schemas"]["paidPlan"];
+            plan?: components["schemas"]["plan"];
             preDeployCommand?: string;
             pullRequestPreviewsEnabled?: components["schemas"]["pullRequestPreviewsEnabled"];
             previews?: components["schemas"]["previews"];
@@ -3807,7 +3860,7 @@ export interface components {
             plan?: components["schemas"]["plan"];
         };
         /**
-         * @description The instance type to use for the preview instance. Note that base services with any paid instance type can't create preview instances with the `free` instance type.
+         * @description The instance type to use. Note that base services on any paid instance type can't create preview instances with the `free` instance type.
          * @example starter
          * @enum {string}
          */
@@ -4250,6 +4303,18 @@ export interface components {
         redisPlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom";
         /** @enum {string} */
         databaseStatus: "creating" | "available" | "unavailable" | "config_restart" | "suspended" | "maintenance_scheduled" | "maintenance_in_progress" | "recovery_failed" | "recovery_in_progress" | "unknown" | "updating_instance";
+        /**
+         * @description Controls deployment behavior when triggering a deploy.
+         *
+         *     - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
+         *     - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
+         *
+         *     **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
+         *     as those are build related fields.
+         * @default build_and_deploy
+         * @enum {string}
+         */
+        DeployMode: "deploy_only" | "build_and_deploy";
         projectWithCursor: {
             project: components["schemas"]["project"];
             cursor: components["schemas"]["cursor"];
@@ -4526,7 +4591,7 @@ export interface components {
         /** @enum {string} */
         databaseRole: "primary" | "replica";
         /**
-         * @description Defaults to "starter"
+         * @description Defaults to `starter` when creating a new database.
          * @default starter
          * @enum {string}
          */
@@ -4602,6 +4667,48 @@ export interface components {
             branch: string;
             /** Format: date-time */
             lastSync?: string;
+        };
+        validateBlueprintRequest: {
+            /**
+             * @description The ID of the workspace to validate against. Obtain your workspace ID from its Settings page in the Render Dashboard.
+             * @example tea-cjnxpkdhshc73d12t9i0
+             */
+            ownerId: string;
+            /**
+             * Format: binary
+             * @description The render.yaml file to validate, as a binary file.
+             */
+            file: string;
+        };
+        validationError: {
+            /** @description The path to the field with the error (e.g., `services[0].plan`) */
+            path?: string;
+            /** @description The error message */
+            error: string;
+            /** @description The line number in the YAML file (1-indexed) */
+            line?: number;
+            /** @description The column number in the YAML file (1-indexed) */
+            column?: number;
+        };
+        validationPlanSummary: {
+            /** @description The names of services that would be created as part of the Blueprint. */
+            services?: string[];
+            /** @description The names of Render Postgres databases that would be created as part of the Blueprint. */
+            databases?: string[];
+            /** @description The names of Render Key Value instances that would be created as part of the Blueprint. */
+            keyValue?: string[];
+            /** @description The names of environment groups that would be created as part of the Blueprint. */
+            envGroups?: string[];
+            /** @description The total number of actions that would be performed by the Blueprint. In addition to created resources, this includes modifications to individual configuration fields. */
+            totalActions?: number;
+        };
+        validateBlueprintResponse: {
+            /** @description If `true`, the Blueprint validated successfully. If `false`, at least one validation error occurred. */
+            valid: boolean;
+            /** @description A list of validation errors. Only present if `valid` is `false`. */
+            errors?: components["schemas"]["validationError"][];
+            /** @description A summary of the resources that would be created as part of the Blueprint. Only present if `valid` is `true`. */
+            plan?: components["schemas"]["validationPlanSummary"];
         };
         resourceRef: {
             id: string;
@@ -5182,7 +5289,7 @@ export interface components {
          * @description Provider to send metrics to
          * @enum {string}
          */
-        otelProviderType: "BETTER_STACK" | "GRAFANA" | "DATADOG" | "NEW_RELIC" | "HONEYCOMB" | "SIGNOZ" | "CUSTOM";
+        otelProviderType: "BETTER_STACK" | "GRAFANA" | "DATADOG" | "NEW_RELIC" | "HONEYCOMB" | "SIGNOZ" | "GROUNDSOURCE" | "CUSTOM";
         metricsStream: {
             /** @description The ID of the owner */
             ownerId: string;
@@ -5492,6 +5599,34 @@ export interface components {
             rootTaskRunId: string;
             retries: number;
             attempts: components["schemas"]["TaskAttemptDetails"][];
+        };
+        blobMetadata: {
+            /**
+             * @description The blob's object key
+             * @example workflow-data/task-output.json
+             */
+            key: string;
+            /**
+             * Format: int64
+             * @description Size of the blob in bytes
+             * @example 1048576
+             */
+            sizeBytes: number;
+            /**
+             * Format: date-time
+             * @description When the blob was last modified (ISO 8601)
+             * @example 2026-01-15T12:30:00Z
+             */
+            lastModified: string;
+            /**
+             * @description MIME type of the blob
+             * @example application/json
+             */
+            contentType: string;
+        };
+        blobWithCursor: {
+            cursor: string;
+            blob: components["schemas"]["blobMetadata"];
         };
         getBlobOutput: {
             /**
@@ -5982,6 +6117,35 @@ export interface operations {
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "validate-blueprint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["validateBlueprintRequest"];
+            };
+        };
+        responses: {
+            /** @description Validation complete */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["validateBlueprintResponse"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
         };
     };
     "remove-workspace-member": {
@@ -7357,6 +7521,14 @@ export interface operations {
                      *     The host, repository, and image name all must match the currently configured image for the service.
                      */
                     imageUrl?: string;
+                    /**
+                     * @description Deployment mode controlling build and deploy behavior.
+                     *
+                     *     Defaults to `build_and_deploy` when not specified.
+                     *
+                     *     **Validation:** `deploy_mode` cannot be combined with `commitId` or `imageUrl` or `clearCache`.
+                     */
+                    deployMode?: components["schemas"]["DeployMode"];
                 };
             };
         };
@@ -12610,6 +12782,42 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-blobs": {
+        parameters: {
+            query?: {
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the workspace to return resources for */
+                ownerId: components["parameters"]["ownerIdPathParam"];
+                /** @description The region to return resources for */
+                region: components["parameters"]["regionPathParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["blobWithCursor"][];
+                };
             };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];

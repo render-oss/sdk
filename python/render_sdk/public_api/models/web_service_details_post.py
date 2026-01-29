@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, Union
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.paid_plan import PaidPlan
+from ..models.plan import Plan
 from ..models.pull_request_previews_enabled import PullRequestPreviewsEnabled
 from ..models.region import Region
 from ..models.render_subdomain_policy import RenderSubdomainPolicy
@@ -37,7 +37,8 @@ class WebServiceDetailsPOST:
         health_check_path (Union[Unset, str]):
         maintenance_mode (Union[Unset, MaintenanceMode]):
         num_instances (Union[Unset, int]): Defaults to 1
-        plan (Union[Unset, PaidPlan]): Defaults to "starter"
+        plan (Union[Unset, Plan]): The instance type to use. Note that base services on any paid instance type can't
+            create preview instances with the `free` instance type. Example: starter.
         pre_deploy_command (Union[Unset, str]):
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.
@@ -58,7 +59,7 @@ class WebServiceDetailsPOST:
     health_check_path: Union[Unset, str] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
     num_instances: Union[Unset, int] = UNSET
-    plan: Union[Unset, PaidPlan] = UNSET
+    plan: Union[Unset, Plan] = UNSET
     pre_deploy_command: Union[Unset, str] = UNSET
     pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
     previews: Union[Unset, "Previews"] = UNSET
@@ -239,11 +240,11 @@ class WebServiceDetailsPOST:
         num_instances = d.pop("numInstances", UNSET)
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, PaidPlan]
+        plan: Union[Unset, Plan]
         if isinstance(_plan, Unset):
             plan = UNSET
         else:
-            plan = PaidPlan(_plan)
+            plan = Plan(_plan)
 
         pre_deploy_command = d.pop("preDeployCommand", UNSET)
 

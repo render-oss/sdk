@@ -6,10 +6,36 @@ from the Render SDK.
 
 from typing import TYPE_CHECKING
 
-from render_sdk.experimental.blob.client import BlobClient
+from render_sdk.experimental.object.client import ObjectClient
 
 if TYPE_CHECKING:
     from render_sdk.client.client import Client
+
+
+class StorageService:
+    """Storage Service
+
+    Provides access to experimental storage features.
+
+    Example:
+        ```python
+        # Access object storage
+        await client.experimental.storage.objects.put(
+            owner_id="tea-xxxxx",
+            region="oregon",
+            key="file.png",
+            data=b"content"
+        )
+        ```
+    """
+
+    def __init__(self, client: "Client"):
+        """Initialize the storage service.
+
+        Args:
+            client: The Render client instance
+        """
+        self.objects = ObjectClient(client.internal)
 
 
 class ExperimentalService:
@@ -26,8 +52,8 @@ class ExperimentalService:
 
         client = Client()
 
-        # Access experimental blob storage
-        await client.experimental.blob.put(
+        # Access experimental object storage
+        await client.experimental.storage.objects.put(
             owner_id="tea-xxxxx",
             region="oregon",
             key="file.png",
@@ -42,4 +68,4 @@ class ExperimentalService:
         Args:
             client: The Render client instance
         """
-        self.blob = BlobClient(client.internal)
+        self.storage = StorageService(client)

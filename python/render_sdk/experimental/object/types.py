@@ -1,4 +1,4 @@
-"""Type definitions for the early access blob storage API."""
+"""Type definitions for the experimental object storage API."""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -38,8 +38,8 @@ class DownloadResponse:
 
 
 @dataclass
-class BlobData:
-    """Downloaded blob data."""
+class ObjectData:
+    """Downloaded object data."""
 
     data: bytes
     """Binary content"""
@@ -52,8 +52,8 @@ class BlobData:
 
 
 @dataclass
-class PutBlobResult:
-    """Result from uploading a blob."""
+class PutObjectResult:
+    """Result from uploading an object."""
 
     etag: str | None = None
     """ETag from storage provider"""

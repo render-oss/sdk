@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, Union
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.paid_plan import PaidPlan
+from ..models.plan import Plan
 from ..models.pull_request_previews_enabled import PullRequestPreviewsEnabled
 from ..models.render_subdomain_policy import RenderSubdomainPolicy
 from ..models.service_runtime import ServiceRuntime
@@ -29,7 +29,8 @@ class WebServiceDetailsPATCH:
         env_specific_details (Union['DockerDetailsPATCH', 'NativeEnvironmentDetailsPATCH', Unset]):
         health_check_path (Union[Unset, str]):
         maintenance_mode (Union[Unset, MaintenanceMode]):
-        plan (Union[Unset, PaidPlan]): Defaults to "starter"
+        plan (Union[Unset, Plan]): The instance type to use. Note that base services on any paid instance type can't
+            create preview instances with the `free` instance type. Example: starter.
         pre_deploy_command (Union[Unset, str]):
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.
@@ -46,7 +47,7 @@ class WebServiceDetailsPATCH:
     env_specific_details: Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset] = UNSET
     health_check_path: Union[Unset, str] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
-    plan: Union[Unset, PaidPlan] = UNSET
+    plan: Union[Unset, Plan] = UNSET
     pre_deploy_command: Union[Unset, str] = UNSET
     pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
     previews: Union[Unset, "Previews"] = UNSET
@@ -181,11 +182,11 @@ class WebServiceDetailsPATCH:
             maintenance_mode = MaintenanceMode.from_dict(_maintenance_mode)
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, PaidPlan]
+        plan: Union[Unset, Plan]
         if isinstance(_plan, Unset):
             plan = UNSET
         else:
-            plan = PaidPlan(_plan)
+            plan = Plan(_plan)
 
         pre_deploy_command = d.pop("preDeployCommand", UNSET)
 

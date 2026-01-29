@@ -30,20 +30,23 @@ class ServicePOST:
     """
     Attributes:
         type_ (ServiceType):
-        name (str):
-        owner_id (str):
-        repo (Union[Unset, str]): Do not include the branch in the repo string. You can instead supply a 'branch'
-            parameter. Example: https://github.com/render-examples/flask-hello-world.
+        name (str): The service's name. Must be unique within the workspace.
+        owner_id (str): The ID of the workspace the service belongs to. Obtain your workspace's ID from its Settings
+            page in the Render Dashboard.
+        repo (Union[Unset, str]): The service's repository URL. Do not specify a branch in this string (use the `branch`
+            parameter instead). Example: https://github.com/render-examples/flask-hello-world.
         auto_deploy (Union[Unset, AutoDeploy]):
         auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a
             commit is pushed to a branch. checksPass waits for the branch to be green.
-        branch (Union[Unset, str]): If left empty, this will fall back to the default branch of the repository
+        branch (Union[Unset, str]): The repo branch to pull, build, and deploy. If omitted, uses the repository's
+            default branch.
         image (Union[Unset, Image]):
         build_filter (Union[Unset, BuildFilter]):
         root_dir (Union[Unset, str]):
         env_vars (Union[Unset, list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]]):
         secret_files (Union[Unset, list['SecretFileInput']]):
-        environment_id (Union[Unset, str]): The ID of the environment the service is associated with
+        environment_id (Union[Unset, str]): The ID of the environment the service belongs to, if any. Obtain an
+            environment's ID from its Settings page in the Render Dashboard.
         service_details (Union['BackgroundWorkerDetailsPOST', 'CronJobDetailsPOST', 'PrivateServiceDetailsPOST',
             'StaticSiteDetailsPOST', 'WebServiceDetailsPOST', Unset]):
     """

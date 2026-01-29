@@ -26,7 +26,7 @@ class CronJobDetailsPOST:
         schedule (str):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails', Unset]):
-        plan (Union[Unset, PaidPlan]): Defaults to "starter"
+        plan (Union[Unset, PaidPlan]): Defaults to `starter` when creating a new database.
         region (Union[Unset, Region]): Defaults to "oregon"
     """
 

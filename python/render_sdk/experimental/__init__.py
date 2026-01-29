@@ -1,30 +1,31 @@
 """Experimental API exports."""
 
-from render_sdk.experimental.blob import (
-    BlobApi,
-    BlobClient,
-    BlobData,
+from render_sdk.experimental.experimental import ExperimentalService, StorageService
+from render_sdk.experimental.object import (
     DownloadResponse,
+    ObjectApi,
+    ObjectClient,
+    ObjectData,
     OwnerID,
-    PutBlobResult,
+    PutObjectResult,
     Region,
-    ScopedBlobClient,
+    ScopedObjectClient,
     UploadResponse,
 )
-from render_sdk.experimental.experimental import ExperimentalService
 
 __all__ = [
     # Experimental Service
     "ExperimentalService",
-    # Blob API classes
-    "BlobApi",
-    "BlobClient",
-    "ScopedBlobClient",
-    # Blob types
-    "BlobData",
+    "StorageService",
+    # Object API classes
+    "ObjectApi",
+    "ObjectClient",
+    "ScopedObjectClient",
+    # Object types
     "DownloadResponse",
+    "ObjectData",
     "OwnerID",
-    "PutBlobResult",
+    "PutObjectResult",
     "Region",
     "UploadResponse",
 ]
