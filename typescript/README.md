@@ -95,8 +95,10 @@ task(
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
-      factor: 1.5,
+      backoffScaling: 1.5,
     },
+    timeoutSeconds: 86400, // 24h
+    plan: 'starter',
   },
   async function retryableTask(input: string): Promise<string> {
     // Task implementation
@@ -104,8 +106,10 @@ task(
   }
 );
 
-// Start the task server
-await startTaskServer();
+// The task server starts automatically when running in a workflow environment
+// (when RENDER_SDK_SOCKET_PATH is set). No need to call startTaskServer() explicitly.
+//
+// To disable auto-start, set RENDER_SDK_AUTO_START=false in your environment.
 ```
 
 ## API Reference
@@ -215,7 +219,9 @@ Registers a function as a task.
   - `retry?: RetryOptions` - Optional retry configuration
     - `maxRetries: number` - Maximum number of retries
     - `waitDurationMs: number` - Wait duration between retries in milliseconds
-    - `factor?: number` - Backoff factor (default: 1.5)
+    - `backoffScaling?: number` - Backoff multiplier (default: 1.5)
+  - `timeoutSeconds?: number` - Maximum execution time in seconds
+  - `plan?: string` - Resource plan for task execution (e.g., `"starter"`, `"standard"`, `"pro"`)
 - `func: TaskFunction` - The task function to register
 
 **Returns:** The registered function with the same signature
@@ -230,15 +236,17 @@ const myTask = task(
   }
 );
 
-// With retry options
+// With retry, timeout, and plan options
 task(
   {
     name: 'retryableTask',
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
-      factor: 1.5,
+      backoffScaling: 1.5,
     },
+    timeoutSeconds: 300,
+    plan: 'starter',
   },
   function retryableTask(arg: string): string {
     return arg.toUpperCase();
@@ -317,8 +325,10 @@ interface RegisterTaskOptions {
   retry?: {
     maxRetries: number;
     waitDurationMs: number;
-    factor?: number; // default 1.5
+    backoffScaling?: number; // default 1.5
   };
+  timeoutSeconds?: number;
+  plan?: string; // e.g., "starter", "standard", "pro"
 }
 ```
 

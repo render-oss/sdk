@@ -4,6 +4,13 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-01-29
+
+### Changed
+- Updated package name in README from @render/sdk to @renderinc/sdk
+- Renamed experimental blob storage API to object storage (Blob* -> Object*)
+- Switched internal workflows task communication from SSE to HTTP requests
+
 ## [0.2.0] - 2026-01-26
 
 ### Added
