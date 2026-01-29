@@ -1,7 +1,5 @@
-import { createConnection } from "node:net";
+import http from "node:http";
 import { getUserAgent } from "../version.js";
-
-const CONTENT_LENGTH_REGEX = /Content-Length:\s*(\d+)/i;
 
 import type {
   CallbackRequest,
@@ -97,83 +95,45 @@ export class UDSClient {
    */
   private async request<T>(path: string, method: string, body?: any): Promise<T> {
     return new Promise((resolve, reject) => {
-      const client = createConnection({ path: this.socketPath }, () => {
-        const bodyStr = body ? JSON.stringify(body) : "";
-        const userAgent = getUserAgent();
-        const request = `${method} ${path} HTTP/1.1\r\nHost: unix\r\nContent-Length: ${bodyStr.length}\r\nContent-Type: application/json\r\nUser-Agent: ${userAgent}\r\n\r\n${bodyStr}`;
-        client.write(request);
-      });
+      const req = http.request(
+        {
+          socketPath: this.socketPath,
+          path: path,
+          method: method,
+          headers: {
+            "Content-Length": body ? JSON.stringify(body).length : 0,
+            "Content-Type": "application/json",
+            "User-Agent": getUserAgent(),
+          },
+        },
+        async (res) => {
+          const chunks: Buffer[] = [];
+          for await (const chunk of res) chunks.push(chunk);
+          const responseBody = Buffer.concat(chunks).toString();
 
-      let data = "";
-      let contentLength: number | null = null;
-      let headersParsed = false;
-      let bodyStartIndex = -1;
-
-      client.on("data", (chunk) => {
-        data += chunk.toString();
-
-        // Check if we have received the full response
-        if (!headersParsed) {
-          const headerEndIndex = data.indexOf("\r\n\r\n");
-          if (headerEndIndex !== -1) {
-            headersParsed = true;
-            bodyStartIndex = headerEndIndex + 4;
-
-            // Parse Content-Length header
-            const headers = data.substring(0, headerEndIndex);
-            const contentLengthMatch = headers.match(CONTENT_LENGTH_REGEX);
-            if (contentLengthMatch) {
-              contentLength = Number.parseInt(contentLengthMatch[1], 10);
-            }
-          }
-        }
-
-        // Check if we have received the complete body
-        if (headersParsed && contentLength !== null) {
-          const bodyReceived = data.length - bodyStartIndex;
-          if (bodyReceived >= contentLength) {
-            // We have the complete response, close the connection
-            client.end();
-          }
-        }
-      });
-
-      client.on("end", () => {
-        try {
-          // Parse HTTP response
-          const lines = data.split("\r\n");
-          const statusLine = lines[0];
-          const statusCode = Number.parseInt(statusLine.split(" ")[1], 10);
-
-          if (statusCode >= 400) {
-            reject(new Error(`HTTP ${statusCode}: ${data}`));
+          if (res.statusCode && res.statusCode >= 400) {
+            reject(new Error(`HTTP ${res.statusCode}: ${responseBody}`));
             return;
           }
 
-          // Find empty line (separates headers from body)
-          const emptyLineIndex = lines.indexOf("");
-          if (emptyLineIndex === -1) {
+          if (responseBody.length === 0) {
             resolve(undefined as T);
             return;
           }
 
-          const bodyLines = lines.slice(emptyLineIndex + 1);
-          const responseBody = bodyLines.join("\r\n").trim();
-
-          if (!responseBody) {
-            resolve(undefined as T);
-            return;
+          try {
+            resolve(JSON.parse(responseBody));
+          } catch (error) {
+            reject(error);
           }
-
-          resolve(JSON.parse(responseBody));
-        } catch (error) {
-          reject(error);
-        }
-      });
-
-      client.on("error", (error) => {
+        },
+      );
+      req.on("error", (error) => {
         reject(error);
       });
+
+      // Write the body to the request
+      req.end(body ? JSON.stringify(body) : "");
     });
   }
 }
