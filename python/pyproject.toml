@@ -2,6 +2,13 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[project]
+name = "render_sdk"
+
+[project.scripts]
+render-workflows = "render_sdk.workflows.cli:main"
+
+# TODO (CAP-8937): migrate to PEP 621
 [tool.poetry]
 name = "render_sdk"
 version = "0.1.3"
