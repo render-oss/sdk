@@ -1,24 +1,37 @@
 """Render Python SDK
 
-This package provides:
-1. REST API Client (render_sdk.Render) for interacting with Render's API
-2. Workflow SDK (render_sdk.workflows) for defining and running tasks
+Task definition (for workers):
+
+    from render_sdk import Workflows, Retry
+
+    app = Workflows(auto_start=True)
+
+    @app.task
+    def my_task(x: int) -> int:
+        return x * 2
+
+REST API access (for clients):
+
+    from render_sdk import Render
+
+    render = Render()
+    result = await render.workflows.run_task("my-workflow/my_task", [5])
 """
 
 __version__ = "0.1.3"
 
 # Primary user-facing APIs
 from render_sdk.render import Render
-from render_sdk.workflows import Retry, start, task
+from render_sdk.workflows import Options, Retry, Workflows
 
 __all__ = [
     "__version__",
-    # REST API client
-    "Render",
-    # Task definition (existing API)
+    # Primary APIs
+    "Render",  # REST API client
+    "Workflows",  # Task definition
+    # Configuration
+    "Options",
     "Retry",
-    "start",
-    "task",
 ]
 
 # Direct client access available via:
