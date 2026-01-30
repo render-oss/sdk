@@ -15,14 +15,15 @@ Setup:
 import asyncio
 from typing import Any
 
-from render_sdk.client import Client, ListTaskRunsParams
+from render_sdk import Render
+from render_sdk.client import ListTaskRunsParams
 from render_sdk.client.errors import RenderError, TaskRunError
 
 
 async def main():
-    """Demonstrate async workflow operations."""
-    # Create client
-    client = Client()
+    """Demonstrate async workflow operations using the Render client."""
+    # Create client (uses RENDER_API_KEY from environment)
+    render = Render()
 
     # Example task data - replace with your actual task
     task_identifier = "my-workflow-slug/task-name"  # Replace with your task identifier
@@ -32,13 +33,13 @@ async def main():
 
     # Run the task
     try:
-        task_run = await client.workflows.run_task(task_identifier, input_data)
+        task_run = await render.workflows.run_task(task_identifier, input_data)
         print(f"Task started with ID: {task_run.id}")
     except Exception as e:
         print(f"Error running task: {e}")
         raise
 
-    # Wait for completion using SSE streaming (Pythonic way!)
+    # Wait for completion using SSE streaming
     print("\n⏳ Waiting for task completion (using SSE streaming)...")
     try:
         result = await task_run
@@ -56,7 +57,7 @@ async def main():
     print("📋 Listing recent task runs...")
     params = ListTaskRunsParams(limit=5)  # Get last 5 task runs
 
-    task_runs = await client.workflows.list_task_runs(params)
+    task_runs = await render.workflows.list_task_runs(params)
     print(f"✓ Found {len(task_runs)} recent task runs")
 
     for i, task_run in enumerate(task_runs, 1):
