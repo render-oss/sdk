@@ -4,13 +4,17 @@ import type { paths } from "../../generated/schema.js";
 import type {
   DeleteObjectInput,
   GetObjectInput,
+  ListObjectsInput,
+  ListObjectsResponse,
   ObjectData,
+  ObjectMetadata,
   ObjectScope,
   PutObjectInput,
   PutObjectResult,
   Region,
   ScopedDeleteObjectInput,
   ScopedGetObjectInput,
+  ScopedListObjectsInput,
   ScopedPutObjectInput,
 } from "./types.js";
 
@@ -183,6 +187,65 @@ export class ObjectClient {
   }
 
   /**
+   * List objects in storage
+   *
+   * @param input - List parameters including owner, region, and optional pagination
+   * @returns List of object metadata with optional next cursor
+   *
+   * @example
+   * ```typescript
+   * // List first page
+   * const response = await objectClient.list({
+   *   ownerId: "tea-xxxxx",
+   *   region: "oregon"
+   * });
+   *
+   * for (const obj of response.objects) {
+   *   console.log(`${obj.key}: ${obj.size} bytes`);
+   * }
+   *
+   * // Get next page if available
+   * if (response.nextCursor) {
+   *   const nextPage = await objectClient.list({
+   *     ownerId: "tea-xxxxx",
+   *     region: "oregon",
+   *     cursor: response.nextCursor
+   *   });
+   * }
+   * ```
+   */
+  async list(input: ListObjectsInput): Promise<ListObjectsResponse> {
+    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}", {
+      params: {
+        path: {
+          ownerId: input.ownerId,
+          region: input.region as Region,
+        },
+        query: {
+          cursor: input.cursor,
+          limit: input.limit,
+        },
+      },
+    });
+
+    if (error) {
+      throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
+    }
+
+    const objects: ObjectMetadata[] = data.map((item) => ({
+      key: item.blob.key,
+      size: item.blob.sizeBytes,
+      lastModified: new Date(item.blob.lastModified),
+      contentType: item.blob.contentType,
+    }));
+
+    // The cursor for the next page is the cursor of the last item
+    const nextCursor = data.length > 0 ? data[data.length - 1].cursor : undefined;
+
+    return { objects, nextCursor };
+  }
+
+  /**
    * Create a scoped object client for a specific owner and region
    *
    * @param scope - Owner ID and region to scope operations to
@@ -313,5 +376,27 @@ export class ScopedObjectClient {
       ...this.scope,
       ...input,
     } as DeleteObjectInput);
+  }
+
+  /**
+   * List objects in storage using scoped owner and region
+   *
+   * @param input - List parameters (cursor and limit only)
+   * @returns List of object metadata with optional next cursor
+   *
+   * @example
+   * ```typescript
+   * const scoped = objectClient.scoped({ ownerId: "tea-xxxxx", region: "oregon" });
+   * const response = await scoped.list();
+   * for (const obj of response.objects) {
+   *   console.log(`${obj.key}: ${obj.size} bytes`);
+   * }
+   * ```
+   */
+  async list(input: ScopedListObjectsInput = {}): Promise<ListObjectsResponse> {
+    return this.objectClient.list({
+      ...this.scope,
+      ...input,
+    } as ListObjectsInput);
   }
 }

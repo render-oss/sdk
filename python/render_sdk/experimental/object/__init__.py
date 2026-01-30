@@ -4,7 +4,9 @@ from render_sdk.experimental.object.api import ObjectApi
 from render_sdk.experimental.object.client import ObjectClient, ScopedObjectClient
 from render_sdk.experimental.object.types import (
     DownloadResponse,
+    ListObjectsResponse,
     ObjectData,
+    ObjectMetadata,
     OwnerID,
     PutObjectResult,
     Region,
@@ -18,7 +20,9 @@ __all__ = [
     "ScopedObjectClient",
     # Types
     "DownloadResponse",
+    "ListObjectsResponse",
     "ObjectData",
+    "ObjectMetadata",
     "OwnerID",
     "PutObjectResult",
     "Region",

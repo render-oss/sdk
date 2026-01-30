@@ -57,3 +57,31 @@ class PutObjectResult:
 
     etag: str | None = None
     """ETag from storage provider"""
+
+
+@dataclass
+class ObjectMetadata:
+    """Metadata for a stored object."""
+
+    key: str
+    """Object key (path)"""
+
+    size: int
+    """Size in bytes"""
+
+    last_modified: datetime
+    """When the object was last modified"""
+
+    content_type: str
+    """MIME type of the object"""
+
+
+@dataclass
+class ListObjectsResponse:
+    """Response from listing objects."""
+
+    objects: list[ObjectMetadata]
+    """List of object metadata"""
+
+    next_cursor: str | None = None
+    """Cursor for next page, None if no more results"""

@@ -10,7 +10,12 @@ import httpx
 from render_sdk.client.errors import RenderError
 from render_sdk.client.util import handle_http_error
 from render_sdk.experimental.object.api import ObjectApi
-from render_sdk.experimental.object.types import ObjectData, OwnerID, PutObjectResult
+from render_sdk.experimental.object.types import (
+    ListObjectsResponse,
+    ObjectData,
+    OwnerID,
+    PutObjectResult,
+)
 from render_sdk.public_api.models.region import Region
 
 if TYPE_CHECKING:
@@ -204,6 +209,60 @@ class ObjectClient:
             key=key,
         )
 
+    async def list(
+        self,
+        *,
+        owner_id: OwnerID,
+        region: Region | str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ListObjectsResponse:
+        """List objects in storage.
+
+        Args:
+            owner_id: Owner ID (workspace team ID) in format tea-xxxxx
+            region: Storage region
+            cursor: Pagination cursor from previous response
+            limit: Maximum number of objects to return (default 20)
+
+        Returns:
+            ListObjectsResponse: List of object metadata with optional next cursor
+
+        Raises:
+            ClientError: For 4xx client errors
+            ServerError: For 5xx server errors
+            TimeoutError: If the request times out
+
+        Example:
+            ```python
+            # List first page
+            response = await object_client.list(
+                owner_id="tea-xxxxx",
+                region="oregon"
+            )
+
+            for obj in response.objects:
+                print(f"{obj.key}: {obj.size} bytes")
+
+            # Get next page if available
+            if response.next_cursor:
+                next_page = await object_client.list(
+                    owner_id="tea-xxxxx",
+                    region="oregon",
+                    cursor=response.next_cursor
+                )
+            ```
+        """
+        # Convert region to Region enum if it's a string
+        region_enum = Region(region) if isinstance(region, str) else region
+
+        return await self.api.list_objects(
+            owner_id=owner_id,
+            region=region_enum,
+            cursor=cursor,
+            limit=limit,
+        )
+
     def scoped(
         self, *, owner_id: OwnerID, region: Region | str
     ) -> "ScopedObjectClient":
@@ -380,4 +439,37 @@ class ScopedObjectClient:
             owner_id=self._owner_id,
             region=self._region,
             key=key,
+        )
+
+    async def list(
+        self,
+        *,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ListObjectsResponse:
+        """List objects in storage using scoped owner and region.
+
+        Args:
+            cursor: Pagination cursor from previous response
+            limit: Maximum number of objects to return (default 20)
+
+        Returns:
+            ListObjectsResponse: List of object metadata with optional next cursor
+
+        Example:
+            ```python
+            scoped = object_client.scoped(
+                owner_id="tea-xxxxx",
+                region="oregon"
+            )
+            response = await scoped.list()
+            for obj in response.objects:
+                print(f"{obj.key}: {obj.size} bytes")
+            ```
+        """
+        return await self._object_client.list(
+            owner_id=self._owner_id,
+            region=self._region,
+            cursor=cursor,
+            limit=limit,
         )

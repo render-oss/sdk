@@ -129,3 +129,46 @@ export type ScopedGetObjectInput = Omit<GetObjectInput, keyof ObjectScope>;
  * Scoped input for deleting an object (without ownerId/region)
  */
 export type ScopedDeleteObjectInput = Omit<DeleteObjectInput, keyof ObjectScope>;
+
+/**
+ * Input for listing objects
+ */
+export interface ListObjectsInput {
+  /** Owner ID (workspace team ID) in format tea-xxxxx */
+  ownerId: `tea-${string}`;
+  /** Region where the objects are stored */
+  region: Region | string;
+  /** Pagination cursor from previous response */
+  cursor?: string;
+  /** Maximum number of objects to return (default 20) */
+  limit?: number;
+}
+
+/**
+ * Scoped input for listing objects (without ownerId/region)
+ */
+export type ScopedListObjectsInput = Omit<ListObjectsInput, keyof ObjectScope>;
+
+/**
+ * Metadata for a stored object
+ */
+export interface ObjectMetadata {
+  /** Object key (path) */
+  key: string;
+  /** Size in bytes */
+  size: number;
+  /** When the object was last modified */
+  lastModified: Date;
+  /** MIME type of the object */
+  contentType: string;
+}
+
+/**
+ * Response from listing objects
+ */
+export interface ListObjectsResponse {
+  /** List of object metadata */
+  objects: ObjectMetadata[];
+  /** Cursor for next page, undefined if no more results */
+  nextCursor?: string;
+}

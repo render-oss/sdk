@@ -5,8 +5,11 @@ export { ObjectClient, ScopedObjectClient } from "./client.js";
 export type {
   DeleteObjectInput,
   GetObjectInput,
+  ListObjectsInput,
+  ListObjectsResponse,
   ObjectData,
   ObjectIdentifier,
+  ObjectMetadata,
   ObjectScope,
   PresignedDownloadUrl,
   PresignedUploadUrl,
@@ -16,6 +19,7 @@ export type {
   PutObjectResult,
   ScopedDeleteObjectInput,
   ScopedGetObjectInput,
+  ScopedListObjectsInput,
   ScopedPutObjectInput,
 } from "./types.js";
 // Re-export the Region enum (both type and value)
