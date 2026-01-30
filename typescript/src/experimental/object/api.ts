@@ -1,7 +1,13 @@
 import type { Client } from "openapi-fetch";
 import { RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
-import type { PresignedDownloadUrl, PresignedUploadUrl, Region } from "./types.js";
+import type {
+  ListObjectsResponse,
+  ObjectMetadata,
+  PresignedDownloadUrl,
+  PresignedUploadUrl,
+  Region,
+} from "./types.js";
 
 /**
  * Layer 2: Typed Object API Client
@@ -87,5 +93,43 @@ export class ObjectApi {
     if (error) {
       throw new RenderError(`Failed to delete object: ${error.message || "Unknown error"}`);
     }
+  }
+
+  /**
+   * List objects in storage
+   *
+   * @param ownerId - Owner ID (workspace team ID)
+   * @param region - Storage region
+   * @param cursor - Pagination cursor from previous response
+   * @param limit - Maximum number of objects to return (default 20)
+   * @returns List of object metadata with optional next cursor
+   */
+  async listObjects(
+    ownerId: string,
+    region: Region | string,
+    cursor?: string,
+    limit?: number,
+  ): Promise<ListObjectsResponse> {
+    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}", {
+      params: {
+        path: { ownerId, region: region as Region },
+        query: { cursor, limit },
+      },
+    });
+
+    if (error) {
+      throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
+    }
+
+    const objects: ObjectMetadata[] = data.map((item) => ({
+      key: item.blob.key,
+      size: item.blob.sizeBytes,
+      lastModified: new Date(item.blob.lastModified),
+      contentType: item.blob.contentType,
+    }));
+
+    const nextCursor = data.length > 0 ? data[data.length - 1].cursor : undefined;
+
+    return { objects, nextCursor };
   }
 }
