@@ -18,7 +18,7 @@ REST API access (for clients):
     result = await render.workflows.run_task("my-workflow/my_task", [5])
 """
 
-__version__ = "0.1.3"
+__version__ = "0.2.0"
 
 # Primary user-facing APIs
 from render_sdk.render import Render
