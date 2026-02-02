@@ -22,7 +22,7 @@ __version__ = "0.1.3"
 
 # Primary user-facing APIs
 from render_sdk.render import Render
-from render_sdk.workflows import Options, Retry, Workflows
+from render_sdk.workflows import Options, Retry, Workflows, start, task
 
 __all__ = [
     "__version__",
@@ -32,6 +32,9 @@ __all__ = [
     # Configuration
     "Options",
     "Retry",
+    # Deprecated: use Workflows.task and Workflows.start() instead
+    "start",
+    "task",
 ]
 
 # Direct client access available via:
