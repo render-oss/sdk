@@ -14,29 +14,46 @@ pip install render_sdk
 
 ### Defining Tasks
 
-Use the `@task` decorator to define tasks:
+Use the `Workflows` class to define and register tasks:
 
 ```python
-from render_sdk.workflows import task
+from render_sdk import Workflows
 
-@task
+app = Workflows()
+
+@app.task
 def square(a: int) -> int:
+    """Square a number."""
     return a * a
 
-@task
-def add_squares(a: int, b: int) -> int:
-    result1 = ctx.execute_task(square, a)
-    result2 = ctx.execute_task(square, b)
+
+@app.task
+async def add_squares(a: int, b: int) -> int:
+    """Add the squares of two numbers."""
+
+    # Execute subtasks
+    result1 = await square(a)
+    logger.info(f"Square result: {result1}")
+    result2 = await square(b)
+    logger.info(f"Square result: {result2}")
+
     return result1 + result2
+```
+
+You can also specify task parameters like `timeout` and `plan`:
+
+```python
+@app.task(timeout=60, plan="starter")
+def quick_task(x: int) -> int:
+    return x + 1
 ```
 
 ### Running the Task Server
 
-```python
-from render_sdk.workflows import start
+Run your workflow application using the CLI command:
 
-if __name__ == "__main__":
-    start()
+```bash
+render ea tasks dev -- python main.py
 ```
 
 ## Features
