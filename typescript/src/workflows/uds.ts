@@ -94,6 +94,7 @@ export class UDSClient {
    * Make a request to the Unix socket
    */
   private async request<T>(path: string, method: string, body?: any): Promise<T> {
+    const bodyString = body ? JSON.stringify(body) : "";
     return new Promise((resolve, reject) => {
       const req = http.request(
         {
@@ -101,7 +102,7 @@ export class UDSClient {
           path: path,
           method: method,
           headers: {
-            "Content-Length": body ? JSON.stringify(body).length : 0,
+            "Content-Length": Buffer.byteLength(bodyString),
             "Content-Type": "application/json",
             "User-Agent": getUserAgent(),
           },
@@ -133,7 +134,7 @@ export class UDSClient {
       });
 
       // Write the body to the request
-      req.end(body ? JSON.stringify(body) : "");
+      req.end(bodyString);
     });
   }
 }
