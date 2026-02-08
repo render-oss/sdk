@@ -45,3 +45,16 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  bun-test:
+    name: Test (Bun)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun ci
+
+      - name: Run unit tests
+        run: bun run test
