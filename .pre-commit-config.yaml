@@ -1,3 +1,6 @@
+fail_fast: false
+exclude: '^$'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -5,7 +8,17 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        args: [--allow-multiple-documents]
       - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: destroyed-symlinks
+      - id: detect-private-key
+      - id: check-json
+      - id: check-toml
+
   - repo: https://github.com/golangci/golangci-lint
     rev: v2.4.0
     hooks:
@@ -18,11 +31,31 @@ repos:
     hooks:
       - id: go-fmt
         name: go fmt
-        entry: bash
+        entry: bash -c 'cd go && go fmt ./...'
         language: system
-        args:
-          - -c
-          - |
-            echo "Running go fmt on go/..."
-            cd go && go fmt ./...
-        types: [go]
+        files: ^go/.*\.go$
+        pass_filenames: false
+
+      - id: biome-check
+        name: biome check
+        entry: bash -c 'cd typescript && npx biome check --no-errors-on-unmatched --files-ignore-unknown=true'
+        language: system
+        files: ^typescript/.*\.(ts|tsx|js|jsx|json)$
+        exclude: ^typescript/src/generated/
+        pass_filenames: false
+
+      - id: ruff-lint
+        name: ruff lint
+        entry: bash -c 'cd python && poetry run ruff check .'
+        language: system
+        files: ^python/.*\.py$
+        exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+        pass_filenames: false
+
+      - id: ruff-format
+        name: ruff format check
+        entry: bash -c 'cd python && poetry run ruff format --check .'
+        language: system
+        files: ^python/.*\.py$
+        exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+        pass_filenames: false
