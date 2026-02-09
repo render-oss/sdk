@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
 import { RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
@@ -33,6 +34,10 @@ export class ObjectClient {
    *
    * @param input - Upload parameters including object identifier and data
    * @returns Result with optional ETag
+   *
+   * @remarks
+   * When running in Bun (`bun --bun`), stream inputs are buffered into memory before
+   * upload to work around a Bun fetch limitation with `Content-Length` headers.
    *
    * @example
    * ```typescript
@@ -87,10 +92,23 @@ export class ObjectClient {
       headers["Content-Type"] = input.contentType;
     }
 
+    // Bun's fetch strips Content-Length headers for stream bodies, which
+    // breaks presigned URL uploads that require Content-Length to match.
+    // Only buffer on Bun; Node handles streams correctly.
+    // See: https://github.com/oven-sh/bun/issues/10507
+    let body: Buffer | Uint8Array | string = input.data as Buffer | Uint8Array | string;
+    if (process.versions.bun && input.data instanceof Readable) {
+      const chunks: Buffer[] = [];
+      for await (const chunk of input.data) {
+        chunks.push(Buffer.from(chunk));
+      }
+      body = Buffer.concat(chunks);
+    }
+
     const response = await fetch(data.url, {
       method: "PUT",
       headers,
-      body: input.data,
+      body,
       duplex: "half",
     });
 
