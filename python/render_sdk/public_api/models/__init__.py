@@ -20,8 +20,6 @@ from .autoscaling_started import AutoscalingStarted
 from .background_worker_details import BackgroundWorkerDetails
 from .background_worker_details_patch import BackgroundWorkerDetailsPATCH
 from .background_worker_details_post import BackgroundWorkerDetailsPOST
-from .blob_metadata import BlobMetadata
-from .blob_with_cursor import BlobWithCursor
 from .blueprint import Blueprint
 from .blueprint_detail import BlueprintDetail
 from .blueprint_patch import BlueprintPATCH
@@ -118,9 +116,11 @@ from .get_bandwidth_sources_response_200_data_item_labels_traffic_source import 
 )
 from .get_bandwidth_sources_response_200_data_item_values_item import GetBandwidthSourcesResponse200DataItemValuesItem
 from .get_bandwidth_sources_response_400 import GetBandwidthSourcesResponse400
-from .get_blob_output import GetBlobOutput
 from .get_cpu_aggregation_method import GetCpuAggregationMethod
 from .get_http_requests_aggregate_by import GetHttpRequestsAggregateBy
+from .get_object_output import GetObjectOutput
+from .get_task_runs_completed_aggregate_by import GetTaskRunsCompletedAggregateBy
+from .get_task_runs_completed_state import GetTaskRunsCompletedState
 from .header import Header
 from .header_input import HeaderInput
 from .header_with_cursor import HeaderWithCursor
@@ -188,6 +188,8 @@ from .notify_override import NotifyOverride
 from .notify_preview_override import NotifyPreviewOverride
 from .notify_setting import NotifySetting
 from .notify_setting_v2 import NotifySettingV2
+from .object_metadata import ObjectMetadata
+from .object_with_cursor import ObjectWithCursor
 from .oom_killed import OomKilled
 from .otel_provider_type import OtelProviderType
 from .owner import Owner
@@ -244,8 +246,8 @@ from .project_post_input import ProjectPOSTInput
 from .project_with_cursor import ProjectWithCursor
 from .protected_status import ProtectedStatus
 from .pull_request_previews_enabled import PullRequestPreviewsEnabled
-from .put_blob_input import PutBlobInput
-from .put_blob_output import PutBlobOutput
+from .put_object_input import PutObjectInput
+from .put_object_output import PutObjectOutput
 from .read_replica import ReadReplica
 from .read_replica_input import ReadReplicaInput
 from .recovery_info import RecoveryInfo
@@ -374,8 +376,6 @@ __all__ = (
     "BackgroundWorkerDetails",
     "BackgroundWorkerDetailsPATCH",
     "BackgroundWorkerDetailsPOST",
-    "BlobMetadata",
-    "BlobWithCursor",
     "Blueprint",
     "BlueprintDetail",
     "BlueprintPATCH",
@@ -470,9 +470,11 @@ __all__ = (
     "GetBandwidthSourcesResponse200DataItemLabelsTrafficSource",
     "GetBandwidthSourcesResponse200DataItemValuesItem",
     "GetBandwidthSourcesResponse400",
-    "GetBlobOutput",
     "GetCpuAggregationMethod",
     "GetHttpRequestsAggregateBy",
+    "GetObjectOutput",
+    "GetTaskRunsCompletedAggregateBy",
+    "GetTaskRunsCompletedState",
     "Header",
     "HeaderInput",
     "HeaderWithCursor",
@@ -540,6 +542,8 @@ __all__ = (
     "NotifyPreviewOverride",
     "NotifySetting",
     "NotifySettingV2",
+    "ObjectMetadata",
+    "ObjectWithCursor",
     "OomKilled",
     "OtelProviderType",
     "Owner",
@@ -596,8 +600,8 @@ __all__ = (
     "ProjectWithCursor",
     "ProtectedStatus",
     "PullRequestPreviewsEnabled",
-    "PutBlobInput",
-    "PutBlobOutput",
+    "PutObjectInput",
+    "PutObjectOutput",
     "ReadReplica",
     "ReadReplicaInput",
     "RecoveryInfo",

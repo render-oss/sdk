@@ -68,7 +68,7 @@ export class ObjectClient {
     const size = this.resolveSize(input);
 
     // Step 1: Get presigned upload URL from Render API
-    const { data, error } = await this.apiClient.PUT("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -142,7 +142,7 @@ export class ObjectClient {
    */
   async get(input: GetObjectInput): Promise<ObjectData> {
     // Step 1: Get presigned download URL from Render API
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -189,7 +189,7 @@ export class ObjectClient {
    */
   async delete(input: DeleteObjectInput): Promise<void> {
     // DELETE goes directly to Render API (no presigned URL)
-    const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
+    const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -233,7 +233,7 @@ export class ObjectClient {
    * ```
    */
   async list(input: ListObjectsInput): Promise<ListObjectsResponse> {
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -251,10 +251,9 @@ export class ObjectClient {
     }
 
     const objects: ObjectMetadata[] = data.map((item) => ({
-      key: item.blob.key,
-      size: item.blob.sizeBytes,
-      lastModified: new Date(item.blob.lastModified),
-      contentType: item.blob.contentType,
+      key: item.object.key,
+      size: item.object.sizeBytes,
+      lastModified: new Date(item.object.lastModified),
     }));
 
     // The cursor for the next page is the cursor of the last item

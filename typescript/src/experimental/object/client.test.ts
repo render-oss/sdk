@@ -32,7 +32,7 @@ describe("ObjectClient", () => {
       ).rejects.toThrow(); // fetch not available in test
 
       expect(putMock).toHaveBeenCalledWith(
-        "/blobs/{ownerId}/{region}/{key}",
+        "/objects/{ownerId}/{region}/{key}",
         expect.objectContaining({
           body: { sizeBytes: 5 },
         }),
@@ -56,7 +56,7 @@ describe("ObjectClient", () => {
       ).rejects.toThrow();
 
       expect(putMock).toHaveBeenCalledWith(
-        "/blobs/{ownerId}/{region}/{key}",
+        "/objects/{ownerId}/{region}/{key}",
         expect.objectContaining({
           body: { sizeBytes: 4 },
         }),

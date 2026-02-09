@@ -72,9 +72,6 @@ class ObjectMetadata:
     last_modified: datetime
     """When the object was last modified"""
 
-    content_type: str
-    """MIME type of the object"""
-
 
 @dataclass
 class ListObjectsResponse:

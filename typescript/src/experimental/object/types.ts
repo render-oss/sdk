@@ -159,8 +159,6 @@ export interface ObjectMetadata {
   size: number;
   /** When the object was last modified */
   lastModified: Date;
-  /** MIME type of the object */
-  contentType: string;
 }
 
 /**

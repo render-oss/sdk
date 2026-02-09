@@ -4,14 +4,14 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="PutBlobInput")
+T = TypeVar("T", bound="PutObjectInput")
 
 
 @_attrs_define
-class PutBlobInput:
+class PutObjectInput:
     """
     Attributes:
-        size_bytes (int): The size of the blob in bytes. Example: 1048576.
+        size_bytes (int): The size of the object in bytes. Example: 1048576.
     """
 
     size_bytes: int
@@ -35,12 +35,12 @@ class PutBlobInput:
         d = dict(src_dict)
         size_bytes = d.pop("sizeBytes")
 
-        put_blob_input = cls(
+        put_object_input = cls(
             size_bytes=size_bytes,
         )
 
-        put_blob_input.additional_properties = d
-        return put_blob_input
+        put_object_input.additional_properties = d
+        return put_object_input
 
     @property
     def additional_keys(self) -> list[str]:
