@@ -17,7 +17,8 @@ func main() {
 
 	// Example: Run a task
 	taskIdentifier := render.TaskIdentifier("my-workflow-slug/square")
-	input := render.TaskData{4}
+	var input render.TaskData
+	_ = input.FromTaskData0([]interface{}{4})
 
 	taskRun, err := client.Workflows.RunTask(taskIdentifier, input)
 	if err != nil {

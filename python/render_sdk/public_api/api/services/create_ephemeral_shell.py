@@ -1,35 +1,20 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.blob_with_cursor import BlobWithCursor
 from ...models.error import Error
-from ...models.region import Region
-from ...types import UNSET, Response, Unset
+from ...types import Response
 
 
 def _get_kwargs(
-    owner_id: str,
-    region: Region,
-    *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    service_id: str,
 ) -> dict[str, Any]:
-    params: dict[str, Any] = {}
-
-    params["cursor"] = cursor
-
-    params["limit"] = limit
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
-
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": f"/blobs/{owner_id}/{region}",
-        "params": params,
+        "method": "post",
+        "url": f"/services/{service_id}/ephemeral-shell",
     }
 
     return _kwargs
@@ -37,16 +22,15 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["BlobWithCursor"]]]:
-    if response.status_code == 200:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = BlobWithCursor.from_dict(response_200_item_data)
+) -> Optional[Union[Any, Error]]:
+    if response.status_code == 201:
+        response_201 = cast(Any, None)
+        return response_201
 
-            response_200.append(response_200_item)
+    if response.status_code == 400:
+        response_400 = Error.from_dict(response.json())
 
-        return response_200
+        return response_400
 
     if response.status_code == 401:
         response_401 = Error.from_dict(response.json())
@@ -86,7 +70,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["BlobWithCursor"]]]:
+) -> Response[Union[Any, Error]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -96,36 +80,27 @@ def _build_response(
 
 
 def sync_detailed(
-    owner_id: str,
-    region: Region,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BlobWithCursor"]]]:
-    """List blobs
+) -> Response[Union[Any, Error]]:
+    """Create an ephemeral shell instance
 
-     List blobs in the specified region for a workspace.
+     Create an ephemeral instance of your service. You can ssh into it, but it won't receive traffic.
 
     Args:
-        owner_id (str):
-        region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BlobWithCursor']]]
+        Response[Union[Any, Error]]
     """
 
     kwargs = _get_kwargs(
-        owner_id=owner_id,
-        region=region,
-        cursor=cursor,
-        limit=limit,
+        service_id=service_id,
     )
 
     response = client.get_httpx_client().request(
@@ -136,71 +111,53 @@ def sync_detailed(
 
 
 def sync(
-    owner_id: str,
-    region: Region,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BlobWithCursor"]]]:
-    """List blobs
+) -> Optional[Union[Any, Error]]:
+    """Create an ephemeral shell instance
 
-     List blobs in the specified region for a workspace.
+     Create an ephemeral instance of your service. You can ssh into it, but it won't receive traffic.
 
     Args:
-        owner_id (str):
-        region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BlobWithCursor']]
+        Union[Any, Error]
     """
 
     return sync_detailed(
-        owner_id=owner_id,
-        region=region,
+        service_id=service_id,
         client=client,
-        cursor=cursor,
-        limit=limit,
     ).parsed
 
 
 async def asyncio_detailed(
-    owner_id: str,
-    region: Region,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BlobWithCursor"]]]:
-    """List blobs
+) -> Response[Union[Any, Error]]:
+    """Create an ephemeral shell instance
 
-     List blobs in the specified region for a workspace.
+     Create an ephemeral instance of your service. You can ssh into it, but it won't receive traffic.
 
     Args:
-        owner_id (str):
-        region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BlobWithCursor']]]
+        Response[Union[Any, Error]]
     """
 
     kwargs = _get_kwargs(
-        owner_id=owner_id,
-        region=region,
-        cursor=cursor,
-        limit=limit,
+        service_id=service_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -209,37 +166,28 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    owner_id: str,
-    region: Region,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BlobWithCursor"]]]:
-    """List blobs
+) -> Optional[Union[Any, Error]]:
+    """Create an ephemeral shell instance
 
-     List blobs in the specified region for a workspace.
+     Create an ephemeral instance of your service. You can ssh into it, but it won't receive traffic.
 
     Args:
-        owner_id (str):
-        region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BlobWithCursor']]
+        Union[Any, Error]
     """
 
     return (
         await asyncio_detailed(
-            owner_id=owner_id,
-            region=region,
+            service_id=service_id,
             client=client,
-            cursor=cursor,
-            limit=limit,
         )
     ).parsed

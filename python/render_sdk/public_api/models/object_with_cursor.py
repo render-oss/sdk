@@ -5,35 +5,35 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.blob_metadata import BlobMetadata
+    from ..models.object_metadata import ObjectMetadata
 
 
-T = TypeVar("T", bound="BlobWithCursor")
+T = TypeVar("T", bound="ObjectWithCursor")
 
 
 @_attrs_define
-class BlobWithCursor:
+class ObjectWithCursor:
     """
     Attributes:
         cursor (str):
-        blob (BlobMetadata):
+        object_ (ObjectMetadata):
     """
 
     cursor: str
-    blob: "BlobMetadata"
+    object_: "ObjectMetadata"
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         cursor = self.cursor
 
-        blob = self.blob.to_dict()
+        object_ = self.object_.to_dict()
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "cursor": cursor,
-                "blob": blob,
+                "object": object_,
             }
         )
 
@@ -41,20 +41,20 @@ class BlobWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.blob_metadata import BlobMetadata
+        from ..models.object_metadata import ObjectMetadata
 
         d = dict(src_dict)
         cursor = d.pop("cursor")
 
-        blob = BlobMetadata.from_dict(d.pop("blob"))
+        object_ = ObjectMetadata.from_dict(d.pop("object"))
 
-        blob_with_cursor = cls(
+        object_with_cursor = cls(
             cursor=cursor,
-            blob=blob,
+            object_=object_,
         )
 
-        blob_with_cursor.additional_properties = d
-        return blob_with_cursor
+        object_with_cursor.additional_properties = d
+        return object_with_cursor
 
     @property
     def additional_keys(self) -> list[str]:

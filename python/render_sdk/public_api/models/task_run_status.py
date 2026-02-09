@@ -5,6 +5,7 @@ class TaskRunStatus(str, Enum):
     CANCELED = "canceled"
     COMPLETED = "completed"
     FAILED = "failed"
+    PAUSED = "paused"
     PENDING = "pending"
     RUNNING = "running"
 

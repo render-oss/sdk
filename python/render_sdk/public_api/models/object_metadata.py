@@ -6,34 +6,37 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
-T = TypeVar("T", bound="GetBlobOutput")
+T = TypeVar("T", bound="ObjectMetadata")
 
 
 @_attrs_define
-class GetBlobOutput:
+class ObjectMetadata:
     """
     Attributes:
-        url (str): Presigned URL for downloading the blob Example: https://example-bucket.s3.amazonaws.com/presigned-
-            get-url.
-        expires_at (datetime.datetime): The time at which the presigned URL expires (ISO 8601 format) Example:
-            2024-01-15T12:30:00Z.
+        key (str): The object's key Example: workflow-data/task-output.json.
+        size_bytes (int): Size of the object in bytes Example: 1048576.
+        last_modified (datetime.datetime): When the object was last modified (ISO 8601) Example: 2026-01-15T12:30:00Z.
     """
 
-    url: str
-    expires_at: datetime.datetime
+    key: str
+    size_bytes: int
+    last_modified: datetime.datetime
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        url = self.url
+        key = self.key
 
-        expires_at = self.expires_at.isoformat()
+        size_bytes = self.size_bytes
+
+        last_modified = self.last_modified.isoformat()
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "url": url,
-                "expiresAt": expires_at,
+                "key": key,
+                "sizeBytes": size_bytes,
+                "lastModified": last_modified,
             }
         )
 
@@ -42,17 +45,20 @@ class GetBlobOutput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        url = d.pop("url")
+        key = d.pop("key")
 
-        expires_at = isoparse(d.pop("expiresAt"))
+        size_bytes = d.pop("sizeBytes")
 
-        get_blob_output = cls(
-            url=url,
-            expires_at=expires_at,
+        last_modified = isoparse(d.pop("lastModified"))
+
+        object_metadata = cls(
+            key=key,
+            size_bytes=size_bytes,
+            last_modified=last_modified,
         )
 
-        get_blob_output.additional_properties = d
-        return get_blob_output
+        object_metadata.additional_properties = d
+        return object_metadata
 
     @property
     def additional_keys(self) -> list[str]:

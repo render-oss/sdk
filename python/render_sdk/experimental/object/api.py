@@ -17,19 +17,19 @@ from render_sdk.experimental.object.types import (
     ObjectMetadata,
     UploadResponse,
 )
-from render_sdk.public_api.api.blob_storage import (
-    delete_blob,
-    get_blob,
-    list_blobs,
-    put_blob,
+from render_sdk.public_api.api.object_storage import (
+    delete_object,
+    get_object,
+    list_objects,
+    put_object,
 )
-from render_sdk.public_api.models.blob_with_cursor import BlobWithCursor
 from render_sdk.public_api.models.error import Error
-from render_sdk.public_api.models.get_blob_output import GetBlobOutput
-from render_sdk.public_api.models.put_blob_input import (
-    PutBlobInput as PutBlobInputModel,
+from render_sdk.public_api.models.get_object_output import GetObjectOutput
+from render_sdk.public_api.models.object_with_cursor import ObjectWithCursor
+from render_sdk.public_api.models.put_object_input import (
+    PutObjectInput as PutObjectInputModel,
 )
-from render_sdk.public_api.models.put_blob_output import PutBlobOutput
+from render_sdk.public_api.models.put_object_output import PutObjectOutput
 from render_sdk.public_api.models.region import Region
 from render_sdk.public_api.types import UNSET, Response
 
@@ -74,7 +74,7 @@ class ObjectApi:
             owner_id, region, key, size_bytes
         )
 
-        if not isinstance(response.parsed, PutBlobOutput):
+        if not isinstance(response.parsed, PutObjectOutput):
             raise RenderError("Failed to get upload URL: unexpected response type")
 
         return UploadResponse(
@@ -90,15 +90,15 @@ class ObjectApi:
         region: Region | str,
         key: str,
         size_bytes: int,
-    ) -> Response[Error | PutBlobOutput]:
+    ) -> Response[Error | PutObjectOutput]:
         """Internal method to make the get upload URL API call."""
         # Convert region to Region enum if it's a string
         if isinstance(region, str):
             region = Region(region)
 
-        body = PutBlobInputModel(size_bytes=size_bytes)
+        body = PutObjectInputModel(size_bytes=size_bytes)
 
-        return await put_blob.asyncio_detailed(
+        return await put_object.asyncio_detailed(
             owner_id=owner_id,
             region=region,
             key=key,
@@ -129,7 +129,7 @@ class ObjectApi:
         """
         response = await self._get_download_url_api_call(owner_id, region, key)
 
-        if not isinstance(response.parsed, GetBlobOutput):
+        if not isinstance(response.parsed, GetObjectOutput):
             raise RenderError("Failed to get download URL: unexpected response type")
 
         return DownloadResponse(
@@ -143,13 +143,13 @@ class ObjectApi:
         owner_id: str,
         region: Region | str,
         key: str,
-    ) -> Response[Error | GetBlobOutput]:
+    ) -> Response[Error | GetObjectOutput]:
         """Internal method to make the get download URL API call."""
         # Convert region to Region enum if it's a string
         if isinstance(region, str):
             region = Region(region)
 
-        return await get_blob.asyncio_detailed(
+        return await get_object.asyncio_detailed(
             owner_id=owner_id,
             region=region,
             key=key,
@@ -188,7 +188,7 @@ class ObjectApi:
         if isinstance(region, str):
             region = Region(region)
 
-        return await delete_blob.asyncio_detailed(
+        return await delete_object.asyncio_detailed(
             owner_id=owner_id,
             region=region,
             key=key,
@@ -225,10 +225,9 @@ class ObjectApi:
 
         objects = [
             ObjectMetadata(
-                key=item.blob.key,
-                size=item.blob.size_bytes,
-                last_modified=item.blob.last_modified,
-                content_type=item.blob.content_type,
+                key=item.object_.key,
+                size=item.object_.size_bytes,
+                last_modified=item.object_.last_modified,
             )
             for item in response.parsed
         ]
@@ -245,13 +244,13 @@ class ObjectApi:
         region: Region | str,
         cursor: str | None,
         limit: int | None,
-    ) -> Response[Error | builtins.list[BlobWithCursor]]:
+    ) -> Response[Error | builtins.list[ObjectWithCursor]]:
         """Internal method to make the list objects API call."""
         # Convert region to Region enum if it's a string
         if isinstance(region, str):
             region = Region(region)
 
-        return await list_blobs.asyncio_detailed(
+        return await list_objects.asyncio_detailed(
             owner_id=owner_id,
             region=region,
             cursor=cursor if cursor is not None else UNSET,
