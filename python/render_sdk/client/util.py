@@ -74,6 +74,64 @@ def handle_http_error(response: httpx.Response, operation: str) -> None:
             raise ServerError(full_message)
 
 
+def storage_error_message(status_code: int) -> str:
+    """
+    Get a sanitized error message for storage operations based on HTTP status code.
+
+    This function maps common HTTP status codes to user-friendly error messages
+    without exposing implementation details from storage providers.
+
+    Args:
+        status_code: The HTTP status code from the storage response
+
+    Returns:
+        A sanitized error message suitable for user display
+    """
+    if status_code == 400:
+        return "bad request"
+    if status_code in (401, 403):
+        return "access denied"
+    if status_code == 404:
+        return "object not found"
+    if status_code == 409:
+        return "conflict"
+    if status_code == 413:
+        return "object too large"
+    if status_code == 429:
+        return "rate limited, please try again later"
+    if status_code in (500, 502, 503, 504):
+        return "storage service temporarily unavailable"
+    return "unexpected error"
+
+
+def handle_storage_http_error(response: httpx.Response, operation: str) -> None:
+    """
+    Translate HTTP response errors from storage operations into appropriate exceptions.
+
+    Unlike handle_http_error, this function uses sanitized error messages instead of
+    raw response content to avoid exposing storage provider implementation details
+    (e.g., S3 XML error responses with internal keys and request IDs).
+
+    Args:
+        response: The HTTPX response object from a storage operation
+        operation: Description of the operation that failed (for error messages)
+
+    Raises:
+        ClientError: For 4xx client errors
+        ServerError: For 5xx server errors
+    """
+    if response.status_code >= 400:
+        message = storage_error_message(response.status_code)
+        full_message = (
+            f"{operation} failed with status {response.status_code}: {message}"
+        )
+
+        if 400 <= response.status_code < 500:
+            raise ClientError(full_message)
+        elif response.status_code >= 500:
+            raise ServerError(full_message)
+
+
 def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> None:
     """
     Translate HTTPX exceptions into appropriate custom exceptions.
