@@ -3,7 +3,8 @@
 Provides simple put/get/delete operations for object storage.
 """
 
-from typing import TYPE_CHECKING, BinaryIO
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING, BinaryIO, cast
 
 import httpx
 
@@ -22,6 +23,18 @@ if TYPE_CHECKING:
     from render_sdk.public_api.client import AuthenticatedClient
 
 
+FILE_UPLOAD_CHUNK_SIZE_BYTES = 64 * 1024  # 64 KiB
+
+
+async def _file_to_async_iterable(file_obj: BinaryIO) -> AsyncIterator[bytes]:
+    """Convert a sync file object to an async byte iterator."""
+    while True:
+        chunk = file_obj.read(FILE_UPLOAD_CHUNK_SIZE_BYTES)
+        if not chunk:
+            break
+        yield chunk
+
+
 class ObjectClient:
     """ObjectClient is a high level client for interacting with object storage.
 
@@ -38,7 +51,7 @@ class ObjectClient:
         owner_id: OwnerID,
         region: Region | str,
         key: str,
-        data: bytes | BinaryIO,
+        data: bytes | BinaryIO | AsyncIterator[bytes],
         size: int | None = None,
         content_type: str | None = None,
     ) -> PutObjectResult:
@@ -48,7 +61,7 @@ class ObjectClient:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
             key: Object key (path) for the object
-            data: Binary data as bytes or a file-like stream
+            data: Binary data as bytes, a file-like stream, or an async byte iterator
             size: Size in bytes (optional for bytes, required for streams)
             content_type: MIME type of the content (optional)
 
@@ -107,11 +120,18 @@ class ObjectClient:
         if content_type:
             headers["Content-Type"] = content_type
 
+        if isinstance(data, bytes):
+            content: bytes | AsyncIterator[bytes] = data
+        elif hasattr(data, "read"):
+            content = _file_to_async_iterable(cast(BinaryIO, data))
+        else:
+            content = data
+
         async with httpx.AsyncClient() as http_client:
             response = await http_client.put(
                 presigned.url,
                 headers=headers,
-                content=data,
+                content=content,
             )
 
             handle_http_error(response, "upload object")
@@ -291,14 +311,16 @@ class ObjectClient:
         """
         return ScopedObjectClient(self, owner_id, region)
 
-    def _resolve_size(self, data: bytes | BinaryIO, size: int | None) -> int:
+    def _resolve_size(
+        self, data: bytes | BinaryIO | AsyncIterator[bytes], size: int | None
+    ) -> int:
         """Resolve and validate the size for a put operation.
 
         - For bytes: auto-calculate size, validate if provided
         - For streams: require explicit size
 
         Args:
-            data: Binary data (bytes or stream)
+            data: Binary data (bytes, stream, or async byte iterator)
             size: Optional size in bytes
 
         Returns:
