@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, BinaryIO, cast
 import httpx
 
 from render_sdk.client.errors import RenderError
-from render_sdk.client.util import handle_http_error
+from render_sdk.client.util import handle_storage_http_error
 from render_sdk.experimental.object.api import ObjectApi
 from render_sdk.experimental.object.types import (
     ListObjectsResponse,
@@ -134,7 +134,7 @@ class ObjectClient:
                 content=content,
             )
 
-            handle_http_error(response, "upload object")
+            handle_storage_http_error(response, "upload object")
 
             return PutObjectResult(
                 etag=response.headers.get("ETag"),
@@ -185,7 +185,7 @@ class ObjectClient:
         async with httpx.AsyncClient() as http_client:
             response = await http_client.get(presigned.url)
 
-            handle_http_error(response, "download object")
+            handle_storage_http_error(response, "download object")
 
             data = response.content
 

@@ -4,6 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "render_sdk"
+version = "0.2.0"
 
 [project.scripts]
 render-workflows = "render_sdk.workflows.cli:main"
