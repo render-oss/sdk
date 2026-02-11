@@ -20,7 +20,7 @@ import type {
 } from "./types.js";
 
 /**
- * Layer 3: High-Level Object Client
+ * High-Level Object Client
  *
  * User-facing API that abstracts presigned URLs completely.
  * Provides simple put/get/delete operations that handle the
