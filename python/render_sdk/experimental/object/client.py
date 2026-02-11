@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, BinaryIO, cast
 
 import httpx
 
-from render_sdk.client.errors import RenderError
-from render_sdk.client.util import handle_storage_http_error
+from render_sdk.client.errors import ClientError, RenderError
+from render_sdk.client.util import handle_httpx_exception, handle_storage_http_error
 from render_sdk.experimental.object.api import ObjectApi
 from render_sdk.experimental.object.types import (
     ListObjectsResponse,
@@ -101,16 +101,20 @@ class ObjectClient:
         # Resolve and validate size
         resolved_size = self._resolve_size(data, size)
 
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # Step 1: Get presigned upload URL from Render API
         presigned = await self.api.get_upload_url(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
             size_bytes=resolved_size,
         )
+
+        # Validate size against server expectation
+        if resolved_size != presigned.max_size_bytes:
+            raise ClientError(
+                f"File size {resolved_size} bytes does not match expected "
+                f"size of {presigned.max_size_bytes} bytes"
+            )
 
         # Step 2: Upload to storage via presigned URL
         headers = {
@@ -127,18 +131,24 @@ class ObjectClient:
         else:
             content = data
 
-        async with httpx.AsyncClient() as http_client:
-            response = await http_client.put(
-                presigned.url,
-                headers=headers,
-                content=content,
-            )
+        try:
+            # Keep default connect/pool timeouts but disable read/write timeouts
+            default_timeout_seconds = 5.0
+            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                response = await http_client.put(
+                    presigned.url,
+                    headers=headers,
+                    content=content,
+                )
 
-            handle_storage_http_error(response, "upload object")
+                handle_storage_http_error(response, "upload object")
 
-            return PutObjectResult(
-                etag=response.headers.get("ETag"),
-            )
+                return PutObjectResult(
+                    etag=response.headers.get("ETag"),
+                )
+        except httpx.RequestError as e:
+            handle_httpx_exception(e, "upload object")
 
     async def get(
         self, *, owner_id: OwnerID, region: Region | str, key: str
@@ -171,29 +181,32 @@ class ObjectClient:
             # obj.data is bytes
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # Step 1: Get presigned download URL from Render API
         presigned = await self.api.get_download_url(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
         )
 
         # Step 2: Download from storage via presigned URL
-        async with httpx.AsyncClient() as http_client:
-            response = await http_client.get(presigned.url)
+        try:
+            # Keep default connect/pool timeouts but disable read/write timeouts
+            default_timeout_seconds = 5.0
+            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                response = await http_client.get(presigned.url)
 
-            handle_storage_http_error(response, "download object")
+                handle_storage_http_error(response, "download object")
 
-            data = response.content
+                data = response.content
 
-            return ObjectData(
-                data=data,
-                size=len(data),
-                content_type=response.headers.get("Content-Type"),
-            )
+                return ObjectData(
+                    data=data,
+                    size=len(data),
+                    content_type=response.headers.get("Content-Type"),
+                )
+        except httpx.RequestError as e:
+            handle_httpx_exception(e, "download object")
 
     async def delete(
         self, *, owner_id: OwnerID, region: Region | str, key: str
@@ -219,13 +232,10 @@ class ObjectClient:
             )
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # DELETE goes directly to Render API (no presigned URL)
         await self.api.delete(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
         )
 
@@ -273,12 +283,9 @@ class ObjectClient:
                 )
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         return await self.api.list_objects(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             cursor=cursor,
             limit=limit,
         )
@@ -344,8 +351,8 @@ class ObjectClient:
             # Require explicit size for streams
             if size is None:
                 raise RenderError("size is required for stream uploads")
-            if size <= 0:
-                raise RenderError("size must be a positive integer")
+            if size < 0:
+                raise RenderError("size must be a non-negative integer")
 
             return size
 
