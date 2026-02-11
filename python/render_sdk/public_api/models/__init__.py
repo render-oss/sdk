@@ -150,6 +150,7 @@ from .list_custom_domains_domain_type import ListCustomDomainsDomainType
 from .list_custom_domains_verification_status import ListCustomDomainsVerificationStatus
 from .list_logs_response_200 import ListLogsResponse200
 from .list_logs_values_label import ListLogsValuesLabel
+from .list_objects_response import ListObjectsResponse
 from .list_postgres_suspended_item import ListPostgresSuspendedItem
 from .list_postgres_users_response_200_item import ListPostgresUsersResponse200Item
 from .list_routes_type_item import ListRoutesTypeItem
@@ -504,6 +505,7 @@ __all__ = (
     "ListCustomDomainsVerificationStatus",
     "ListLogsResponse200",
     "ListLogsValuesLabel",
+    "ListObjectsResponse",
     "ListPostgresSuspendedItem",
     "ListPostgresUsersResponse200Item",
     "ListRoutesTypeItem",

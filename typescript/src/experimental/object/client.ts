@@ -258,16 +258,13 @@ export class ObjectClient {
       throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
     }
 
-    const objects: ObjectMetadata[] = data.map((item) => ({
+    const objects: ObjectMetadata[] = data.items.map((item) => ({
       key: item.object.key,
       size: item.object.sizeBytes,
       lastModified: new Date(item.object.lastModified),
     }));
 
-    // The cursor for the next page is the cursor of the last item
-    const nextCursor = data.length > 0 ? data[data.length - 1].cursor : undefined;
-
-    return { objects, nextCursor };
+    return { objects, hasNext: data.hasNext, nextCursor: data.nextCursor };
   }
 
   /**

@@ -6,7 +6,6 @@ Handles presigned URL flow but still exposes the two-step nature
 requiring fine-grained control.
 """
 
-import builtins
 from typing import TYPE_CHECKING, cast
 
 from render_sdk.client.errors import RenderError
@@ -25,7 +24,9 @@ from render_sdk.public_api.api.object_storage import (
 )
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.get_object_output import GetObjectOutput
-from render_sdk.public_api.models.object_with_cursor import ObjectWithCursor
+from render_sdk.public_api.models.list_objects_response import (
+    ListObjectsResponse as GeneratedListObjectsResponse,
+)
 from render_sdk.public_api.models.put_object_input import (
     PutObjectInput as PutObjectInputModel,
 )
@@ -208,22 +209,28 @@ class ObjectApi:
         """
         response = await self._list_objects_api_call(owner_id, region, cursor, limit)
 
-        if not isinstance(response.parsed, builtins.list):
+        if not isinstance(response.parsed, GeneratedListObjectsResponse):
             raise RenderError("Failed to list objects: unexpected response type")
 
+        parsed = response.parsed
         objects = [
             ObjectMetadata(
                 key=item.object_.key,
                 size=item.object_.size_bytes,
                 last_modified=item.object_.last_modified,
             )
-            for item in response.parsed
+            for item in parsed.items
         ]
 
-        # The cursor for the next page is the cursor of the last item
-        next_cursor = response.parsed[-1].cursor if response.parsed else None
+        next_cursor = (
+            parsed.next_cursor if isinstance(parsed.next_cursor, str) else None
+        )
 
-        return ListObjectsResponse(objects=objects, next_cursor=next_cursor)
+        return ListObjectsResponse(
+            objects=objects,
+            has_next=parsed.has_next,
+            next_cursor=next_cursor,
+        )
 
     @handle_http_errors("list objects")
     async def _list_objects_api_call(
@@ -232,7 +239,7 @@ class ObjectApi:
         region: Region | str,
         cursor: str | None,
         limit: int | None,
-    ) -> Response[Error | builtins.list[ObjectWithCursor]]:
+    ) -> Response[Error | GeneratedListObjectsResponse]:
         """Internal method to make the list objects API call."""
         return await list_objects.asyncio_detailed(
             owner_id=owner_id,

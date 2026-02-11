@@ -4751,6 +4751,11 @@ export interface components {
         status: "created" | "paused" | "in_sync" | "syncing" | "error";
         /** @description Automatically sync changes to render.yaml */
         autoSync: boolean;
+        /**
+         * @description Path to the Blueprint file in the repository
+         * @example render.yaml
+         */
+        blueprintPath: string;
         blueprint: {
             id: components["schemas"]["blueprintId"];
             name: string;
@@ -4758,6 +4763,7 @@ export interface components {
             autoSync: components["schemas"]["autoSync"];
             repo: string;
             branch: string;
+            path: components["schemas"]["blueprintPath"];
             /** Format: date-time */
             lastSync?: string;
         };
@@ -4819,6 +4825,7 @@ export interface components {
             autoSync: components["schemas"]["autoSync"];
             repo: string;
             branch: string;
+            path: components["schemas"]["blueprintPath"];
             /** Format: date-time */
             lastSync?: string;
             resources: components["schemas"]["resourceRef"][];
@@ -4826,6 +4833,7 @@ export interface components {
         blueprintPATCH: {
             name?: string;
             autoSync?: components["schemas"]["autoSync"];
+            path?: components["schemas"]["blueprintPath"];
         };
         /** @example exe-cph1rs3idesc73a2b2mg */
         syncId: string;
@@ -5715,6 +5723,13 @@ export interface components {
         objectWithCursor: {
             cursor: string;
             object: components["schemas"]["objectMetadata"];
+        };
+        listObjectsResponse: {
+            items: components["schemas"]["objectWithCursor"][];
+            /** @description Cursor to fetch the next page. Only present when hasNext is true. */
+            nextCursor?: string;
+            /** @description Whether there are more results after this page. */
+            hasNext: boolean;
         };
         getObjectOutput: {
             /**
@@ -12988,7 +13003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["objectWithCursor"][];
+                    "application/json": components["schemas"]["listObjectsResponse"];
                 };
             };
             401: components["responses"]["401Unauthorized"];

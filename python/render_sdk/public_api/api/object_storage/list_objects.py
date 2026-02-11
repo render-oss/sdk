@@ -6,7 +6,7 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.object_with_cursor import ObjectWithCursor
+from ...models.list_objects_response import ListObjectsResponse
 from ...models.region import Region
 from ...types import UNSET, Response, Unset
 
@@ -37,14 +37,9 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["ObjectWithCursor"]]]:
+) -> Optional[Union[Error, ListObjectsResponse]]:
     if response.status_code == 200:
-        response_200 = []
-        _response_200 = response.json()
-        for response_200_item_data in _response_200:
-            response_200_item = ObjectWithCursor.from_dict(response_200_item_data)
-
-            response_200.append(response_200_item)
+        response_200 = ListObjectsResponse.from_dict(response.json())
 
         return response_200
 
@@ -86,7 +81,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["ObjectWithCursor"]]]:
+) -> Response[Union[Error, ListObjectsResponse]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -102,7 +97,7 @@ def sync_detailed(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ObjectWithCursor"]]]:
+) -> Response[Union[Error, ListObjectsResponse]]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -118,7 +113,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ObjectWithCursor']]]
+        Response[Union[Error, ListObjectsResponse]]
     """
 
     kwargs = _get_kwargs(
@@ -142,7 +137,7 @@ def sync(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ObjectWithCursor"]]]:
+) -> Optional[Union[Error, ListObjectsResponse]]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -158,7 +153,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ObjectWithCursor']]
+        Union[Error, ListObjectsResponse]
     """
 
     return sync_detailed(
@@ -177,7 +172,7 @@ async def asyncio_detailed(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ObjectWithCursor"]]]:
+) -> Response[Union[Error, ListObjectsResponse]]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -193,7 +188,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ObjectWithCursor']]]
+        Response[Union[Error, ListObjectsResponse]]
     """
 
     kwargs = _get_kwargs(
@@ -215,7 +210,7 @@ async def asyncio(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ObjectWithCursor"]]]:
+) -> Optional[Union[Error, ListObjectsResponse]]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -231,7 +226,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ObjectWithCursor']]
+        Union[Error, ListObjectsResponse]
     """
 
     return (
