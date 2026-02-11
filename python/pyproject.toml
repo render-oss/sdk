@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "render_sdk"
-version = "0.2.0"
+version = "0.3.0"
 
 [project.scripts]
 render-workflows = "render_sdk.workflows.cli:main"
@@ -12,7 +12,7 @@ render-workflows = "render_sdk.workflows.cli:main"
 # TODO (CAP-8937): migrate to PEP 621
 [tool.poetry]
 name = "render_sdk"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python SDK for Render Workflows"
 authors = ["Render <support@render.com>"]
 readme = "README.md"
