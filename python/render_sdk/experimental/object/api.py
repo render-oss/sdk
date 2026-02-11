@@ -1,4 +1,4 @@
-"""Layer 2: Typed Object API Client
+"""Typed Object API Client
 
 Provides idiomatic Python wrapper around the raw OpenAPI client.
 Handles presigned URL flow but still exposes the two-step nature
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class ObjectApi:
-    """Layer 2: Typed Object API Client
+    """Typed Object API Client
 
     Provides idiomatic Python wrapper around the raw OpenAPI client.
     Handles presigned URL flow but still exposes the two-step nature.

@@ -10,7 +10,7 @@ import type {
 } from "./types.js";
 
 /**
- * Layer 2: Typed Object API Client
+ * Typed Object API Client
  *
  * Provides idiomatic TypeScript wrapper around the raw OpenAPI client.
  * Handles presigned URL flow but still exposes the two-step nature
