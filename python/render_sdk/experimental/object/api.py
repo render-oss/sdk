@@ -7,7 +7,7 @@ requiring fine-grained control.
 """
 
 import builtins
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from render_sdk.client.errors import RenderError
 from render_sdk.client.util import handle_http_errors
@@ -92,15 +92,11 @@ class ObjectApi:
         size_bytes: int,
     ) -> Response[Error | PutObjectOutput]:
         """Internal method to make the get upload URL API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
         body = PutObjectInputModel(size_bytes=size_bytes)
 
         return await put_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
             body=body,
@@ -145,13 +141,9 @@ class ObjectApi:
         key: str,
     ) -> Response[Error | GetObjectOutput]:
         """Internal method to make the get download URL API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
         return await get_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
         )
@@ -184,13 +176,9 @@ class ObjectApi:
         key: str,
     ) -> Response[Error | None]:
         """Internal method to make the delete object API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
         return await delete_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
         )
@@ -246,13 +234,9 @@ class ObjectApi:
         limit: int | None,
     ) -> Response[Error | builtins.list[ObjectWithCursor]]:
         """Internal method to make the list objects API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
         return await list_objects.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
             client=self.client,

@@ -11,7 +11,7 @@ from render_sdk.client.util import (
     retry_with_backoff,
 )
 from render_sdk.public_api.models.error import Error
-from render_sdk.public_api.types import Response
+from render_sdk.public_api.types import UNSET, Response
 
 
 class TestException(Exception):
@@ -122,6 +122,42 @@ def test_handle_api_error_server_error():
         parsed=Error(message="Internal server error"),
     )
     with pytest.raises(ServerError, match="API request failed: Internal server error"):
+        handle_api_error(response, "API request")
+
+
+def test_handle_api_error_with_unset_message():
+    """When Error has Unset message, should fallback to 'Unknown error occurred'."""
+    response = Response(
+        status_code=400,
+        content=b"",
+        headers={},
+        parsed=Error(message=UNSET),
+    )
+    with pytest.raises(ClientError, match="API request failed: Unknown error occurred"):
+        handle_api_error(response, "API request")
+
+
+def test_handle_api_error_extracts_message_from_content_when_parsed_is_none():
+    """When parsed is None, should extract error message from response content."""
+    response = Response(
+        status_code=400,
+        content=b'{"message": "limit must be a positive integer"}',
+        headers={},
+        parsed=None,
+    )
+    with pytest.raises(ClientError, match="limit must be a positive integer"):
+        handle_api_error(response, "API request")
+
+
+def test_handle_api_error_fallback_when_content_is_not_json():
+    """When parsed is None and content is not JSON, should use fallback message."""
+    response = Response(
+        status_code=400,
+        content=b"Not a JSON response",
+        headers={},
+        parsed=None,
+    )
+    with pytest.raises(ClientError, match="API request failed: Unknown error occurred"):
         handle_api_error(response, "API request")
 
 

@@ -2,13 +2,13 @@ import functools
 import logging
 from asyncio import sleep
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, NoReturn
 
 import httpx
 
 from render_sdk.client.errors import ClientError, RenderError, ServerError, TimeoutError
 from render_sdk.public_api.models.error import Error
-from render_sdk.public_api.types import Response
+from render_sdk.public_api.types import Response, Unset
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +132,7 @@ def handle_storage_http_error(response: httpx.Response, operation: str) -> None:
             raise ServerError(full_message)
 
 
-def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> None:
+def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> NoReturn:
     """
     Translate HTTPX exceptions into appropriate custom exceptions.
 
@@ -163,7 +163,7 @@ def handle_api_error(
     Convert an API Error object into the appropriate custom exception.
 
     Args:
-        error: The API Error object
+        response: The API Response object that may contain an error
         operation: Description of the operation that failed (for error messages)
 
     Raises:
@@ -171,18 +171,35 @@ def handle_api_error(
         ServerError: For server errors (typically 5xx equivalent)
         RenderError: For unknown errors
     """
+    message: str | None = None
+    error_id: str | None = None
 
-    if not isinstance(response.parsed, Error):
-        pass
+    # Try to extract error info from parsed response
+    if isinstance(response.parsed, Error):
+        raw_message = getattr(response.parsed, "message", None)
+        if raw_message is not None and not isinstance(raw_message, Unset):
+            message = raw_message
+        raw_id = getattr(response.parsed, "id", None)
+        if raw_id is not None and not isinstance(raw_id, Unset):
+            error_id = raw_id
+    elif response.parsed is None and response.content:
+        # Parsed is None (e.g., 400 not handled) - try to extract from raw content
+        try:
+            import json
 
-    # Get error message, fallback to generic message if not available
-    message = getattr(response.parsed, "message", None)
-    if not message or message == "UNSET":
+            error_data = json.loads(response.content)
+            if isinstance(error_data, dict):
+                message = error_data.get("message")
+                error_id = error_data.get("id")
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            pass
+
+    # Fallback to generic message if not available
+    if not message:
         message = "Unknown error occurred"
 
-    # Get error ID for additional context if available
-    error_id = getattr(response.parsed, "id", None)
-    if error_id and error_id != "UNSET":
+    # Build full message with error ID if available
+    if error_id:
         full_message = f"{operation} failed: {message} (ID: {error_id})"
     else:
         full_message = f"{operation} failed: {message}"
