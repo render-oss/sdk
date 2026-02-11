@@ -53,9 +53,9 @@ describe("ObjectClient stream upload Content-Length", () => {
     lastReceivedBody = Buffer.alloc(0);
   });
 
-  function createMockApiClient(): Client<paths> {
+  function createMockApiClient(maxSizeBytes: number): Client<paths> {
     const putMock = vi.fn().mockResolvedValue({
-      data: { url: `${serverUrl}/upload` },
+      data: { url: `${serverUrl}/upload`, maxSizeBytes },
       error: null,
     });
     return { PUT: putMock } as unknown as Client<paths>;
@@ -66,7 +66,7 @@ describe("ObjectClient stream upload Content-Length", () => {
     const contentSize = Buffer.byteLength(content);
     const stream = Readable.from([content]);
 
-    const client = new ObjectClient(createMockApiClient());
+    const client = new ObjectClient(createMockApiClient(contentSize));
     await client.put({
       ownerId: "tea-test",
       region: "oregon",
@@ -85,7 +85,7 @@ describe("ObjectClient stream upload Content-Length", () => {
     const content = Buffer.from("hello world - buffer content");
     const contentSize = content.byteLength;
 
-    const client = new ObjectClient(createMockApiClient());
+    const client = new ObjectClient(createMockApiClient(contentSize));
     await client.put({
       ownerId: "tea-test",
       region: "oregon",
@@ -105,7 +105,7 @@ describe("ObjectClient stream upload Content-Length", () => {
     const contentSize = Buffer.byteLength(content);
     const stream = Readable.from([content]);
 
-    const client = new ObjectClient(createMockApiClient());
+    const client = new ObjectClient(createMockApiClient(contentSize));
     await client.put({
       ownerId: "tea-test",
       region: "oregon",
