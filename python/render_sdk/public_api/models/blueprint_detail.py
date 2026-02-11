@@ -26,6 +26,7 @@ class BlueprintDetail:
         auto_sync (bool): Automatically sync changes to render.yaml
         repo (str):
         branch (str):
+        path (str): Path to the Blueprint file in the repository Example: render.yaml.
         resources (list['ResourceRef']):
         last_sync (Union[Unset, datetime.datetime]):
     """
@@ -36,6 +37,7 @@ class BlueprintDetail:
     auto_sync: bool
     repo: str
     branch: str
+    path: str
     resources: list["ResourceRef"]
     last_sync: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -52,6 +54,8 @@ class BlueprintDetail:
         repo = self.repo
 
         branch = self.branch
+
+        path = self.path
 
         resources = []
         for resources_item_data in self.resources:
@@ -72,6 +76,7 @@ class BlueprintDetail:
                 "autoSync": auto_sync,
                 "repo": repo,
                 "branch": branch,
+                "path": path,
                 "resources": resources,
             }
         )
@@ -97,6 +102,8 @@ class BlueprintDetail:
 
         branch = d.pop("branch")
 
+        path = d.pop("path")
+
         resources = []
         _resources = d.pop("resources")
         for resources_item_data in _resources:
@@ -118,6 +125,7 @@ class BlueprintDetail:
             auto_sync=auto_sync,
             repo=repo,
             branch=branch,
+            path=path,
             resources=resources,
             last_sync=last_sync,
         )

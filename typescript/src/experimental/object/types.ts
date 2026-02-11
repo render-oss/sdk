@@ -167,6 +167,8 @@ export interface ObjectMetadata {
 export interface ListObjectsResponse {
   /** List of object metadata */
   objects: ObjectMetadata[];
+  /** Whether there are more results after this page */
+  hasNext: boolean;
   /** Cursor for next page, undefined if no more results */
   nextCursor?: string;
 }
