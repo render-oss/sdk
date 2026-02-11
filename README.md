@@ -14,11 +14,11 @@ Python     | [./python](./python/README.md)         | `render_sdk`
 
 With the following features
 
-Feature                | Python | TypeScript
------------------------|--------|-----------
-REST API               | ✔️     | ✔️
-Workflows (Alpha)      | ⚠️     | ⚠️
-Object Storage (Alpha) | ⚠️     | ⚠️
+Feature        | Python          | TypeScript
+---------------|-----------------|----------------
+REST API       | ✔️              | ✔️
+Workflows      | [⚠️ Early Access client](./python/render_sdk/client/workflows.py) | [⚠️ Early Access client](./typescript/src/workflows/client/client.ts)
+Object Storage | [⚠️ Early Access client](./python/render_sdk/experimental/object/client.py) | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts)
 
 # Quickstart
 
