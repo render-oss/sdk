@@ -5,12 +5,20 @@ The official SDK for Render
 > [!WARNING]
 > **Early Access:** This SDK is in early access and subject to breaking changes without notice.
 
-SDK support is provided for the following languages:
+SDK support is provided for the following languages
 
 Language   | README                                 | Package
 -----------|----------------------------------------|-----------------
 TypeScript | [./typescript](./typescript/README.md) | `@renderinc/sdk`
 Python     | [./python](./python/README.md)         | `render_sdk`
+
+With the following features
+
+Feature                | Python | TypeScript
+-----------------------|--------|-----------
+REST API               | ✔️     | ✔️
+Workflows (Alpha)      | ⚠️     | ⚠️
+Object Storage (Alpha) | ⚠️     | ⚠️
 
 # Quickstart
 
