@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
-import { RenderError } from "../../errors.js";
+import { ClientError, RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import type {
   DeleteObjectInput,
@@ -81,6 +81,14 @@ export class ObjectClient {
 
     if (error) {
       throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
+    }
+
+    // Validate size against server expectation
+    if (size !== data.maxSizeBytes) {
+      throw new ClientError(
+        `File size ${size} bytes does not match expected size of ${data.maxSizeBytes} bytes`,
+        400,
+      );
     }
 
     // Step 2: Upload to storage via presigned URL
@@ -311,8 +319,8 @@ export class ObjectClient {
       );
     }
 
-    if (input.size <= 0) {
-      throw new RenderError("Size must be a positive integer");
+    if (input.size < 0) {
+      throw new RenderError("Size must be a non-negative integer");
     }
 
     return input.size;
