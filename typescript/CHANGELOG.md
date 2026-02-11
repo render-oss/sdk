@@ -4,6 +4,16 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-02-11
+
+### Added
+- Added `list()` method to `ObjectClient` and `ScopedObjectClient` with cursor-based pagination
+- Added Bun runtime compatibility for object storage uploads
+
+### Fixed
+- Fixed `Content-Length` calculation in workflows UDS client for correct multi-byte UTF-8 handling
+- Improved validation of object file sizes
+
 ## [0.2.1] - 2026-01-29
 
 ### Changed
