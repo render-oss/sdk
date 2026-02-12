@@ -11,6 +11,13 @@ class ClientError(RenderError):
     pass
 
 
+class RateLimitError(ClientError):
+    """Exception for rate limit errors. This is returned when
+    the client makes a request to the API and the API returns a 429 error."""
+
+    pass
+
+
 class TimeoutError(RenderError):
     """Exception for timeout errors. This is returned when the
     client makes a request to the API and the request times out."""

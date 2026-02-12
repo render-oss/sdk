@@ -2,15 +2,24 @@
 
 import asyncio
 import base64
+import functools
 import json
+import logging
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
 import httpx
 
-from render_sdk.client.errors import RenderError, TaskRunError
+from render_sdk.client.errors import (
+    RateLimitError,
+    RenderError,
+    ServerError,
+    TaskRunError,
+    TimeoutError,
+)
 from render_sdk.client.util import handle_http_errors
 from render_sdk.version import get_user_agent
 from render_sdk.workflows.callback_api.api.default import (
@@ -37,6 +46,8 @@ from render_sdk.workflows.callback_api.models.subtask_result_response import (
     SubtaskResultResponse,
 )
 from render_sdk.workflows.callback_api.types import Response, Unset
+
+logger = logging.getLogger(__name__)
 
 
 class Status(Enum):
@@ -65,6 +76,47 @@ POLLING_INTERVAL = 1.0
 POLLING_TIMEOUT = 24 * 60 * 60  # 24 hours
 QUERY_TIMEOUT = 15  # 15 seconds
 
+# Total retry window is ~2 minutes (175.5 seconds)
+_UDS_MAX_RETRIES = 15
+_UDS_INITIAL_DELAY_S = 0.25
+_UDS_BACKOFF_FACTOR = 2.0
+_UDS_MAX_DELAY_S = 16.0
+
+
+def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
+    """Decorator that retries async functions on transient UDS errors.
+
+    Retries on ServerError (5xx, connection errors), TimeoutError,
+    and RateLimitError (429).
+    Does not retry on ClientError (4xx) or other exceptions.
+    """
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        last_error: Exception | None = None
+        for attempt in range(_UDS_MAX_RETRIES):
+            try:
+                return await func(*args, **kwargs)
+            except (ServerError, TimeoutError, RateLimitError) as e:
+                last_error = e
+                if attempt < _UDS_MAX_RETRIES - 1:
+                    delay = min(
+                        _UDS_INITIAL_DELAY_S * (_UDS_BACKOFF_FACTOR**attempt),
+                        _UDS_MAX_DELAY_S,
+                    )
+                    logger.warning(
+                        "Request to Render failed (%d/%d), retry in %.1fs: %s",
+                        attempt + 1,
+                        _UDS_MAX_RETRIES,
+                        delay,
+                        e,
+                    )
+                    await asyncio.sleep(delay)
+        if last_error is not None:
+            raise last_error
+
+    return wrapper
+
 
 class UDSClient:
     """Client for communicating with the SDK server over Unix Domain Socket."""
@@ -88,6 +140,7 @@ class UDSClient:
 
         return response
 
+    @_retry_transient_errors
     @handle_http_errors("get input")
     async def _get_input_api_call(self) -> Response[Any | InputResponse]:
         """Internal method to make the get input API call."""
@@ -121,6 +174,7 @@ class UDSClient:
         # Send using the generated API
         await self._post_callback_api_call(data)
 
+    @_retry_transient_errors
     @handle_http_errors("post callback")
     async def _post_callback_api_call(
         self, data: GeneratedCallbackRequest
@@ -175,6 +229,7 @@ class UDSClient:
             else:
                 raise RenderError(f"Unknown subtask status: {result.status}")
 
+    @_retry_transient_errors
     @handle_http_errors("run subtask")
     async def _run_subtask_api_call(
         self, body: RunSubtaskRequest
@@ -189,6 +244,7 @@ class UDSClient:
         """Register tasks with the server."""
         await self._register_tasks_api_call(tasks)
 
+    @_retry_transient_errors
     @handle_http_errors("register tasks")
     async def _register_tasks_api_call(self, tasks: Tasks) -> Response[Any]:
         """Internal method to make the register tasks API call."""
@@ -236,6 +292,7 @@ class UDSClient:
 
         raise RenderError("Unknown task status")
 
+    @_retry_transient_errors
     @handle_http_errors("get task result")
     async def _get_task_result_api_call(
         self, body: SubtaskResultRequest

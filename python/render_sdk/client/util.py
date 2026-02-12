@@ -6,7 +6,13 @@ from typing import Any, NoReturn
 
 import httpx
 
-from render_sdk.client.errors import ClientError, RenderError, ServerError, TimeoutError
+from render_sdk.client.errors import (
+    ClientError,
+    RateLimitError,
+    RenderError,
+    ServerError,
+    TimeoutError,
+)
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.types import Response, Unset
 
@@ -68,6 +74,8 @@ def handle_http_error(response: httpx.Response, operation: str) -> None:
             f"{base_message}: {error_message}" if error_message else base_message
         )
 
+        if response.status_code == 429:
+            raise RateLimitError(full_message)
         if 400 <= response.status_code < 500:
             raise ClientError(full_message)
         elif response.status_code >= 500:
@@ -126,6 +134,8 @@ def handle_storage_http_error(response: httpx.Response, operation: str) -> None:
             f"{operation} failed with status {response.status_code}: {message}"
         )
 
+        if response.status_code == 429:
+            raise RateLimitError(full_message)
         if 400 <= response.status_code < 500:
             raise ClientError(full_message)
         elif response.status_code >= 500:
@@ -205,6 +215,8 @@ def handle_api_error(
         full_message = f"{operation} failed: {message}"
 
     if response.status_code:
+        if response.status_code == 429:
+            raise RateLimitError(full_message)
         if response.status_code >= 400 and response.status_code < 500:
             raise ClientError(full_message)
         elif response.status_code >= 500:
