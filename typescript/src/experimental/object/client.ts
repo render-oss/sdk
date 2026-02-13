@@ -1,5 +1,6 @@
+import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
-import { RenderError } from "../../errors.js";
+import { ClientError, RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import type {
   DeleteObjectInput,
@@ -19,7 +20,7 @@ import type {
 } from "./types.js";
 
 /**
- * Layer 3: High-Level Object Client
+ * High-Level Object Client
  *
  * User-facing API that abstracts presigned URLs completely.
  * Provides simple put/get/delete operations that handle the
@@ -33,6 +34,10 @@ export class ObjectClient {
    *
    * @param input - Upload parameters including object identifier and data
    * @returns Result with optional ETag
+   *
+   * @remarks
+   * When running in Bun (`bun --bun`), stream inputs are buffered into memory before
+   * upload to work around a Bun fetch limitation with `Content-Length` headers.
    *
    * @example
    * ```typescript
@@ -63,7 +68,7 @@ export class ObjectClient {
     const size = this.resolveSize(input);
 
     // Step 1: Get presigned upload URL from Render API
-    const { data, error } = await this.apiClient.PUT("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -78,6 +83,14 @@ export class ObjectClient {
       throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
     }
 
+    // Validate size against server expectation
+    if (size !== data.maxSizeBytes) {
+      throw new ClientError(
+        `File size ${size} bytes does not match expected size of ${data.maxSizeBytes} bytes`,
+        400,
+      );
+    }
+
     // Step 2: Upload to storage via presigned URL
     const headers: Record<string, string> = {
       "Content-Length": size.toString(),
@@ -87,10 +100,23 @@ export class ObjectClient {
       headers["Content-Type"] = input.contentType;
     }
 
+    // Bun's fetch strips Content-Length headers for stream bodies, which
+    // breaks presigned URL uploads that require Content-Length to match.
+    // Only buffer on Bun; Node handles streams correctly.
+    // See: https://github.com/oven-sh/bun/issues/10507
+    let body: Buffer | Uint8Array | string = input.data as Buffer | Uint8Array | string;
+    if (process.versions.bun && input.data instanceof Readable) {
+      const chunks: Buffer[] = [];
+      for await (const chunk of input.data) {
+        chunks.push(Buffer.from(chunk));
+      }
+      body = Buffer.concat(chunks);
+    }
+
     const response = await fetch(data.url, {
       method: "PUT",
       headers,
-      body: input.data,
+      body,
       duplex: "half",
     });
 
@@ -124,7 +150,7 @@ export class ObjectClient {
    */
   async get(input: GetObjectInput): Promise<ObjectData> {
     // Step 1: Get presigned download URL from Render API
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -171,7 +197,7 @@ export class ObjectClient {
    */
   async delete(input: DeleteObjectInput): Promise<void> {
     // DELETE goes directly to Render API (no presigned URL)
-    const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
+    const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -215,7 +241,7 @@ export class ObjectClient {
    * ```
    */
   async list(input: ListObjectsInput): Promise<ListObjectsResponse> {
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: {
           ownerId: input.ownerId,
@@ -232,17 +258,13 @@ export class ObjectClient {
       throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
     }
 
-    const objects: ObjectMetadata[] = data.map((item) => ({
-      key: item.blob.key,
-      size: item.blob.sizeBytes,
-      lastModified: new Date(item.blob.lastModified),
-      contentType: item.blob.contentType,
+    const objects: ObjectMetadata[] = data.items.map((item) => ({
+      key: item.object.key,
+      size: item.object.sizeBytes,
+      lastModified: new Date(item.object.lastModified),
     }));
 
-    // The cursor for the next page is the cursor of the last item
-    const nextCursor = data.length > 0 ? data[data.length - 1].cursor : undefined;
-
-    return { objects, nextCursor };
+    return { objects, hasNext: data.hasNext, nextCursor: data.nextCursor };
   }
 
   /**
@@ -294,8 +316,8 @@ export class ObjectClient {
       );
     }
 
-    if (input.size <= 0) {
-      throw new RenderError("Size must be a positive integer");
+    if (input.size < 0) {
+      throw new RenderError("Size must be a non-negative integer");
     }
 
     return input.size;

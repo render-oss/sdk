@@ -10,7 +10,7 @@ import type {
 } from "./types.js";
 
 /**
- * Layer 2: Typed Object API Client
+ * Typed Object API Client
  *
  * Provides idiomatic TypeScript wrapper around the raw OpenAPI client.
  * Handles presigned URL flow but still exposes the two-step nature
@@ -35,7 +35,7 @@ export class ObjectApi {
     key: string,
     sizeBytes: number,
   ): Promise<PresignedUploadUrl> {
-    const { data, error } = await this.apiClient.PUT("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
       params: { path: { ownerId, region: region as Region, key } },
       body: { sizeBytes },
     });
@@ -64,7 +64,7 @@ export class ObjectApi {
     region: Region | string,
     key: string,
   ): Promise<PresignedDownloadUrl> {
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}/{key}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
       params: { path: { ownerId, region: region as Region, key } },
     });
 
@@ -86,7 +86,7 @@ export class ObjectApi {
    * @param key - Object key (path)
    */
   async delete(ownerId: string, region: Region | string, key: string): Promise<void> {
-    const { error } = await this.apiClient.DELETE("/blobs/{ownerId}/{region}/{key}", {
+    const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: { path: { ownerId, region: region as Region, key } },
     });
 
@@ -110,7 +110,7 @@ export class ObjectApi {
     cursor?: string,
     limit?: number,
   ): Promise<ListObjectsResponse> {
-    const { data, error } = await this.apiClient.GET("/blobs/{ownerId}/{region}", {
+    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: { ownerId, region: region as Region },
         query: { cursor, limit },
@@ -121,15 +121,12 @@ export class ObjectApi {
       throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
     }
 
-    const objects: ObjectMetadata[] = data.map((item) => ({
-      key: item.blob.key,
-      size: item.blob.sizeBytes,
-      lastModified: new Date(item.blob.lastModified),
-      contentType: item.blob.contentType,
+    const objects: ObjectMetadata[] = data.items.map((item) => ({
+      key: item.object.key,
+      size: item.object.sizeBytes,
+      lastModified: new Date(item.object.lastModified),
     }));
 
-    const nextCursor = data.length > 0 ? data[data.length - 1].cursor : undefined;
-
-    return { objects, nextCursor };
+    return { objects, hasNext: data.hasNext, nextCursor: data.nextCursor };
   }
 }

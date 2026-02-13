@@ -61,9 +61,9 @@ func (w *WorkflowsService) GetTaskRun(taskRunID string) (*TaskRunDetails, error)
 }
 
 // CancelTaskRun cancels a running task
-// DELETE /tasks-runs/{taskRunId}
+// POST /task-runs/{taskRunId}/cancel
 func (w *WorkflowsService) CancelTaskRun(taskRunID string) error {
-	resp, err := w.client.internal.DeleteTaskRunWithResponse(context.Background(), taskRunID)
+	resp, err := w.client.internal.CancelTaskRunWithResponse(context.Background(), taskRunID)
 	if err != nil {
 		return fmt.Errorf("failed to make cancel task run request: %w", err)
 	}

@@ -81,10 +81,14 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete environment
 
-     Delete the environment with the provided ID, along with all resources that belong to it.
+     Delete the environment with the provided ID.
 
-    **This operation is irreversible.** All services and other resources belonging to the environment
-    will be deleted.
+    Requires the environment to be empty (i.e., it must contain no services or other resources).
+    Otherwise, deletion fails with a `409` response.
+
+    To delete a non-empty environment, do one of the following:
+    - First move or delete all contained services and other resources.
+    - Delete the environment in the [Render Dashboard](https://dashboard.render.com).
 
     Args:
         environment_id (str):
@@ -115,10 +119,14 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete environment
 
-     Delete the environment with the provided ID, along with all resources that belong to it.
+     Delete the environment with the provided ID.
 
-    **This operation is irreversible.** All services and other resources belonging to the environment
-    will be deleted.
+    Requires the environment to be empty (i.e., it must contain no services or other resources).
+    Otherwise, deletion fails with a `409` response.
+
+    To delete a non-empty environment, do one of the following:
+    - First move or delete all contained services and other resources.
+    - Delete the environment in the [Render Dashboard](https://dashboard.render.com).
 
     Args:
         environment_id (str):
@@ -144,10 +152,14 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete environment
 
-     Delete the environment with the provided ID, along with all resources that belong to it.
+     Delete the environment with the provided ID.
 
-    **This operation is irreversible.** All services and other resources belonging to the environment
-    will be deleted.
+    Requires the environment to be empty (i.e., it must contain no services or other resources).
+    Otherwise, deletion fails with a `409` response.
+
+    To delete a non-empty environment, do one of the following:
+    - First move or delete all contained services and other resources.
+    - Delete the environment in the [Render Dashboard](https://dashboard.render.com).
 
     Args:
         environment_id (str):
@@ -176,10 +188,14 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete environment
 
-     Delete the environment with the provided ID, along with all resources that belong to it.
+     Delete the environment with the provided ID.
 
-    **This operation is irreversible.** All services and other resources belonging to the environment
-    will be deleted.
+    Requires the environment to be empty (i.e., it must contain no services or other resources).
+    Otherwise, deletion fails with a `409` response.
+
+    To delete a non-empty environment, do one of the following:
+    - First move or delete all contained services and other resources.
+    - Delete the environment in the [Render Dashboard](https://dashboard.render.com).
 
     Args:
         environment_id (str):

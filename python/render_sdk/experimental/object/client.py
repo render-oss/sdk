@@ -3,12 +3,13 @@
 Provides simple put/get/delete operations for object storage.
 """
 
-from typing import TYPE_CHECKING, BinaryIO
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING, BinaryIO, cast
 
 import httpx
 
-from render_sdk.client.errors import RenderError
-from render_sdk.client.util import handle_http_error
+from render_sdk.client.errors import ClientError, RenderError
+from render_sdk.client.util import handle_httpx_exception, handle_storage_http_error
 from render_sdk.experimental.object.api import ObjectApi
 from render_sdk.experimental.object.types import (
     ListObjectsResponse,
@@ -20,6 +21,18 @@ from render_sdk.public_api.models.region import Region
 
 if TYPE_CHECKING:
     from render_sdk.public_api.client import AuthenticatedClient
+
+
+FILE_UPLOAD_CHUNK_SIZE_BYTES = 64 * 1024  # 64 KiB
+
+
+async def _file_to_async_iterable(file_obj: BinaryIO) -> AsyncIterator[bytes]:
+    """Convert a sync file object to an async byte iterator."""
+    while True:
+        chunk = file_obj.read(FILE_UPLOAD_CHUNK_SIZE_BYTES)
+        if not chunk:
+            break
+        yield chunk
 
 
 class ObjectClient:
@@ -38,7 +51,7 @@ class ObjectClient:
         owner_id: OwnerID,
         region: Region | str,
         key: str,
-        data: bytes | BinaryIO,
+        data: bytes | BinaryIO | AsyncIterator[bytes],
         size: int | None = None,
         content_type: str | None = None,
     ) -> PutObjectResult:
@@ -48,7 +61,7 @@ class ObjectClient:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
             key: Object key (path) for the object
-            data: Binary data as bytes or a file-like stream
+            data: Binary data as bytes, a file-like stream, or an async byte iterator
             size: Size in bytes (optional for bytes, required for streams)
             content_type: MIME type of the content (optional)
 
@@ -88,16 +101,20 @@ class ObjectClient:
         # Resolve and validate size
         resolved_size = self._resolve_size(data, size)
 
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # Step 1: Get presigned upload URL from Render API
         presigned = await self.api.get_upload_url(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
             size_bytes=resolved_size,
         )
+
+        # Validate size against server expectation
+        if resolved_size != presigned.max_size_bytes:
+            raise ClientError(
+                f"File size {resolved_size} bytes does not match expected "
+                f"size of {presigned.max_size_bytes} bytes"
+            )
 
         # Step 2: Upload to storage via presigned URL
         headers = {
@@ -107,18 +124,31 @@ class ObjectClient:
         if content_type:
             headers["Content-Type"] = content_type
 
-        async with httpx.AsyncClient() as http_client:
-            response = await http_client.put(
-                presigned.url,
-                headers=headers,
-                content=data,
-            )
+        if isinstance(data, bytes):
+            content: bytes | AsyncIterator[bytes] = data
+        elif hasattr(data, "read"):
+            content = _file_to_async_iterable(cast(BinaryIO, data))
+        else:
+            content = data
 
-            handle_http_error(response, "upload object")
+        try:
+            # Keep default connect/pool timeouts but disable read/write timeouts
+            default_timeout_seconds = 5.0
+            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                response = await http_client.put(
+                    presigned.url,
+                    headers=headers,
+                    content=content,
+                )
 
-            return PutObjectResult(
-                etag=response.headers.get("ETag"),
-            )
+                handle_storage_http_error(response, "upload object")
+
+                return PutObjectResult(
+                    etag=response.headers.get("ETag"),
+                )
+        except httpx.RequestError as e:
+            handle_httpx_exception(e, "upload object")
 
     async def get(
         self, *, owner_id: OwnerID, region: Region | str, key: str
@@ -151,29 +181,32 @@ class ObjectClient:
             # obj.data is bytes
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # Step 1: Get presigned download URL from Render API
         presigned = await self.api.get_download_url(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
         )
 
         # Step 2: Download from storage via presigned URL
-        async with httpx.AsyncClient() as http_client:
-            response = await http_client.get(presigned.url)
+        try:
+            # Keep default connect/pool timeouts but disable read/write timeouts
+            default_timeout_seconds = 5.0
+            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx.AsyncClient(timeout=timeout) as http_client:
+                response = await http_client.get(presigned.url)
 
-            handle_http_error(response, "download object")
+                handle_storage_http_error(response, "download object")
 
-            data = response.content
+                data = response.content
 
-            return ObjectData(
-                data=data,
-                size=len(data),
-                content_type=response.headers.get("Content-Type"),
-            )
+                return ObjectData(
+                    data=data,
+                    size=len(data),
+                    content_type=response.headers.get("Content-Type"),
+                )
+        except httpx.RequestError as e:
+            handle_httpx_exception(e, "download object")
 
     async def delete(
         self, *, owner_id: OwnerID, region: Region | str, key: str
@@ -199,13 +232,10 @@ class ObjectClient:
             )
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         # DELETE goes directly to Render API (no presigned URL)
         await self.api.delete(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             key=key,
         )
 
@@ -253,12 +283,9 @@ class ObjectClient:
                 )
             ```
         """
-        # Convert region to Region enum if it's a string
-        region_enum = Region(region) if isinstance(region, str) else region
-
         return await self.api.list_objects(
             owner_id=owner_id,
-            region=region_enum,
+            region=region,
             cursor=cursor,
             limit=limit,
         )
@@ -291,14 +318,16 @@ class ObjectClient:
         """
         return ScopedObjectClient(self, owner_id, region)
 
-    def _resolve_size(self, data: bytes | BinaryIO, size: int | None) -> int:
+    def _resolve_size(
+        self, data: bytes | BinaryIO | AsyncIterator[bytes], size: int | None
+    ) -> int:
         """Resolve and validate the size for a put operation.
 
         - For bytes: auto-calculate size, validate if provided
         - For streams: require explicit size
 
         Args:
-            data: Binary data (bytes or stream)
+            data: Binary data (bytes, stream, or async byte iterator)
             size: Optional size in bytes
 
         Returns:
@@ -322,8 +351,8 @@ class ObjectClient:
             # Require explicit size for streams
             if size is None:
                 raise RenderError("size is required for stream uploads")
-            if size <= 0:
-                raise RenderError("size must be a positive integer")
+            if size < 0:
+                raise RenderError("size must be a non-negative integer")
 
             return size
 

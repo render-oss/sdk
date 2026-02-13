@@ -15,16 +15,20 @@ class BlueprintPATCH:
     Attributes:
         name (Union[Unset, str]):
         auto_sync (Union[Unset, bool]): Automatically sync changes to render.yaml
+        path (Union[Unset, str]): Path to the Blueprint file in the repository Example: render.yaml.
     """
 
     name: Union[Unset, str] = UNSET
     auto_sync: Union[Unset, bool] = UNSET
+    path: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         name = self.name
 
         auto_sync = self.auto_sync
+
+        path = self.path
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -33,6 +37,8 @@ class BlueprintPATCH:
             field_dict["name"] = name
         if auto_sync is not UNSET:
             field_dict["autoSync"] = auto_sync
+        if path is not UNSET:
+            field_dict["path"] = path
 
         return field_dict
 
@@ -43,9 +49,12 @@ class BlueprintPATCH:
 
         auto_sync = d.pop("autoSync", UNSET)
 
+        path = d.pop("path", UNSET)
+
         blueprint_patch = cls(
             name=name,
             auto_sync=auto_sync,
+            path=path,
         )
 
         blueprint_patch.additional_properties = d

@@ -6,23 +6,21 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
-T = TypeVar("T", bound="PutBlobOutput")
+T = TypeVar("T", bound="GetObjectOutput")
 
 
 @_attrs_define
-class PutBlobOutput:
+class GetObjectOutput:
     """
     Attributes:
-        url (str): Presigned URL for uploading the blob Example: https://example-bucket.s3.amazonaws.com/presigned-put-
-            url.
+        url (str): Presigned URL for downloading the object Example: https://example-bucket.s3.amazonaws.com/presigned-
+            get-url.
         expires_at (datetime.datetime): The time at which the presigned URL expires (ISO 8601 format) Example:
             2024-01-15T12:30:00Z.
-        max_size_bytes (int): The maximum size of the blob in bytes Example: 1048576.
     """
 
     url: str
     expires_at: datetime.datetime
-    max_size_bytes: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -30,15 +28,12 @@ class PutBlobOutput:
 
         expires_at = self.expires_at.isoformat()
 
-        max_size_bytes = self.max_size_bytes
-
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "url": url,
                 "expiresAt": expires_at,
-                "maxSizeBytes": max_size_bytes,
             }
         )
 
@@ -51,16 +46,13 @@ class PutBlobOutput:
 
         expires_at = isoparse(d.pop("expiresAt"))
 
-        max_size_bytes = d.pop("maxSizeBytes")
-
-        put_blob_output = cls(
+        get_object_output = cls(
             url=url,
             expires_at=expires_at,
-            max_size_bytes=max_size_bytes,
         )
 
-        put_blob_output.additional_properties = d
-        return put_blob_output
+        get_object_output.additional_properties = d
+        return get_object_output
 
     @property
     def additional_keys(self) -> list[str]:

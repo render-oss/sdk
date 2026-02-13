@@ -703,6 +703,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/services/{serviceId}/ephemeral-shell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the service */
+                serviceId: components["parameters"]["serviceIdParam"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an ephemeral shell instance
+         * @description Create an ephemeral instance of your service. You can ssh into it, but it won't receive traffic.
+         */
+        post: operations["create-ephemeral-shell"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/services/{serviceId}/env-vars": {
         parameters: {
             query?: never;
@@ -2176,6 +2199,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/metrics/task-runs-queued": {
+        parameters: {
+            query?: {
+                /** @description Epoch/Unix timestamp of start of time range to return. Defaults to `now() - 1 hour`. */
+                startTime?: components["parameters"]["startTimeParam"];
+                /** @description Epoch/Unix timestamp of end of time range to return. Defaults to `now()`. */
+                endTime?: components["parameters"]["endTimeParam"];
+                /** @description The resolution of the returned data */
+                resolutionSeconds?: components["parameters"]["resolutionParam"];
+                /** @description Task ID to query. When multiple task IDs are provided, they are ORed together */
+                resource?: components["parameters"]["taskResourceQueryParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get task runs queued count
+         * @description Get the total number of task runs queued for one or more tasks.
+         */
+        get: operations["get-task-runs-queued"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/metrics/task-runs-completed": {
+        parameters: {
+            query?: {
+                /** @description Epoch/Unix timestamp of start of time range to return. Defaults to `now() - 1 hour`. */
+                startTime?: components["parameters"]["startTimeParam"];
+                /** @description Epoch/Unix timestamp of end of time range to return. Defaults to `now()`. */
+                endTime?: components["parameters"]["endTimeParam"];
+                /** @description The resolution of the returned data */
+                resolutionSeconds?: components["parameters"]["resolutionParam"];
+                /** @description Task ID to query. When multiple task IDs are provided, they are ORed together */
+                resource?: components["parameters"]["taskResourceQueryParam"];
+                /** @description The state of task runs to filter to. When multiple state query params are provided, they are ORed together */
+                state?: components["parameters"]["taskStateQueryParam"];
+                /** @description The field to aggregate by */
+                aggregateBy?: components["parameters"]["taskAggregateBy"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get task runs completed count
+         * @description Get the total number of task runs completed for one or more tasks. Optionally filter by state (succeeded/failed) or aggregate by state.
+         */
+        get: operations["get-task-runs-completed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/key-value": {
         parameters: {
             query?: never;
@@ -2672,9 +2757,13 @@ export interface paths {
         post?: never;
         /**
          * Delete project
-         * @description Delete the project with the provided ID, along with all environments and services in that project.
+         * @description Delete the project with the provided ID.
          *
-         *     **This operation is irreversible.** All services and other resources belonging to the project will be deleted.
+         *     Requires _all_ of the project's environments to be empty (i.e., they must contain no services or other resources). Otherwise, deletion fails with a `409` response.
+         *
+         *     To delete a non-empty project, do one of the following:
+         *     - First move or delete all contained services and other resources.
+         *     - Delete the project in the [Render Dashboard](https://dashboard.render.com).
          */
         delete: operations["delete-project"];
         options?: never;
@@ -2728,9 +2817,13 @@ export interface paths {
         post?: never;
         /**
          * Delete environment
-         * @description Delete the environment with the provided ID, along with all resources that belong to it.
+         * @description Delete the environment with the provided ID.
          *
-         *     **This operation is irreversible.** All services and other resources belonging to the environment will be deleted.
+         *     Requires the environment to be empty (i.e., it must contain no services or other resources). Otherwise, deletion fails with a `409` response.
+         *
+         *     To delete a non-empty environment, do one of the following:
+         *     - First move or delete all contained services and other resources.
+         *     - Delete the environment in the [Render Dashboard](https://dashboard.render.com).
          */
         delete: operations["delete-environment"];
         options?: never;
@@ -3284,7 +3377,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/blobs/{ownerId}/{region}": {
+    "/objects/{ownerId}/{region}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3297,10 +3390,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List blobs
-         * @description List blobs in the specified region for a workspace.
+         * List objects
+         * @description List objects in the specified region for a workspace.
          */
-        get: operations["list-blobs"];
+        get: operations["list-objects"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3309,7 +3402,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/blobs/{ownerId}/{region}/{key}": {
+    "/objects/{ownerId}/{region}/{key}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3318,29 +3411,29 @@ export interface paths {
                 ownerId: components["parameters"]["ownerIdPathParam"];
                 /** @description The region to return resources for */
                 region: components["parameters"]["regionPathParam"];
-                /** @description The key (path) of the blob */
-                key: components["parameters"]["blobKeyPathParam"];
+                /** @description The key (path) of the object */
+                key: components["parameters"]["objectKeyPathParam"];
             };
             cookie?: never;
         };
         /**
-         * Get presigned URL to download a blob
-         * @description Returns a presigned URL for downloading the blob at the specified key.
-         *     The blob must begin being downloaded within the URL's expiration time.
+         * Get presigned URL to download an object
+         * @description Returns a presigned URL for downloading the object at the specified key.
+         *     The object must begin being downloaded within the URL's expiration time.
          */
-        get: operations["get-blob"];
+        get: operations["get-object"];
         /**
-         * Get presigned URL to upload a blob
-         * @description Returns a presigned URL for uploading a blob to the specified key.
-         *     The blob must begin being uploaded within the URL's expiration time.
+         * Get presigned URL to upload an object
+         * @description Returns a presigned URL for uploading an object to the specified key.
+         *     The object must begin being uploaded within the URL's expiration time.
          */
-        put: operations["put-blob"];
+        put: operations["put-object"];
         post?: never;
         /**
-         * Delete a blob
-         * @description Deletes the blob at the specified key. This operation is irreversible.
+         * Delete an object
+         * @description Deletes the object at the specified key. This operation is irreversible.
          */
-        delete: operations["delete-blob"];
+        delete: operations["delete-object"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4658,6 +4751,11 @@ export interface components {
         status: "created" | "paused" | "in_sync" | "syncing" | "error";
         /** @description Automatically sync changes to render.yaml */
         autoSync: boolean;
+        /**
+         * @description Path to the Blueprint file in the repository
+         * @example render.yaml
+         */
+        blueprintPath: string;
         blueprint: {
             id: components["schemas"]["blueprintId"];
             name: string;
@@ -4665,6 +4763,7 @@ export interface components {
             autoSync: components["schemas"]["autoSync"];
             repo: string;
             branch: string;
+            path: components["schemas"]["blueprintPath"];
             /** Format: date-time */
             lastSync?: string;
         };
@@ -4726,6 +4825,7 @@ export interface components {
             autoSync: components["schemas"]["autoSync"];
             repo: string;
             branch: string;
+            path: components["schemas"]["blueprintPath"];
             /** Format: date-time */
             lastSync?: string;
             resources: components["schemas"]["resourceRef"][];
@@ -4733,6 +4833,7 @@ export interface components {
         blueprintPATCH: {
             name?: string;
             autoSync?: components["schemas"]["autoSync"];
+            path?: components["schemas"]["blueprintPath"];
         };
         /** @example exe-cph1rs3idesc73a2b2mg */
         syncId: string;
@@ -5289,7 +5390,7 @@ export interface components {
          * @description Provider to send metrics to
          * @enum {string}
          */
-        otelProviderType: "BETTER_STACK" | "GRAFANA" | "DATADOG" | "NEW_RELIC" | "HONEYCOMB" | "SIGNOZ" | "GROUNDSOURCE" | "CUSTOM";
+        otelProviderType: "BETTER_STACK" | "GRAFANA" | "DATADOG" | "NEW_RELIC" | "HONEYCOMB" | "SIGNOZ" | "GROUNDCOVER" | "CUSTOM";
         metricsStream: {
             /** @description The ID of the owner */
             ownerId: string;
@@ -5538,7 +5639,7 @@ export interface components {
             workflowVersionId?: string;
         };
         /** @enum {string} */
-        TaskRunStatus: "pending" | "running" | "completed" | "failed" | "canceled";
+        TaskRunStatus: "pending" | "running" | "completed" | "failed" | "canceled" | "paused";
         TaskAttempt: {
             status: components["schemas"]["TaskRunStatus"];
             /** Format: date-time */
@@ -5600,38 +5701,40 @@ export interface components {
             retries: number;
             attempts: components["schemas"]["TaskAttemptDetails"][];
         };
-        blobMetadata: {
+        objectMetadata: {
             /**
-             * @description The blob's object key
+             * @description The object's key
              * @example workflow-data/task-output.json
              */
             key: string;
             /**
              * Format: int64
-             * @description Size of the blob in bytes
+             * @description Size of the object in bytes
              * @example 1048576
              */
             sizeBytes: number;
             /**
              * Format: date-time
-             * @description When the blob was last modified (ISO 8601)
+             * @description When the object was last modified (ISO 8601)
              * @example 2026-01-15T12:30:00Z
              */
             lastModified: string;
-            /**
-             * @description MIME type of the blob
-             * @example application/json
-             */
-            contentType: string;
         };
-        blobWithCursor: {
+        objectWithCursor: {
             cursor: string;
-            blob: components["schemas"]["blobMetadata"];
+            object: components["schemas"]["objectMetadata"];
         };
-        getBlobOutput: {
+        listObjectsResponse: {
+            items: components["schemas"]["objectWithCursor"][];
+            /** @description Cursor to fetch the next page. Only present when hasNext is true. */
+            nextCursor?: string;
+            /** @description Whether there are more results after this page. */
+            hasNext: boolean;
+        };
+        getObjectOutput: {
             /**
              * Format: uri
-             * @description Presigned URL for downloading the blob
+             * @description Presigned URL for downloading the object
              * @example https://example-bucket.s3.amazonaws.com/presigned-get-url
              */
             url: string;
@@ -5642,18 +5745,18 @@ export interface components {
              */
             expiresAt: string;
         };
-        putBlobInput: {
+        putObjectInput: {
             /**
              * Format: int64
-             * @description The size of the blob in bytes.
+             * @description The size of the object in bytes.
              * @example 1048576
              */
             sizeBytes: number;
         };
-        putBlobOutput: {
+        putObjectOutput: {
             /**
              * Format: uri
-             * @description Presigned URL for uploading the blob
+             * @description Presigned URL for uploading the object
              * @example https://example-bucket.s3.amazonaws.com/presigned-put-url
              */
             url: string;
@@ -5665,7 +5768,7 @@ export interface components {
             expiresAt: string;
             /**
              * Format: int64
-             * @description The maximum size of the blob in bytes
+             * @description The maximum size of the object in bytes
              * @example 1048576
              */
             maxSizeBytes: number;
@@ -6037,6 +6140,12 @@ export interface components {
         postgresResourceQueryParam: string;
         /** @description The status codes of HTTP requests to filter to. When multiple status code query params are provided, they are ORed together */
         httpStatusCode: string;
+        /** @description Task ID to query. When multiple task IDs are provided, they are ORed together */
+        taskResourceQueryParam: string;
+        /** @description The state of task runs to filter to. When multiple state query params are provided, they are ORed together */
+        taskStateQueryParam: "succeeded" | "failed";
+        /** @description The field to aggregate by */
+        taskAggregateBy: "state";
         maintenanceResourcesParam: components["schemas"]["maintenanceResourceId"][];
         maintenanceStateParam: components["schemas"]["maintenanceState"][];
         maintenanceRunParam: components["schemas"]["maintenanceRunId"];
@@ -6075,8 +6184,8 @@ export interface components {
         RootTaskRunIDFilterParam: string[];
         /** @description The ID of the task run */
         TaskRunIDParam: string;
-        /** @description The key (path) of the blob */
-        blobKeyPathParam: string;
+        /** @description The key (path) of the object */
+        objectKeyPathParam: string;
     };
     requestBodies: never;
     headers: never;
@@ -7652,6 +7761,34 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["deploy"];
                 };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-ephemeral-shell": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the service */
+                serviceId: components["parameters"]["serviceIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
@@ -10144,6 +10281,56 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: components["responses"]["MetricsFiltersPath200Response"];
+            400: components["responses"]["400BadRequest"];
+            500: components["responses"]["500InternalServerError"];
+        };
+    };
+    "get-task-runs-queued": {
+        parameters: {
+            query?: {
+                /** @description Epoch/Unix timestamp of start of time range to return. Defaults to `now() - 1 hour`. */
+                startTime?: components["parameters"]["startTimeParam"];
+                /** @description Epoch/Unix timestamp of end of time range to return. Defaults to `now()`. */
+                endTime?: components["parameters"]["endTimeParam"];
+                /** @description The resolution of the returned data */
+                resolutionSeconds?: components["parameters"]["resolutionParam"];
+                /** @description Task ID to query. When multiple task IDs are provided, they are ORed together */
+                resource?: components["parameters"]["taskResourceQueryParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Metrics200Response"];
+            400: components["responses"]["400BadRequest"];
+            500: components["responses"]["500InternalServerError"];
+        };
+    };
+    "get-task-runs-completed": {
+        parameters: {
+            query?: {
+                /** @description Epoch/Unix timestamp of start of time range to return. Defaults to `now() - 1 hour`. */
+                startTime?: components["parameters"]["startTimeParam"];
+                /** @description Epoch/Unix timestamp of end of time range to return. Defaults to `now()`. */
+                endTime?: components["parameters"]["endTimeParam"];
+                /** @description The resolution of the returned data */
+                resolutionSeconds?: components["parameters"]["resolutionParam"];
+                /** @description Task ID to query. When multiple task IDs are provided, they are ORed together */
+                resource?: components["parameters"]["taskResourceQueryParam"];
+                /** @description The state of task runs to filter to. When multiple state query params are provided, they are ORed together */
+                state?: components["parameters"]["taskStateQueryParam"];
+                /** @description The field to aggregate by */
+                aggregateBy?: components["parameters"]["taskAggregateBy"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Metrics200Response"];
             400: components["responses"]["400BadRequest"];
             500: components["responses"]["500InternalServerError"];
         };
@@ -12791,7 +12978,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "list-blobs": {
+    "list-objects": {
         parameters: {
             query?: {
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -12816,7 +13003,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["blobWithCursor"][];
+                    "application/json": components["schemas"]["listObjectsResponse"];
                 };
             };
             401: components["responses"]["401Unauthorized"];
@@ -12827,7 +13014,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "get-blob": {
+    "get-object": {
         parameters: {
             query?: never;
             header?: never;
@@ -12836,8 +13023,8 @@ export interface operations {
                 ownerId: components["parameters"]["ownerIdPathParam"];
                 /** @description The region to return resources for */
                 region: components["parameters"]["regionPathParam"];
-                /** @description The key (path) of the blob */
-                key: components["parameters"]["blobKeyPathParam"];
+                /** @description The key (path) of the object */
+                key: components["parameters"]["objectKeyPathParam"];
             };
             cookie?: never;
         };
@@ -12849,7 +13036,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["getBlobOutput"];
+                    "application/json": components["schemas"]["getObjectOutput"];
                 };
             };
             401: components["responses"]["401Unauthorized"];
@@ -12860,7 +13047,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "put-blob": {
+    "put-object": {
         parameters: {
             query?: never;
             header?: never;
@@ -12869,8 +13056,8 @@ export interface operations {
                 ownerId: components["parameters"]["ownerIdPathParam"];
                 /** @description The region to return resources for */
                 region: components["parameters"]["regionPathParam"];
-                /** @description The key (path) of the blob */
-                key: components["parameters"]["blobKeyPathParam"];
+                /** @description The key (path) of the object */
+                key: components["parameters"]["objectKeyPathParam"];
             };
             cookie?: never;
         };
@@ -12881,7 +13068,7 @@ export interface operations {
                  *       "sizeBytes": 1048576
                  *     }
                  */
-                "application/json": components["schemas"]["putBlobInput"];
+                "application/json": components["schemas"]["putObjectInput"];
             };
         };
         responses: {
@@ -12891,7 +13078,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["putBlobOutput"];
+                    "application/json": components["schemas"]["putObjectOutput"];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -12903,7 +13090,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "delete-blob": {
+    "delete-object": {
         parameters: {
             query?: never;
             header?: never;
@@ -12912,14 +13099,14 @@ export interface operations {
                 ownerId: components["parameters"]["ownerIdPathParam"];
                 /** @description The region to return resources for */
                 region: components["parameters"]["regionPathParam"];
-                /** @description The key (path) of the blob */
-                key: components["parameters"]["blobKeyPathParam"];
+                /** @description The key (path) of the object */
+                key: components["parameters"]["objectKeyPathParam"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No Content - Blob successfully deleted */
+            /** @description No Content - Object successfully deleted */
             204: {
                 headers: {
                     [name: string]: unknown;
