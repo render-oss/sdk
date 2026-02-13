@@ -1,31 +1,46 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
+from ...models.put_object_input import PutObjectInput
+from ...models.put_object_output import PutObjectOutput
+from ...models.region import Region
 from ...types import Response
 
 
 def _get_kwargs(
-    project_id: str,
+    owner_id: str,
+    region: Region,
+    key: str,
+    *,
+    body: PutObjectInput,
 ) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
+
     _kwargs: dict[str, Any] = {
-        "method": "delete",
-        "url": f"/projects/{project_id}",
+        "method": "put",
+        "url": f"/objects/{owner_id}/{region}/{key}",
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, Error]]:
-    if response.status_code == 204:
-        response_204 = cast(Any, None)
-        return response_204
+) -> Optional[Union[Error, PutObjectOutput]]:
+    if response.status_code == 200:
+        response_200 = PutObjectOutput.from_dict(response.json())
+
+        return response_200
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -36,6 +51,11 @@ def _parse_response(
         response_401 = Error.from_dict(response.json())
 
         return response_401
+
+    if response.status_code == 403:
+        response_403 = Error.from_dict(response.json())
+
+        return response_403
 
     if response.status_code == 404:
         response_404 = Error.from_dict(response.json())
@@ -65,7 +85,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, Error]]:
+) -> Response[Union[Error, PutObjectOutput]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -75,34 +95,37 @@ def _build_response(
 
 
 def sync_detailed(
-    project_id: str,
+    owner_id: str,
+    region: Region,
+    key: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Any, Error]]:
-    """Delete project
+    body: PutObjectInput,
+) -> Response[Union[Error, PutObjectOutput]]:
+    """Get presigned URL to upload an object
 
-     Delete the project with the provided ID.
-
-    Requires _all_ of the project's environments to be empty (i.e., they must contain no services or
-    other resources). Otherwise, deletion fails with a `409` response.
-
-    To delete a non-empty project, do one of the following:
-    - First move or delete all contained services and other resources.
-    - Delete the project in the [Render Dashboard](https://dashboard.render.com).
+     Returns a presigned URL for uploading an object to the specified key.
+    The object must begin being uploaded within the URL's expiration time.
 
     Args:
-        project_id (str):
+        owner_id (str):
+        region (Region): Defaults to "oregon"
+        key (str):
+        body (PutObjectInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, PutObjectOutput]]
     """
 
     kwargs = _get_kwargs(
-        project_id=project_id,
+        owner_id=owner_id,
+        region=region,
+        key=key,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -113,67 +136,73 @@ def sync_detailed(
 
 
 def sync(
-    project_id: str,
+    owner_id: str,
+    region: Region,
+    key: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Any, Error]]:
-    """Delete project
+    body: PutObjectInput,
+) -> Optional[Union[Error, PutObjectOutput]]:
+    """Get presigned URL to upload an object
 
-     Delete the project with the provided ID.
-
-    Requires _all_ of the project's environments to be empty (i.e., they must contain no services or
-    other resources). Otherwise, deletion fails with a `409` response.
-
-    To delete a non-empty project, do one of the following:
-    - First move or delete all contained services and other resources.
-    - Delete the project in the [Render Dashboard](https://dashboard.render.com).
+     Returns a presigned URL for uploading an object to the specified key.
+    The object must begin being uploaded within the URL's expiration time.
 
     Args:
-        project_id (str):
+        owner_id (str):
+        region (Region): Defaults to "oregon"
+        key (str):
+        body (PutObjectInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, PutObjectOutput]
     """
 
     return sync_detailed(
-        project_id=project_id,
+        owner_id=owner_id,
+        region=region,
+        key=key,
         client=client,
+        body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    project_id: str,
+    owner_id: str,
+    region: Region,
+    key: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Any, Error]]:
-    """Delete project
+    body: PutObjectInput,
+) -> Response[Union[Error, PutObjectOutput]]:
+    """Get presigned URL to upload an object
 
-     Delete the project with the provided ID.
-
-    Requires _all_ of the project's environments to be empty (i.e., they must contain no services or
-    other resources). Otherwise, deletion fails with a `409` response.
-
-    To delete a non-empty project, do one of the following:
-    - First move or delete all contained services and other resources.
-    - Delete the project in the [Render Dashboard](https://dashboard.render.com).
+     Returns a presigned URL for uploading an object to the specified key.
+    The object must begin being uploaded within the URL's expiration time.
 
     Args:
-        project_id (str):
+        owner_id (str):
+        region (Region): Defaults to "oregon"
+        key (str):
+        body (PutObjectInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, PutObjectOutput]]
     """
 
     kwargs = _get_kwargs(
-        project_id=project_id,
+        owner_id=owner_id,
+        region=region,
+        key=key,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -182,35 +211,38 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    project_id: str,
+    owner_id: str,
+    region: Region,
+    key: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Any, Error]]:
-    """Delete project
+    body: PutObjectInput,
+) -> Optional[Union[Error, PutObjectOutput]]:
+    """Get presigned URL to upload an object
 
-     Delete the project with the provided ID.
-
-    Requires _all_ of the project's environments to be empty (i.e., they must contain no services or
-    other resources). Otherwise, deletion fails with a `409` response.
-
-    To delete a non-empty project, do one of the following:
-    - First move or delete all contained services and other resources.
-    - Delete the project in the [Render Dashboard](https://dashboard.render.com).
+     Returns a presigned URL for uploading an object to the specified key.
+    The object must begin being uploaded within the URL's expiration time.
 
     Args:
-        project_id (str):
+        owner_id (str):
+        region (Region): Defaults to "oregon"
+        key (str):
+        body (PutObjectInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, PutObjectOutput]
     """
 
     return (
         await asyncio_detailed(
-            project_id=project_id,
+            owner_id=owner_id,
+            region=region,
+            key=key,
             client=client,
+            body=body,
         )
     ).parsed

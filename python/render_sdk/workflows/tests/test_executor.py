@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Tests for the task executor functionality."""
 
+from unittest.mock import AsyncMock
+
 import pytest
 
-from render_sdk.workflows.client import Status, UDSClient
+from render_sdk.client.errors import ClientError, ServerError, TimeoutError
+from render_sdk.workflows.client import Status, UDSClient, _retry_transient_errors
 from render_sdk.workflows.executor import TaskExecutor
 from render_sdk.workflows.task import TaskRegistry, create_task_decorator
 
@@ -152,3 +155,67 @@ async def test_callback_format(task_registry, task_decorator, mock_client):
     call_args = mock_client.post_callback.call_args[0][0]
     assert call_args.status == Status.SUCCESS
     assert call_args.result == "processed: test"
+
+
+# UDS Retry Tests
+@pytest.fixture(autouse=False)
+def _no_sleep(mocker):
+    """Patch asyncio.sleep in the client module to avoid real delays."""
+    mocker.patch("render_sdk.workflows.client.asyncio.sleep", new_callable=AsyncMock)
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("_no_sleep")
+async def test_retry_on_server_error_then_succeed():
+    """Test that transient ServerError triggers retries and eventually succeeds."""
+    mock_fn = AsyncMock(
+        side_effect=[
+            ServerError("connection refused"),
+            ServerError("connection refused"),
+            "ok",
+        ]
+    )
+    decorated = _retry_transient_errors(mock_fn)
+
+    result = await decorated()
+
+    assert result == "ok"
+    assert mock_fn.call_count == 3
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("_no_sleep")
+async def test_retry_on_timeout_error_then_succeed():
+    """Test that TimeoutError triggers retries and eventually succeeds."""
+    mock_fn = AsyncMock(side_effect=[TimeoutError("timed out"), "ok"])
+    decorated = _retry_transient_errors(mock_fn)
+
+    result = await decorated()
+
+    assert result == "ok"
+    assert mock_fn.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_no_retry_on_client_error():
+    """Test that ClientError (4xx) is raised immediately without retry."""
+    mock_fn = AsyncMock(side_effect=ClientError("bad request"))
+    decorated = _retry_transient_errors(mock_fn)
+
+    with pytest.raises(ClientError):
+        await decorated()
+
+    assert mock_fn.call_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("_no_sleep")
+async def test_retry_exhausted_raises_last_error():
+    """Test that after exhausting all retries, the last error is raised."""
+    mock_fn = AsyncMock(side_effect=ServerError("connection refused"))
+    decorated = _retry_transient_errors(mock_fn)
+
+    with pytest.raises(ServerError):
+        await decorated()
+
+    assert mock_fn.call_count == 15  # _UDS_MAX_RETRIES

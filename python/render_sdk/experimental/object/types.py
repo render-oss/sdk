@@ -72,9 +72,6 @@ class ObjectMetadata:
     last_modified: datetime
     """When the object was last modified"""
 
-    content_type: str
-    """MIME type of the object"""
-
 
 @dataclass
 class ListObjectsResponse:
@@ -82,6 +79,9 @@ class ListObjectsResponse:
 
     objects: list[ObjectMetadata]
     """List of object metadata"""
+
+    has_next: bool
+    """Whether there are more results after this page"""
 
     next_cursor: str | None = None
     """Cursor for next page, None if no more results"""

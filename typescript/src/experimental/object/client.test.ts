@@ -1,6 +1,6 @@
 import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
-import { RenderError } from "../../errors.js";
+import { ClientError, RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import { ObjectClient } from "./client.js";
 import type { PutObjectInput } from "./types.js";
@@ -17,7 +17,7 @@ describe("ObjectClient", () => {
     it("auto-calculates Buffer size", async () => {
       const buffer = Buffer.from("hello");
       putMock.mockResolvedValueOnce({
-        data: { url: "http://test" },
+        data: { url: "http://test", maxSizeBytes: 5 },
         error: null,
       });
 
@@ -32,7 +32,7 @@ describe("ObjectClient", () => {
       ).rejects.toThrow(); // fetch not available in test
 
       expect(putMock).toHaveBeenCalledWith(
-        "/blobs/{ownerId}/{region}/{key}",
+        "/objects/{ownerId}/{region}/{key}",
         expect.objectContaining({
           body: { sizeBytes: 5 },
         }),
@@ -42,7 +42,7 @@ describe("ObjectClient", () => {
     it("auto-calculates Uint8Array size", async () => {
       const arr = new Uint8Array([1, 2, 3, 4]);
       putMock.mockResolvedValueOnce({
-        data: { url: "http://test" },
+        data: { url: "http://test", maxSizeBytes: 4 },
         error: null,
       });
 
@@ -56,7 +56,7 @@ describe("ObjectClient", () => {
       ).rejects.toThrow();
 
       expect(putMock).toHaveBeenCalledWith(
-        "/blobs/{ownerId}/{region}/{key}",
+        "/objects/{ownerId}/{region}/{key}",
         expect.objectContaining({
           body: { sizeBytes: 4 },
         }),
@@ -109,8 +109,14 @@ describe("ObjectClient", () => {
       ).rejects.toThrow("Size is required");
     });
 
-    it("throws on zero size", async () => {
-      const stream = Readable.from(["hello"]);
+    it("allows zero size for empty files", async () => {
+      const stream = Readable.from([]);
+      putMock.mockResolvedValueOnce({
+        data: { url: "http://test", maxSizeBytes: 0 },
+        error: null,
+      });
+
+      // Zero-byte uploads should be allowed (will fail at fetch, not validation)
       await expect(
         client.put({
           ownerId: "tea-test",
@@ -119,7 +125,7 @@ describe("ObjectClient", () => {
           data: stream,
           size: 0,
         }),
-      ).rejects.toThrow("Size must be a positive integer");
+      ).rejects.toThrow(); // Will fail at fetch, but size validation passes
     });
 
     it("throws on negative size", async () => {
@@ -132,7 +138,28 @@ describe("ObjectClient", () => {
           data: stream,
           size: -1,
         }),
-      ).rejects.toThrow("Size must be a positive integer");
+      ).rejects.toThrow("Size must be a non-negative integer");
+    });
+
+    it("throws when file is larger than server maxSizeBytes", async () => {
+      const buffer = Buffer.from("hello world"); // 11 bytes
+      putMock.mockResolvedValueOnce({
+        data: { url: "http://test", maxSizeBytes: 5 }, // Server only allows 5 bytes
+        error: null,
+      });
+
+      await expect(
+        client.put({
+          ownerId: "tea-test",
+          region: "oregon",
+          key: "test.txt",
+          data: buffer,
+        }),
+      ).rejects.toSatisfy((error: Error) => {
+        return (
+          error instanceof ClientError && error.message.includes("does not match expected size")
+        );
+      });
     });
   });
 });

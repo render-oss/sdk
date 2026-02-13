@@ -1,4 +1,4 @@
-"""Layer 2: Typed Object API Client
+"""Typed Object API Client
 
 Provides idiomatic Python wrapper around the raw OpenAPI client.
 Handles presigned URL flow but still exposes the two-step nature
@@ -6,8 +6,7 @@ Handles presigned URL flow but still exposes the two-step nature
 requiring fine-grained control.
 """
 
-import builtins
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from render_sdk.client.errors import RenderError
 from render_sdk.client.util import handle_http_errors
@@ -17,19 +16,21 @@ from render_sdk.experimental.object.types import (
     ObjectMetadata,
     UploadResponse,
 )
-from render_sdk.public_api.api.blob_storage import (
-    delete_blob,
-    get_blob,
-    list_blobs,
-    put_blob,
+from render_sdk.public_api.api.object_storage import (
+    delete_object,
+    get_object,
+    list_objects,
+    put_object,
 )
-from render_sdk.public_api.models.blob_with_cursor import BlobWithCursor
 from render_sdk.public_api.models.error import Error
-from render_sdk.public_api.models.get_blob_output import GetBlobOutput
-from render_sdk.public_api.models.put_blob_input import (
-    PutBlobInput as PutBlobInputModel,
+from render_sdk.public_api.models.get_object_output import GetObjectOutput
+from render_sdk.public_api.models.list_objects_response import (
+    ListObjectsResponse as GeneratedListObjectsResponse,
 )
-from render_sdk.public_api.models.put_blob_output import PutBlobOutput
+from render_sdk.public_api.models.put_object_input import (
+    PutObjectInput as PutObjectInputModel,
+)
+from render_sdk.public_api.models.put_object_output import PutObjectOutput
 from render_sdk.public_api.models.region import Region
 from render_sdk.public_api.types import UNSET, Response
 
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 
 
 class ObjectApi:
-    """Layer 2: Typed Object API Client
+    """Typed Object API Client
 
     Provides idiomatic Python wrapper around the raw OpenAPI client.
     Handles presigned URL flow but still exposes the two-step nature.
@@ -74,7 +75,7 @@ class ObjectApi:
             owner_id, region, key, size_bytes
         )
 
-        if not isinstance(response.parsed, PutBlobOutput):
+        if not isinstance(response.parsed, PutObjectOutput):
             raise RenderError("Failed to get upload URL: unexpected response type")
 
         return UploadResponse(
@@ -90,17 +91,13 @@ class ObjectApi:
         region: Region | str,
         key: str,
         size_bytes: int,
-    ) -> Response[Error | PutBlobOutput]:
+    ) -> Response[Error | PutObjectOutput]:
         """Internal method to make the get upload URL API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
+        body = PutObjectInputModel(size_bytes=size_bytes)
 
-        body = PutBlobInputModel(size_bytes=size_bytes)
-
-        return await put_blob.asyncio_detailed(
+        return await put_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
             body=body,
@@ -129,7 +126,7 @@ class ObjectApi:
         """
         response = await self._get_download_url_api_call(owner_id, region, key)
 
-        if not isinstance(response.parsed, GetBlobOutput):
+        if not isinstance(response.parsed, GetObjectOutput):
             raise RenderError("Failed to get download URL: unexpected response type")
 
         return DownloadResponse(
@@ -143,15 +140,11 @@ class ObjectApi:
         owner_id: str,
         region: Region | str,
         key: str,
-    ) -> Response[Error | GetBlobOutput]:
+    ) -> Response[Error | GetObjectOutput]:
         """Internal method to make the get download URL API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
-        return await get_blob.asyncio_detailed(
+        return await get_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
         )
@@ -184,13 +177,9 @@ class ObjectApi:
         key: str,
     ) -> Response[Error | None]:
         """Internal method to make the delete object API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
-        return await delete_blob.asyncio_detailed(
+        return await delete_object.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             key=key,
             client=self.client,
         )
@@ -220,23 +209,28 @@ class ObjectApi:
         """
         response = await self._list_objects_api_call(owner_id, region, cursor, limit)
 
-        if not isinstance(response.parsed, builtins.list):
+        if not isinstance(response.parsed, GeneratedListObjectsResponse):
             raise RenderError("Failed to list objects: unexpected response type")
 
+        parsed = response.parsed
         objects = [
             ObjectMetadata(
-                key=item.blob.key,
-                size=item.blob.size_bytes,
-                last_modified=item.blob.last_modified,
-                content_type=item.blob.content_type,
+                key=item.object_.key,
+                size=item.object_.size_bytes,
+                last_modified=item.object_.last_modified,
             )
-            for item in response.parsed
+            for item in parsed.items
         ]
 
-        # The cursor for the next page is the cursor of the last item
-        next_cursor = response.parsed[-1].cursor if response.parsed else None
+        next_cursor = (
+            parsed.next_cursor if isinstance(parsed.next_cursor, str) else None
+        )
 
-        return ListObjectsResponse(objects=objects, next_cursor=next_cursor)
+        return ListObjectsResponse(
+            objects=objects,
+            has_next=parsed.has_next,
+            next_cursor=next_cursor,
+        )
 
     @handle_http_errors("list objects")
     async def _list_objects_api_call(
@@ -245,15 +239,11 @@ class ObjectApi:
         region: Region | str,
         cursor: str | None,
         limit: int | None,
-    ) -> Response[Error | builtins.list[BlobWithCursor]]:
+    ) -> Response[Error | GeneratedListObjectsResponse]:
         """Internal method to make the list objects API call."""
-        # Convert region to Region enum if it's a string
-        if isinstance(region, str):
-            region = Region(region)
-
-        return await list_blobs.asyncio_detailed(
+        return await list_objects.asyncio_detailed(
             owner_id=owner_id,
-            region=region,
+            region=cast(Region, region),
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
             client=self.client,
