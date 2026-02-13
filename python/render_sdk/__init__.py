@@ -4,7 +4,7 @@ Task definition (for workers):
 
     from render_sdk import Workflows, Retry
 
-    app = Workflows(auto_start=True)
+    app = Workflows()
 
     @app.task
     def my_task(x: int) -> int:

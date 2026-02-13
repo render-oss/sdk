@@ -17,7 +17,6 @@ app = Workflows(
     default_retry=Retry(max_retries=3, wait_duration_ms=1000, backoff_scaling=2.0),
     default_timeout=300,
     default_plan="standard",
-    auto_start=True,
 )
 
 
@@ -64,5 +63,5 @@ async def fan_out(n: int) -> list[int]:
     return list(results)
 
 
-# No explicit start() needed - auto_start handles it
-# Or use: app = Workflows() and call app.start() manually
+# Start via CLI: render-workflows example.task.main:app
+# Or call app.start() directly

@@ -4,8 +4,7 @@ Usage:
     render-workflows myapp:app
     render-workflows myapp.tasks:app
 
-This is an alternative to auto_start=True. It provides explicit control
-over when and how the worker starts.
+Provides explicit control over when and how the worker starts.
 """
 
 from __future__ import annotations
