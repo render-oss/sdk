@@ -12,6 +12,14 @@ import type {
   TaskMetadata,
 } from "./types.js";
 
+// Total retry window is ~2 minutes (175.5 seconds)
+const UDS_MAX_RETRIES = 15;
+const UDS_INITIAL_DELAY_MS = 250;
+const UDS_BACKOFF_FACTOR = 2;
+const UDS_MAX_DELAY_MS = 16_000;
+const CLIENT_ERROR_RE = /^HTTP 4\d{2}:/;
+const RETRY_ERROR_RE = /^HTTP 429:/;
+
 /**
  * Unix Domain Socket client for communicating with the workflow system
  */
@@ -91,10 +99,44 @@ export class UDSClient {
   }
 
   /**
-   * Make a request to the Unix socket
+   * Make a request to the Unix socket with retry on transient errors.
    */
   private async request<T>(path: string, method: string, body?: any): Promise<T> {
     const bodyString = body ? JSON.stringify(body) : "";
+    let lastError: Error = new Error("UDS request failed");
+
+    for (let attempt = 0; attempt < UDS_MAX_RETRIES; attempt++) {
+      try {
+        return await this.requestOnce<T>(path, method, bodyString);
+      } catch (e) {
+        lastError = e instanceof Error ? e : new Error(String(e));
+
+        // Don't retry on 4xx client errors except for 429s (rate limited)
+        if (CLIENT_ERROR_RE.test(lastError.message) && !RETRY_ERROR_RE.test(lastError.message)) {
+          throw lastError;
+        }
+
+        if (attempt < UDS_MAX_RETRIES - 1) {
+          const delay = Math.min(
+            UDS_INITIAL_DELAY_MS * UDS_BACKOFF_FACTOR ** attempt,
+            UDS_MAX_DELAY_MS,
+          );
+          console.warn(
+            `Request to Render failed (attempt ${attempt + 1}/${UDS_MAX_RETRIES}), ` +
+              `retrying in ${delay}ms: ${lastError.message}`,
+          );
+          await new Promise<void>((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
+   * Make a single request to the Unix socket (no retry).
+   */
+  private async requestOnce<T>(path: string, method: string, bodyString: string): Promise<T> {
     return new Promise((resolve, reject) => {
       const req = http.request(
         {
