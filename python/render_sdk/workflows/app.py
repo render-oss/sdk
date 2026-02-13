@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import atexit
-import os
-import warnings
 from collections.abc import Callable
 from typing import Any, TypeVar
 
@@ -19,9 +16,6 @@ from render_sdk.workflows.task import (
 
 F = TypeVar("F", bound=Callable[..., Any])
 
-# Track whether auto_start has been registered
-_auto_start_app_registered = False
-
 
 class Workflows:
     """
@@ -31,7 +25,7 @@ class Workflows:
     For calling tasks via REST API, use the Render class instead.
 
     Example:
-        app = Workflows(auto_start=True)
+        app = Workflows()
 
         @app.task
         def my_task(x: int) -> int:
@@ -41,7 +35,6 @@ class Workflows:
         app = Workflows(
             default_retry=Retry(max_retries=3, wait_duration_ms=1000),
             default_timeout=300,
-            auto_start=True,
         )
 
         @app.task
@@ -52,15 +45,13 @@ class Workflows:
         from tasks_a import app as app_a
         from tasks_b import app as app_b
 
-        combined = Workflows.from_workflows(app_a, app_b, auto_start=True)
+        combined = Workflows.from_workflows(app_a, app_b)
     """
 
     _registry: TaskRegistry
     _default_retry: Retry | None
     _default_timeout: int | None
     _default_plan: str | None
-    _auto_start: bool
-    _started: bool
 
     def __init__(
         self,
@@ -68,7 +59,6 @@ class Workflows:
         default_retry: Retry | None = None,
         default_timeout: int | None = None,
         default_plan: str | None = None,
-        auto_start: bool = False,
     ) -> None:
         """
         Initialize a Workflows application.
@@ -77,45 +67,15 @@ class Workflows:
             default_retry: Default retry configuration for all tasks.
             default_timeout: Default timeout in seconds for all tasks.
             default_plan: Default resource plan for all tasks.
-            auto_start: If True, automatically starts the worker on program exit
-                       when RENDER_SDK_MODE is set.
         """
-        global _auto_start_app_registered
-
         self._registry = TaskRegistry()
         self._default_retry = default_retry
         self._default_timeout = default_timeout
         self._default_plan = default_plan
-        self._auto_start = auto_start
-        self._started = False
-
-        if auto_start:
-            if _auto_start_app_registered:
-                warnings.warn(
-                    "Multiple Workflows instances with auto_start=True detected. "
-                    "Only one instance's tasks will be executed per invocation.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-            _auto_start_app_registered = True
-            atexit.register(self._maybe_start)
 
     def __repr__(self) -> str:
         task_count = len(self._registry.get_task_names())
-        return f"Workflows(tasks={task_count}, auto_start={self._auto_start})"
-
-    def _maybe_start(self) -> None:
-        """Start the worker if not already started and environment is configured."""
-
-        if self._started:
-            return
-
-        mode = os.environ.get("RENDER_SDK_MODE")
-        socket_path = os.environ.get("RENDER_SDK_SOCKET_PATH")
-
-        # Only start if both environment variables are set
-        if mode and socket_path:
-            self.start()
+        return f"Workflows(tasks={task_count})"
 
     def task(
         self,
@@ -178,7 +138,8 @@ class Workflows:
         Reads RENDER_SDK_MODE and RENDER_SDK_SOCKET_PATH environment variables
         to determine whether to run tasks or register them.
 
-        In most cases, use auto_start=True instead of calling this manually.
+        Typically invoked via the render-workflows CLI:
+            render-workflows myapp:app
 
         Raises:
             ValueError: If required environment variables are not set.
@@ -193,8 +154,6 @@ class Workflows:
 
         if not socket_path:
             raise ValueError("RENDER_SDK_SOCKET_PATH environment variable is required")
-
-        self._started = True
 
         # Copy tasks to global registry for the runner to use
         from render_sdk.workflows.task import _global_registry
@@ -218,7 +177,6 @@ class Workflows:
         default_retry: Retry | None = None,
         default_timeout: int | None = None,
         default_plan: str | None = None,
-        auto_start: bool = False,
     ) -> Workflows:
         """
         Combine multiple Workflows apps into one.
@@ -230,7 +188,6 @@ class Workflows:
             default_retry: Default retry for new tasks on combined app.
             default_timeout: Default timeout for new tasks on combined app.
             default_plan: Default plan for new tasks on combined app.
-            auto_start: If True, auto-start the combined app.
 
         Returns:
             A new Workflows instance with all tasks from the input apps.
@@ -239,13 +196,12 @@ class Workflows:
             from tasks_a import app as app_a
             from tasks_b import app as app_b
 
-            combined = Workflows.from_workflows(app_a, app_b, auto_start=True)
+            combined = Workflows.from_workflows(app_a, app_b)
         """
         combined = cls(
             default_retry=default_retry,
             default_timeout=default_timeout,
             default_plan=default_plan,
-            auto_start=auto_start,
         )
 
         # Copy tasks from all apps

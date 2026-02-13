@@ -1,22 +1,9 @@
 """Tests for the Workflows application class."""
 
-import warnings
-
 import pytest
 
 from render_sdk.workflows.app import Workflows
 from render_sdk.workflows.task import Retry
-
-
-# Reset global state before each test
-@pytest.fixture(autouse=True)
-def reset_auto_start_state():
-    """Reset the global auto_start tracking state before each test."""
-    import render_sdk.workflows.app as app_module
-
-    app_module._auto_start_app_registered = False
-    yield
-    app_module._auto_start_app_registered = False
 
 
 class TestFromWorkflows:
@@ -190,18 +177,6 @@ class TestWorkflowsInit:
 
         assert app._default_plan == "premium"
 
-    def test_auto_start_false_by_default(self):
-        """Test that auto_start is False by default."""
-        app = Workflows()
-
-        assert app._auto_start is False
-
-    def test_started_false_initially(self):
-        """Test that _started is False initially."""
-        app = Workflows()
-
-        assert app._started is False
-
 
 class TestWorkflowsTaskDecorator:
     """Tests for the @app.task decorator."""
@@ -336,19 +311,6 @@ class TestWorkflowsStart:
         with pytest.raises(ValueError, match="Unknown mode: invalid_mode"):
             app.start()
 
-    def test_started_not_set_on_validation_failure(self, monkeypatch):
-        """Test that _started remains False when validation fails."""
-        monkeypatch.delenv("RENDER_SDK_MODE", raising=False)
-
-        app = Workflows()
-        assert app._started is False
-
-        with pytest.raises(ValueError):
-            app.start()
-
-        # _started should still be False since validation failed
-        assert app._started is False
-
     def test_copies_tasks_to_global_registry(self, monkeypatch):
         """Test that start() copies tasks to the global registry."""
         monkeypatch.setenv("RENDER_SDK_MODE", "register")
@@ -379,34 +341,3 @@ class TestWorkflowsStart:
         finally:
             app_module.register = original_register
             _global_registry._tasks.clear()
-
-
-class TestAutoStartWarning:
-    """Tests for auto_start warning behavior."""
-
-    def test_warns_on_multiple_auto_start_apps(self):
-        """Test that creating multiple apps with auto_start=True warns."""
-        # First app should not warn
-        _app1 = Workflows(auto_start=True)
-
-        # Second app should warn
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _app2 = Workflows(auto_start=True)
-
-            assert len(w) == 1
-            warning_msg = str(w[0].message)
-            assert "Multiple Workflows instances with auto_start=True" in warning_msg
-            assert issubclass(w[0].category, UserWarning)
-
-    def test_no_warning_for_auto_start_false(self):
-        """Test that auto_start=False apps don't trigger warnings."""
-        _app1 = Workflows(auto_start=True)
-
-        # auto_start=False should not warn
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            _app2 = Workflows(auto_start=False)
-            _app3 = Workflows()  # Default is False
-
-            assert len(w) == 0
