@@ -10,6 +10,7 @@ import type {
   ObjectData,
   ObjectMetadata,
   ObjectScope,
+  OptionalScope,
   PutObjectInput,
   PutObjectResult,
   Region,
@@ -27,7 +28,37 @@ import type {
  * two-step presigned URL flow internally.
  */
 export class ObjectClient {
-  constructor(private readonly apiClient: Client<paths>) {}
+  private readonly defaultOwnerId?: `tea-${string}`;
+  private readonly defaultRegion?: Region | string;
+
+  constructor(
+    private readonly apiClient: Client<paths>,
+    defaultOwnerId?: string,
+    defaultRegion?: string,
+  ) {
+    this.defaultOwnerId = defaultOwnerId as `tea-${string}` | undefined;
+    this.defaultRegion = defaultRegion;
+  }
+
+  private resolveOwnerId(ownerId?: `tea-${string}`): `tea-${string}` {
+    const resolved = ownerId || this.defaultOwnerId;
+    if (!resolved) {
+      throw new RenderError(
+        "ownerId is required. Provide it as a parameter or set the RENDER_WORKSPACE_ID environment variable.",
+      );
+    }
+    return resolved;
+  }
+
+  private resolveRegion(region?: Region | string): Region | string {
+    const resolved = region || this.defaultRegion;
+    if (!resolved) {
+      throw new RenderError(
+        "region is required. Provide it as a parameter or set the RENDER_REGION environment variable.",
+      );
+    }
+    return resolved;
+  }
 
   /**
    * Upload an object to storage
@@ -63,16 +94,19 @@ export class ObjectClient {
    * });
    * ```
    */
-  async put(input: PutObjectInput): Promise<PutObjectResult> {
+  async put(input: OptionalScope<PutObjectInput>): Promise<PutObjectResult> {
+    const ownerId = this.resolveOwnerId(input.ownerId);
+    const region = this.resolveRegion(input.region);
+
     // Resolve and validate size
-    const size = this.resolveSize(input);
+    const size = this.resolveSize(input as PutObjectInput);
 
     // Step 1: Get presigned upload URL from Render API
     const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
-          ownerId: input.ownerId,
-          region: input.region as Region,
+          ownerId,
+          region: region as Region,
           key: input.key,
         },
       },
@@ -148,13 +182,16 @@ export class ObjectClient {
    * // obj.data is a Buffer
    * ```
    */
-  async get(input: GetObjectInput): Promise<ObjectData> {
+  async get(input: OptionalScope<GetObjectInput>): Promise<ObjectData> {
+    const ownerId = this.resolveOwnerId(input.ownerId);
+    const region = this.resolveRegion(input.region);
+
     // Step 1: Get presigned download URL from Render API
     const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
-          ownerId: input.ownerId,
-          region: input.region as Region,
+          ownerId,
+          region: region as Region,
           key: input.key,
         },
       },
@@ -195,13 +232,16 @@ export class ObjectClient {
    * });
    * ```
    */
-  async delete(input: DeleteObjectInput): Promise<void> {
+  async delete(input: OptionalScope<DeleteObjectInput>): Promise<void> {
+    const ownerId = this.resolveOwnerId(input.ownerId);
+    const region = this.resolveRegion(input.region);
+
     // DELETE goes directly to Render API (no presigned URL)
     const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
-          ownerId: input.ownerId,
-          region: input.region as Region,
+          ownerId,
+          region: region as Region,
           key: input.key,
         },
       },
@@ -240,12 +280,15 @@ export class ObjectClient {
    * }
    * ```
    */
-  async list(input: ListObjectsInput): Promise<ListObjectsResponse> {
+  async list(input: OptionalScope<ListObjectsInput>): Promise<ListObjectsResponse> {
+    const ownerId = this.resolveOwnerId(input.ownerId);
+    const region = this.resolveRegion(input.region);
+
     const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: {
-          ownerId: input.ownerId,
-          region: input.region as Region,
+          ownerId,
+          region: region as Region,
         },
         query: {
           cursor: input.cursor,

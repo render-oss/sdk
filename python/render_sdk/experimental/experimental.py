@@ -35,7 +35,11 @@ class StorageService:
         Args:
             client: The Render client instance
         """
-        self.objects = ObjectClient(client.internal)
+        self.objects = ObjectClient(
+            client.internal,
+            default_owner_id=client.owner_id,
+            default_region=client.region,
+        )
 
 
 class ExperimentalService:

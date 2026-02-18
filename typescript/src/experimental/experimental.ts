@@ -20,8 +20,8 @@ export class StorageClient {
   /** Object storage client for managing binary objects */
   public readonly objects: ObjectClient;
 
-  constructor(apiClient: Client<paths>) {
-    this.objects = new ObjectClient(apiClient);
+  constructor(apiClient: Client<paths>, defaultOwnerId?: string, defaultRegion?: string) {
+    this.objects = new ObjectClient(apiClient, defaultOwnerId, defaultRegion);
   }
 }
 
@@ -50,7 +50,7 @@ export class ExperimentalClient {
   /** Storage client for managing storage features */
   public readonly storage: StorageClient;
 
-  constructor(apiClient: Client<paths>) {
-    this.storage = new StorageClient(apiClient);
+  constructor(apiClient: Client<paths>, defaultOwnerId?: string, defaultRegion?: string) {
+    this.storage = new StorageClient(apiClient, defaultOwnerId, defaultRegion);
   }
 }

@@ -106,6 +106,12 @@ export interface PutObjectResult {
 }
 
 /**
+ * Makes ownerId and region optional on a type that normally requires them.
+ * Used by ObjectClient methods where defaults may be configured via constructor or env vars.
+ */
+export type OptionalScope<T> = Omit<T, keyof ObjectScope> & Partial<ObjectScope>;
+
+/**
  * Scope configuration for scoped object client
  */
 export interface ObjectScope {

@@ -30,6 +30,9 @@ export class Render {
     const baseUrl = getBaseUrl(options);
     this.apiClient = createApiClient(baseUrl, token);
     this.workflows = new WorkflowsClient(this.apiClient, baseUrl, token);
-    this.experimental = new ExperimentalClient(this.apiClient);
+
+    const defaultOwnerId = options?.ownerId || process.env.RENDER_WORKSPACE_ID || undefined;
+    const defaultRegion = options?.region || process.env.RENDER_REGION || undefined;
+    this.experimental = new ExperimentalClient(this.apiClient, defaultOwnerId, defaultRegion);
   }
 }

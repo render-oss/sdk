@@ -162,4 +162,122 @@ describe("ObjectClient", () => {
       });
     });
   });
+
+  describe("default scope resolution", () => {
+    const mockApiClient = {
+      PUT: vi.fn(),
+      GET: vi.fn(),
+      DELETE: vi.fn(),
+    } as unknown as Client<paths>;
+
+    it("uses defaults when ownerId/region not provided", () => {
+      const client = new ObjectClient(mockApiClient, "tea-default", "oregon");
+      // resolveOwnerId/resolveRegion are private, test indirectly via put
+      // which will fail at API call but scope resolution happens first
+      expect(() => {
+        // Access private methods via bracket notation for testing
+        const resolveOwnerId = (client as any).resolveOwnerId.bind(client);
+        const resolveRegion = (client as any).resolveRegion.bind(client);
+        expect(resolveOwnerId(undefined)).toBe("tea-default");
+        expect(resolveRegion(undefined)).toBe("oregon");
+      }).not.toThrow();
+    });
+
+    it("explicit params override defaults", () => {
+      const client = new ObjectClient(mockApiClient, "tea-default", "oregon");
+      const resolveOwnerId = (client as any).resolveOwnerId.bind(client);
+      const resolveRegion = (client as any).resolveRegion.bind(client);
+      expect(resolveOwnerId("tea-explicit")).toBe("tea-explicit");
+      expect(resolveRegion("frankfurt")).toBe("frankfurt");
+    });
+
+    it("throws when neither param nor default provided for ownerId", () => {
+      const client = new ObjectClient(mockApiClient);
+      const resolveOwnerId = (client as any).resolveOwnerId.bind(client);
+      expect(() => resolveOwnerId(undefined)).toThrow(RenderError);
+      expect(() => resolveOwnerId(undefined)).toThrow("ownerId is required");
+    });
+
+    it("throws when neither param nor default provided for region", () => {
+      const client = new ObjectClient(mockApiClient);
+      const resolveRegion = (client as any).resolveRegion.bind(client);
+      expect(() => resolveRegion(undefined)).toThrow(RenderError);
+      expect(() => resolveRegion(undefined)).toThrow("region is required");
+    });
+
+    it("partial defaults: only ownerId set", () => {
+      const client = new ObjectClient(mockApiClient, "tea-default");
+      const resolveOwnerId = (client as any).resolveOwnerId.bind(client);
+      const resolveRegion = (client as any).resolveRegion.bind(client);
+      expect(resolveOwnerId(undefined)).toBe("tea-default");
+      expect(() => resolveRegion(undefined)).toThrow("region is required");
+    });
+
+    it("partial defaults: only region set", () => {
+      const client = new ObjectClient(mockApiClient, undefined, "oregon");
+      const resolveOwnerId = (client as any).resolveOwnerId.bind(client);
+      const resolveRegion = (client as any).resolveRegion.bind(client);
+      expect(() => resolveOwnerId(undefined)).toThrow("ownerId is required");
+      expect(resolveRegion(undefined)).toBe("oregon");
+    });
+  });
+
+  describe("env var resolution via Render constructor", () => {
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      process.env = { ...originalEnv };
+    });
+
+    afterAll(() => {
+      process.env = originalEnv;
+    });
+
+    it("reads RENDER_WORKSPACE_ID and RENDER_REGION from env", async () => {
+      process.env.RENDER_API_KEY = "test-token";
+      process.env.RENDER_WORKSPACE_ID = "tea-from-env";
+      process.env.RENDER_REGION = "frankfurt";
+
+      // Dynamic import to pick up env changes
+      const { Render } = await import("../../render.js");
+      const render = new Render();
+
+      // Verify defaults propagated through the chain
+      const objects = render.experimental.storage.objects;
+      const resolveOwnerId = (objects as any).resolveOwnerId.bind(objects);
+      const resolveRegion = (objects as any).resolveRegion.bind(objects);
+      expect(resolveOwnerId(undefined)).toBe("tea-from-env");
+      expect(resolveRegion(undefined)).toBe("frankfurt");
+    });
+
+    it("treats empty string env vars as unset", async () => {
+      process.env.RENDER_API_KEY = "test-token";
+      process.env.RENDER_WORKSPACE_ID = "";
+      process.env.RENDER_REGION = "";
+
+      const { Render } = await import("../../render.js");
+      const render = new Render();
+
+      const objects = render.experimental.storage.objects;
+      const resolveOwnerId = (objects as any).resolveOwnerId.bind(objects);
+      const resolveRegion = (objects as any).resolveRegion.bind(objects);
+      expect(() => resolveOwnerId(undefined)).toThrow("ownerId is required");
+      expect(() => resolveRegion(undefined)).toThrow("region is required");
+    });
+
+    it("constructor options override env vars", async () => {
+      process.env.RENDER_API_KEY = "test-token";
+      process.env.RENDER_WORKSPACE_ID = "tea-from-env";
+      process.env.RENDER_REGION = "frankfurt";
+
+      const { Render } = await import("../../render.js");
+      const render = new Render({ ownerId: "tea-from-opts", region: "oregon" });
+
+      const objects = render.experimental.storage.objects;
+      const resolveOwnerId = (objects as any).resolveOwnerId.bind(objects);
+      const resolveRegion = (objects as any).resolveRegion.bind(objects);
+      expect(resolveOwnerId(undefined)).toBe("tea-from-opts");
+      expect(resolveRegion(undefined)).toBe("oregon");
+    });
+  });
 });

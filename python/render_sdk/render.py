@@ -32,6 +32,8 @@ class Render:
         *,
         token: str | None = None,
         base_url: str = "https://api.render.com",
+        owner_id: str | None = None,
+        region: str | None = None,
     ) -> None:
         """
         Initialize the Render SDK.
@@ -39,10 +41,16 @@ class Render:
         Args:
             token: API token. If not provided, uses RENDER_API_KEY env var.
             base_url: API base URL (rarely needed).
+            owner_id: Default owner ID for object storage. If not provided,
+                     uses RENDER_WORKSPACE_ID env var.
+            region: Default region for object storage. If not provided,
+                   uses RENDER_REGION env var.
         """
         from render_sdk.client import Client
 
-        self._client = Client(token=token, base_url=base_url)
+        self._client = Client(
+            token=token, base_url=base_url, owner_id=owner_id, region=region
+        )
 
     @property
     def client(self) -> Client:
