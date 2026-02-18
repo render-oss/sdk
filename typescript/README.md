@@ -365,10 +365,35 @@ try {
 ## Environment Variables
 
 - `RENDER_API_KEY` - Your Render API key (required)
+- `RENDER_WORKSPACE_ID` - Default owner ID for object storage (workspace team ID, e.g. `tea-xxxxx`)
+- `RENDER_REGION` - Default region for object storage (e.g. `oregon`, `frankfurt`)
 - `RENDER_USE_LOCAL_DEV` - Enable local development mode (`true`/`false`)
 - `RENDER_LOCAL_DEV_URL` - Local development URL (default: `http://localhost:8120`)
 - `RENDER_SDK_MODE` - Task execution mode (`run` or `register`)
 - `RENDER_SDK_SOCKET_PATH` - Unix socket path for task communication
+
+### Object Storage
+
+When running on Render, `RENDER_WORKSPACE_ID` and `RENDER_REGION` are set automatically. You can also pass them as constructor options:
+
+```typescript
+import { Render } from '@renderinc/sdk';
+
+const render = new Render();  // Uses env vars for auth + object storage defaults
+
+// Upload (no need to pass ownerId/region when env vars are set)
+await render.experimental.storage.objects.put({
+  key: 'path/to/file.png',
+  data: Buffer.from('binary content'),
+  contentType: 'image/png',
+});
+
+// Download
+const obj = await render.experimental.storage.objects.get({ key: 'path/to/file.png' });
+
+// List
+const response = await render.experimental.storage.objects.list();
+```
 
 ## Examples
 

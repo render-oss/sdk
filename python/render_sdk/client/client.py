@@ -32,12 +32,18 @@ class Client:
         self,
         token: str | None = None,
         base_url: str = "https://api.render.com",
+        owner_id: str | None = None,
+        region: str | None = None,
     ):
         """Initialize a new Render API client.
 
         Args:
             token: API authentication token. If not provided, will look for
                   RENDER_API_KEY environment variable.
+            owner_id: Default owner ID for object storage. If not provided,
+                     will look for RENDER_WORKSPACE_ID environment variable.
+            region: Default region for object storage. If not provided,
+                   will look for RENDER_REGION environment variable.
             *options: Client configuration options
         """
         # Set default values
@@ -50,6 +56,10 @@ class Client:
                 )
         else:
             self.token = token
+
+        workspace_id = os.getenv("RENDER_WORKSPACE_ID", "") or None
+        self.owner_id: str | None = owner_id or workspace_id
+        self.region: str | None = region or os.getenv("RENDER_REGION", "") or None
 
         # Use the local dev URL when provided,
         # Otherwise if local dev is enabled, use the default local dev URL

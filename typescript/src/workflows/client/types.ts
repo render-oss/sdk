@@ -53,4 +53,8 @@ export interface ClientOptions {
   baseUrl?: string;
   useLocalDev?: boolean;
   localDevUrl?: string;
+  /** Default owner ID for object storage. Falls back to RENDER_WORKSPACE_ID env var. */
+  ownerId?: string;
+  /** Default region for object storage. Falls back to RENDER_REGION env var. */
+  region?: string;
 }

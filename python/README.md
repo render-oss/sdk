@@ -56,6 +56,33 @@ Run your workflow application using the CLI command:
 render ea tasks dev -- python main.py
 ```
 
+### Object Storage
+
+```python
+from render_sdk import Render
+
+render = Render()  # Uses RENDER_API_KEY, RENDER_WORKSPACE_ID, RENDER_REGION from environment
+
+# Upload an object (no need to pass owner_id/region when env vars are set)
+await render.client.experimental.storage.objects.put(
+    key="path/to/file.png",
+    data=b"binary content",
+    content_type="image/png",
+)
+
+# Download
+obj = await render.client.experimental.storage.objects.get(key="path/to/file.png")
+
+# List
+response = await render.client.experimental.storage.objects.list()
+```
+
+## Environment Variables
+
+- `RENDER_API_KEY` - Your Render API key (required)
+- `RENDER_WORKSPACE_ID` - Default owner ID for object storage (workspace team ID, e.g. `tea-xxxxx`)
+- `RENDER_REGION` - Default region for object storage (e.g. `oregon`, `frankfurt`)
+
 ## Features
 
 - Decorator-based task registration

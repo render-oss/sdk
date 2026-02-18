@@ -41,15 +41,40 @@ class ObjectClient:
     It exposes methods to put/get/delete objects.
     """
 
-    def __init__(self, client: "AuthenticatedClient"):
+    def __init__(
+        self,
+        client: "AuthenticatedClient",
+        default_owner_id: str | None = None,
+        default_region: str | None = None,
+    ):
         self.client = client
         self.api = ObjectApi(client)
+        self._default_owner_id = default_owner_id
+        self._default_region = default_region
+
+    def _resolve_owner_id(self, owner_id: "OwnerID | None") -> OwnerID:
+        resolved = owner_id or self._default_owner_id
+        if not resolved:
+            raise RenderError(
+                "owner_id is required. Provide it as a parameter"
+                " or set the RENDER_WORKSPACE_ID environment variable."
+            )
+        return resolved
+
+    def _resolve_region(self, region: "Region | str | None") -> "Region | str":
+        resolved = region or self._default_region
+        if not resolved:
+            raise RenderError(
+                "region is required. Provide it as a parameter"
+                " or set the RENDER_REGION environment variable."
+            )
+        return resolved
 
     async def put(
         self,
         *,
-        owner_id: OwnerID,
-        region: Region | str,
+        owner_id: OwnerID | None = None,
+        region: Region | str | None = None,
         key: str,
         data: bytes | BinaryIO | AsyncIterator[bytes],
         size: int | None = None,
@@ -98,13 +123,16 @@ class ObjectClient:
                 )
             ```
         """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        resolved_region = self._resolve_region(region)
+
         # Resolve and validate size
         resolved_size = self._resolve_size(data, size)
 
         # Step 1: Get presigned upload URL from Render API
         presigned = await self.api.get_upload_url(
-            owner_id=owner_id,
-            region=region,
+            owner_id=resolved_owner_id,
+            region=resolved_region,
             key=key,
             size_bytes=resolved_size,
         )
@@ -151,7 +179,11 @@ class ObjectClient:
             handle_httpx_exception(e, "upload object")
 
     async def get(
-        self, *, owner_id: OwnerID, region: Region | str, key: str
+        self,
+        *,
+        owner_id: OwnerID | None = None,
+        region: Region | str | None = None,
+        key: str,
     ) -> ObjectData:
         """Download an object from storage.
 
@@ -181,10 +213,13 @@ class ObjectClient:
             # obj.data is bytes
             ```
         """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        resolved_region = self._resolve_region(region)
+
         # Step 1: Get presigned download URL from Render API
         presigned = await self.api.get_download_url(
-            owner_id=owner_id,
-            region=region,
+            owner_id=resolved_owner_id,
+            region=resolved_region,
             key=key,
         )
 
@@ -209,7 +244,11 @@ class ObjectClient:
             handle_httpx_exception(e, "download object")
 
     async def delete(
-        self, *, owner_id: OwnerID, region: Region | str, key: str
+        self,
+        *,
+        owner_id: OwnerID | None = None,
+        region: Region | str | None = None,
+        key: str,
     ) -> None:
         """Delete an object from storage.
 
@@ -232,18 +271,21 @@ class ObjectClient:
             )
             ```
         """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        resolved_region = self._resolve_region(region)
+
         # DELETE goes directly to Render API (no presigned URL)
         await self.api.delete(
-            owner_id=owner_id,
-            region=region,
+            owner_id=resolved_owner_id,
+            region=resolved_region,
             key=key,
         )
 
     async def list(
         self,
         *,
-        owner_id: OwnerID,
-        region: Region | str,
+        owner_id: OwnerID | None = None,
+        region: Region | str | None = None,
         cursor: str | None = None,
         limit: int | None = None,
     ) -> ListObjectsResponse:
@@ -283,9 +325,12 @@ class ObjectClient:
                 )
             ```
         """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        resolved_region = self._resolve_region(region)
+
         return await self.api.list_objects(
-            owner_id=owner_id,
-            region=region,
+            owner_id=resolved_owner_id,
+            region=resolved_region,
             cursor=cursor,
             limit=limit,
         )
