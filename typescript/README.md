@@ -30,6 +30,12 @@ Or with pnpm:
 pnpm add @renderinc/sdk
 ```
 
+Or with Bun:
+
+```bash
+bun add @renderinc/sdk
+```
+
 ## Quick Start
 
 ### REST API Client
