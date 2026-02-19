@@ -73,6 +73,8 @@ check_untyped_defs = false
 [tool.pytest.ini_options]
 testpaths = ["**/tests"]
 python_files = ["test_*.py"]
+markers = ["e2e: end-to-end tests requiring RENDER_API_KEY and RENDER_E2E_OWNER_ID"]
+addopts = "-m 'not e2e'"
 
 [tool.ruff]
 line-length = 88
