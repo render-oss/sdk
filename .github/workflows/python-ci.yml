@@ -99,3 +99,50 @@ jobs:
 
     - name: Run tests with tox
       run: poetry run tox -e py$(echo ${{ matrix.python-version }} | tr -d '.')
+
+  e2e:
+    name: E2E Tests
+    needs: [lint-and-format, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.event_name == 'push' ||
+      contains(github.event.pull_request.labels.*.name, 'run-e2e')
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v6
+      with:
+        python-version: '3.13'
+
+    - name: Install Poetry
+      uses: snok/install-poetry@76e04a911780d5b312d89783f7b1cd627778900a
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v5
+      with:
+        path: ./python/.venv
+        key: venv-${{ github.repository }}-${{ runner.os }}-3.13-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+
+    - name: Install project
+      run: poetry install --no-interaction
+
+    - name: Run E2E tests
+      run: poetry run pytest -m e2e -v
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
+        RENDER_BASE_URL: ${{ secrets.RENDER_E2E_BASE_URL }}
+        RENDER_E2E_OWNER_ID: ${{ secrets.RENDER_E2E_OWNER_ID }}
+        RENDER_E2E_PAGINATION_OWNER_ID: ${{ secrets.RENDER_E2E_PAGINATION_OWNER_ID }}
+        RENDER_E2E_REGION: ${{ secrets.RENDER_E2E_REGION }}
