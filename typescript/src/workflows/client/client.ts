@@ -2,6 +2,7 @@ import type { Client as ApiClient } from "openapi-fetch";
 import { AbortError, ClientError, ServerError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import { SSEClient } from "./sse.js";
+import { TaskRunResult } from "./task-run-result.js";
 import type {
   ListTaskRunsParams,
   TaskData,
@@ -42,27 +43,22 @@ export class WorkflowsClient {
     this.apiClient = apiClient;
   }
 
-  async runTask(
+  /**
+   * Start a task run and return a TaskRunResult promise.
+   * Results are not streamed until you call .get() on the returned result.
+   * Use this when you just need the task run ID, want to defer awaiting, or
+   * want fire-and-forget.
+   */
+  async startTask(
     taskIdentifier: TaskIdentifier,
     inputData: TaskData,
     signal?: AbortSignal,
-  ): Promise<TaskRunDetails> {
+  ): Promise<TaskRunResult> {
     if (signal?.aborted) {
       throw new AbortError();
     }
 
-    let taskRunId: string | null = null;
-    const abortHandler = async () => {
-      if (taskRunId) {
-        await this.cancelTaskRun(taskRunId);
-        throw new AbortError();
-      }
-    };
-
     try {
-      // Register abort handler before making the request
-      signal?.addEventListener("abort", abortHandler);
-
       const { data, error, response } = await this.apiClient.POST("/task-runs", {
         body: {
           task: taskIdentifier,
@@ -75,23 +71,26 @@ export class WorkflowsClient {
         handleApiError(error, response, "Failed to run task");
       }
 
-      taskRunId = data.id;
-
-      // Pass signal to waitForTask so it can handle cancellation during wait
-      return await this.waitForTask(data.id, signal);
+      return new TaskRunResult(this.sse, data.id, signal);
     } catch (err) {
-      // Handle DOMException AbortError from fetch
       if (err instanceof DOMException && err.name === "AbortError") {
         throw new AbortError();
       }
       throw err;
-    } finally {
-      signal?.removeEventListener("abort", abortHandler);
     }
   }
 
-  private async waitForTask(taskRunId: string, signal?: AbortSignal): Promise<TaskRunDetails> {
-    return this.sse.waitOnTaskRun(taskRunId, signal);
+  /**
+   * Start a task run and wait for it to complete, returning the final result.
+   * This is a convenience wrapper around startTask() + .get().
+   */
+  async runTask(
+    taskIdentifier: TaskIdentifier,
+    inputData: TaskData,
+    signal?: AbortSignal,
+  ): Promise<TaskRunDetails> {
+    const result = await this.startTask(taskIdentifier, inputData, signal);
+    return result.get();
   }
 
   /**
@@ -114,8 +113,7 @@ export class WorkflowsClient {
    * Cancel a task run
    * @param taskRunId Task run ID
    */
-
-  private async cancelTaskRun(taskRunId: string): Promise<void> {
+  async cancelTaskRun(taskRunId: string): Promise<void> {
     const { error, response } = await this.apiClient.DELETE("/task-runs/{taskRunId}", {
       params: { path: { taskRunId } },
     });
