@@ -207,6 +207,32 @@ const result = await run.get();
 console.log('Results:', result.results);
 ```
 
+#### `render.workflows.taskRunEvents(taskRunIds, signal?)`
+
+Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed or failed) received on the SSE stream.
+
+**Parameters:**
+- `taskRunIds: string[]` - One or more task run IDs to subscribe to
+- `signal?: AbortSignal` - Optional abort signal for cancellation
+
+**Returns:** `AsyncGenerator<TaskRunDetails>`
+
+**Example:**
+```typescript
+const render = new Render();
+
+const run1 = await render.workflows.startTask('my-workflow/square', [3]);
+const run2 = await render.workflows.startTask('my-workflow/square', [6]);
+
+// The stream stays open until you break or abort.
+const pending = new Set([run1.taskRunId, run2.taskRunId]);
+for await (const event of render.workflows.taskRunEvents([...pending])) {
+  console.log('Event:', event.status, event.id, event.results);
+  pending.delete(event.id);
+  if (pending.size === 0) break;
+}
+```
+
 #### `render.workflows.getTaskRun(taskRunId)`
 
 Gets task run details by ID.

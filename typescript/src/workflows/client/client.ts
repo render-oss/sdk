@@ -1,7 +1,9 @@
+import { EventSource } from "eventsource";
 import type { Client as ApiClient } from "openapi-fetch";
 import { AbortError, ClientError, ServerError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
-import { SSEClient } from "./sse.js";
+import { getUserAgent } from "../../version.js";
+import { TaskEventType } from "./sse.js";
 import { TaskRunResult } from "./task-run-result.js";
 import type {
   ListTaskRunsParams,
@@ -30,8 +32,9 @@ function handleApiError(error: any, response: Response, context: string): never 
  * Main Render SDK Client
  */
 export class WorkflowsClient {
-  private readonly sse: SSEClient;
   private readonly apiClient: ApiClient<paths>;
+  private readonly baseUrl: string;
+  private readonly token: string;
 
   /**
    * Create a new Render SDK client
@@ -39,8 +42,117 @@ export class WorkflowsClient {
    * @returns New client instance
    */
   constructor(apiClient: ApiClient<paths>, baseUrl: string, token: string) {
-    this.sse = new SSEClient(baseUrl, token);
     this.apiClient = apiClient;
+    this.baseUrl = baseUrl;
+    this.token = token;
+  }
+
+  /**
+   * Stream task run events as an async iterable.
+   * Yields a TaskRunDetails for each terminal event (completed or failed)
+   * received on the SSE stream.
+   *
+   * @param taskRunIds - One or more task run IDs to subscribe to
+   * @param signal - Optional AbortSignal to cancel the stream
+   */
+  async *taskRunEvents(taskRunIds: string[], signal?: AbortSignal): AsyncGenerator<TaskRunDetails> {
+    if (signal?.aborted) {
+      throw new AbortError();
+    }
+
+    // Simple async queue: push events from EventSource handlers,
+    // yield them from the generator loop.
+    const queue: TaskRunDetails[] = [];
+    let resolve: (() => void) | null = null;
+    let finished = false;
+    let streamError: Error | null = null;
+
+    const push = (item: TaskRunDetails) => {
+      queue.push(item);
+      if (resolve) {
+        resolve();
+        resolve = null;
+      }
+    };
+
+    const fail = (err: Error) => {
+      streamError = err;
+      finished = true;
+      if (resolve) {
+        resolve();
+        resolve = null;
+      }
+    };
+
+    const url = new URL("/v1/task-runs/events", this.baseUrl);
+    url.searchParams.append("taskRunIds", taskRunIds.join(","));
+
+    const eventSource = new EventSource(url.toString(), {
+      fetch: (input, init) =>
+        fetch(input, {
+          ...init,
+          headers: {
+            ...init?.headers,
+            Authorization: `Bearer ${this.token}`,
+            "User-Agent": getUserAgent(),
+          },
+        }),
+    });
+
+    const eventHandler = (event: MessageEvent) => {
+      try {
+        const details = JSON.parse(event.data) as TaskRunDetails;
+        push(details);
+      } catch (e) {
+        fail(new Error(`Failed to parse task run details: ${e}`));
+      }
+    };
+
+    const errorHandler = (error: any) => {
+      fail(new Error(`SSE connection error: ${error.message || "Unknown error"}`));
+    };
+
+    const abortHandler = () => {
+      cleanup();
+      fail(new AbortError());
+    };
+
+    const cleanup = () => {
+      eventSource.removeEventListener(TaskEventType.COMPLETED, eventHandler);
+      eventSource.removeEventListener(TaskEventType.FAILED, eventHandler);
+      eventSource.removeEventListener("error", errorHandler);
+      eventSource.close();
+      signal?.removeEventListener("abort", abortHandler);
+    };
+
+    eventSource.addEventListener(TaskEventType.COMPLETED, eventHandler);
+    eventSource.addEventListener(TaskEventType.FAILED, eventHandler);
+    eventSource.addEventListener("error", errorHandler);
+    signal?.addEventListener("abort", abortHandler);
+
+    try {
+      while (true) {
+        // Drain anything already in the queue
+        while (queue.length > 0) {
+          yield queue.shift() as TaskRunDetails;
+        }
+
+        if (finished) {
+          break;
+        }
+
+        // Wait for the next event
+        await new Promise<void>((r) => {
+          resolve = r;
+        });
+      }
+
+      if (streamError) {
+        throw streamError;
+      }
+    } finally {
+      cleanup();
+    }
   }
 
   /**
@@ -71,7 +183,7 @@ export class WorkflowsClient {
         handleApiError(error, response, "Failed to run task");
       }
 
-      return new TaskRunResult(this.sse, data.id, signal);
+      return new TaskRunResult((id, sig) => this.waitOnTaskRun(id, sig), data.id, signal);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         throw new AbortError();
@@ -136,5 +248,16 @@ export class WorkflowsClient {
       handleApiError(error, response, "Failed to list task runs");
     }
     return data;
+  }
+
+  /**
+   * Wait for a single task run to complete or fail via SSE.
+   * Used internally by TaskRunResult.get().
+   */
+  private async waitOnTaskRun(taskRunId: string, signal?: AbortSignal): Promise<TaskRunDetails> {
+    for await (const event of this.taskRunEvents([taskRunId], signal)) {
+      return event;
+    }
+    throw new Error(`SSE stream ended without receiving an event for task run ${taskRunId}`);
   }
 }
