@@ -53,11 +53,13 @@ const result = await render.workflows.runTask('my-workflow/my-task', [42, 'hello
 console.log('Status:', result.status);
 console.log('Results:', result.results);
 
+// Or start a task and decide when to await the result
+const run = await render.workflows.startTask('my-workflow/my-task', [42, 'hello']);
+console.log('Task run ID:', run.taskRunId);
+const details = await run.get();
+
 // List recent task runs
 const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
-
-// Get specific task run
-const details = await render.workflows.getTaskRun(result.id);
 ```
 
 Alternatively, you can create a workflows client directly:
@@ -178,6 +180,30 @@ Runs a task and waits for completion.
 ```typescript
 const render = new Render();
 const result = await render.workflows.runTask('my-workflow/square', [5]);
+console.log('Results:', result.results);
+```
+
+#### `render.workflows.startTask(taskIdentifier, inputData, signal?)`
+
+Starts a task run and returns a `TaskRunResult`. Results are not streamed until you call `.get()` on the returned result. Use this when you need the task run ID, want to defer awaiting, or want fire-and-forget.
+
+**Parameters:**
+- `taskIdentifier: string` - Task identifier in format "workflow-slug/task-name"
+- `inputData: any[]` - Input data as array of parameters
+- `signal?: AbortSignal` - Optional abort signal for cancellation
+
+**Returns:** `Promise<TaskRunResult>`
+
+**Example:**
+```typescript
+const render = new Render();
+
+// Start a task and grab its ID
+const run = await render.workflows.startTask('my-workflow/square', [5]);
+console.log('Task run ID:', run.taskRunId);
+
+// Await the result when you're ready
+const result = await run.get();
 console.log('Results:', result.results);
 ```
 
@@ -323,6 +349,15 @@ interface TaskRunDetails extends TaskRun {
 }
 ```
 
+#### `TaskRunResult`
+
+```typescript
+class TaskRunResult {
+  readonly taskRunId: string;
+  get(): Promise<TaskRunDetails>;
+}
+```
+
 #### `RegisterTaskOptions`
 
 ```typescript
@@ -410,18 +445,14 @@ import { Render } from '@renderinc/sdk';
 
 const render = new Render();
 
-async function runSquareTask() {
-  const result = await render.workflows.runTask('my-workflow/square', [5]);
-  console.log('Square of 5 is:', result.results[0]); // 25
-}
-
-runSquareTask();
+const result = await render.workflows.runTask('my-workflow/square', [5]);
+console.log('Square of 5 is:', result.results[0]); // 25
 ```
 
 ### Example 2: Defining Tasks with Subtasks
 
 ```typescript
-import { task, startTaskServer } from '@renderinc/sdk/workflows';
+import { task } from '@renderinc/sdk/workflows';
 
 const square = task(
   { name: 'square' },
@@ -438,8 +469,6 @@ task(
     return Math.sqrt(aSquared + bSquared);
   }
 );
-
-await startTaskServer();
 ```
 
 ### Example 3: Error Handling in Tasks
