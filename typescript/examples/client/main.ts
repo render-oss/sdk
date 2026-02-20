@@ -43,6 +43,18 @@ async function main() {
     // Get task run details by ID
     const details = await render.workflows.getTaskRun(result.id);
     console.log("\nTask run details:", details);
+
+    // Stream task run events as an async iterable.
+    // taskRunEvents() yields a TaskRunDetails for each completed or failed event.
+    // The stream stays open until you break or abort.
+    const run3 = await render.workflows.startTask("my-workflow/square", [3]);
+    const run4 = await render.workflows.startTask("my-workflow/square", [6]);
+    const pending = new Set([run3.taskRunId, run4.taskRunId]);
+    for await (const event of render.workflows.taskRunEvents([...pending])) {
+      console.log("Event:", event.status, event.id, event.results);
+      pending.delete(event.id);
+      if (pending.size === 0) break;
+    }
   } catch (error) {
     if (error instanceof ServerError) {
       console.error("server error", error.name, error.message);

@@ -1,4 +1,3 @@
-import type { SSEClient } from "./sse.js";
 import { TaskRunResult } from "./task-run-result.js";
 import type { TaskRunDetails } from "./types.js";
 
@@ -9,48 +8,46 @@ const mockDetails: TaskRunDetails = {
   results: [42],
 } as unknown as TaskRunDetails;
 
-function createMockSSEClient() {
-  return {
-    waitOnTaskRun: vi.fn().mockResolvedValue(mockDetails),
-  } as unknown as SSEClient;
+function createMockWait() {
+  return vi.fn().mockResolvedValue(mockDetails);
 }
 
 describe("TaskRunResult", () => {
-  it("does not open SSE connection until .get() is called", () => {
-    const sseClient = createMockSSEClient();
-    new TaskRunResult(sseClient, "run-123");
+  it("does not call waitOnTaskRun until .get() is called", () => {
+    const wait = createMockWait();
+    new TaskRunResult(wait, "run-123");
 
-    expect(sseClient.waitOnTaskRun).not.toHaveBeenCalled();
+    expect(wait).not.toHaveBeenCalled();
   });
 
   it(".get() calls waitOnTaskRun and returns TaskRunDetails", async () => {
-    const sseClient = createMockSSEClient();
-    const result = new TaskRunResult(sseClient, "run-123");
+    const wait = createMockWait();
+    const result = new TaskRunResult(wait, "run-123");
 
     const details = await result.get();
 
-    expect(sseClient.waitOnTaskRun).toHaveBeenCalledWith("run-123", undefined);
+    expect(wait).toHaveBeenCalledWith("run-123", undefined);
     expect(details).toBe(mockDetails);
   });
 
-  it(".get() caches the promise so that multiple calls share one SSE connection", () => {
-    const sseClient = createMockSSEClient();
-    const result = new TaskRunResult(sseClient, "run-123");
+  it(".get() caches the promise so that multiple calls share one connection", () => {
+    const wait = createMockWait();
+    const result = new TaskRunResult(wait, "run-123");
 
     const promise1 = result.get();
     const promise2 = result.get();
 
     expect(promise1).toBe(promise2);
-    expect(sseClient.waitOnTaskRun).toHaveBeenCalledTimes(1);
+    expect(wait).toHaveBeenCalledTimes(1);
   });
 
   it("forwards abort signal to waitOnTaskRun", async () => {
-    const sseClient = createMockSSEClient();
+    const wait = createMockWait();
     const controller = new AbortController();
-    const result = new TaskRunResult(sseClient, "run-123", controller.signal);
+    const result = new TaskRunResult(wait, "run-123", controller.signal);
 
     await result.get();
 
-    expect(sseClient.waitOnTaskRun).toHaveBeenCalledWith("run-123", controller.signal);
+    expect(wait).toHaveBeenCalledWith("run-123", controller.signal);
   });
 });
