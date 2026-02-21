@@ -133,9 +133,12 @@ Creates a new Render SDK instance with access to all Render products.
 - `baseUrl?: string` - Base URL (defaults to `https://api.render.com`)
 - `useLocalDev?: boolean` - Use local development mode
 - `localDevUrl?: string` - Local development URL
+- `ownerId?: string` - Default owner ID for object storage (falls back to `RENDER_WORKSPACE_ID` env var)
+- `region?: string` - Default region for object storage (falls back to `RENDER_REGION` env var)
 
 **Properties:**
 - `workflows` - WorkflowsClient instance for managing workflow tasks
+- `experimental` - ExperimentalClient instance for object storage and other experimental APIs
 
 **Example:**
 ```typescript
@@ -209,7 +212,7 @@ console.log('Results:', result.results);
 
 #### `render.workflows.taskRunEvents(taskRunIds, signal?)`
 
-Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed or failed) received on the SSE stream.
+Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed or failed) received on the stream.
 
 **Parameters:**
 - `taskRunIds: string[]` - One or more task run IDs to subscribe to
@@ -246,6 +249,22 @@ Gets task run details by ID.
 ```typescript
 const render = new Render();
 const details = await render.workflows.getTaskRun('task-run-id');
+```
+
+#### `render.workflows.cancelTaskRun(taskRunId)`
+
+Cancels a running task.
+
+**Parameters:**
+- `taskRunId: string` - Task run ID to cancel
+
+**Returns:** `Promise<void>`
+
+**Example:**
+```typescript
+const render = new Render();
+const run = await render.workflows.startTask('my-workflow/square', [5]);
+await render.workflows.cancelTaskRun(run.taskRunId);
 ```
 
 #### `render.workflows.listTaskRuns(params)`
@@ -358,20 +377,27 @@ enum TaskRunStatus {
 ```typescript
 interface TaskRun {
   id: string;
+  taskId: string;
   status: TaskRunStatus;
-  created_at: string;
-  updated_at: string;
-  task_identifier: string;
+  startedAt?: string;
+  completedAt?: string;
+  parentTaskRunId: string;
+  rootTaskRunId: string;
+  retries: number;
 }
 ```
 
 #### `TaskRunDetails`
 
 ```typescript
-interface TaskRunDetails extends TaskRun {
-  completed_at?: string;
-  results?: any[];
+interface TaskRunDetails {
+  id: string;
+  taskId: string;
+  status: TaskRunStatus;
+  results?: any;
   error?: string;
+  startedAt?: string;
+  completedAt?: string;
 }
 ```
 
@@ -407,6 +433,7 @@ The SDK provides several error classes:
 import { Render } from '@renderinc/sdk';
 import {
   RenderError,
+  TaskRunError,
   ClientError,
   ServerError,
   AbortError,
@@ -417,7 +444,9 @@ const render = new Render();
 try {
   const result = await render.workflows.runTask('my-workflow/task', [42]);
 } catch (error) {
-  if (error instanceof ClientError) {
+  if (error instanceof TaskRunError) {
+    console.error('Task failed:', error.taskRunId, error.message);
+  } else if (error instanceof ClientError) {
     console.error('Client error:', error.statusCode, error.cause);
   } else if (error instanceof ServerError) {
     console.error('Server error:', error.statusCode, error.cause);
@@ -588,8 +617,7 @@ async function workflowExample() {
     console.log(`\nRecent task runs: ${recentRuns.length}`);
 
     for (const run of recentRuns) {
-      const details = await render.workflows.getTaskRun(run.id);
-      console.log(`- ${run.taskId}: ${details.status}`);
+      console.log(`- ${run.id}: ${run.status} (${run.taskId})`);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -630,30 +658,33 @@ npm run format
 ```
 typescript/
 ├── src/
-│   ├── render.ts            # Main Render SDK class
-│   ├── index.ts             # Main exports
-│   └── workflows/           # Workflows functionality
-│       ├── client/          # REST API client
-│       │   ├── client.ts    # WorkflowsClient class
-│       │   ├── workflows.ts # WorkflowsService
-│       │   ├── sse.ts       # SSE client
-│       │   ├── types.ts     # Type definitions
-│       │   ├── errors.ts    # Error classes
-│       │   └── index.ts     # Exports
-│       ├── task/            # Task execution SDK
-│       │   ├── task.ts      # task() function
-│       │   ├── runner.ts    # start() and run()
-│       │   ├── executor.ts  # TaskExecutor
-│       │   ├── registry.ts  # TaskRegistry
-│       │   ├── uds.ts       # Unix socket client
-│       │   ├── types.ts     # Type definitions
-│       │   └── index.ts     # Exports
-│       └── index.ts         # Workflows exports
+│   ├── render.ts              # Main Render SDK class
+│   ├── errors.ts              # Error classes
+│   ├── index.ts               # Main exports
+│   ├── version.ts             # SDK version and user-agent
+│   ├── workflows/             # Workflows functionality
+│   │   ├── task.ts            # task() function
+│   │   ├── runner.ts          # startTaskServer() and run()
+│   │   ├── executor.ts        # TaskExecutor
+│   │   ├── registry.ts        # TaskRegistry
+│   │   ├── uds.ts             # Unix socket client
+│   │   ├── types.ts           # Type definitions
+│   │   ├── client/            # REST API client
+│   │   │   ├── client.ts      # WorkflowsClient class
+│   │   │   ├── create-client.ts # createWorkflowsClient() factory
+│   │   │   ├── task-run-result.ts # TaskRunResult class
+│   │   │   ├── sse.ts         # SSE event types
+│   │   │   ├── types.ts       # Client type definitions
+│   │   │   └── index.ts       # Exports
+│   │   └── index.ts           # Workflows exports
+│   ├── experimental/          # Experimental features
+│   │   └── object/            # Object storage API
+│   └── utils/                 # Shared utilities
 ├── examples/
-│   ├── client/              # Client example
+│   ├── client/                # Client example
 │   │   ├── main.ts
 │   │   └── package.json
-│   └── task/                # Task example
+│   └── task/                  # Task example
 │       ├── main.ts
 │       └── package.json
 ├── package.json
