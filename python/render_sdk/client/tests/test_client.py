@@ -2,11 +2,12 @@
 """Unit tests for the Render REST API client functionality."""
 
 import datetime
+import json
 
 import pytest
 
 from render_sdk.client import Client, ListTaskRunsParams, WorkflowsService
-from render_sdk.client.errors import ClientError
+from render_sdk.client.errors import ClientError, ServerError
 from render_sdk.client.workflows import AwaitableTaskRun
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.task_run import TaskRun
@@ -261,3 +262,81 @@ async def test_await_already_completed_task(
     assert result.id == "trn-test123"
     assert result.status.value == TaskRunStatus.COMPLETED
     mock_workflows_service.get_task_run.assert_called_once_with("trn-test123")
+
+
+@pytest.fixture
+def mock_httpx_stream(mocker):
+    """Mock httpx.AsyncClient to return a controllable SSE stream.
+
+    Returns a list that tests populate with bytes chunks before calling
+    task_run_events(). The mock wires up the nested async context managers
+    (AsyncClient → stream → response.aiter_bytes).
+    """
+    chunks: list[bytes] = []
+
+    async def aiter_bytes():
+        for chunk in chunks:
+            yield chunk
+
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mock_response.aiter_bytes = aiter_bytes
+
+    stream_cm = mocker.AsyncMock()
+    stream_cm.__aenter__.return_value = mock_response
+
+    mock_http_client = mocker.Mock()
+    mock_http_client.stream.return_value = stream_cm
+
+    client_cm = mocker.AsyncMock()
+    client_cm.__aenter__.return_value = mock_http_client
+
+    mocker.patch(
+        "render_sdk.client.workflows.httpx.AsyncClient", return_value=client_cm
+    )
+
+    return chunks, mock_response
+
+
+@pytest.mark.asyncio
+async def test_task_run_events_yields_events(workflows_service, mock_httpx_stream):
+    """Test that task_run_events streams and yields TaskRunDetails."""
+    chunks, _ = mock_httpx_stream
+
+    details = TaskRunDetails(
+        id="trn-test123",
+        task_id="tsk-test123",
+        status=TaskRunStatus.COMPLETED,
+        results=[42],
+        input_=[],
+        parent_task_run_id=None,
+        root_task_run_id=None,
+        retries=0,
+        attempts=[],
+    )
+    sse_payload = json.dumps(details.to_dict()).encode()
+    chunks.append(b"event: task.completed\ndata: " + sse_payload + b"\n\n")
+
+    events = []
+    async for event in workflows_service.task_run_events(["trn-test123"]):
+        events.append(event)
+
+    assert len(events) == 1
+    assert events[0].id == "trn-test123"
+    assert events[0].status.value == TaskRunStatus.COMPLETED
+
+
+@pytest.mark.asyncio
+async def test_task_run_events_raises_on_http_error(
+    workflows_service, mock_httpx_stream
+):
+    """Test that task_run_events raises on HTTP errors."""
+    _, mock_response = mock_httpx_stream
+
+    mock_response.status_code = 500
+    mock_response.text = "Internal Server Error"
+    mock_response.json.return_value = {"message": "Internal Server Error"}
+
+    with pytest.raises(ServerError):
+        async for _ in workflows_service.task_run_events(["trn-test123"]):
+            pass

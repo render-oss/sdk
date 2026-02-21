@@ -56,6 +56,32 @@ Run your workflow application using the CLI command:
 render ea tasks dev -- python main.py
 ```
 
+### Running Tasks
+
+Use the `Render` client to run tasks and monitor their status:
+
+```python
+import asyncio
+from render_sdk import Render
+
+async def main():
+    render = Render()  # Uses RENDER_API_KEY from environment
+
+    # Run a task and wait for the result
+    task_run = await render.workflows.run_task("my-workflow/my-task", {"a": 3})
+    result = await task_run
+    print(result.results)
+
+    # Or stream task run events directly
+    task_run = await render.workflows.run_task("my-workflow/my-task", {"a": 3})
+    async for event in render.workflows.task_run_events([task_run.id]):
+        print(f"{event.id} status={event.status}")
+        if event.error:
+            print(f"Error: {event.error}")
+
+asyncio.run(main())
+```
+
 ### Object Storage
 
 ```python

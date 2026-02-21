@@ -1,87 +1,16 @@
-"""Server-Sent Events (SSE) client
+"""Server-Sent Events (SSE) utilities
 
-This module provides SSE streaming functionality for task run events.
+This module provides SSE stream parsing functionality for task run events.
 """
 
 import json
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Any
-
-import httpx
+from typing import Any
 
 from render_sdk.client.types import TaskRunDetails
-from render_sdk.client.util import handle_http_error, handle_httpx_exception
-from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import (
-    _get_kwargs,
-)
-from render_sdk.version import get_user_agent
-
-if TYPE_CHECKING:
-    from render_sdk.client.client import Client
 
 logger = logging.getLogger(__name__)
-
-
-class SSEClient:
-    """Client for Server-Sent Events streaming."""
-
-    def __init__(self, client: "Client"):
-        self.client = client
-
-    async def stream_task_run_events(
-        self,
-        task_run_ids: list[str],
-    ) -> AsyncIterator[TaskRunDetails]:
-        """Stream task run events via SSE.
-
-        Args:
-            task_run_ids: List of task run IDs to stream events for
-
-        Yields:
-            TaskRunDetails: Task run event updates
-
-        Raises:
-            TimeoutError: For timeout-related errors
-            ClientError: For other client-side errors
-            ServerError: For connection errors that might indicate server issues
-        """
-        # Build the request parameters
-        kwargs = _get_kwargs(task_run_ids=task_run_ids)
-
-        # Create streaming request with appropriate timeout for SSE
-        timeout = httpx.Timeout(
-            connect=5.0, write=5.0, read=None, pool=None
-        )  # These can be long lived
-        async with httpx.AsyncClient(timeout=timeout) as http_client:
-            # Set up headers for SSE
-            headers = kwargs.get("headers", {})
-            headers.update(
-                {
-                    "Accept": "text/event-stream",
-                    "Cache-Control": "no-cache",
-                    "Authorization": f"Bearer {self.client.token}",
-                    "User-Agent": get_user_agent(),
-                }
-            )
-
-            # Build the full URL
-            url = f"{self.client.internal._base_url}{kwargs['url']}"
-
-            try:
-                async with http_client.stream(
-                    method=kwargs["method"],
-                    url=url,
-                    params=kwargs.get("params", {}),
-                    headers=headers,
-                ) as response:
-                    handle_http_error(response, "SSE stream")
-
-                    async for event in parse_stream(response.aiter_bytes()):
-                        yield event
-
-            except httpx.RequestError as e:
-                handle_httpx_exception(e, "SSE connection")
 
 
 async def parse_stream(

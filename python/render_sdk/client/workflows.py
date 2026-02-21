@@ -3,9 +3,13 @@
 This module provides the WorkflowsService class for workflow-related API operations.
 """
 
+from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
+import httpx
+
 from render_sdk.client.errors import RenderError, TaskRunError
+from render_sdk.client.sse import parse_stream
 from render_sdk.client.types import (
     ListTaskRunsParams,
     TaskData,
@@ -14,17 +18,26 @@ from render_sdk.client.types import (
     TaskRunDetails,
     TaskRunStatusValues,
 )
-from render_sdk.client.util import handle_http_errors, retry_with_backoff
+from render_sdk.client.util import (
+    handle_http_error,
+    handle_http_errors,
+    handle_httpx_exception,
+    retry_with_backoff,
+)
 from render_sdk.public_api.api.workflow_tasks_ea import (
     cancel_task_run,
     create_task,
     get_task_run,
     list_task_runs,
 )
+from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import (
+    _get_kwargs,
+)
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.run_task import RunTask
 from render_sdk.public_api.models.task_data_type_1 import TaskDataType1
 from render_sdk.public_api.types import UNSET, Response
+from render_sdk.version import get_user_agent
 
 if TYPE_CHECKING:
     from render_sdk.client.client import Client
@@ -90,9 +103,7 @@ class AwaitableTaskRun:
         )
 
     async def _task_run_completed_with_sse(self) -> TaskRunDetails:
-        async for event in self.workflows_service.client.sse.stream_task_run_events(
-            [self.id]
-        ):
+        async for event in self.workflows_service.task_run_events([self.id]):
             if event and event.id == self.id:
                 # Update our internal state
                 self._details = event
@@ -114,6 +125,56 @@ class WorkflowsService:
 
     def __init__(self, client: "Client"):
         self.client = client
+
+    async def task_run_events(
+        self,
+        task_run_ids: list[str],
+    ) -> AsyncIterator[TaskRunDetails]:
+        """Stream task run events via SSE.
+
+        Args:
+            task_run_ids: List of task run IDs to stream events for
+
+        Yields:
+            TaskRunDetails: Task run event updates
+
+        Raises:
+            TimeoutError: For timeout-related errors
+            ClientError: For other client-side errors
+            ServerError: For connection errors that might indicate server issues
+        """
+        kwargs = _get_kwargs(task_run_ids=task_run_ids)
+
+        timeout = httpx.Timeout(
+            connect=5.0, write=5.0, read=None, pool=None
+        )  # These can be long lived
+        async with httpx.AsyncClient(timeout=timeout) as http_client:
+            headers = kwargs.get("headers", {})
+            headers.update(
+                {
+                    "Accept": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                    "Authorization": f"Bearer {self.client.token}",
+                    "User-Agent": get_user_agent(),
+                }
+            )
+
+            url = f"{self.client.internal._base_url}{kwargs['url']}"
+
+            try:
+                async with http_client.stream(
+                    method=kwargs["method"],
+                    url=url,
+                    params=kwargs.get("params", {}),
+                    headers=headers,
+                ) as response:
+                    handle_http_error(response, "SSE stream")
+
+                    async for event in parse_stream(response.aiter_bytes()):
+                        yield event
+
+            except httpx.RequestError as e:
+                handle_httpx_exception(e, "SSE connection")
 
     async def run_task(
         self,
