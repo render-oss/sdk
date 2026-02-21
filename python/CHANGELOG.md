@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.0] - 2026-02-20
+
+### Added
+
+- E2E tests for object storage
+- Automatic retries with exponential backoff for transient errors and rate limits for workflows
+
+### Changed
+
+- **Breaking:** Moved `client.stream_task_run_events()` to `workflows.task_run_events()`
+- Accept `RENDER_OWNER_ID` and `RENDER_REGION` environment variables for object storage
+- Updated README and workflows example code
+
+### Fixed
+
+- **Breaking:** Remove `auto_start` to avoid `atexit` conflicts for workflows task definition
+- Fix `render-workflows` CLI wrapper when used as Render service start command
+
 ## [0.3.0] - 2026-02-11
 
 ### Added
