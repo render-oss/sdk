@@ -15,6 +15,11 @@ import sys
 
 def main() -> None:
     """Main CLI entrypoint."""
+    # Ensure the current working directory is on sys.path so that
+    # `render-workflows <module>:<app>` can find modules in the cwd.
+    if "" not in sys.path:
+        sys.path.insert(0, "")
+
     if len(sys.argv) < 2:
         print("Usage: render-workflows <module:app>", file=sys.stderr)
         print("Example: render-workflows myapp:app", file=sys.stderr)
