@@ -53,6 +53,16 @@ async def main():
     except RenderError as e:
         print(f"Error waiting for task completion: {e}")
 
+    # Stream task run events directly
+    # This is useful when you want to monitor multiple task runs
+    # or handle events as they arrive
+    print("\n📡 Streaming task run events...")
+    task_run2 = await render.workflows.run_task(task_identifier, input_data)
+    async for event in render.workflows.task_run_events([task_run2.id]):
+        print(f"   Event: {event.id} status={event.status}")
+        if event.error:
+            print(f"   Error: {event.error}")
+
     # List recent task runs
     print("📋 Listing recent task runs...")
     params = ListTaskRunsParams(limit=5)  # Get last 5 task runs
