@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from render_sdk.client import Client
     from render_sdk.client.workflows import WorkflowsService
+    from render_sdk.experimental import ExperimentalService
 
 
 class Render:
@@ -71,3 +72,8 @@ class Render:
     def workflows(self) -> WorkflowsService:
         """REST API for workflow operations (run tasks, get status)."""
         return self._client.workflows
+
+    @property
+    def experimental(self) -> ExperimentalService:
+        """Experimental APIs including object storage."""
+        return self._client.experimental
