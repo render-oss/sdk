@@ -4,6 +4,19 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-02-20
+
+### Added
+
+- `startTask()` method that decouples task invocation from event streaming for workflows
+- `taskRunEvents()` method on `WorkflowsClient` for streaming run events from workflows
+- Automatic retries with exponential backoff for transient errors and rate limits for workflows
+- Accept `RENDER_OWNER_ID` and `RENDER_REGION` environment variables for object storage
+
+### Changed
+
+- Updated README with Bun installation instructions
+
 ## [0.3.0] - 2026-02-11
 
 ### Added
