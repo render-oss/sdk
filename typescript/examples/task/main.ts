@@ -17,7 +17,7 @@ task(
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
-      factor: 1.5,
+      backoffScaling: 1.5,
     },
   },
   async function addSquares(a: number, b: number): Promise<number> {
