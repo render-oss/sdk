@@ -63,6 +63,15 @@ async def main():
         if event.error:
             print(f"   Error: {event.error}")
 
+    # Get task run details by ID
+    details = await render.workflows.get_task_run(task_run.id)
+    print(f"\nTask run details: {details.id} status={details.status}")
+
+    # Cancel a task run
+    task_run3 = await render.workflows.run_task(task_identifier, input_data)
+    await render.workflows.cancel_task_run(task_run3.id)
+    print(f"Cancelled task run: {task_run3.id}")
+
     # List recent task runs
     print("📋 Listing recent task runs...")
     params = ListTaskRunsParams(limit=5)  # Get last 5 task runs

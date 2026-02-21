@@ -30,31 +30,49 @@ def square(a: int) -> int:
 @app.task
 async def add_squares(a: int, b: int) -> int:
     """Add the squares of two numbers."""
-
-    # Execute subtasks
     result1 = await square(a)
-    logger.info(f"Square result: {result1}")
     result2 = await square(b)
-    logger.info(f"Square result: {result2}")
-
     return result1 + result2
 ```
 
-You can also specify task parameters like `timeout` and `plan`:
+You can also specify task parameters like `retry`, `timeout`, and `plan`:
 
 ```python
+from render_sdk import Retry, Workflows
+
+app = Workflows(
+    default_retry=Retry(max_retries=3, wait_duration_ms=1000),
+    default_timeout=300,
+    default_plan="standard",
+)
+
 @app.task(timeout=60, plan="starter")
 def quick_task(x: int) -> int:
     return x + 1
+
+@app.task(retry=Retry(max_retries=5, wait_duration_ms=2000, backoff_scaling=2.0))
+def retryable_task(x: int) -> int:
+    return x * 2
+```
+
+You can combine tasks from multiple modules using `Workflows.from_workflows()`:
+
+```python
+from tasks_a import app as app_a
+from tasks_b import app as app_b
+
+combined = Workflows.from_workflows(app_a, app_b)
 ```
 
 ### Running the Task Server
 
-Run your workflow application using the CLI command:
+For local development, use the Render CLI:
 
 ```bash
-render ea tasks dev -- python main.py
+render ea tasks dev -- render-workflows main:app
 ```
+
+The `render-workflows` CLI takes a `module:app` argument pointing to your `Workflows` instance. You can also call `app.start()` directly if needed.
 
 ### Running Tasks
 
@@ -63,21 +81,41 @@ Use the `Render` client to run tasks and monitor their status:
 ```python
 import asyncio
 from render_sdk import Render
+from render_sdk.client import ListTaskRunsParams
+from render_sdk.client.errors import RenderError, TaskRunError
 
 async def main():
     render = Render()  # Uses RENDER_API_KEY from environment
 
-    # Run a task and wait for the result
-    task_run = await render.workflows.run_task("my-workflow/my-task", {"a": 3})
-    result = await task_run
-    print(result.results)
+    # run_task() starts a task and returns an awaitable handle.
+    # The first await starts the task; the second await waits for completion.
+    task_run = await render.workflows.run_task("my-workflow/my-task", [3, 4])
+    print(f"Task started: {task_run.id}")
 
-    # Or stream task run events directly
-    task_run = await render.workflows.run_task("my-workflow/my-task", {"a": 3})
-    async for event in render.workflows.task_run_events([task_run.id]):
+    # Wait for the result
+    try:
+        result = await task_run
+        print(result.results)
+    except TaskRunError as e:
+        print(f"Task failed: {e}")
+
+    # Get task run details by ID
+    details = await render.workflows.get_task_run(task_run.id)
+    print(f"Status: {details.status}")
+
+    # Cancel a running task
+    task_run2 = await render.workflows.run_task("my-workflow/my-task", [5])
+    await render.workflows.cancel_task_run(task_run2.id)
+
+    # Stream task run events
+    task_run3 = await render.workflows.run_task("my-workflow/my-task", [6])
+    async for event in render.workflows.task_run_events([task_run3.id]):
         print(f"{event.id} status={event.status}")
         if event.error:
             print(f"Error: {event.error}")
+
+    # List recent task runs
+    runs = await render.workflows.list_task_runs(ListTaskRunsParams(limit=10))
 
 asyncio.run(main())
 ```
@@ -90,17 +128,17 @@ from render_sdk import Render
 render = Render()  # Uses RENDER_API_KEY, RENDER_WORKSPACE_ID, RENDER_REGION from environment
 
 # Upload an object (no need to pass owner_id/region when env vars are set)
-await render.client.experimental.storage.objects.put(
+await render.experimental.storage.objects.put(
     key="path/to/file.png",
     data=b"binary content",
     content_type="image/png",
 )
 
 # Download
-obj = await render.client.experimental.storage.objects.get(key="path/to/file.png")
+obj = await render.experimental.storage.objects.get(key="path/to/file.png")
 
 # List
-response = await render.client.experimental.storage.objects.list()
+response = await render.experimental.storage.objects.list()
 ```
 
 ## Environment Variables
@@ -111,11 +149,14 @@ response = await render.client.experimental.storage.objects.list()
 
 ## Features
 
-- Decorator-based task registration
-- Type-safe task execution
-- Retry configuration support
-- Environment-based configuration
-- Generated client for SDK server communication
+- **REST API Client**: Run, monitor, cancel, and list task runs
+- **Task Definition**: Decorator-based task registration with the `Workflows` class
+- **Server-Sent Events**: Real-time streaming of task run events
+- **Async/Await Support**: Fully async API using `asyncio`
+- **Retry Configuration**: Configurable retry behavior with exponential backoff
+- **Subtask Execution**: Execute tasks from within other tasks
+- **Task Composition**: Combine tasks from multiple modules with `Workflows.from_workflows()`
+- **Object Storage**: Experimental object storage API with upload, download, and list
 
 ## Development
 
