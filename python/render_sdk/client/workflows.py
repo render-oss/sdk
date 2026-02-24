@@ -3,8 +3,7 @@
 This module provides the WorkflowsService class for workflow-related API operations.
 """
 
-import asyncio
-from collections.abc import AsyncIterator, Callable, Coroutine
+from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
 import httpx
@@ -118,32 +117,6 @@ class AwaitableTaskRun:
         raise RenderError("Task run completed with no event")
 
 
-class TaskRunResult:
-    """Result handle for a started task run.
-
-    Results aren't streamed until .get() is awaited.
-    Multiple .get() calls reuse a single cached asyncio.Task.
-    """
-
-    def __init__(
-        self,
-        task_run: TaskRun,
-        wait_fn: Callable[[str], Coroutine[Any, Any, TaskRunDetails]],
-    ):
-        self._task_run = task_run
-        self._wait_fn = wait_fn
-        self._result_task: asyncio.Task[TaskRunDetails] | None = None
-
-    @property
-    def task_run_id(self) -> str:
-        return self._task_run.id
-
-    async def get(self) -> TaskRunDetails:
-        if self._result_task is None:
-            self._result_task = asyncio.create_task(self._wait_fn(self._task_run.id))
-        return await self._result_task
-
-
 class WorkflowsService:
     """Service for workflow-related API operations.
 
@@ -204,57 +177,6 @@ class WorkflowsService:
             except httpx.RequestError as e:
                 handle_httpx_exception(e, "SSE connection")
 
-    async def _wait_on_task_run(self, task_run_id: str) -> TaskRunDetails:
-        async def _sse_wait() -> TaskRunDetails:
-            async for event in self.task_run_events([task_run_id]):
-                if event and event.id == task_run_id:
-                    if event.error:
-                        raise TaskRunError(event.error)
-                    return event
-            raise RenderError(
-                f"Events stream ended without receiving an event for "
-                f"task run {task_run_id}"
-            )
-
-        return await retry_with_backoff(
-            _sse_wait,
-            max_retries=5,
-            poll_interval=1.0,
-            backoff_factor=2.0,
-            exempted_exceptions=(TaskRunError,),
-        )
-
-    async def start_task(
-        self,
-        task_identifier: TaskIdentifier,
-        input_data: TaskData,
-    ) -> TaskRunResult:
-        """Start a task and return a result handle without streaming results.
-
-        Results aren't streamed until .get() is awaited on the returned
-        TaskRunResult, enabling fire-and-forget patterns.
-
-        This corresponds to POST /task-runs in the API.
-
-        Args:
-            task_identifier: The identifier of the task to run
-            input_data: The input data for the task. Can be either:
-                - A list for positional arguments: [arg1, arg2, arg3]
-                - A dict for named parameters: {"param1": value1, "param2": value2}
-
-        Returns:
-            TaskRunResult: A result handle with .task_run_id and .get()
-
-        Raises:
-            ClientError: For 4xx client errors (invalid task, malformed input, etc.)
-            ServerError: For 5xx server errors and network failures
-            TimeoutError: If the request times out
-        """
-        response = (
-            await self._create_task_api_call(task_identifier, input_data)
-        ).parsed
-        return TaskRunResult(task_run=response, wait_fn=self._wait_on_task_run)
-
     async def run_task(
         self,
         task_identifier: TaskIdentifier,
@@ -278,8 +200,12 @@ class WorkflowsService:
             ServerError: For 5xx server errors and network failures
             TimeoutError: If the request times out
         """
-        result = await self.start_task(task_identifier, input_data)
-        return AwaitableTaskRun(result._task_run, self)
+        response = (
+            await self._create_task_api_call(task_identifier, input_data)
+        ).parsed
+
+        # Return wrapped task run with awaitable functionality
+        return AwaitableTaskRun(response, self)
 
     @handle_http_errors("create task")
     async def _create_task_api_call(
