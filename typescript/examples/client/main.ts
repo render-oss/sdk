@@ -45,7 +45,7 @@ async function main() {
     console.log("\nTask run details:", details);
 
     // Stream task run events as an async iterable.
-    // taskRunEvents() yields a TaskRunDetails for each completed or failed event.
+    // taskRunEvents() yields a TaskRunDetails for each completed, failed, or canceled event.
     // The stream stays open until you break or abort.
     const run3 = await render.workflows.startTask("my-workflow/square", [3]);
     const run4 = await render.workflows.startTask("my-workflow/square", [6]);

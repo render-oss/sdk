@@ -212,7 +212,7 @@ console.log('Results:', result.results);
 
 #### `render.workflows.taskRunEvents(taskRunIds, signal?)`
 
-Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed or failed) received on the stream.
+Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed, failed, or canceled) received on the stream.
 
 **Parameters:**
 - `taskRunIds: string[]` - One or more task run IDs to subscribe to
@@ -369,6 +369,7 @@ enum TaskRunStatus {
   RUNNING = 'running',
   COMPLETED = 'completed',
   FAILED = 'failed',
+  CANCELED = 'canceled',
 }
 ```
 

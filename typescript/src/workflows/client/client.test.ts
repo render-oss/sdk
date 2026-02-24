@@ -227,6 +227,15 @@ describe("WorkflowsClient", () => {
       expect(second.value).toEqual(failedDetails);
       expect(second.done).toBe(false);
 
+      // Emit a canceled event
+      const canceledDetails = { id: "run-3", status: "canceled" };
+      const thirdPromise = gen.next();
+      es.emit(TaskEventType.CANCELED, canceledDetails);
+
+      const third = await thirdPromise;
+      expect(third.value).toEqual(canceledDetails);
+      expect(third.done).toBe(false);
+
       // Clean up
       await gen.return(undefined as any);
       expect(es.closed).toBe(true);

@@ -18,6 +18,7 @@ export enum TaskRunStatus {
   RUNNING = "running",
   COMPLETED = "completed",
   FAILED = "failed",
+  CANCELED = "canceled",
 }
 
 /**
