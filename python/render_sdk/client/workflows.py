@@ -71,6 +71,7 @@ class AwaitableTaskRun:
         return self.status in (
             TaskRunStatusValues.COMPLETED,
             TaskRunStatusValues.FAILED,
+            TaskRunStatusValues.CANCELED,
         )
 
     def __await__(self):
