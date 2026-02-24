@@ -49,7 +49,7 @@ export class WorkflowsClient {
 
   /**
    * Stream task run events as an async iterable.
-   * Yields a TaskRunDetails for each terminal event (completed or failed)
+   * Yields a TaskRunDetails for each terminal event (completed, failed, or canceled)
    * received on the SSE stream.
    *
    * @param taskRunIds - One or more task run IDs to subscribe to
@@ -120,6 +120,7 @@ export class WorkflowsClient {
     const cleanup = () => {
       eventSource.removeEventListener(TaskEventType.COMPLETED, eventHandler);
       eventSource.removeEventListener(TaskEventType.FAILED, eventHandler);
+      eventSource.removeEventListener(TaskEventType.CANCELED, eventHandler);
       eventSource.removeEventListener("error", errorHandler);
       eventSource.close();
       signal?.removeEventListener("abort", abortHandler);
@@ -127,6 +128,7 @@ export class WorkflowsClient {
 
     eventSource.addEventListener(TaskEventType.COMPLETED, eventHandler);
     eventSource.addEventListener(TaskEventType.FAILED, eventHandler);
+    eventSource.addEventListener(TaskEventType.CANCELED, eventHandler);
     eventSource.addEventListener("error", errorHandler);
     signal?.addEventListener("abort", abortHandler);
 

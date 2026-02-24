@@ -4,6 +4,7 @@
 export enum TaskEventType {
   COMPLETED = "task.completed",
   FAILED = "task.failed",
+  CANCELED = "task.canceled",
   RUNNING = "task.running",
   PENDING = "task.pending",
 }
