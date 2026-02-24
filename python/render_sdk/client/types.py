@@ -48,3 +48,4 @@ class TaskRunStatusValues:
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELED = "canceled"

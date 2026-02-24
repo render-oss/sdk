@@ -234,6 +234,7 @@ def test_task_run_properties(awaitable_task_run):
         (TaskRunStatus.RUNNING, False),
         (TaskRunStatus.COMPLETED, True),
         (TaskRunStatus.FAILED, True),
+        (TaskRunStatus.CANCELED, True),
     ],
 )
 def test_is_terminal_status(mock_task_run, mock_workflows_service, status, expected):
