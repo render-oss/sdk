@@ -15,7 +15,13 @@ REST API access (for clients):
     from render_sdk import Render
 
     render = Render()
+
+    # Run a task and wait for the result
     result = await render.workflows.run_task("my-workflow/my_task", [5])
+
+    # Or start a task for fire-and-forget / deferred waiting
+    task_run = await render.workflows.start_task("my-workflow/my_task", [5])
+    result = await task_run
 """
 
 __version__ = "0.4.0"

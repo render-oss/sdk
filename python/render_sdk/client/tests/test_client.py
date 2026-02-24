@@ -103,15 +103,15 @@ def mock_get_task_run_asyncio(mocker):
 
 
 @pytest.mark.asyncio
-async def test_run_task_success(
+async def test_start_task_success(
     mock_create_task_asyncio, workflows_service, mock_task_run
 ):
-    """Test successful task execution."""
+    """Test successful task start."""
     mock_create_task_asyncio.return_value = Response(
         status_code=202, content=b"", headers={}, parsed=mock_task_run
     )
 
-    result = await workflows_service.run_task("test-task", {"input": "data"})
+    result = await workflows_service.start_task("test-task", {"input": "data"})
 
     assert isinstance(result, AwaitableTaskRun)
     assert result.id == "trn-test123"
@@ -119,9 +119,47 @@ async def test_run_task_success(
 
 
 @pytest.mark.asyncio
-async def test_run_task_failure(mock_create_task_asyncio, workflows_service):
-    """Test task execution failure."""
+async def test_start_task_failure(mock_create_task_asyncio, workflows_service):
+    """Test task start failure."""
 
+    error = Error(message="Task creation failed")
+    mock_create_task_asyncio.return_value = Response(
+        status_code=400, content=b"", headers={}, parsed=error
+    )
+
+    with pytest.raises(ClientError, match="create task failed: Task creation failed"):
+        await workflows_service.start_task("test-task", {"input": "data"})
+
+
+@pytest.mark.asyncio
+async def test_run_task_returns_task_run_details(
+    mocker,
+    mock_create_task_asyncio,
+    workflows_service,
+    mock_task_run,
+    mock_task_run_details,
+):
+    """Test that run_task starts a task and waits for completion."""
+    mock_create_task_asyncio.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+    mocker.patch.object(
+        AwaitableTaskRun,
+        "_wait_for_completion",
+        new_callable=mocker.AsyncMock,
+        return_value=mock_task_run_details,
+    )
+
+    result = await workflows_service.run_task("test-task", {"input": "data"})
+
+    assert isinstance(result, TaskRunDetails)
+    assert result.id == "trn-test123"
+    assert result.status.value == TaskRunStatus.COMPLETED
+
+
+@pytest.mark.asyncio
+async def test_run_task_failure(mock_create_task_asyncio, workflows_service):
+    """Test that run_task propagates errors from start_task."""
     error = Error(message="Task creation failed")
     mock_create_task_asyncio.return_value = Response(
         status_code=400, content=b"", headers={}, parsed=error

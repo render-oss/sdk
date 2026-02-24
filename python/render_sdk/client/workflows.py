@@ -177,12 +177,21 @@ class WorkflowsService:
             except httpx.RequestError as e:
                 handle_httpx_exception(e, "SSE connection")
 
-    async def run_task(
+    async def start_task(
         self,
         task_identifier: TaskIdentifier,
         input_data: TaskData,
     ) -> AwaitableTaskRun:
-        """Execute a task using the workflows API.
+        """Start a task and return an awaitable task run without waiting for completion.
+
+        The returned AwaitableTaskRun provides the task run ID immediately.
+        To wait for the result, await it:
+
+            task_run = await workflows.start_task("my-workflow/task", [42])
+            print(task_run.id)        # available immediately
+            result = await task_run    # opens connection, waits for completion
+
+        For fire-and-forget, simply discard the task run.
 
         This corresponds to POST /task-runs in the API.
 
@@ -193,7 +202,7 @@ class WorkflowsService:
                 - A dict for named parameters: {"param1": value1, "param2": value2}
 
         Returns:
-            AwaitableTaskRun: An awaitable task run object
+            AwaitableTaskRun: A task run that can be awaited for the result
 
         Raises:
             ClientError: For 4xx client errors (invalid task, malformed input, etc.)
@@ -204,8 +213,35 @@ class WorkflowsService:
             await self._create_task_api_call(task_identifier, input_data)
         ).parsed
 
-        # Return wrapped task run with awaitable functionality
         return AwaitableTaskRun(response, self)
+
+    async def run_task(
+        self,
+        task_identifier: TaskIdentifier,
+        input_data: TaskData,
+    ) -> TaskRunDetails:
+        """Start a task and wait for it to complete, returning the result.
+
+        This is a convenience wrapper around start_task() that additionally
+        waits for the task to complete.
+
+        Args:
+            task_identifier: The identifier of the task to run
+            input_data: The input data for the task. Can be either:
+                - A list for positional arguments: [arg1, arg2, arg3]
+                - A dict for named parameters: {"param1": value1, "param2": value2}
+
+        Returns:
+            TaskRunDetails: The completed task run details
+
+        Raises:
+            ClientError: For 4xx client errors (invalid task, malformed input, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If the request times out
+            TaskRunError: If the task run fails with an error
+        """
+        task_run = await self.start_task(task_identifier, input_data)
+        return await task_run
 
     @handle_http_errors("create task")
     async def _create_task_api_call(

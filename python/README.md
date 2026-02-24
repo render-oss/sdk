@@ -82,33 +82,33 @@ Use the `Render` client to run tasks and monitor their status:
 import asyncio
 from render_sdk import Render
 from render_sdk.client import ListTaskRunsParams
-from render_sdk.client.errors import RenderError, TaskRunError
+from render_sdk.client.errors import TaskRunError
 
 async def main():
     render = Render()  # Uses RENDER_API_KEY from environment
 
-    # run_task() starts a task and returns an awaitable handle.
-    # The first await starts the task; the second await waits for completion.
-    task_run = await render.workflows.run_task("my-workflow/my-task", [3, 4])
-    print(f"Task started: {task_run.id}")
-
-    # Wait for the result
+    # run_task() starts a task and waits for completion in one call.
     try:
-        result = await task_run
+        result = await render.workflows.run_task("my-workflow/my-task", [3, 4])
         print(result.results)
     except TaskRunError as e:
         print(f"Task failed: {e}")
+
+    # start_task() returns an awaitable task run for fire-and-forget or deferred waiting.
+    task_run = await render.workflows.start_task("my-workflow/my-task", [3, 4])
+    print(f"Task started: {task_run.id}")
+    result = await task_run  # wait when ready
 
     # Get task run details by ID
     details = await render.workflows.get_task_run(task_run.id)
     print(f"Status: {details.status}")
 
     # Cancel a running task
-    task_run2 = await render.workflows.run_task("my-workflow/my-task", [5])
+    task_run2 = await render.workflows.start_task("my-workflow/my-task", [5])
     await render.workflows.cancel_task_run(task_run2.id)
 
     # Stream task run events
-    task_run3 = await render.workflows.run_task("my-workflow/my-task", [6])
+    task_run3 = await render.workflows.start_task("my-workflow/my-task", [6])
     async for event in render.workflows.task_run_events([task_run3.id]):
         print(f"{event.id} status={event.status}")
         if event.error:
