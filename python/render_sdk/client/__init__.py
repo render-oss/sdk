@@ -15,7 +15,7 @@ from render_sdk.client.types import (
     TaskRunDetails,
     TaskRunStatus,
 )
-from render_sdk.client.workflows import TaskRunResult, WorkflowsService
+from render_sdk.client.workflows import WorkflowsService
 from render_sdk.experimental import (
     DownloadResponse,
     ExperimentalService,
@@ -33,7 +33,6 @@ from render_sdk.experimental import (
 __all__ = [
     "Client",
     "WorkflowsService",
-    "TaskRunResult",
     "TaskData",
     "TaskIdentifier",
     "TaskRun",
