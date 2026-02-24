@@ -8,7 +8,7 @@ import pytest
 
 from render_sdk.client import Client, ListTaskRunsParams, WorkflowsService
 from render_sdk.client.errors import ClientError, ServerError
-from render_sdk.client.workflows import AwaitableTaskRun
+from render_sdk.client.workflows import AwaitableTaskRun, TaskRunResult
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.task_run import TaskRun
 from render_sdk.public_api.models.task_run_details import TaskRunDetails
@@ -296,6 +296,78 @@ def mock_httpx_stream(mocker):
     )
 
     return chunks, mock_response
+
+
+def test_task_run_result_exposes_id(mock_task_run, mocker):
+    """Test that TaskRunResult.task_run_id exposes the task run ID."""
+    wait_fn = mocker.AsyncMock()
+    result = TaskRunResult(task_run=mock_task_run, wait_fn=wait_fn)
+    assert result.task_run_id == "trn-test123"
+
+
+@pytest.mark.asyncio
+async def test_task_run_result_get_calls_wait_fn(
+    mock_task_run, mock_task_run_details, mocker
+):
+    """Test that .get() calls wait_fn and returns details."""
+    wait_fn = mocker.AsyncMock(return_value=mock_task_run_details)
+    result = TaskRunResult(task_run=mock_task_run, wait_fn=wait_fn)
+
+    details = await result.get()
+
+    assert details.id == "trn-test123"
+    assert details.status.value == TaskRunStatus.COMPLETED
+    wait_fn.assert_called_once_with("trn-test123")
+
+
+@pytest.mark.asyncio
+async def test_task_run_result_get_caches_result(
+    mock_task_run, mock_task_run_details, mocker
+):
+    """Test that multiple .get() calls reuse a single cached task."""
+    wait_fn = mocker.AsyncMock(return_value=mock_task_run_details)
+    result = TaskRunResult(task_run=mock_task_run, wait_fn=wait_fn)
+
+    details1 = await result.get()
+    details2 = await result.get()
+
+    assert details1 is details2
+    wait_fn.assert_called_once()
+
+
+def test_task_run_result_construction_does_not_call_wait_fn(mock_task_run, mocker):
+    """Test that constructing TaskRunResult does NOT call wait_fn (lazy SSE)."""
+    wait_fn = mocker.AsyncMock()
+    TaskRunResult(task_run=mock_task_run, wait_fn=wait_fn)
+    wait_fn.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_start_task_returns_task_run_result(
+    mock_create_task_asyncio, workflows_service, mock_task_run
+):
+    """Test that start_task returns a TaskRunResult with correct ID."""
+    mock_create_task_asyncio.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+
+    result = await workflows_service.start_task("test-task", {"input": "data"})
+
+    assert isinstance(result, TaskRunResult)
+    assert result.task_run_id == "trn-test123"
+    mock_create_task_asyncio.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_start_task_failure(mock_create_task_asyncio, workflows_service):
+    """Test that start_task raises ClientError on API failure."""
+    error = Error(message="Task creation failed")
+    mock_create_task_asyncio.return_value = Response(
+        status_code=400, content=b"", headers={}, parsed=error
+    )
+
+    with pytest.raises(ClientError, match="create task failed: Task creation failed"):
+        await workflows_service.start_task("test-task", {"input": "data"})
 
 
 @pytest.mark.asyncio
