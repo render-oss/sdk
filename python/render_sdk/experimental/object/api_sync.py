@@ -1,0 +1,250 @@
+# Auto-generated sync version. Do not edit — run scripts/unasync.py instead.
+
+"""Typed Object API Client
+
+Provides idiomatic Python wrapper around the raw OpenAPI client.
+Handles presigned URL flow but still exposes the two-step nature
+(get URL, then upload/download). Useful for advanced use cases
+requiring fine-grained control.
+"""
+
+from typing import TYPE_CHECKING, cast
+
+from render_sdk.client.errors import RenderError
+from render_sdk.client.util_sync import handle_http_errors
+from render_sdk.experimental.object.types import (
+    DownloadResponse,
+    ListObjectsResponse,
+    ObjectMetadata,
+    UploadResponse,
+)
+from render_sdk.public_api.api.object_storage import (
+    delete_object,
+    get_object,
+    list_objects,
+    put_object,
+)
+from render_sdk.public_api.models.error import Error
+from render_sdk.public_api.models.get_object_output import GetObjectOutput
+from render_sdk.public_api.models.list_objects_response import (
+    ListObjectsResponse as GeneratedListObjectsResponse,
+)
+from render_sdk.public_api.models.put_object_input import (
+    PutObjectInput as PutObjectInputModel,
+)
+from render_sdk.public_api.models.put_object_output import PutObjectOutput
+from render_sdk.public_api.models.region import Region
+from render_sdk.public_api.types import UNSET, Response
+
+if TYPE_CHECKING:
+    from render_sdk.public_api.client import AuthenticatedClient
+
+
+class SyncObjectApi:
+    """Typed Object API Client
+
+    Provides idiomatic Python wrapper around the raw OpenAPI client.
+    Handles presigned URL flow but still exposes the two-step nature.
+    """
+
+    def __init__(self, client: "AuthenticatedClient"):
+        self.client = client
+
+    def get_upload_url(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+        size_bytes: int,
+    ) -> UploadResponse:
+        """Get a presigned URL for uploading an object.
+
+        Args:
+            owner_id: Owner ID (workspace team ID)
+            region: Storage region
+            key: Object key (path)
+            size_bytes: Size of the object in bytes
+
+        Returns:
+            UploadResponse: Upload URL with expiration and size limit
+
+        Raises:
+            ClientError: For 4xx client errors
+            ServerError: For 5xx server errors
+            TimeoutError: If the request times out
+        """
+        response = self._get_upload_url_api_call(owner_id, region, key, size_bytes)
+
+        if not isinstance(response.parsed, PutObjectOutput):
+            raise RenderError("Failed to get upload URL: unexpected response type")
+
+        return UploadResponse(
+            url=response.parsed.url,
+            expires_at=response.parsed.expires_at,
+            max_size_bytes=response.parsed.max_size_bytes,
+        )
+
+    @handle_http_errors("get upload URL")
+    def _get_upload_url_api_call(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+        size_bytes: int,
+    ) -> Response[Error | PutObjectOutput]:
+        """Internal method to make the get upload URL API call."""
+        body = PutObjectInputModel(size_bytes=size_bytes)
+
+        return put_object.sync_detailed(
+            owner_id=owner_id,
+            region=cast(Region, region),
+            key=key,
+            client=self.client,
+            body=body,
+        )
+
+    def get_download_url(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+    ) -> DownloadResponse:
+        """Get a presigned URL for downloading an object.
+
+        Args:
+            owner_id: Owner ID (workspace team ID)
+            region: Storage region
+            key: Object key (path)
+
+        Returns:
+            DownloadResponse: Download URL with expiration
+
+        Raises:
+            ClientError: For 4xx client errors
+            ServerError: For 5xx server errors
+            TimeoutError: If the request times out
+        """
+        response = self._get_download_url_api_call(owner_id, region, key)
+
+        if not isinstance(response.parsed, GetObjectOutput):
+            raise RenderError("Failed to get download URL: unexpected response type")
+
+        return DownloadResponse(
+            url=response.parsed.url,
+            expires_at=response.parsed.expires_at,
+        )
+
+    @handle_http_errors("get download URL")
+    def _get_download_url_api_call(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+    ) -> Response[Error | GetObjectOutput]:
+        """Internal method to make the get download URL API call."""
+        return get_object.sync_detailed(
+            owner_id=owner_id,
+            region=cast(Region, region),
+            key=key,
+            client=self.client,
+        )
+
+    def delete(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+    ) -> None:
+        """Delete an object.
+
+        Args:
+            owner_id: Owner ID (workspace team ID)
+            region: Storage region
+            key: Object key (path)
+
+        Raises:
+            ClientError: For 4xx client errors
+            ServerError: For 5xx server errors
+            TimeoutError: If the request times out
+        """
+        self._delete_api_call(owner_id, region, key)
+
+    @handle_http_errors("delete object")
+    def _delete_api_call(
+        self,
+        owner_id: str,
+        region: Region | str,
+        key: str,
+    ) -> Response[Error | None]:
+        """Internal method to make the delete object API call."""
+        return delete_object.sync_detailed(
+            owner_id=owner_id,
+            region=cast(Region, region),
+            key=key,
+            client=self.client,
+        )
+
+    def list_objects(
+        self,
+        owner_id: str,
+        region: Region | str,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ListObjectsResponse:
+        """List objects in storage.
+
+        Args:
+            owner_id: Owner ID (workspace team ID)
+            region: Storage region
+            cursor: Pagination cursor from previous response
+            limit: Maximum number of objects to return (default 20)
+
+        Returns:
+            ListObjectsResponse: List of object metadata with optional next cursor
+
+        Raises:
+            ClientError: For 4xx client errors
+            ServerError: For 5xx server errors
+            TimeoutError: If the request times out
+        """
+        response = self._list_objects_api_call(owner_id, region, cursor, limit)
+
+        if not isinstance(response.parsed, GeneratedListObjectsResponse):
+            raise RenderError("Failed to list objects: unexpected response type")
+
+        parsed = response.parsed
+        objects = [
+            ObjectMetadata(
+                key=item.object_.key,
+                size=item.object_.size_bytes,
+                last_modified=item.object_.last_modified,
+            )
+            for item in parsed.items
+        ]
+
+        next_cursor = (
+            parsed.next_cursor if isinstance(parsed.next_cursor, str) else None
+        )
+
+        return ListObjectsResponse(
+            objects=objects,
+            has_next=parsed.has_next,
+            next_cursor=next_cursor,
+        )
+
+    @handle_http_errors("list objects")
+    def _list_objects_api_call(
+        self,
+        owner_id: str,
+        region: Region | str,
+        cursor: str | None,
+        limit: int | None,
+    ) -> Response[Error | GeneratedListObjectsResponse]:
+        """Internal method to make the list objects API call."""
+        return list_objects.sync_detailed(
+            owner_id=owner_id,
+            region=cast(Region, region),
+            cursor=cursor if cursor is not None else UNSET,
+            limit=limit if limit is not None else UNSET,
+            client=self.client,
+        )

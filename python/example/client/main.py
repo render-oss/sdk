@@ -25,7 +25,6 @@ async def main():
     # Create client (uses RENDER_API_KEY from environment)
     render = Render()
 
-    # Example task data—replace with your task's details
     # Replace with your workflow slug and task identifier
     task_identifier = "my-workflow-slug/task-name"
     # Input data can be specified as a list of positional arguments or a

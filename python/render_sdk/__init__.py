@@ -10,30 +10,41 @@ Task definition (for workers):
     def my_task(x: int) -> int:
         return x * 2
 
-REST API access (for clients):
+Async REST API access:
 
     from render_sdk import Render
 
     render = Render()
 
-    # Run a task and wait for the result
     result = await render.workflows.run_task("my-workflow/my_task", [5])
 
-    # Or start a task for fire-and-forget / deferred waiting
     task_run = await render.workflows.start_task("my-workflow/my_task", [5])
     result = await task_run
+
+Synchronous REST API access (Flask, Django, scripts):
+
+    from render_sdk import RenderSync
+
+    render = RenderSync()
+
+    result = render.workflows.run_task("my-workflow/my_task", [5])
+
+    task_run = render.workflows.start_task("my-workflow/my_task", [5])
+    # Later: result = render.workflows.get_task_run(task_run.id)
 """
 
 __version__ = "0.4.0"
 
 # Primary user-facing APIs
 from render_sdk.render import Render
+from render_sdk.render_sync import RenderSync
 from render_sdk.workflows import Options, Retry, Workflows, start, task
 
 __all__ = [
     "__version__",
     # Primary APIs
-    "Render",  # REST API client
+    "Render",  # Async REST API client
+    "RenderSync",  # Sync REST API client
     "Workflows",  # Task definition
     # Configuration
     "Options",

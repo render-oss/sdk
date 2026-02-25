@@ -16,6 +16,7 @@ from render_sdk.client.types import (
     TaskRunStatus,
 )
 from render_sdk.client.workflows import WorkflowsService
+from render_sdk.client.workflows_sync import SyncWorkflowsService
 from render_sdk.experimental import (
     DownloadResponse,
     ExperimentalService,
@@ -27,12 +28,15 @@ from render_sdk.experimental import (
     Region,
     ScopedObjectClient,
     StorageService,
+    SyncExperimentalService,
+    SyncStorageService,
     UploadResponse,
 )
 
 __all__ = [
     "Client",
     "WorkflowsService",
+    "SyncWorkflowsService",
     "TaskData",
     "TaskIdentifier",
     "TaskRun",
@@ -45,6 +49,8 @@ __all__ = [
     # Experimental exports
     "ExperimentalService",
     "StorageService",
+    "SyncExperimentalService",
+    "SyncStorageService",
     "ObjectApi",
     "ObjectClient",
     "ScopedObjectClient",

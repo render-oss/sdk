@@ -1,16 +1,21 @@
+# Auto-generated sync version. Do not edit — run scripts/unasync.py instead.
+
 """High-level object storage client.
 
 Provides simple put/get/delete operations for object storage.
 """
 
-from collections.abc import AsyncIterator
+from collections.abc import Iterator
 from typing import TYPE_CHECKING, BinaryIO, cast
 
 import httpx
 
 from render_sdk.client.errors import ClientError, RenderError
-from render_sdk.client.util import handle_httpx_exception, handle_storage_http_error
-from render_sdk.experimental.object.api import ObjectApi
+from render_sdk.client.util_sync import (
+    handle_httpx_exception,
+    handle_storage_http_error,
+)
+from render_sdk.experimental.object.api_sync import SyncObjectApi
 from render_sdk.experimental.object.types import (
     ListObjectsResponse,
     ObjectData,
@@ -26,8 +31,8 @@ if TYPE_CHECKING:
 FILE_UPLOAD_CHUNK_SIZE_BYTES = 64 * 1024  # 64 KiB
 
 
-async def _file_to_async_iterable(file_obj: BinaryIO) -> AsyncIterator[bytes]:
-    """Convert a sync file object to an async byte iterator."""
+def _file_to_iterable(file_obj: BinaryIO) -> Iterator[bytes]:
+    """Convert a sync file object to a byte iterator."""
     while True:
         chunk = file_obj.read(FILE_UPLOAD_CHUNK_SIZE_BYTES)
         if not chunk:
@@ -35,8 +40,8 @@ async def _file_to_async_iterable(file_obj: BinaryIO) -> AsyncIterator[bytes]:
         yield chunk
 
 
-class ObjectClient:
-    """ObjectClient is a high level client for interacting with object storage.
+class SyncObjectClient:
+    """SyncObjectClient is a high level client for interacting with object storage.
 
     It exposes methods to put/get/delete objects.
     """
@@ -48,7 +53,7 @@ class ObjectClient:
         default_region: str | None = None,
     ):
         self.client = client
-        self.api = ObjectApi(client)
+        self.api = SyncObjectApi(client)
         self._default_owner_id = default_owner_id
         self._default_region = default_region
 
@@ -70,13 +75,13 @@ class ObjectClient:
             )
         return resolved
 
-    async def put(
+    def put(
         self,
         *,
         owner_id: OwnerID | None = None,
         region: Region | str | None = None,
         key: str,
-        data: bytes | BinaryIO | AsyncIterator[bytes],
+        data: bytes | BinaryIO | Iterator[bytes],
         size: int | None = None,
         content_type: str | None = None,
     ) -> PutObjectResult:
@@ -86,7 +91,7 @@ class ObjectClient:
             owner_id: Owner ID (workspace team ID) in format tea-xxxxx
             region: Storage region
             key: Object key (path) for the object
-            data: Binary data as bytes, a file-like stream, or an async byte iterator
+            data: Binary data as bytes, a file-like stream, or a byte iterator
             size: Size in bytes (optional for bytes, required for streams)
             content_type: MIME type of the content (optional)
 
@@ -102,7 +107,7 @@ class ObjectClient:
         Example:
             ```python
             # Upload bytes
-            await object_client.put(
+            object_client.put(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png",
@@ -114,7 +119,7 @@ class ObjectClient:
             with open("/path/to/file.zip", "rb") as f:
                 import os
                 size = os.path.getsize("/path/to/file.zip")
-                await object_client.put(
+                object_client.put(
                     owner_id="tea-xxxxx",
                     region="oregon",
                     key="file.zip",
@@ -130,7 +135,7 @@ class ObjectClient:
         resolved_size = self._resolve_size(data, size)
 
         # Step 1: Get presigned upload URL from Render API
-        presigned = await self.api.get_upload_url(
+        presigned = self.api.get_upload_url(
             owner_id=resolved_owner_id,
             region=resolved_region,
             key=key,
@@ -153,9 +158,9 @@ class ObjectClient:
             headers["Content-Type"] = content_type
 
         if isinstance(data, bytes):
-            content: bytes | AsyncIterator[bytes] = data
+            content: bytes | Iterator[bytes] = data
         elif hasattr(data, "read"):
-            content = _file_to_async_iterable(cast(BinaryIO, data))
+            content = _file_to_iterable(cast(BinaryIO, data))
         else:
             content = data
 
@@ -163,8 +168,8 @@ class ObjectClient:
             # Keep default connect/pool timeouts but disable read/write timeouts
             default_timeout_seconds = 5.0
             timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
-            async with httpx.AsyncClient(timeout=timeout) as http_client:
-                response = await http_client.put(
+            with httpx.Client(timeout=timeout) as http_client:
+                response = http_client.put(
                     presigned.url,
                     headers=headers,
                     content=content,
@@ -178,7 +183,7 @@ class ObjectClient:
         except httpx.RequestError as e:
             handle_httpx_exception(e, "upload object")
 
-    async def get(
+    def get(
         self,
         *,
         owner_id: OwnerID | None = None,
@@ -202,7 +207,7 @@ class ObjectClient:
 
         Example:
             ```python
-            obj = await object_client.get(
+            obj = object_client.get(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png"
@@ -217,7 +222,7 @@ class ObjectClient:
         resolved_region = self._resolve_region(region)
 
         # Step 1: Get presigned download URL from Render API
-        presigned = await self.api.get_download_url(
+        presigned = self.api.get_download_url(
             owner_id=resolved_owner_id,
             region=resolved_region,
             key=key,
@@ -228,8 +233,8 @@ class ObjectClient:
             # Keep default connect/pool timeouts but disable read/write timeouts
             default_timeout_seconds = 5.0
             timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
-            async with httpx.AsyncClient(timeout=timeout) as http_client:
-                response = await http_client.get(presigned.url)
+            with httpx.Client(timeout=timeout) as http_client:
+                response = http_client.get(presigned.url)
 
                 handle_storage_http_error(response, "download object")
 
@@ -243,7 +248,7 @@ class ObjectClient:
         except httpx.RequestError as e:
             handle_httpx_exception(e, "download object")
 
-    async def delete(
+    def delete(
         self,
         *,
         owner_id: OwnerID | None = None,
@@ -264,7 +269,7 @@ class ObjectClient:
 
         Example:
             ```python
-            await object_client.delete(
+            object_client.delete(
                 owner_id="tea-xxxxx",
                 region="oregon",
                 key="path/to/file.png"
@@ -275,13 +280,13 @@ class ObjectClient:
         resolved_region = self._resolve_region(region)
 
         # DELETE goes directly to Render API (no presigned URL)
-        await self.api.delete(
+        self.api.delete(
             owner_id=resolved_owner_id,
             region=resolved_region,
             key=key,
         )
 
-    async def list(
+    def list(
         self,
         *,
         owner_id: OwnerID | None = None,
@@ -308,7 +313,7 @@ class ObjectClient:
         Example:
             ```python
             # List first page
-            response = await object_client.list(
+            response = object_client.list(
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
@@ -318,7 +323,7 @@ class ObjectClient:
 
             # Get next page if available
             if response.next_cursor:
-                next_page = await object_client.list(
+                next_page = object_client.list(
                     owner_id="tea-xxxxx",
                     region="oregon",
                     cursor=response.next_cursor
@@ -328,7 +333,7 @@ class ObjectClient:
         resolved_owner_id = self._resolve_owner_id(owner_id)
         resolved_region = self._resolve_region(region)
 
-        return await self.api.list_objects(
+        return self.api.list_objects(
             owner_id=resolved_owner_id,
             region=resolved_region,
             cursor=cursor,
@@ -337,7 +342,7 @@ class ObjectClient:
 
     def scoped(
         self, *, owner_id: OwnerID, region: Region | str
-    ) -> "ScopedObjectClient":
+    ) -> "SyncScopedObjectClient":
         """Create a scoped object client for a specific owner and region.
 
         Args:
@@ -345,7 +350,7 @@ class ObjectClient:
             region: Storage region
 
         Returns:
-            ScopedObjectClient: Scoped object client that doesn't require
+            SyncScopedObjectClient: Scoped object client that doesn't require
                 owner_id/region on each call
 
         Example:
@@ -356,15 +361,15 @@ class ObjectClient:
             )
 
             # Subsequent calls only need the key
-            await scoped.put(key="file.png", data=buffer)
-            await scoped.get(key="file.png")
-            await scoped.delete(key="file.png")
+            scoped.put(key="file.png", data=buffer)
+            scoped.get(key="file.png")
+            scoped.delete(key="file.png")
             ```
         """
-        return ScopedObjectClient(self, owner_id, region)
+        return SyncScopedObjectClient(self, owner_id, region)
 
     def _resolve_size(
-        self, data: bytes | BinaryIO | AsyncIterator[bytes], size: int | None
+        self, data: bytes | BinaryIO | Iterator[bytes], size: int | None
     ) -> int:
         """Resolve and validate the size for a put operation.
 
@@ -372,7 +377,7 @@ class ObjectClient:
         - For streams: require explicit size
 
         Args:
-            data: Binary data (bytes, stream, or async byte iterator)
+            data: Binary data (bytes, stream, or byte iterator)
             size: Optional size in bytes
 
         Returns:
@@ -402,7 +407,7 @@ class ObjectClient:
             return size
 
 
-class ScopedObjectClient:
+class SyncScopedObjectClient:
     """Scoped Object Client
 
     Pre-configured client for a specific owner and region.
@@ -415,21 +420,21 @@ class ScopedObjectClient:
             region="oregon"
         )
 
-        # Same methods as ObjectClient, but without owner_id/region
-        await scoped.put(key="file.png", data=b"content")
-        obj = await scoped.get(key="file.png")
-        await scoped.delete(key="file.png")
+        # Same methods as SyncObjectClient, but without owner_id/region
+        scoped.put(key="file.png", data=b"content")
+        obj = scoped.get(key="file.png")
+        scoped.delete(key="file.png")
         ```
     """
 
     def __init__(
-        self, object_client: ObjectClient, owner_id: OwnerID, region: Region | str
+        self, object_client: SyncObjectClient, owner_id: OwnerID, region: Region | str
     ):
         self._object_client = object_client
         self._owner_id = owner_id
         self._region = region
 
-    async def put(
+    def put(
         self,
         *,
         key: str,
@@ -454,14 +459,14 @@ class ScopedObjectClient:
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
-            await scoped.put(
+            scoped.put(
                 key="file.png",
                 data=b"content",
                 content_type="image/png"
             )
             ```
         """
-        return await self._object_client.put(
+        return self._object_client.put(
             owner_id=self._owner_id,
             region=self._region,
             key=key,
@@ -470,7 +475,7 @@ class ScopedObjectClient:
             content_type=content_type,
         )
 
-    async def get(self, *, key: str) -> ObjectData:
+    def get(self, *, key: str) -> ObjectData:
         """Download an object from storage using scoped owner and region.
 
         Args:
@@ -485,16 +490,16 @@ class ScopedObjectClient:
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
-            obj = await scoped.get(key="file.png")
+            obj = scoped.get(key="file.png")
             ```
         """
-        return await self._object_client.get(
+        return self._object_client.get(
             owner_id=self._owner_id,
             region=self._region,
             key=key,
         )
 
-    async def delete(self, *, key: str) -> None:
+    def delete(self, *, key: str) -> None:
         """Delete an object from storage using scoped owner and region.
 
         Args:
@@ -506,16 +511,16 @@ class ScopedObjectClient:
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
-            await scoped.delete(key="file.png")
+            scoped.delete(key="file.png")
             ```
         """
-        await self._object_client.delete(
+        self._object_client.delete(
             owner_id=self._owner_id,
             region=self._region,
             key=key,
         )
 
-    async def list(
+    def list(
         self,
         *,
         cursor: str | None = None,
@@ -536,12 +541,12 @@ class ScopedObjectClient:
                 owner_id="tea-xxxxx",
                 region="oregon"
             )
-            response = await scoped.list()
+            response = scoped.list()
             for obj in response.objects:
                 print(f"{obj.key}: {obj.size} bytes")
             ```
         """
-        return await self._object_client.list(
+        return self._object_client.list(
             owner_id=self._owner_id,
             region=self._region,
             cursor=cursor,
