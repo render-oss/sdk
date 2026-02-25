@@ -1,22 +1,14 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "render_sdk"
 version = "0.4.0"
-
-[project.scripts]
-render-workflows = "render_sdk.workflows.cli:main"
-
-# TODO (CAP-8937): migrate to PEP 621
-[tool.poetry]
-name = "render_sdk"
-version = "0.4.0"
 description = "Python SDK for Render Workflows"
-authors = ["Render <support@render.com>"]
+authors = [{ name = "Render", email = "support@render.com" }]
 readme = "README.md"
-packages = [{include = "render_sdk"}]
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -29,23 +21,30 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
+dependencies = [
+    "aiohttp>=3.12.14,<4",
+    "openapi-python-client>=0.26.1,<0.27",
+    "httpx>=0.28.1,<0.29",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-aiohttp = "^3.12.14"
-openapi-python-client = "^0.26.1"
-httpx = "^0.28.1"
+[project.scripts]
+render-workflows = "render_sdk.workflows.cli:main"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-pytest-cov = "^4.0"
-pytest-asyncio = "^0.21.0"
-pytest-mock = "^3.10.0"
-black = "^25.1.0"
-isort = "^5.0"
-mypy = "^1.18.2"
-tox = "^4.0"
-ruff = "~=0.13"
+[dependency-groups]
+dev = [
+    "pytest>=7.0,<8",
+    "pytest-cov>=4.0,<5",
+    "pytest-asyncio>=0.21.0,<0.22",
+    "pytest-mock>=3.10.0,<4",
+    "black>=25.1.0,<26",
+    "isort>=5.0,<6",
+    "mypy>=1.18.2,<2",
+    "tox>=4.0,<5",
+    "ruff>=0.13,<0.14",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["render_sdk"]
 
 [tool.black]
 line-length = 88

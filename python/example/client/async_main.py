@@ -9,7 +9,7 @@ Render client (see main.py) is the safer default.
 Setup:
 1. Set your Render API token: export RENDER_API_KEY="your_token_here"
 2. Replace "your-task-name" with an actual task from your Render dashboard
-3. Run: poetry run python example/client/async_main.py
+3. Run: uv run python example/client/async_main.py
 """
 
 import asyncio

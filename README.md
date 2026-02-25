@@ -93,7 +93,7 @@ For more detail see the [TypeScript SDK README](./typescript/README.md)
 
 ### Setup
 
-For Python we support a minimum of `3.10`, and use poetry to manage our dependecies - [see more in our pyproject.toml](https://github.com/renderinc/sdk/blob/main/python/pyproject.toml)
+For Python we support a minimum of `3.10`, and use [uv](https://docs.astral.sh/uv/) to manage our dependencies - [see more in our pyproject.toml](https://github.com/renderinc/sdk/blob/main/python/pyproject.toml)
 
 For TypeScript we support a minimum node version of `18.0.0` and use `npm` to manage our dependecies - [see more in our package.json](https://github.com/renderinc/sdk/blob/main/typescript/package.json)
 
