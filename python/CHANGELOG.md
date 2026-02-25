@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.5.0] - 2026-02-25
+
+### Added
+
+- Synchronous `Render` client for use with Flask, Django, and other sync frameworks
+- `start_task()` method for fire-and-forget and deferred-wait task invocation patterns for workflows
+
+### Changed
+
+- **Breaking:** `Render` is now the synchronous client; use `RenderAsync` for async
+- **Breaking:** `run_task()` now starts and waits for completion, returning `TaskRunDetails`; use `start_task()` for the previous `run_task()` behavior for workflows
+- **Breaking:** Renamed workflows task-level `timeout` parameter to `timeout_seconds`
+- Migrated from Poetry to uv for dependency management and builds
+
+### Fixed
+
+- Treat `CANCELED` as a terminal task run status to prevent hanging on canceled tasks for workflows
+
 ## [0.4.0] - 2026-02-20
 
 ### Added
