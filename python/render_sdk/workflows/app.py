@@ -83,7 +83,7 @@ class Workflows:
         *,
         name: str | None = None,
         retry: Retry | None = None,
-        timeout: int | None = None,
+        timeout_seconds: int | None = None,
         plan: str | None = None,
     ) -> F | Callable[[F], TaskCallable]:
         """
@@ -93,7 +93,7 @@ class Workflows:
             func: The function to decorate (when used without parentheses).
             name: Optional custom name for the task (defaults to function name).
             retry: Retry configuration (overrides default_retry).
-            timeout: Timeout in seconds (overrides default_timeout).
+            timeout_seconds: Timeout in seconds (overrides default_timeout).
             plan: Resource plan (overrides default_plan).
 
         Returns:
@@ -104,13 +104,15 @@ class Workflows:
             def simple_task(x: int) -> int:
                 return x * 2
 
-            @app.task(timeout=60, plan="starter")
+            @app.task(timeout_seconds=60, plan="starter")
             def quick_task(x: int) -> int:
                 return x + 1
         """
         # Build options from defaults and overrides
         effective_retry = retry if retry is not None else self._default_retry
-        effective_timeout = timeout if timeout is not None else self._default_timeout
+        effective_timeout = (
+            timeout_seconds if timeout_seconds is not None else self._default_timeout
+        )
         effective_plan = plan if plan is not None else self._default_plan
 
         options = Options(
@@ -126,7 +128,7 @@ class Workflows:
             return task_decorator(f, name=name, options=options)
 
         if func is None:
-            # Called with arguments: @app.task(name="...", timeout=30)
+            # Called with arguments: @app.task(name="...", timeout_seconds=30)
             return decorator
         # Called without arguments: @app.task
         return decorator(func)

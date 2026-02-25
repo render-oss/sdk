@@ -116,7 +116,7 @@ class TestFromWorkflows:
         retry = Retry(max_retries=3, wait_duration_ms=1000, backoff_scaling=2.0)
         app = Workflows()
 
-        @app.task(retry=retry, timeout=60, plan="starter")
+        @app.task(retry=retry, timeout_seconds=60, plan="starter")
         def configured_task(x: int) -> int:
             return x
 
@@ -210,7 +210,7 @@ class TestWorkflowsTaskDecorator:
             default_plan="standard",
         )
 
-        @app.task(retry=task_retry, timeout=60, plan="starter")
+        @app.task(retry=task_retry, timeout_seconds=60, plan="starter")
         def my_task(x: int) -> int:
             return x
 
@@ -229,8 +229,8 @@ class TestWorkflowsTaskDecorator:
             default_plan="standard",
         )
 
-        # Only override timeout, keep retry and plan from defaults
-        @app.task(timeout=60)
+        # Only override timeout_seconds, keep retry and plan from defaults
+        @app.task(timeout_seconds=60)
         def my_task(x: int) -> int:
             return x
 
