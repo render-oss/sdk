@@ -7,7 +7,7 @@ import uuid
 import pytest
 
 from render_sdk.experimental.object.e2e_helpers import object_storage_crud_check
-from render_sdk.render import Render
+from render_sdk.render_async import RenderAsync
 
 # ---------------------------------------------------------------------------
 # Gating: skip entire module when credentials are missing
@@ -28,8 +28,10 @@ pytestmark = [
 # ---------------------------------------------------------------------------
 @pytest.fixture
 def render():
-    """Construct Render client inside fixture to avoid constructor throw before skip."""
-    return Render(base_url=os.environ.get("RENDER_BASE_URL", "https://api.render.com"))
+    """Construct client inside fixture to avoid constructor throw before skip."""
+    return RenderAsync(
+        base_url=os.environ.get("RENDER_BASE_URL", "https://api.render.com")
+    )
 
 
 @pytest.fixture

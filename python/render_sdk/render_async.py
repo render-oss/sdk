@@ -1,4 +1,4 @@
-"""Synchronous unified REST API client for Render services."""
+"""Unified async REST API client for Render services."""
 
 from __future__ import annotations
 
@@ -6,26 +6,25 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from render_sdk.client import Client
-    from render_sdk.client.workflows_sync import SyncWorkflowsService
-    from render_sdk.experimental.experimental_sync import SyncExperimentalService
+    from render_sdk.client.workflows import WorkflowsService
+    from render_sdk.experimental import ExperimentalService
 
 
-class RenderSync:
+class RenderAsync:
     """
-    Synchronous unified REST API client for all Render services.
+    Async unified REST API client for all Render services.
 
-    This is the primary entry point for interacting with Render's APIs
-    from synchronous code (Flask, Django, scripts, etc.).
+    This is the async entry point for interacting with Render's APIs.
+    For synchronous code, use the ``Render`` class instead.
 
     Example:
-        render = RenderSync()  # Uses RENDER_API_KEY from environment
+        render = RenderAsync()  # Uses RENDER_API_KEY from environment
 
-        # Run a task and wait for the result
-        result = render.workflows.run_task("my-workflow/my_task", [42])
+        # Run a task
+        result = await render.workflows.run_task("my-workflow/my-task", [42])
 
-        # Or start a task for fire-and-forget / deferred polling
-        task_run = render.workflows.start_task("my-workflow/my_task", [5])
-        # Later: result = render.workflows.get_task_run(task_run.id)
+        # Direct client access for advanced use cases
+        render.client.workflows.run_task(...)
     """
 
     _client: Client
@@ -39,7 +38,7 @@ class RenderSync:
         region: str | None = None,
     ) -> None:
         """
-        Initialize the synchronous Render SDK.
+        Initialize the Render SDK.
 
         Args:
             token: API token. If not provided, uses RENDER_API_KEY env var.
@@ -50,14 +49,10 @@ class RenderSync:
                    uses RENDER_REGION env var.
         """
         from render_sdk.client import Client
-        from render_sdk.client.workflows_sync import SyncWorkflowsService
-        from render_sdk.experimental.experimental_sync import SyncExperimentalService
 
         self._client = Client(
             token=token, base_url=base_url, owner_id=owner_id, region=region
         )
-        self._workflows = SyncWorkflowsService(self._client)
-        self._experimental = SyncExperimentalService(self._client)
 
     @property
     def client(self) -> Client:
@@ -65,15 +60,21 @@ class RenderSync:
         Access to the underlying API client.
 
         Use this for fine-grained control or advanced use cases.
+
+        Example:
+            render = RenderAsync()
+
+            # Access client directly
+            render.client.workflows.run_task(...)
         """
         return self._client
 
     @property
-    def workflows(self) -> SyncWorkflowsService:
+    def workflows(self) -> WorkflowsService:
         """REST API for workflow operations (run tasks, get status)."""
-        return self._workflows
+        return self._client.workflows
 
     @property
-    def experimental(self) -> SyncExperimentalService:
+    def experimental(self) -> ExperimentalService:
         """Experimental APIs including object storage."""
-        return self._experimental
+        return self._client.experimental

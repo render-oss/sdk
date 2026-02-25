@@ -52,12 +52,12 @@ class ExperimentalService:
 
     Example:
         ```python
-        from render_sdk.client import Client
+        from render_sdk import RenderAsync
 
-        client = Client()
+        render = RenderAsync()
 
         # Access experimental object storage
-        await client.experimental.storage.objects.put(
+        await render.experimental.storage.objects.put(
             owner_id="tea-xxxxx",
             region="oregon",
             key="file.png",
