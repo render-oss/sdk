@@ -13,46 +13,56 @@ from render_sdk.client.types import TaskRunDetails
 logger = logging.getLogger(__name__)
 
 
-async def parse_stream(
-    bytes_iter: AsyncIterator[bytes],
-) -> AsyncIterator[TaskRunDetails]:
-    """Parse a stream of bytes into TaskRunDetails."""
-    buffer = ""
-    event_data: dict[str, Any] = {}
+class SSEParser:
+    """Stateful parser for Server-Sent Events byte streams.
 
-    async for chunk in bytes_iter:
-        buffer += chunk.decode("utf-8", errors="ignore")
+    Accepts raw byte chunks via feed() and returns any complete
+    TaskRunDetails events parsed from the stream. Shared by both
+    the async and sync parse_stream entry points.
+    """
 
-        # Process complete lines
-        while "\n" in buffer:
-            line, buffer = buffer.split("\n", 1)
+    def __init__(self) -> None:
+        self._buffer = ""
+        self._event_data: dict[str, Any] = {}
+
+    def feed(self, chunk: bytes) -> list[TaskRunDetails]:
+        """Feed a chunk of bytes and return any completed events."""
+        results: list[TaskRunDetails] = []
+        self._buffer += chunk.decode("utf-8", errors="ignore")
+
+        while "\n" in self._buffer:
+            line, self._buffer = self._buffer.split("\n", 1)
             line = line.rstrip("\r")
 
             # Empty line indicates end of event
             if not line:
-                if "data" in event_data and "event" in event_data:
+                if "data" in self._event_data and "event" in self._event_data:
                     try:
-                        # Yield event if it's a task.completed event
-                        if event_data["event"] == "task.completed":
-                            data = json.loads(event_data["data"])
-                            task_run_details = _convert_to_task_run_details(data)
-                            yield task_run_details
-
+                        if self._event_data["event"] == "task.completed":
+                            data = json.loads(self._event_data["data"])
+                            results.append(_convert_to_task_run_details(data))
                     except Exception as e:
                         logger.error(f"Error parsing event: {e}")
-                        # Skip invalid events
-                        pass
 
-                # Reset for next event
-                event_data = {}
+                self._event_data = {}
                 continue
 
             # Parse SSE fields
             if ":" in line:
                 field, value = line.split(":", 1)
-                field = field.strip()
-                value = value.strip()
-                event_data[field] = value
+                self._event_data[field.strip()] = value.strip()
+
+        return results
+
+
+async def parse_stream(
+    bytes_iter: AsyncIterator[bytes],
+) -> AsyncIterator[TaskRunDetails]:
+    """Parse an async stream of bytes into TaskRunDetails."""
+    parser = SSEParser()
+    async for chunk in bytes_iter:
+        for event in parser.feed(chunk):
+            yield event
 
 
 def _convert_to_task_run_details(data: dict) -> TaskRunDetails:

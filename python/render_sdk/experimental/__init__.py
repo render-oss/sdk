@@ -1,6 +1,10 @@
 """Experimental API exports."""
 
 from render_sdk.experimental.experimental import ExperimentalService, StorageService
+from render_sdk.experimental.experimental_sync import (
+    SyncExperimentalService,
+    SyncStorageService,
+)
 from render_sdk.experimental.object import (
     DownloadResponse,
     ObjectApi,
@@ -17,6 +21,8 @@ __all__ = [
     # Experimental Service
     "ExperimentalService",
     "StorageService",
+    "SyncExperimentalService",
+    "SyncStorageService",
     # Object API classes
     "ObjectApi",
     "ObjectClient",
