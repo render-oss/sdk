@@ -50,9 +50,9 @@ class SyncExperimentalService:
 
     Example:
         ```python
-        from render_sdk import RenderSync
+        from render_sdk import Render
 
-        render = RenderSync()
+        render = Render()
 
         render.experimental.storage.objects.put(
             owner_id="tea-xxxxx",

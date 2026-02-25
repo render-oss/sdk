@@ -79,43 +79,59 @@ The `render-workflows` CLI takes a `module:app` argument pointing to your `Workf
 Use the `Render` client to run tasks and monitor their status:
 
 ```python
-import asyncio
 from render_sdk import Render
 from render_sdk.client import ListTaskRunsParams
 from render_sdk.client.errors import TaskRunError
 
+render = Render()  # Uses RENDER_API_KEY from environment
+
+# run_task() starts a task and waits for completion in one call.
+try:
+    result = render.workflows.run_task("my-workflow/my-task", [3, 4])
+    print(result.results)
+except TaskRunError as e:
+    print(f"Task failed: {e}")
+
+# start_task() starts a task without waiting for the result.
+task_run = render.workflows.start_task("my-workflow/my-task", [3, 4])
+print(f"Task started: {task_run.id}")
+
+# Get task run details by ID
+details = render.workflows.get_task_run(task_run.id)
+print(f"Status: {details.status}")
+
+# Cancel a running task
+render.workflows.cancel_task_run(task_run.id)
+
+# Stream task run events
+for event in render.workflows.task_run_events([task_run.id]):
+    print(f"{event.id} status={event.status}")
+
+# List recent task runs
+runs = render.workflows.list_task_runs(ListTaskRunsParams(limit=10))
+```
+
+#### Async Usage
+
+For async contexts (e.g. FastAPI), use `RenderAsync`:
+
+```python
+import asyncio
+from render_sdk import RenderAsync
+
 async def main():
-    render = Render()  # Uses RENDER_API_KEY from environment
+    render = RenderAsync()
 
-    # run_task() starts a task and waits for completion in one call.
-    try:
-        result = await render.workflows.run_task("my-workflow/my-task", [3, 4])
-        print(result.results)
-    except TaskRunError as e:
-        print(f"Task failed: {e}")
+    result = await render.workflows.run_task("my-workflow/my-task", [3, 4])
+    print(result.results)
 
-    # start_task() returns an awaitable task run for fire-and-forget or deferred waiting.
+    # start_task() returns an awaitable task run
     task_run = await render.workflows.start_task("my-workflow/my-task", [3, 4])
-    print(f"Task started: {task_run.id}")
     result = await task_run  # wait when ready
 
-    # Get task run details by ID
-    details = await render.workflows.get_task_run(task_run.id)
-    print(f"Status: {details.status}")
-
-    # Cancel a running task
-    task_run2 = await render.workflows.start_task("my-workflow/my-task", [5])
-    await render.workflows.cancel_task_run(task_run2.id)
-
     # Stream task run events
-    task_run3 = await render.workflows.start_task("my-workflow/my-task", [6])
-    async for event in render.workflows.task_run_events([task_run3.id]):
+    async for event in render.workflows.task_run_events([task_run.id]):
         print(f"{event.id} status={event.status}")
-        if event.error:
-            print(f"Error: {event.error}")
-
-    # List recent task runs
-    runs = await render.workflows.list_task_runs(ListTaskRunsParams(limit=10))
 
 asyncio.run(main())
 ```
@@ -128,17 +144,17 @@ from render_sdk import Render
 render = Render()  # Uses RENDER_API_KEY, RENDER_WORKSPACE_ID, RENDER_REGION from environment
 
 # Upload an object (no need to pass owner_id/region when env vars are set)
-await render.experimental.storage.objects.put(
+render.experimental.storage.objects.put(
     key="path/to/file.png",
     data=b"binary content",
     content_type="image/png",
 )
 
 # Download
-obj = await render.experimental.storage.objects.get(key="path/to/file.png")
+obj = render.experimental.storage.objects.get(key="path/to/file.png")
 
 # List
-response = await render.experimental.storage.objects.list()
+response = render.experimental.storage.objects.list()
 ```
 
 ## Environment Variables
@@ -152,7 +168,7 @@ response = await render.experimental.storage.objects.list()
 - **REST API Client**: Run, monitor, cancel, and list task runs
 - **Task Definition**: Decorator-based task registration with the `Workflows` class
 - **Server-Sent Events**: Real-time streaming of task run events
-- **Async/Await Support**: Fully async API using `asyncio`
+- **Sync & Async**: Synchronous `Render` client (default) and async `RenderAsync` variant
 - **Retry Configuration**: Configurable retry behavior with exponential backoff
 - **Subtask Execution**: Execute tasks from within other tasks
 - **Task Composition**: Combine tasks from multiple modules with `Workflows.from_workflows()`

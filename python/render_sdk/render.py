@@ -6,24 +6,28 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from render_sdk.client import Client
-    from render_sdk.client.workflows import WorkflowsService
-    from render_sdk.experimental import ExperimentalService
+    from render_sdk.client.workflows_sync import SyncWorkflowsService
+    from render_sdk.experimental.experimental_sync import SyncExperimentalService
 
 
 class Render:
     """
     Unified REST API client for all Render services.
 
-    This is the primary entry point for interacting with Render's APIs.
+    This is the primary entry point for interacting with Render's APIs
+    from synchronous code (Flask, Django, scripts, etc.).
+
+    For async/await support, use the ``RenderAsync`` class instead.
 
     Example:
         render = Render()  # Uses RENDER_API_KEY from environment
 
-        # Run a task
-        result = await render.workflows.run_task("my-workflow/my-task", [42])
+        # Run a task and wait for the result
+        result = render.workflows.run_task("my-workflow/my_task", [42])
 
-        # Direct client access for advanced use cases
-        render.client.workflows.run_task(...)
+        # Or start a task for fire-and-forget / deferred polling
+        task_run = render.workflows.start_task("my-workflow/my_task", [5])
+        # Later: result = render.workflows.get_task_run(task_run.id)
     """
 
     _client: Client
@@ -48,10 +52,14 @@ class Render:
                    uses RENDER_REGION env var.
         """
         from render_sdk.client import Client
+        from render_sdk.client.workflows_sync import SyncWorkflowsService
+        from render_sdk.experimental.experimental_sync import SyncExperimentalService
 
         self._client = Client(
             token=token, base_url=base_url, owner_id=owner_id, region=region
         )
+        self._workflows = SyncWorkflowsService(self._client)
+        self._experimental = SyncExperimentalService(self._client)
 
     @property
     def client(self) -> Client:
@@ -59,21 +67,15 @@ class Render:
         Access to the underlying API client.
 
         Use this for fine-grained control or advanced use cases.
-
-        Example:
-            render = Render()
-
-            # Access client directly
-            render.client.workflows.run_task(...)
         """
         return self._client
 
     @property
-    def workflows(self) -> WorkflowsService:
+    def workflows(self) -> SyncWorkflowsService:
         """REST API for workflow operations (run tasks, get status)."""
-        return self._client.workflows
+        return self._workflows
 
     @property
-    def experimental(self) -> ExperimentalService:
+    def experimental(self) -> SyncExperimentalService:
         """Experimental APIs including object storage."""
-        return self._client.experimental
+        return self._experimental
