@@ -4,6 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.1] - 2026-02-25
+
+### Fixed
+
+- Treat `CANCELED` as a terminal task run status to prevent hanging on canceled tasks for workflows
+
 ## [0.4.0] - 2026-02-20
 
 ### Added
