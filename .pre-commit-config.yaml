@@ -46,7 +46,7 @@ repos:
 
       - id: ruff-lint
         name: ruff lint
-        entry: bash -c 'cd python && poetry run ruff check .'
+        entry: bash -c 'cd python && uv run ruff check .'
         language: system
         files: ^python/.*\.py$
         exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)
@@ -54,7 +54,7 @@ repos:
 
       - id: ruff-format
         name: ruff format check
-        entry: bash -c 'cd python && poetry run ruff format --check .'
+        entry: bash -c 'cd python && uv run ruff format --check .'
         language: system
         files: ^python/.*\.py$
         exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)

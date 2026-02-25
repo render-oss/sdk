@@ -176,50 +176,50 @@ response = render.experimental.storage.objects.list()
 
 ## Development
 
-This project uses [Poetry](https://python-poetry.org/) for dependency management and [tox](https://tox.wiki/) for testing across multiple Python versions.
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management and [tox](https://tox.wiki/) for testing across multiple Python versions.
 
 ### Setup
 
 ```bash
-# Install Poetry (if not already installed)
-curl -sSL https://install.python-poetry.org | python3 -
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install dependencies
-poetry install
+uv sync
 
 # Activate virtual environment
-poetry shell
+source .venv/bin/activate
 ```
 
 ### Testing
 
 ```bash
 # Run tests
-poetry run pytest
+uv run pytest
 
 # Run tests with coverage
-poetry run tox -e coverage
+uv run tox -e coverage
 
 # Run tests across all Python versions
-poetry run tox
+uv run tox
 
 # Run specific Python version
-poetry run tox -e py313
+uv run tox -e py313
 ```
 
 ### Code Quality
 
 ```bash
 # Check formatting and linting
-poetry run tox -e format
-poetry run tox -e lint
+uv run tox -e format
+uv run tox -e lint
 
 # Fix formatting issues
-poetry run tox -e format-fix
-poetry run tox -e lint-fix
+uv run tox -e format-fix
+uv run tox -e lint-fix
 
 # Run all quality checks
-poetry run tox -e format,lint
+uv run tox -e format,lint
 ```
 
 ### Supported Python Versions
