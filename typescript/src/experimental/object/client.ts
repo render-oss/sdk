@@ -336,8 +336,8 @@ export class ObjectClient {
   /**
    * Resolve and validate the size for a put operation
    *
-   * - For Buffer/Uint8Array: auto-calculate size, validate if provided
-   * - For streams/strings: require explicit size
+   * - For Buffer/Uint8Array/string: auto-calculate size, validate if provided
+   * - For streams: require explicit size
    */
   private resolveSize(input: PutObjectInput): number {
     if (Buffer.isBuffer(input.data) || input.data instanceof Uint8Array) {
@@ -352,11 +352,21 @@ export class ObjectClient {
       return actualSize;
     }
 
-    // For Readable streams or strings, size must be provided
+    if (typeof input.data === "string") {
+      const actualSize = Buffer.byteLength(input.data);
+
+      if (input.size !== undefined && input.size !== actualSize) {
+        throw new RenderError(
+          `Size mismatch: provided size ${input.size} does not match actual size ${actualSize}`,
+        );
+      }
+
+      return actualSize;
+    }
+
+    // For Readable streams, size must be provided
     if (input.size === undefined) {
-      throw new RenderError(
-        "Size is required for stream and string inputs. Provide the size parameter.",
-      );
+      throw new RenderError("Size is required for stream inputs. Provide the size parameter.");
     }
 
     if (input.size < 0) {

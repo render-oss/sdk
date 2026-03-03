@@ -98,15 +98,69 @@ describe("ObjectClient", () => {
       await expect(client.put(invalidInput)).rejects.toThrow("Size is required");
     });
 
-    it("requires size for string input", async () => {
+    it("auto-calculates ASCII string size", async () => {
+      putMock.mockResolvedValueOnce({
+        data: { url: "http://test", maxSizeBytes: 5 },
+        error: null,
+      });
+
+      await expect(
+        client.put({
+          ownerId: "tea-test",
+          region: "oregon",
+          key: "test.txt",
+          data: "hello", // 5 bytes
+        }),
+      ).rejects.toThrow(); // fails at fetch, but size validation passes
+
+      expect(putMock).toHaveBeenCalledWith(
+        "/objects/{ownerId}/{region}/{key}",
+        expect.objectContaining({ body: { sizeBytes: 5 } }),
+      );
+    });
+
+    it("auto-calculates multi-byte string size", async () => {
+      const str = "héllo"; // é is 2 bytes in UTF-8 → total 6 bytes
+      const byteLength = Buffer.byteLength(str);
+      putMock.mockResolvedValueOnce({
+        data: { url: "http://test", maxSizeBytes: byteLength },
+        error: null,
+      });
+
+      await expect(
+        client.put({
+          ownerId: "tea-test",
+          region: "oregon",
+          key: "test.txt",
+          data: str,
+        }),
+      ).rejects.toThrow();
+
+      expect(putMock).toHaveBeenCalledWith(
+        "/objects/{ownerId}/{region}/{key}",
+        expect.objectContaining({ body: { sizeBytes: byteLength } }),
+      );
+    });
+
+    it("throws on size mismatch for string", async () => {
+      await expect(
+        client.put({
+          ownerId: "tea-test",
+          region: "oregon",
+          key: "test.txt",
+          data: "hello", // 5 bytes
+          size: 10,
+        }),
+      ).rejects.toThrow(RenderError);
       await expect(
         client.put({
           ownerId: "tea-test",
           region: "oregon",
           key: "test.txt",
           data: "hello",
+          size: 10,
         }),
-      ).rejects.toThrow("Size is required");
+      ).rejects.toThrow("Size mismatch");
     });
 
     it("allows zero size for empty files", async () => {
