@@ -2,6 +2,7 @@ import { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
 import { ClientError, RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
+import { throwObjectApiError, throwStorageError } from "./errors.js";
 import type {
   DeleteObjectInput,
   GetObjectInput,
@@ -102,7 +103,11 @@ export class ObjectClient {
     const size = this.resolveSize(input as PutObjectInput);
 
     // Step 1: Get presigned upload URL from Render API
-    const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
+    const {
+      data,
+      error,
+      response: apiResponse,
+    } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId,
@@ -114,7 +119,7 @@ export class ObjectClient {
     });
 
     if (error) {
-      throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to get upload URL", apiResponse, error);
     }
 
     // Validate size against server expectation
@@ -155,7 +160,7 @@ export class ObjectClient {
     });
 
     if (!response.ok) {
-      throw new RenderError(`Upload failed: ${response.status} ${response.statusText}`);
+      throwStorageError("Upload failed", response);
     }
 
     return {
@@ -187,7 +192,11 @@ export class ObjectClient {
     const region = this.resolveRegion(input.region);
 
     // Step 1: Get presigned download URL from Render API
-    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
+    const {
+      data,
+      error,
+      response: apiResponse,
+    } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId,
@@ -198,14 +207,14 @@ export class ObjectClient {
     });
 
     if (error) {
-      throw new RenderError(`Failed to get download URL: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to get download URL", apiResponse, error);
     }
 
     // Step 2: Download from storage via presigned URL
     const response = await fetch(data.url);
 
     if (!response.ok) {
-      throw new RenderError(`Download failed: ${response.status} ${response.statusText}`);
+      throwStorageError("Download failed", response);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -237,7 +246,7 @@ export class ObjectClient {
     const region = this.resolveRegion(input.region);
 
     // DELETE goes directly to Render API (no presigned URL)
-    const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
+    const { error, response } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: {
         path: {
           ownerId,
@@ -248,7 +257,7 @@ export class ObjectClient {
     });
 
     if (error) {
-      throw new RenderError(`Failed to delete object: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to delete object", response, error);
     }
   }
 
@@ -284,7 +293,7 @@ export class ObjectClient {
     const ownerId = this.resolveOwnerId(input.ownerId);
     const region = this.resolveRegion(input.region);
 
-    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
+    const { data, error, response } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: {
           ownerId,
@@ -298,7 +307,7 @@ export class ObjectClient {
     });
 
     if (error) {
-      throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to list objects", response, error);
     }
 
     const objects: ObjectMetadata[] = data.items.map((item) => ({

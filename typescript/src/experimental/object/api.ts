@@ -1,6 +1,6 @@
 import type { Client } from "openapi-fetch";
-import { RenderError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
+import { throwObjectApiError } from "./errors.js";
 import type {
   ListObjectsResponse,
   ObjectMetadata,
@@ -35,13 +35,16 @@ export class ObjectApi {
     key: string,
     sizeBytes: number,
   ): Promise<PresignedUploadUrl> {
-    const { data, error } = await this.apiClient.PUT("/objects/{ownerId}/{region}/{key}", {
-      params: { path: { ownerId, region: region as Region, key } },
-      body: { sizeBytes },
-    });
+    const { data, error, response } = await this.apiClient.PUT(
+      "/objects/{ownerId}/{region}/{key}",
+      {
+        params: { path: { ownerId, region: region as Region, key } },
+        body: { sizeBytes },
+      },
+    );
 
     if (error) {
-      throw new RenderError(`Failed to get upload URL: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to get upload URL", response, error);
     }
 
     return {
@@ -64,12 +67,15 @@ export class ObjectApi {
     region: Region | string,
     key: string,
   ): Promise<PresignedDownloadUrl> {
-    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}/{key}", {
-      params: { path: { ownerId, region: region as Region, key } },
-    });
+    const { data, error, response } = await this.apiClient.GET(
+      "/objects/{ownerId}/{region}/{key}",
+      {
+        params: { path: { ownerId, region: region as Region, key } },
+      },
+    );
 
     if (error) {
-      throw new RenderError(`Failed to get download URL: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to get download URL", response, error);
     }
 
     return {
@@ -86,12 +92,12 @@ export class ObjectApi {
    * @param key - Object key (path)
    */
   async delete(ownerId: string, region: Region | string, key: string): Promise<void> {
-    const { error } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
+    const { error, response } = await this.apiClient.DELETE("/objects/{ownerId}/{region}/{key}", {
       params: { path: { ownerId, region: region as Region, key } },
     });
 
     if (error) {
-      throw new RenderError(`Failed to delete object: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to delete object", response, error);
     }
   }
 
@@ -110,7 +116,7 @@ export class ObjectApi {
     cursor?: string,
     limit?: number,
   ): Promise<ListObjectsResponse> {
-    const { data, error } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
+    const { data, error, response } = await this.apiClient.GET("/objects/{ownerId}/{region}", {
       params: {
         path: { ownerId, region: region as Region },
         query: { cursor, limit },
@@ -118,7 +124,7 @@ export class ObjectApi {
     });
 
     if (error) {
-      throw new RenderError(`Failed to list objects: ${error.message || "Unknown error"}`);
+      throwObjectApiError("Failed to list objects", response, error);
     }
 
     const objects: ObjectMetadata[] = data.items.map((item) => ({
