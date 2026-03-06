@@ -9,8 +9,8 @@ import type {
   ListTaskRunsParams,
   TaskData,
   TaskIdentifier,
-  TaskRun,
   TaskRunDetails,
+  TaskRunWithCursor,
 } from "./types.js";
 
 /**
@@ -242,7 +242,7 @@ export class WorkflowsClient {
    * @returns List of task runs
    */
 
-  async listTaskRuns(params: ListTaskRunsParams): Promise<TaskRun[]> {
+  async listTaskRuns(params: ListTaskRunsParams): Promise<TaskRunWithCursor[]> {
     const { data, error, response } = await this.apiClient.GET("/task-runs", {
       params: { query: params },
     });
