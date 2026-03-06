@@ -323,6 +323,7 @@ from .task_data_type_1 import TaskDataType1
 from .task_run import TaskRun
 from .task_run_details import TaskRunDetails
 from .task_run_status import TaskRunStatus
+from .task_run_with_cursor import TaskRunWithCursor
 from .task_with_cursor import TaskWithCursor
 from .team_member import TeamMember
 from .team_member_role import TeamMemberRole
@@ -678,6 +679,7 @@ __all__ = (
     "TaskRun",
     "TaskRunDetails",
     "TaskRunStatus",
+    "TaskRunWithCursor",
     "TaskWithCursor",
     "TeamMember",
     "TeamMemberRole",

@@ -47,6 +47,7 @@ class AuditLogEvent(str, Enum):
     DOCUMENTDOWNLOADEVENT = "DocumentDownloadEvent"
     DOWNLOADDATABASEBACKUPEVENT = "DownloadDatabaseBackupEvent"
     ENABLEREDISINTERNALAUTHEVENT = "EnableRedisInternalAuthEvent"
+    ENDSHELLEVENT = "EndShellEvent"
     INVITETOORGEVENT = "InviteToOrgEvent"
     INVITETOTEAMEVENT = "InviteToTeamEvent"
     JOINTEAMEVENT = "JoinTeamEvent"

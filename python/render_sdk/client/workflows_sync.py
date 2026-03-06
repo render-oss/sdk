@@ -33,6 +33,7 @@ from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import 
 from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.models.run_task import RunTask
 from render_sdk.public_api.models.task_data_type_1 import TaskDataType1
+from render_sdk.public_api.models.task_run_with_cursor import TaskRunWithCursor
 from render_sdk.public_api.types import UNSET, Response
 from render_sdk.version import get_user_agent
 
@@ -260,7 +261,7 @@ class SyncWorkflowsService:
     def list_task_runs(
         self,
         params: ListTaskRunsParams | None = None,
-    ) -> list[TaskRun]:
+    ) -> list[TaskRunWithCursor]:
         """List task runs with optional filtering.
 
         This corresponds to GET /task-runs in the API.
@@ -269,7 +270,7 @@ class SyncWorkflowsService:
             params: Optional parameters for filtering the results
 
         Returns:
-            list[TaskRun]: List of task runs
+            list[TaskRunWithCursor]: List of task runs with cursor info
 
         Raises:
             ClientError: For 4xx client errors (invalid parameters, unauthorized, etc.)
@@ -281,7 +282,7 @@ class SyncWorkflowsService:
     @handle_http_errors("list task runs")
     def _list_task_runs_api_call(
         self, params: ListTaskRunsParams | None = None
-    ) -> Response[Error | list[TaskRun]]:
+    ) -> Response[Error | list[TaskRunWithCursor]]:
         """Internal method to make the list task runs API call."""
         # Convert params to API parameters
         limit = params.limit if params and params.limit is not None else UNSET
