@@ -4,6 +4,23 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-03-05
+
+### Added
+
+- `SUCCEEDED` workflows task run status for forward-compatibility with upcoming status rename
+- `TaskRunWithCursor` type export for paginated list responses
+
+### Changed
+
+- **Breaking:** Workflows `taskIdentifier` parameter renamed to `taskSlug` in `startTask()` and `runTask()`
+- **Breaking:** Workflows `listTaskRuns()` now returns `TaskRunWithCursor[]` (use `.taskRun` to access the `TaskRun`)
+
+### Fixed
+
+- Object storage: auto-calculate size for string inputs in `put()`, removing need for callers to provide it
+- Object storage: replace generic "Unknown error" with typed `ClientError`/`ServerError` including HTTP status codes
+
 ## [0.4.1] - 2026-02-25
 
 ### Fixed
