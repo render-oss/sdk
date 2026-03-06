@@ -10,10 +10,10 @@ from render_sdk.client.types import (
     ListTaskRunsParams,
     OwnerIDParam,
     TaskData,
-    TaskIdentifier,
     TaskRun,
     TaskRunDetails,
     TaskRunStatus,
+    TaskSlug,
 )
 from render_sdk.client.workflows import WorkflowsService
 from render_sdk.client.workflows_sync import SyncWorkflowsService
@@ -38,7 +38,7 @@ __all__ = [
     "WorkflowsService",
     "SyncWorkflowsService",
     "TaskData",
-    "TaskIdentifier",
+    "TaskSlug",
     "TaskRun",
     "TaskRunDetails",
     "TaskRunStatus",

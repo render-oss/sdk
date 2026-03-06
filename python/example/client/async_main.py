@@ -25,18 +25,18 @@ async def main():
     # Create client (uses RENDER_API_KEY from environment)
     render = RenderAsync()
 
-    # Replace with your workflow slug and task identifier
-    task_identifier = "my-workflow-slug/task-name"
+    # Replace with your workflow slug and task name
+    task_slug = "my-workflow-slug/task-name"
     # Input data can be specified as a list of positional arguments or a
     # dictionary of named arguments
     input_data: dict[str, Any] = {"arg1": 3}
 
     # run_task() starts a task and waits for the result in one call
-    result = await render.workflows.run_task(task_identifier, input_data)
+    result = await render.workflows.run_task(task_slug, input_data)
     print(f"Task completed: {result.status}, results: {result.results}")
 
     # start_task() returns an awaitable task run for fire-and-forget or deferred waiting
-    task_run = await render.workflows.start_task(task_identifier, input_data)
+    task_run = await render.workflows.start_task(task_slug, input_data)
     print(f"Task started with ID: {task_run.id}")
 
     # Wait for task completion by awaiting the task run
@@ -50,7 +50,7 @@ async def main():
 
     # Stream task run events directly. This is useful when you want to monitor
     # multiple task runs or handle events as they arrive.
-    task_run2 = await render.workflows.start_task(task_identifier, input_data)
+    task_run2 = await render.workflows.start_task(task_slug, input_data)
     print("Streaming task run events...")
     async for event in render.workflows.task_run_events([task_run2.id]):
         print(f"  Event: {event.id} status={event.status}")
@@ -62,7 +62,7 @@ async def main():
     print(f"Task run details: {details.id} status={details.status}")
 
     # Cancel a task run
-    task_run3 = await render.workflows.start_task(task_identifier, input_data)
+    task_run3 = await render.workflows.start_task(task_slug, input_data)
     await render.workflows.cancel_task_run(task_run3.id)
     print(f"Cancelled task run: {task_run3.id}")
 

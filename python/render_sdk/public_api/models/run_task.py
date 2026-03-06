@@ -15,9 +15,9 @@ T = TypeVar("T", bound="RunTask")
 class RunTask:
     """
     Attributes:
-        task (str): Either a task ID or a workflow slug with task name and optional version name. If a version is not
-            provided, the latest version of the task will be used. Example: tsk-1234, my-workflow-slug/my-task, my-workflow-
-            slug/my-task:SHA123.
+        task (str): A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-
+            slug/task-name:version). If no version is provided, the latest version is used. Example: my-workflow-slug/my-
+            task, my-workflow-slug/my-task:SHA123.
         input_ (Union['TaskDataType1', list[Any]]): Input data for a task. Can be either an array (for positional
             arguments) or an object (for named parameters).
     """
