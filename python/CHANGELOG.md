@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0] - 2026-03-05
+
+### Added
+
+- `SUCCEEDED` workflow task run status for forward-compatibility with upcoming status rename
+
+### Changed
+
+- **Breaking:** Workflows `TaskIdentifier` type renamed to `TaskSlug`
+- **Breaking:** Workflows `task_identifier` parameter renamed to `task_slug` in `run_task()` and `start_task()`
+- **Breaking:** Workflows `list_task_runs()` now returns `list[TaskRunWithCursor]` (use `.task_run` to access the `TaskRun`)
+
 ## [0.5.0] - 2026-02-25
 
 ### Added
