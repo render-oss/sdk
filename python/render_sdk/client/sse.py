@@ -38,7 +38,16 @@ class SSEParser:
             if not line:
                 if "data" in self._event_data and "event" in self._event_data:
                     try:
-                        if self._event_data["event"] == "task.completed":
+                        # NOTE: right now, the API emits all terminal events as
+                        # "task.completed" events regardless of status. The true
+                        # event status is contained elsewhere in the event data.
+                        # These are here for forward compatibility.
+                        if self._event_data["event"] in (
+                            "task.canceled",
+                            "task.completed",
+                            "task.failed",
+                            "task.succeeded",
+                        ):
                             data = json.loads(self._event_data["data"])
                             results.append(_convert_to_task_run_details(data))
                     except Exception as e:

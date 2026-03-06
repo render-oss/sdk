@@ -6,7 +6,7 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.task_run import TaskRun
+from ...models.task_run_with_cursor import TaskRunWithCursor
 from ...types import UNSET, Response, Unset
 
 
@@ -69,12 +69,12 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["TaskRun"]]]:
+) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
         for response_200_item_data in _response_200:
-            response_200_item = TaskRun.from_dict(response_200_item_data)
+            response_200_item = TaskRunWithCursor.from_dict(response_200_item_data)
 
             response_200.append(response_200_item)
 
@@ -118,7 +118,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["TaskRun"]]]:
+) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -137,7 +137,7 @@ def sync_detailed(
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["TaskRun"]]]:
+) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
@@ -157,7 +157,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TaskRun']]]
+        Response[Union[Error, list['TaskRunWithCursor']]]
     """
 
     kwargs = _get_kwargs(
@@ -187,7 +187,7 @@ def sync(
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["TaskRun"]]]:
+) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
@@ -207,7 +207,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TaskRun']]
+        Union[Error, list['TaskRunWithCursor']]
     """
 
     return sync_detailed(
@@ -232,7 +232,7 @@ async def asyncio_detailed(
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["TaskRun"]]]:
+) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
@@ -252,7 +252,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TaskRun']]]
+        Response[Union[Error, list['TaskRunWithCursor']]]
     """
 
     kwargs = _get_kwargs(
@@ -280,7 +280,7 @@ async def asyncio(
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["TaskRun"]]]:
+) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
@@ -300,7 +300,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TaskRun']]
+        Union[Error, list['TaskRunWithCursor']]
     """
 
     return (
