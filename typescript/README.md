@@ -168,12 +168,12 @@ const client = createWorkflowsClient({
 
 ### Workflows Client Methods
 
-#### `render.workflows.runTask(taskIdentifier, inputData, signal?)`
+#### `render.workflows.runTask(taskSlug, inputData, signal?)`
 
 Runs a task and waits for completion.
 
 **Parameters:**
-- `taskIdentifier: string` - Task identifier in format "workflow-slug/task-name"
+- `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signal?: AbortSignal` - Optional abort signal for cancellation
 
@@ -186,12 +186,12 @@ const result = await render.workflows.runTask('my-workflow/square', [5]);
 console.log('Results:', result.results);
 ```
 
-#### `render.workflows.startTask(taskIdentifier, inputData, signal?)`
+#### `render.workflows.startTask(taskSlug, inputData, signal?)`
 
 Starts a task run and returns a `TaskRunResult`. Results are not streamed until you call `.get()` on the returned result. Use this when you need the task run ID, want to defer awaiting, or want fire-and-forget.
 
 **Parameters:**
-- `taskIdentifier: string` - Task identifier in format "workflow-slug/task-name"
+- `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signal?: AbortSignal` - Optional abort signal for cancellation
 

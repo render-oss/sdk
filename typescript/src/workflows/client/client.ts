@@ -8,9 +8,9 @@ import { TaskRunResult } from "./task-run-result.js";
 import type {
   ListTaskRunsParams,
   TaskData,
-  TaskIdentifier,
   TaskRunDetails,
   TaskRunWithCursor,
+  TaskSlug,
 } from "./types.js";
 
 /**
@@ -164,7 +164,7 @@ export class WorkflowsClient {
    * want fire-and-forget.
    */
   async startTask(
-    taskIdentifier: TaskIdentifier,
+    taskSlug: TaskSlug,
     inputData: TaskData,
     signal?: AbortSignal,
   ): Promise<TaskRunResult> {
@@ -175,7 +175,7 @@ export class WorkflowsClient {
     try {
       const { data, error, response } = await this.apiClient.POST("/task-runs", {
         body: {
-          task: taskIdentifier,
+          task: taskSlug,
           input: inputData,
         },
         signal,
@@ -199,11 +199,11 @@ export class WorkflowsClient {
    * This is a convenience wrapper around startTask() + .get().
    */
   async runTask(
-    taskIdentifier: TaskIdentifier,
+    taskSlug: TaskSlug,
     inputData: TaskData,
     signal?: AbortSignal,
   ): Promise<TaskRunDetails> {
-    const result = await this.startTask(taskIdentifier, inputData, signal);
+    const result = await this.startTask(taskSlug, inputData, signal);
     return result.get();
   }
 
