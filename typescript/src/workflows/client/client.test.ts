@@ -192,7 +192,9 @@ describe("WorkflowsClient", () => {
       } as unknown as Client<paths>;
 
       const client = new WorkflowsClient(mockApiClient, "http://test", "token");
-      await expect(client.listTaskRuns({ taskId: ["task-1"] })).rejects.toBeInstanceOf(ClientError);
+      await expect(client.listTaskRuns({ taskSlug: ["task-1"] })).rejects.toBeInstanceOf(
+        ClientError,
+      );
     });
   });
 

@@ -6,7 +6,7 @@
  * event data. These are here for forward compatibility.
  */
 export enum TaskEventType {
-  COMPLETED = "task.completed",
+  COMPLETED = "task.completed", // deprecated, use SUCCEEDED instead
   SUCCEEDED = "task.succeeded",
   FAILED = "task.failed",
   CANCELED = "task.canceled",

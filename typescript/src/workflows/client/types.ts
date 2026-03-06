@@ -1,9 +1,9 @@
 import type { components, paths } from "../../generated/schema";
 
 /**
- * Task identifier in the format "workflow-slug/task-name"
+ * Task slug in the format "workflow-slug/task-name"
  */
-export type TaskIdentifier = string;
+export type TaskSlug = string;
 
 /**
  * Task input data as an array of parameters
@@ -16,7 +16,7 @@ export type TaskData = Array<any>;
 export enum TaskRunStatus {
   PENDING = "pending",
   RUNNING = "running",
-  COMPLETED = "completed",
+  COMPLETED = "completed", // deprecated, use SUCCEEDED instead
   SUCCEEDED = "succeeded",
   FAILED = "failed",
   CANCELED = "canceled",
@@ -48,7 +48,7 @@ export type ListTaskRunsParams = paths["/task-runs"]["get"]["parameters"]["query
  * Request body for running a task
  */
 export interface RunTaskRequest {
-  task: TaskIdentifier;
+  task: TaskSlug;
   input: TaskData;
 }
 

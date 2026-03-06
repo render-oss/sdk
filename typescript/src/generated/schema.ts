@@ -3251,14 +3251,13 @@ export interface paths {
                 /** @description The ID of the workspaces to return resources for */
                 ownerId?: components["parameters"]["ownerIdParam"];
                 /**
-                 * @description An array of either task identifiers which can be either a task ID or a workflow slug with task name and optional version. If a version is not provided, the latest version of the task will be used.
+                 * @description An array of task slugs in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
                  * @example [
-                 *       "tsk-1234",
                  *       "my-workflow-slug/my-task",
                  *       "my-workflow-slug/my-task:SHA123"
                  *     ]
                  */
-                taskId?: components["parameters"]["TaskIdFilterParam"];
+                taskSlug?: components["parameters"]["TaskSlugFilterParam"];
                 /** @description An array of workflow version IDs */
                 workflowVersionId?: components["parameters"]["WorkflowVersionIDFilterParam"];
                 /** @description An array of workflow IDs */
@@ -5665,16 +5664,16 @@ export interface components {
             attempts: components["schemas"]["TaskAttempt"][];
         };
         /**
-         * @description Either a task ID or a workflow slug with task name and optional version name. If a version is not provided, the latest version of the task will be used.
-         * @example tsk-1234, my-workflow-slug/my-task, my-workflow-slug/my-task:SHA123
+         * @description A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
+         * @example my-workflow-slug/my-task, my-workflow-slug/my-task:SHA123
          */
-        TaskIdentifier: string;
+        TaskSlug: string;
         /** @description Input data for a task. Can be either an array (for positional arguments) or an object (for named parameters). */
         TaskData: unknown[] | {
             [key: string]: unknown;
         };
         RunTask: {
-            task: components["schemas"]["TaskIdentifier"];
+            task: components["schemas"]["TaskSlug"];
             input: components["schemas"]["TaskData"];
         };
         TaskRunResult: unknown[];
@@ -6170,21 +6169,20 @@ export interface components {
         /** @description The ID of the workflow version */
         WorkflowVersionIDParam: string;
         /**
-         * @description An array of either task identifiers which can be either a task ID or a workflow slug with task name and optional version. If a version is not provided, the latest version of the task will be used.
+         * @description An array of task slugs in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
          * @example [
-         *       "tsk-1234",
          *       "my-workflow-slug/my-task",
          *       "my-workflow-slug/my-task:SHA123"
          *     ]
          */
-        TaskIdFilterParam: string[];
+        TaskSlugFilterParam: string[];
         /** @description An array of workflow version IDs */
         WorkflowVersionIDFilterParam: string[];
         /** @description An array of workflow IDs */
         WorkflowIDFilterParam: string[];
         /** @description The ID of the task */
         TaskIDParam: string;
-        /** @description An array of root task IDs to filter on */
+        /** @description An array of root task run IDs to filter on */
         RootTaskRunIDFilterParam: string[];
         /** @description The ID of the task run */
         TaskRunIDParam: string;
@@ -12739,14 +12737,13 @@ export interface operations {
                 /** @description The ID of the workspaces to return resources for */
                 ownerId?: components["parameters"]["ownerIdParam"];
                 /**
-                 * @description An array of either task identifiers which can be either a task ID or a workflow slug with task name and optional version. If a version is not provided, the latest version of the task will be used.
+                 * @description An array of task slugs in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
                  * @example [
-                 *       "tsk-1234",
                  *       "my-workflow-slug/my-task",
                  *       "my-workflow-slug/my-task:SHA123"
                  *     ]
                  */
-                taskId?: components["parameters"]["TaskIdFilterParam"];
+                taskSlug?: components["parameters"]["TaskSlugFilterParam"];
                 /** @description An array of workflow version IDs */
                 workflowVersionId?: components["parameters"]["WorkflowVersionIDFilterParam"];
                 /** @description An array of workflow IDs */
@@ -12816,15 +12813,14 @@ export interface operations {
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 limit?: components["parameters"]["limitParam"];
                 /**
-                 * @description An array of either task identifiers which can be either a task ID or a workflow slug with task name and optional version. If a version is not provided, the latest version of the task will be used.
+                 * @description An array of task slugs in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
                  * @example [
-                 *       "tsk-1234",
                  *       "my-workflow-slug/my-task",
                  *       "my-workflow-slug/my-task:SHA123"
                  *     ]
                  */
-                taskId?: components["parameters"]["TaskIdFilterParam"];
-                /** @description An array of root task IDs to filter on */
+                taskSlug?: components["parameters"]["TaskSlugFilterParam"];
+                /** @description An array of root task run IDs to filter on */
                 rootTaskRunId?: components["parameters"]["RootTaskRunIDFilterParam"];
                 /** @description The ID of the workspaces to return resources for */
                 ownerId?: components["parameters"]["ownerIdParam"];
