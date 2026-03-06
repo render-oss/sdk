@@ -17,6 +17,7 @@ export enum TaskRunStatus {
   PENDING = "pending",
   RUNNING = "running",
   COMPLETED = "completed",
+  SUCCEEDED = "succeeded",
   FAILED = "failed",
   CANCELED = "canceled",
 }
@@ -26,6 +27,11 @@ export enum TaskRunStatus {
  */
 
 export type TaskRun = components["schemas"]["TaskRun"];
+
+/**
+ * A task run paired with a pagination cursor, returned by list endpoints.
+ */
+export type TaskRunWithCursor = components["schemas"]["taskRunWithCursor"];
 
 /**
  * Detailed task run information including results and errors

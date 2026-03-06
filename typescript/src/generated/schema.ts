@@ -3465,7 +3465,7 @@ export interface components {
              * @example CreateServerEvent
              * @enum {string}
              */
-            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent";
+            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent";
             /**
              * @description The status of the event
              * @example success
@@ -4745,6 +4745,10 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        taskRunWithCursor: {
+            taskRun: components["schemas"]["TaskRun"];
+            cursor: components["schemas"]["cursor"];
+        };
         /** @example exs-cph1rs3idesc73a2b2mg */
         blueprintId: string;
         /** @enum {string} */
@@ -5639,7 +5643,7 @@ export interface components {
             workflowVersionId?: string;
         };
         /** @enum {string} */
-        TaskRunStatus: "pending" | "running" | "completed" | "failed" | "canceled" | "paused";
+        TaskRunStatus: "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused";
         TaskAttempt: {
             status: components["schemas"]["TaskRunStatus"];
             /** Format: date-time */
@@ -12841,7 +12845,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskRun"][];
+                    "application/json": components["schemas"]["taskRunWithCursor"][];
                 };
             };
             401: components["responses"]["401Unauthorized"];
