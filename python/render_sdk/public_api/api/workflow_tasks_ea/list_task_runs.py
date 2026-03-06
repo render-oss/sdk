@@ -14,7 +14,7 @@ def _get_kwargs(
     *,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     root_task_run_id: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
@@ -26,11 +26,11 @@ def _get_kwargs(
 
     params["limit"] = limit
 
-    json_task_id: Union[Unset, list[str]] = UNSET
-    if not isinstance(task_id, Unset):
-        json_task_id = task_id
+    json_task_slug: Union[Unset, list[str]] = UNSET
+    if not isinstance(task_slug, Unset):
+        json_task_slug = task_slug
 
-    params["taskId"] = json_task_id
+    params["taskSlug"] = json_task_slug
 
     json_root_task_run_id: Union[Unset, list[str]] = UNSET
     if not isinstance(root_task_run_id, Unset):
@@ -132,7 +132,7 @@ def sync_detailed(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     root_task_run_id: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
@@ -146,7 +146,7 @@ def sync_detailed(
     Args:
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         root_task_run_id (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
@@ -163,7 +163,7 @@ def sync_detailed(
     kwargs = _get_kwargs(
         cursor=cursor,
         limit=limit,
-        task_id=task_id,
+        task_slug=task_slug,
         root_task_run_id=root_task_run_id,
         owner_id=owner_id,
         workflow_version_id=workflow_version_id,
@@ -182,7 +182,7 @@ def sync(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     root_task_run_id: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
@@ -196,7 +196,7 @@ def sync(
     Args:
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         root_task_run_id (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
@@ -214,7 +214,7 @@ def sync(
         client=client,
         cursor=cursor,
         limit=limit,
-        task_id=task_id,
+        task_slug=task_slug,
         root_task_run_id=root_task_run_id,
         owner_id=owner_id,
         workflow_version_id=workflow_version_id,
@@ -227,7 +227,7 @@ async def asyncio_detailed(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     root_task_run_id: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
@@ -241,7 +241,7 @@ async def asyncio_detailed(
     Args:
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         root_task_run_id (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
@@ -258,7 +258,7 @@ async def asyncio_detailed(
     kwargs = _get_kwargs(
         cursor=cursor,
         limit=limit,
-        task_id=task_id,
+        task_slug=task_slug,
         root_task_run_id=root_task_run_id,
         owner_id=owner_id,
         workflow_version_id=workflow_version_id,
@@ -275,7 +275,7 @@ async def asyncio(
     client: Union[AuthenticatedClient, Client],
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     root_task_run_id: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
@@ -289,7 +289,7 @@ async def asyncio(
     Args:
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         root_task_run_id (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
@@ -308,7 +308,7 @@ async def asyncio(
             client=client,
             cursor=cursor,
             limit=limit,
-            task_id=task_id,
+            task_slug=task_slug,
             root_task_run_id=root_task_run_id,
             owner_id=owner_id,
             workflow_version_id=workflow_version_id,

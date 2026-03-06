@@ -15,7 +15,7 @@ def _get_kwargs(
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     owner_id: Union[Unset, list[str]] = UNSET,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
 ) -> dict[str, Any]:
@@ -31,11 +31,11 @@ def _get_kwargs(
 
     params["ownerId"] = json_owner_id
 
-    json_task_id: Union[Unset, list[str]] = UNSET
-    if not isinstance(task_id, Unset):
-        json_task_id = task_id
+    json_task_slug: Union[Unset, list[str]] = UNSET
+    if not isinstance(task_slug, Unset):
+        json_task_slug = task_slug
 
-    params["taskId"] = json_task_id
+    params["taskSlug"] = json_task_slug
 
     json_workflow_version_id: Union[Unset, list[str]] = UNSET
     if not isinstance(workflow_version_id, Unset):
@@ -126,7 +126,7 @@ def sync_detailed(
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     owner_id: Union[Unset, list[str]] = UNSET,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
 ) -> Response[Union[Error, list["TaskWithCursor"]]]:
@@ -139,7 +139,7 @@ def sync_detailed(
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         owner_id (Union[Unset, list[str]]):
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
         workflow_id (Union[Unset, list[str]]):
 
@@ -155,7 +155,7 @@ def sync_detailed(
         cursor=cursor,
         limit=limit,
         owner_id=owner_id,
-        task_id=task_id,
+        task_slug=task_slug,
         workflow_version_id=workflow_version_id,
         workflow_id=workflow_id,
     )
@@ -173,7 +173,7 @@ def sync(
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     owner_id: Union[Unset, list[str]] = UNSET,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
 ) -> Optional[Union[Error, list["TaskWithCursor"]]]:
@@ -186,7 +186,7 @@ def sync(
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         owner_id (Union[Unset, list[str]]):
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
         workflow_id (Union[Unset, list[str]]):
 
@@ -203,7 +203,7 @@ def sync(
         cursor=cursor,
         limit=limit,
         owner_id=owner_id,
-        task_id=task_id,
+        task_slug=task_slug,
         workflow_version_id=workflow_version_id,
         workflow_id=workflow_id,
     ).parsed
@@ -215,7 +215,7 @@ async def asyncio_detailed(
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     owner_id: Union[Unset, list[str]] = UNSET,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
 ) -> Response[Union[Error, list["TaskWithCursor"]]]:
@@ -228,7 +228,7 @@ async def asyncio_detailed(
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         owner_id (Union[Unset, list[str]]):
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
         workflow_id (Union[Unset, list[str]]):
 
@@ -244,7 +244,7 @@ async def asyncio_detailed(
         cursor=cursor,
         limit=limit,
         owner_id=owner_id,
-        task_id=task_id,
+        task_slug=task_slug,
         workflow_version_id=workflow_version_id,
         workflow_id=workflow_id,
     )
@@ -260,7 +260,7 @@ async def asyncio(
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     owner_id: Union[Unset, list[str]] = UNSET,
-    task_id: Union[Unset, list[str]] = UNSET,
+    task_slug: Union[Unset, list[str]] = UNSET,
     workflow_version_id: Union[Unset, list[str]] = UNSET,
     workflow_id: Union[Unset, list[str]] = UNSET,
 ) -> Optional[Union[Error, list["TaskWithCursor"]]]:
@@ -273,7 +273,7 @@ async def asyncio(
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         owner_id (Union[Unset, list[str]]):
-        task_id (Union[Unset, list[str]]):
+        task_slug (Union[Unset, list[str]]):
         workflow_version_id (Union[Unset, list[str]]):
         workflow_id (Union[Unset, list[str]]):
 
@@ -291,7 +291,7 @@ async def asyncio(
             cursor=cursor,
             limit=limit,
             owner_id=owner_id,
-            task_id=task_id,
+            task_slug=task_slug,
             workflow_version_id=workflow_version_id,
             workflow_id=workflow_id,
         )

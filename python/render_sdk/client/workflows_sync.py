@@ -14,10 +14,10 @@ from render_sdk.client.sse_sync import parse_stream
 from render_sdk.client.types import (
     ListTaskRunsParams,
     TaskData,
-    TaskIdentifier,
     TaskRun,
     TaskRunDetails,
     TaskRunStatusValues,
+    TaskSlug,
 )
 from render_sdk.client.util import handle_http_error, handle_httpx_exception
 from render_sdk.client.util_sync import handle_http_errors, retry_with_backoff
@@ -102,7 +102,7 @@ class SyncWorkflowsService:
 
     def start_task(
         self,
-        task_identifier: TaskIdentifier,
+        task_slug: TaskSlug,
         input_data: TaskData,
     ) -> TaskRun:
         """Start a task and return the task run without waiting for completion.
@@ -113,7 +113,7 @@ class SyncWorkflowsService:
         This corresponds to POST /task-runs in the API.
 
         Args:
-            task_identifier: The identifier of the task to run
+            task_slug: The task slug (workflow-slug/task-name)
             input_data: The input data for the task. Can be either:
                 - A list for positional arguments: [arg1, arg2, arg3]
                 - A dict for named parameters: {"param1": value1, "param2": value2}
@@ -126,11 +126,11 @@ class SyncWorkflowsService:
             ServerError: For 5xx server errors and network failures
             TimeoutError: If the request times out
         """
-        return self._create_task_api_call(task_identifier, input_data).parsed
+        return self._create_task_api_call(task_slug, input_data).parsed
 
     def run_task(
         self,
-        task_identifier: TaskIdentifier,
+        task_slug: TaskSlug,
         input_data: TaskData,
     ) -> TaskRunDetails:
         """Start a task and wait for it to complete, returning the result.
@@ -138,7 +138,7 @@ class SyncWorkflowsService:
         This corresponds to POST /task-runs in the API.
 
         Args:
-            task_identifier: The identifier of the task to run
+            task_slug: The task slug (workflow-slug/task-name)
             input_data: The input data for the task. Can be either:
                 - A list for positional arguments: [arg1, arg2, arg3]
                 - A dict for named parameters: {"param1": value1, "param2": value2}
@@ -152,7 +152,7 @@ class SyncWorkflowsService:
             TimeoutError: If the request times out
             TaskRunError: If the task run fails with an error
         """
-        task_run = self.start_task(task_identifier, input_data)
+        task_run = self.start_task(task_slug, input_data)
 
         # If already in a terminal state, just get the details
         status = task_run.status.value
@@ -182,7 +182,7 @@ class SyncWorkflowsService:
 
     @handle_http_errors("create task")
     def _create_task_api_call(
-        self, task_identifier: TaskIdentifier, input_data: TaskData
+        self, task_slug: TaskSlug, input_data: TaskData
     ) -> Response[Error | TaskRun]:
         """Internal method to make the create task API call."""
         # Convert dict to TaskDataType1 for named parameters
@@ -194,7 +194,7 @@ class SyncWorkflowsService:
 
         # Create the request body
         run_task = RunTask(
-            task=task_identifier,
+            task=task_slug,
             input_=task_data_input,
         )
 

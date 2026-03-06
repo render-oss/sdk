@@ -10,7 +10,7 @@ from render_sdk.public_api.models.task_run_details import (
 from render_sdk.public_api.models.task_run_status import TaskRunStatus as _TaskRunStatus
 
 # Type aliases to match Go client interface
-TaskIdentifier = str
+TaskSlug = str
 # TaskData can be either positional (list) or named (dict) parameters
 TaskData = list[Any] | dict[str, Any]
 
@@ -46,7 +46,7 @@ class TaskRunStatusValues:
 
     PENDING = "pending"
     RUNNING = "running"
-    COMPLETED = "completed"
+    COMPLETED = "completed"  # deprecated, use SUCCEEDED instead
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELED = "canceled"
