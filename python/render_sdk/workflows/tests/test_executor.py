@@ -218,4 +218,4 @@ async def test_retry_exhausted_raises_last_error():
     with pytest.raises(ServerError):
         await decorated()
 
-    assert mock_fn.call_count == 15  # _UDS_MAX_RETRIES
+    assert mock_fn.call_count == 25  # _UDS_MAX_RETRIES

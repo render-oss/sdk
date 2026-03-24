@@ -76,8 +76,8 @@ POLLING_INTERVAL = 1.0
 POLLING_TIMEOUT = 24 * 60 * 60  # 24 hours
 QUERY_TIMEOUT = 15  # 15 seconds
 
-# Total retry window is ~2 minutes (175.5 seconds)
-_UDS_MAX_RETRIES = 15
+# Total retry window is ~5 minutes (303.75 seconds)
+_UDS_MAX_RETRIES = 25
 _UDS_INITIAL_DELAY_S = 0.25
 _UDS_BACKOFF_FACTOR = 2.0
 _UDS_MAX_DELAY_S = 16.0
