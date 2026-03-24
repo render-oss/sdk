@@ -157,7 +157,9 @@ def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> N
     """
     if isinstance(exc, httpx.TimeoutException):
         raise TimeoutError(f"{operation} timed out: {exc}") from exc
-    elif isinstance(exc, (httpx.ConnectError, httpx.NetworkError)):
+    elif isinstance(
+        exc, (httpx.ConnectError, httpx.NetworkError, httpx.RemoteProtocolError)
+    ):
         raise ServerError(f"{operation} failed due to network error: {exc}") from exc
     elif isinstance(exc, httpx.RequestError):
         raise ClientError(f"{operation} failed: {exc}") from exc

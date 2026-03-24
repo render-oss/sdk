@@ -202,7 +202,7 @@ describe("UDSClient", () => {
       await vi.runAllTimersAsync();
 
       await assertion;
-      expect(http.request).toHaveBeenCalledTimes(15);
+      expect(http.request).toHaveBeenCalledTimes(25);
     });
   });
 });

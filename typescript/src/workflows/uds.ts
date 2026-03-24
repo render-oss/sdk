@@ -12,8 +12,8 @@ import type {
   TaskMetadata,
 } from "./types.js";
 
-// Total retry window is ~2 minutes (175.5 seconds)
-const UDS_MAX_RETRIES = 15;
+// Total retry window is ~5 minutes (303.75 seconds)
+const UDS_MAX_RETRIES = 25;
 const UDS_INITIAL_DELAY_MS = 250;
 const UDS_BACKOFF_FACTOR = 2;
 const UDS_MAX_DELAY_MS = 16_000;

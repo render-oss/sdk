@@ -106,6 +106,14 @@ def test_handle_httpx_exception_timeout():
         handle_httpx_exception(exception, "HTTP request")
 
 
+def test_handle_httpx_exception_remote_protocol_error():
+    exception = httpx.RemoteProtocolError(
+        "Server disconnected without sending a response."
+    )
+    with pytest.raises(ServerError, match="failed due to network error"):
+        handle_httpx_exception(exception, "get task result")
+
+
 def test_handle_api_error_client_error():
     response = Response(
         status_code=400, content=b"", headers={}, parsed=Error(message="Bad request")
