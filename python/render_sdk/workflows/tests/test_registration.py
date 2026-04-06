@@ -119,6 +119,25 @@ def test_task_registration_with_options_object():
     assert retry_task.options.retry.max_retries == 1
 
 
+def test_options_coerces_dict_retry_to_retry():
+    """
+    Test that Options.__post_init__ coerces a dict retry config to a Retry instance.
+    """
+    options = Options(
+        retry={"max_retries": 5, "wait_duration_ms": 2000, "backoff_scaling": 2.0}
+    )
+    assert isinstance(options.retry, Retry)
+    assert options.retry.max_retries == 5
+    assert options.retry.wait_duration_ms == 2000
+    assert options.retry.backoff_scaling == 2.0
+
+
+def test_options_rejects_incomplete_dict_retry():
+    """Test that dict-to-Retry coercion raises KeyError for missing required keys."""
+    with pytest.raises(KeyError):
+        Options(retry={})
+
+
 def test_task_registration_preserves_function_attributes(task_registry, task_decorator):
     """Test that task registration preserves original function attributes."""
 
