@@ -23,6 +23,14 @@ class Retry:
     wait_duration_ms: int
     backoff_scaling: float = 1.5
 
+    @classmethod
+    def from_dict(cls, d: dict) -> "Retry":
+        return cls(
+            max_retries=d["max_retries"],
+            wait_duration_ms=d["wait_duration_ms"],
+            backoff_scaling=d["backoff_scaling"],
+        )
+
 
 @dataclass
 class Options:
@@ -38,6 +46,10 @@ class Options:
     retry: Retry | None = None
     timeout_seconds: int | None = None
     plan: str | None = None
+
+    def __post_init__(self):
+        if isinstance(self.retry, dict):
+            self.retry = Retry.from_dict(self.retry)
 
 
 @dataclass

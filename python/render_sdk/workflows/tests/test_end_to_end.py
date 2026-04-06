@@ -190,6 +190,77 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
     assert combined_payload.options.retry.max_retries == 2
 
 
+def test_task_registration_with_dict_retry_config(
+    task_registry, task_decorator, mocker
+):
+    """
+    Test that registration handles dict retry configs passed to Options().
+    A caller may construct Options(retry={...}) with a plain dict instead
+    of a Retry instance. Options.__post_init__ should coerce it.
+    """
+    mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
+    mock_client_instance = mocker.Mock()
+    mock_uds_client_class.return_value = mock_client_instance
+    mock_client_instance.register_tasks = mocker.AsyncMock(
+        return_value={"status": "success"},
+    )
+    mock_client_instance.disconnect = mocker.AsyncMock()
+
+    # Options receives a plain dict instead of a Retry instance
+    dict_retry = {
+        "max_retries": 5,
+        "wait_duration_ms": 2000,
+        "backoff_scaling": 2.0,
+    }
+    options = Options(retry=dict_retry)
+
+    @task_decorator(options=options)
+    def my_task(x: int) -> int:
+        return x
+
+    mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
+    mock_get_registry.return_value = task_registry
+
+    register("/tmp/test.sock")  # noqa:S108
+
+    sent_tasks = mock_client_instance.register_tasks.call_args[0][0]
+    task_payload = sent_tasks.tasks[0]
+
+    assert task_payload.options.retry.max_retries == 5
+    assert task_payload.options.retry.wait_duration_ms == 2000
+    assert task_payload.options.retry.factor == 2.0
+
+
+def test_task_registration_without_retry_config(task_registry, task_decorator, mocker):
+    """
+    Test that tasks with no retry config register successfully. This is the
+    common case that was unaffected by the dict retry bug.
+    """
+    from render_sdk.workflows.callback_api.types import UNSET
+
+    mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
+    mock_client_instance = mocker.Mock()
+    mock_uds_client_class.return_value = mock_client_instance
+    mock_client_instance.register_tasks = mocker.AsyncMock(
+        return_value={"status": "success"},
+    )
+    mock_client_instance.disconnect = mocker.AsyncMock()
+
+    @task_decorator
+    def my_task(x: int) -> int:
+        return x
+
+    mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
+    mock_get_registry.return_value = task_registry
+
+    register("/tmp/test.sock")  # noqa:S108
+
+    sent_tasks = mock_client_instance.register_tasks.call_args[0][0]
+    task_payload = sent_tasks.tasks[0]
+
+    assert task_payload.options.retry is UNSET
+
+
 @pytest.mark.asyncio
 async def test_callback_payloads_with_mocked_client(
     task_registry,
