@@ -1,11 +1,13 @@
+import json
+
 import httpx
 import pytest
 
-from render_sdk.client.errors import ClientError, ServerError, TimeoutError
+from render_sdk.client.errors import ClientError, RenderError, ServerError, TimeoutError
 from render_sdk.client.util import (
+    _handle_wrapper_exception,
     handle_api_error,
     handle_http_error,
-    handle_http_errors,
     handle_httpx_exception,
     handle_storage_http_error,
     retry_with_backoff,
@@ -169,19 +171,39 @@ def test_handle_api_error_fallback_when_content_is_not_json():
         handle_api_error(response, "API request")
 
 
-@pytest.mark.asyncio
-async def test_decorator_handle_http_errors():
-    @handle_http_errors("test operation")
-    async def test_operation():
-        return Response(
-            status_code=400,
-            content=b"",
-            headers={},
-            parsed=Error(message="Bad request"),
-        )
+def test_handle_wrapper_exception_reraises_render_error():
+    with pytest.raises(RenderError, match="already a render error"):
+        _handle_wrapper_exception(RenderError("already a render error"), "op")
 
-    with pytest.raises(ClientError, match="test operation failed: Bad request"):
-        await test_operation()
+
+def test_handle_wrapper_exception_httpx_request_error():
+    exc = httpx.TimeoutException("timed out")
+    with pytest.raises(TimeoutError, match="op timed out"):
+        _handle_wrapper_exception(exc, "op")
+
+
+def test_handle_wrapper_exception_json_decode_error():
+    exc = json.JSONDecodeError("Expecting value", "Unauthorized\n", 0)
+    with pytest.raises(
+        RenderError, match="server returned a non-JSON response: Unauthorized"
+    ):
+        _handle_wrapper_exception(exc, "create task")
+
+
+def test_handle_wrapper_exception_json_decode_error_empty_body():
+    exc = json.JSONDecodeError("Expecting value", "", 0)
+    with pytest.raises(
+        RenderError, match="server returned a non-JSON response: empty response"
+    ):
+        _handle_wrapper_exception(exc, "create task")
+
+
+def test_handle_wrapper_exception_unexpected_error():
+    exc = ValueError("something weird")
+    with pytest.raises(
+        RenderError, match="failed with unexpected error: something weird"
+    ):
+        _handle_wrapper_exception(exc, "op")
 
 
 class TestHandleStorageHttpError:

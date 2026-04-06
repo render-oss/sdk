@@ -1,4 +1,5 @@
 import functools
+import json
 import logging
 from asyncio import sleep
 from collections.abc import Awaitable, Callable
@@ -197,8 +198,6 @@ def handle_api_error(
     elif response.parsed is None and response.content:
         # Parsed is None (e.g., 400 not handled) - try to extract from raw content
         try:
-            import json
-
             error_data = json.loads(response.content)
             if isinstance(error_data, dict):
                 message = error_data.get("message")
@@ -227,6 +226,24 @@ def handle_api_error(
         raise ClientError(full_message)
 
 
+def _handle_wrapper_exception(exc: Exception, operation: str) -> NoReturn:
+    """
+    Translate exceptions caught by handle_http_errors into custom exceptions.
+
+    Shared by both the async and sync versions of the decorator.
+    """
+    if isinstance(exc, RenderError):
+        raise exc
+    if isinstance(exc, httpx.RequestError):
+        handle_httpx_exception(exc, operation)
+    if isinstance(exc, json.JSONDecodeError):
+        body = exc.doc.strip() if exc.doc else "empty response"
+        raise RenderError(
+            f"{operation} failed: server returned a non-JSON response: {body}"
+        ) from exc
+    raise RenderError(f"{operation} failed with unexpected error: {exc}") from exc
+
+
 def handle_http_errors(operation: str):
     """
     Decorator that handles HTTPX exceptions and HTTP error responses.
@@ -250,20 +267,10 @@ def handle_http_errors(operation: str):
         async def wrapper(*args, **kwargs):
             try:
                 result = await func(*args, **kwargs)
-
-                handle_api_error(result, operation)
-
-                return result
-
-            except httpx.RequestError as exc:
-                handle_httpx_exception(exc, operation)
-            except RenderError:
-                raise
             except Exception as exc:
-                # Unexpected exception
-                raise RenderError(
-                    f"{operation} failed with unexpected error: {exc}"
-                ) from exc
+                _handle_wrapper_exception(exc, operation)
+            handle_api_error(result, operation)
+            return result
 
         return wrapper
 
