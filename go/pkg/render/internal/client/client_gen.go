@@ -16198,9 +16198,9 @@ func NewListTaskRunsRequest(server string, params *ListTaskRunsParams) (*http.Re
 
 		}
 
-		if params.TaskId != nil {
+		if params.TaskSlug != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskId", runtime.ParamLocationQuery, *params.TaskId); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskSlug", runtime.ParamLocationQuery, *params.TaskSlug); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -16527,9 +16527,9 @@ func NewListTasksRequest(server string, params *ListTasksParams) (*http.Request,
 
 		}
 
-		if params.TaskId != nil {
+		if params.TaskSlug != nil {
 
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskId", runtime.ParamLocationQuery, *params.TaskId); err != nil {
+			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "taskSlug", runtime.ParamLocationQuery, *params.TaskSlug); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -20586,7 +20586,7 @@ func (r PatchOwnerNotificationSettingsResponse) StatusCode() int {
 type ListObjectsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef12.ObjectWithCursor
+	JSON200      *externalRef12.ListObjectsResponse
 	JSON401      *N401Unauthorized
 	JSON403      *N403Forbidden
 	JSON404      *N404NotFound
@@ -23320,7 +23320,7 @@ func (r SuspendServiceResponse) StatusCode() int {
 type ListTaskRunsResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON200      *[]externalRef14.TaskRun
+	JSON200      *[]TaskRunWithCursor
 	JSON401      *N401Unauthorized
 	JSON403      *N403Forbidden
 	JSON404      *N404NotFound
@@ -31674,7 +31674,7 @@ func ParseListObjectsResponse(rsp *http.Response) (*ListObjectsResponse, error) 
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef12.ObjectWithCursor
+		var dest externalRef12.ListObjectsResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -38854,7 +38854,7 @@ func ParseListTaskRunsResponse(rsp *http.Response) (*ListTaskRunsResponse, error
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef14.TaskRun
+		var dest []TaskRunWithCursor
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

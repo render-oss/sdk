@@ -18,6 +18,7 @@ class TaskAttemptDetails:
     Attributes:
         status (TaskRunStatus):
         started_at (datetime.datetime):
+        enqueued_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
         error (Union[Unset, str]): Error message if the task attempt failed.
         results (Union[Unset, list[Any]]):
@@ -25,6 +26,7 @@ class TaskAttemptDetails:
 
     status: TaskRunStatus
     started_at: datetime.datetime
+    enqueued_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     error: Union[Unset, str] = UNSET
     results: Union[Unset, list[Any]] = UNSET
@@ -34,6 +36,10 @@ class TaskAttemptDetails:
         status = self.status.value
 
         started_at = self.started_at.isoformat()
+
+        enqueued_at: Union[Unset, str] = UNSET
+        if not isinstance(self.enqueued_at, Unset):
+            enqueued_at = self.enqueued_at.isoformat()
 
         completed_at: Union[Unset, str] = UNSET
         if not isinstance(self.completed_at, Unset):
@@ -53,6 +59,8 @@ class TaskAttemptDetails:
                 "startedAt": started_at,
             }
         )
+        if enqueued_at is not UNSET:
+            field_dict["enqueuedAt"] = enqueued_at
         if completed_at is not UNSET:
             field_dict["completedAt"] = completed_at
         if error is not UNSET:
@@ -69,6 +77,13 @@ class TaskAttemptDetails:
 
         started_at = isoparse(d.pop("startedAt"))
 
+        _enqueued_at = d.pop("enqueuedAt", UNSET)
+        enqueued_at: Union[Unset, datetime.datetime]
+        if isinstance(_enqueued_at, Unset):
+            enqueued_at = UNSET
+        else:
+            enqueued_at = isoparse(_enqueued_at)
+
         _completed_at = d.pop("completedAt", UNSET)
         completed_at: Union[Unset, datetime.datetime]
         if isinstance(_completed_at, Unset):
@@ -83,6 +98,7 @@ class TaskAttemptDetails:
         task_attempt_details = cls(
             status=status,
             started_at=started_at,
+            enqueued_at=enqueued_at,
             completed_at=completed_at,
             error=error,
             results=results,

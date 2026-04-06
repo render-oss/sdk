@@ -39,6 +39,7 @@ const (
 	Paused    TaskRunStatus = "paused"
 	Pending   TaskRunStatus = "pending"
 	Running   TaskRunStatus = "running"
+	Succeeded TaskRunStatus = "succeeded"
 )
 
 // Defines values for WorkflowVersionStatus.
@@ -104,8 +105,8 @@ type RunTask struct {
 	// Input Input data for a task. Can be either an array (for positional arguments) or an object (for named parameters).
 	Input TaskData `json:"input"`
 
-	// Task Either a task ID or a workflow slug with task name and optional version name. If a version is not provided, the latest version of the task will be used.
-	Task TaskIdentifier `json:"task"`
+	// Task A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
+	Task TaskSlug `json:"task"`
 }
 
 // Runtime The runtime environment for the workflow (e.g., node, python, etc.).
@@ -123,6 +124,7 @@ type Task struct {
 // TaskAttempt defines model for TaskAttempt.
 type TaskAttempt struct {
 	CompletedAt *time.Time    `json:"completedAt,omitempty"`
+	EnqueuedAt  *time.Time    `json:"enqueuedAt,omitempty"`
 	StartedAt   time.Time     `json:"startedAt"`
 	Status      TaskRunStatus `json:"status"`
 }
@@ -130,6 +132,7 @@ type TaskAttempt struct {
 // TaskAttemptDetails defines model for TaskAttemptDetails.
 type TaskAttemptDetails struct {
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
+	EnqueuedAt  *time.Time `json:"enqueuedAt,omitempty"`
 
 	// Error Error message if the task attempt failed.
 	Error     *string        `json:"error,omitempty"`
@@ -148,9 +151,6 @@ type TaskData0 = []interface{}
 
 // TaskData1 Named parameters passed to the task function as keyword arguments
 type TaskData1 map[string]interface{}
-
-// TaskIdentifier Either a task ID or a workflow slug with task name and optional version name. If a version is not provided, the latest version of the task will be used.
-type TaskIdentifier = string
 
 // TaskRun defines model for TaskRun.
 type TaskRun struct {
@@ -191,12 +191,8 @@ type TaskRunResult = []interface{}
 // TaskRunStatus defines model for TaskRunStatus.
 type TaskRunStatus string
 
-// TaskSlug defines model for TaskSlug.
-type TaskSlug struct {
-	TaskName            string  `json:"taskName"`
-	Version             *string `json:"version,omitempty"`
-	WorkflowServiceSlug string  `json:"workflowServiceSlug"`
-}
+// TaskSlug A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
+type TaskSlug = string
 
 // Workflow defines model for Workflow.
 type Workflow struct {
@@ -256,11 +252,11 @@ type RootTaskRunIDFilterParam = []string
 // TaskIDParam defines model for TaskIDParam.
 type TaskIDParam = string
 
-// TaskIdFilterParam defines model for TaskIdFilterParam.
-type TaskIdFilterParam = []string
-
 // TaskRunIDParam defines model for TaskRunIDParam.
 type TaskRunIDParam = string
+
+// TaskSlugFilterParam defines model for TaskSlugFilterParam.
+type TaskSlugFilterParam = []string
 
 // WorkflowIDFilterParam defines model for WorkflowIDFilterParam.
 type WorkflowIDFilterParam = []string

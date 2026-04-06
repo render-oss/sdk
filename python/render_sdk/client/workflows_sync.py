@@ -21,13 +21,13 @@ from render_sdk.client.types import (
 )
 from render_sdk.client.util import handle_http_error, handle_httpx_exception
 from render_sdk.client.util_sync import handle_http_errors, retry_with_backoff
-from render_sdk.public_api.api.workflow_tasks_ea import (
+from render_sdk.public_api.api.workflow_tasks_beta import (
     cancel_task_run,
     create_task,
     get_task_run,
     list_task_runs,
 )
-from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import (
+from render_sdk.public_api.api.workflow_tasks_beta.stream_task_runs_events import (
     _get_kwargs,
 )
 from render_sdk.public_api.models.error import Error
