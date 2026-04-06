@@ -24,13 +24,13 @@ from render_sdk.client.util import (
     handle_httpx_exception,
     retry_with_backoff,
 )
-from render_sdk.public_api.api.workflow_tasks_ea import (
+from render_sdk.public_api.api.workflow_tasks_beta import (
     cancel_task_run,
     create_task,
     get_task_run,
     list_task_runs,
 )
-from render_sdk.public_api.api.workflow_tasks_ea.stream_task_runs_events import (
+from render_sdk.public_api.api.workflow_tasks_beta.stream_task_runs_events import (
     _get_kwargs,
 )
 from render_sdk.public_api.models.error import Error

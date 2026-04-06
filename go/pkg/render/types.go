@@ -10,7 +10,7 @@ import (
 
 // Types from workflows package
 type (
-	TaskIdentifier = workflows.TaskIdentifier
+	TaskSlug       = workflows.TaskSlug
 	TaskData       = workflows.TaskData
 	TaskRun        = workflows.TaskRun
 	TaskRunDetails = workflows.TaskRunDetails

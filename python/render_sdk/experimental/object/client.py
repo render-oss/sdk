@@ -56,8 +56,8 @@ class ObjectClient:
         resolved = owner_id or self._default_owner_id
         if not resolved:
             raise RenderError(
-                "owner_id is required. Provide it as a parameter"
-                " or set the RENDER_WORKSPACE_ID environment variable."
+                "owner_id is required. Provide it as a parameter or set the "
+                "RENDER_WORKSPACE_ID environment variable."
             )
         return resolved
 
@@ -65,8 +65,8 @@ class ObjectClient:
         resolved = region or self._default_region
         if not resolved:
             raise RenderError(
-                "region is required. Provide it as a parameter"
-                " or set the RENDER_REGION environment variable."
+                "region is required. Provide it as a parameter or set the "
+                "RENDER_REGION environment variable."
             )
         return resolved
 

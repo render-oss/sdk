@@ -16,11 +16,11 @@ func main() {
 	}
 
 	// Example: Run a task
-	taskIdentifier := render.TaskIdentifier("my-workflow-slug/square")
+	taskSlug := render.TaskSlug("my-workflow-slug/square")
 	var input render.TaskData
 	_ = input.FromTaskData0([]interface{}{4})
 
-	taskRun, err := client.Workflows.RunTask(taskIdentifier, input)
+	taskRun, err := client.Workflows.RunTask(taskSlug, input)
 	if err != nil {
 		log.Fatalf("Failed to run task: %v", err)
 	}

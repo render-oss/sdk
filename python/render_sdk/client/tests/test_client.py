@@ -77,28 +77,28 @@ def workflows_service(client):
 @pytest.fixture
 def mock_cancel_task_run_asyncio(mocker):
     return mocker.patch(
-        "render_sdk.public_api.api.workflow_tasks_ea.cancel_task_run.asyncio_detailed"
+        "render_sdk.public_api.api.workflow_tasks_beta.cancel_task_run.asyncio_detailed"
     )
 
 
 @pytest.fixture
 def mock_list_task_runs_asyncio(mocker):
     return mocker.patch(
-        "render_sdk.public_api.api.workflow_tasks_ea.list_task_runs.asyncio_detailed"
+        "render_sdk.public_api.api.workflow_tasks_beta.list_task_runs.asyncio_detailed"
     )
 
 
 @pytest.fixture
 def mock_create_task_asyncio(mocker):
     return mocker.patch(
-        "render_sdk.public_api.api.workflow_tasks_ea.create_task.asyncio_detailed"
+        "render_sdk.public_api.api.workflow_tasks_beta.create_task.asyncio_detailed"
     )
 
 
 @pytest.fixture
 def mock_get_task_run_asyncio(mocker):
     return mocker.patch(
-        "render_sdk.public_api.api.workflow_tasks_ea.get_task_run.asyncio_detailed"
+        "render_sdk.public_api.api.workflow_tasks_beta.get_task_run.asyncio_detailed"
     )
 
 

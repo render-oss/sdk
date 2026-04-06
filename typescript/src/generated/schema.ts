@@ -5646,6 +5646,8 @@ export interface components {
         TaskAttempt: {
             status: components["schemas"]["TaskRunStatus"];
             /** Format: date-time */
+            enqueuedAt?: string;
+            /** Format: date-time */
             startedAt: string;
             /** Format: date-time */
             completedAt?: string;
@@ -5679,6 +5681,8 @@ export interface components {
         TaskRunResult: unknown[];
         TaskAttemptDetails: {
             status: components["schemas"]["TaskRunStatus"];
+            /** Format: date-time */
+            enqueuedAt?: string;
             /** Format: date-time */
             startedAt: string;
             /** Format: date-time */
