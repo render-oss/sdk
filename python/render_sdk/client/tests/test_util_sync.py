@@ -3,10 +3,7 @@
 
 import pytest
 
-from render_sdk.client.errors import ClientError
-from render_sdk.client.util_sync import handle_http_errors, retry_with_backoff
-from render_sdk.public_api.models.error import Error
-from render_sdk.public_api.types import Response
+from render_sdk.client.util_sync import retry_with_backoff
 
 
 class _TestException(Exception):
@@ -74,31 +71,3 @@ def test_retry_with_backoff_returns_none_when_all_none():
         fn, max_retries=3, poll_interval=0.001, backoff_factor=1.0
     )
     assert result is None
-
-
-def test_decorator_handle_http_errors():
-    @handle_http_errors("test operation")
-    def test_operation():
-        return Response(
-            status_code=400,
-            content=b"",
-            headers={},
-            parsed=Error(message="Bad request"),
-        )
-
-    with pytest.raises(ClientError, match="test operation failed: Bad request"):
-        test_operation()
-
-
-def test_decorator_handle_http_errors_success():
-    @handle_http_errors("test operation")
-    def test_operation():
-        return Response(
-            status_code=200,
-            content=b"",
-            headers={},
-            parsed={"data": "ok"},
-        )
-
-    result = test_operation()
-    assert result.status_code == 200

@@ -10,10 +10,8 @@ from collections.abc import Callable
 from time import sleep
 from typing import Any
 
-import httpx
-
-from render_sdk.client.errors import RenderError
 from render_sdk.client.util import (
+    _handle_wrapper_exception,
     handle_api_error,
     handle_http_error,
     handle_httpx_exception,
@@ -26,6 +24,7 @@ from render_sdk.public_api.types import Response
 __all__ = [
     "retry_with_backoff",
     "handle_http_errors",
+    "_handle_wrapper_exception",
     "handle_api_error",
     "handle_http_error",
     "handle_httpx_exception",
@@ -60,7 +59,8 @@ def retry_with_backoff(
 
 
 def handle_http_errors(operation: str):
-    """Decorator that handles HTTPX exceptions and HTTP error responses.
+    """
+    Decorator that handles HTTPX exceptions and HTTP error responses.
 
     Sync version of the decorator in util.py.
 
@@ -73,20 +73,10 @@ def handle_http_errors(operation: str):
         def wrapper(*args, **kwargs):
             try:
                 result = func(*args, **kwargs)
-
-                handle_api_error(result, operation)
-
-                return result
-
-            except httpx.RequestError as exc:
-                handle_httpx_exception(exc, operation)
-            except RenderError:
-                raise
             except Exception as exc:
-                # Unexpected exception
-                raise RenderError(
-                    f"{operation} failed with unexpected error: {exc}"
-                ) from exc
+                _handle_wrapper_exception(exc, operation)
+            handle_api_error(result, operation)
+            return result
 
         return wrapper
 
