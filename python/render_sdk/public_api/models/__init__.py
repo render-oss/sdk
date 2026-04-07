@@ -42,6 +42,7 @@ from .create_custom_domain_body import CreateCustomDomainBody
 from .create_deploy_body import CreateDeployBody
 from .create_deploy_body_clear_cache import CreateDeployBodyClearCache
 from .create_registry_credential_body import CreateRegistryCredentialBody
+from .create_sandbox_accept import CreateSandboxAccept
 from .create_version import CreateVersion
 from .credential_create_input import CredentialCreateInput
 from .cron_job_details import CronJobDetails
@@ -280,6 +281,22 @@ from .route_type import RouteType
 from .route_with_cursor import RouteWithCursor
 from .run_task import RunTask
 from .runtime import Runtime
+from .sandbox import Sandbox
+from .sandbox_env import SandboxEnv
+from .sandbox_error import SandboxError
+from .sandbox_network_policy import SandboxNetworkPolicy
+from .sandbox_network_policy_default import SandboxNetworkPolicyDefault
+from .sandbox_network_policy_rule import SandboxNetworkPolicyRule
+from .sandbox_network_policy_rule_action import SandboxNetworkPolicyRuleAction
+from .sandbox_plan import SandboxPlan
+from .sandbox_post import SandboxPOST
+from .sandbox_post_env import SandboxPOSTEnv
+from .sandbox_post_files import SandboxPOSTFiles
+from .sandbox_post_plan import SandboxPOSTPlan
+from .sandbox_post_tags import SandboxPOSTTags
+from .sandbox_status import SandboxStatus
+from .sandbox_tags import SandboxTags
+from .sandbox_with_cursor import SandboxWithCursor
 from .scale_service_body import ScaleServiceBody
 from .schemas_user import SchemasUser
 from .secret_file import SecretFile
@@ -400,6 +417,7 @@ __all__ = (
     "CreateDeployBody",
     "CreateDeployBodyClearCache",
     "CreateRegistryCredentialBody",
+    "CreateSandboxAccept",
     "CreateVersion",
     "CredentialCreateInput",
     "CronJobDetails",
@@ -636,6 +654,22 @@ __all__ = (
     "RouteWithCursor",
     "RunTask",
     "Runtime",
+    "Sandbox",
+    "SandboxEnv",
+    "SandboxError",
+    "SandboxNetworkPolicy",
+    "SandboxNetworkPolicyDefault",
+    "SandboxNetworkPolicyRule",
+    "SandboxNetworkPolicyRuleAction",
+    "SandboxPlan",
+    "SandboxPOST",
+    "SandboxPOSTEnv",
+    "SandboxPOSTFiles",
+    "SandboxPOSTPlan",
+    "SandboxPOSTTags",
+    "SandboxStatus",
+    "SandboxTags",
+    "SandboxWithCursor",
     "ScaleServiceBody",
     "SchemasUser",
     "SecretFile",
