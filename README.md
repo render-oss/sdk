@@ -57,6 +57,8 @@ npm i @renderinc/sdk
 pnpm add @renderinc/sdk
 # or
 yarn add @renderinc/sdk
+# or
+bun add @renderinc/sdk
 ```
 
 Then initialize a SDK client with your API key
