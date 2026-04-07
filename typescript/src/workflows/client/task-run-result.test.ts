@@ -50,4 +50,33 @@ describe("TaskRunResult", () => {
 
     expect(wait).toHaveBeenCalledWith("run-123", controller.signal);
   });
+
+  it("does not expose internal fields via Object.keys", () => {
+    const result = new TaskRunResult(createMockWait(), "run-123");
+
+    expect(Object.keys(result)).toEqual(["taskRunId"]);
+  });
+
+  it("does not expose internal fields via for...in", () => {
+    const result = new TaskRunResult(createMockWait(), "run-123");
+    const keys: string[] = [];
+    for (const key in result) {
+      keys.push(key);
+    }
+
+    expect(keys).toEqual(["taskRunId"]);
+  });
+
+  it("does not expose internal fields via JSON.stringify", () => {
+    const result = new TaskRunResult(createMockWait(), "run-123");
+    const json = JSON.parse(JSON.stringify(result));
+
+    expect(json).toEqual({ taskRunId: "run-123" });
+  });
+
+  it("does not expose internal fields via Object.getOwnPropertyNames", () => {
+    const result = new TaskRunResult(createMockWait(), "run-123");
+
+    expect(Object.getOwnPropertyNames(result)).toEqual(["taskRunId"]);
+  });
 });
