@@ -54,11 +54,9 @@ type Sandbox struct {
 	Env map[string]string `json:"env"`
 
 	// EnvGroup Attached environment group name or ID, or null.
-	EnvGroup *string `json:"envGroup"`
-
-	// Error Error details when status is `errored`, or null.
-	Error *SandboxError `json:"error"`
-	Id    SandboxId     `json:"id"`
+	EnvGroup *string       `json:"envGroup"`
+	Error    *SandboxError `json:"error,omitempty"`
+	Id       SandboxId     `json:"id"`
 
 	// IdleTimeout Seconds of inactivity before automatic lifecycle action.
 	IdleTimeout int `json:"idleTimeout"`

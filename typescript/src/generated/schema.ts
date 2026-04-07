@@ -3438,6 +3438,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandboxes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sandboxes
+         * @description List sandboxes for the specified workspaces. If no workspaces are provided, returns
+         *     all sandboxes the API key has access to.
+         */
+        get: operations["list-sandboxes"];
+        put?: never;
+        /**
+         * Create sandbox
+         * @description Create a sandbox. Responds with a server-sent event stream that stays open for the
+         *     sandbox's lifetime. The stream emits `status` events on every state transition and
+         *     `warning` advisories before termination. The stream closes when the sandbox reaches
+         *     `terminated` or `errored`.
+         *
+         *     Supply an `Idempotency-Key` header (UUID v4 recommended) to safely retry on network
+         *     error. A duplicate key within the retry window returns the existing sandbox's SSE
+         *     stream, replaying events from the current state.
+         */
+        post: operations["create-sandbox"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandboxes/{sandboxId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve sandbox
+         * @description Retrieve the sandbox with the provided ID.
+         */
+        get: operations["retrieve-sandbox"];
+        put?: never;
+        post?: never;
+        /**
+         * Terminate sandbox
+         * @description Terminate the sandbox with the provided ID. Idempotent — returns 204 from any state,
+         *     including `terminated`. Deleting a `creating` sandbox cancels boot/setup immediately.
+         */
+        delete: operations["terminate-sandbox"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -4709,6 +4769,11 @@ export interface components {
             /** @description user who cancelled the cron job run */
             canceledBy?: string;
         };
+        /** @description A sandbox with a cursor */
+        sandboxWithCursor: {
+            sandbox: components["schemas"]["sandbox"];
+            cursor: components["schemas"]["cursor"];
+        };
         /** @description A Blueprint with a cursor */
         blueprintWithCursor: {
             blueprint: components["schemas"]["blueprint"];
@@ -5780,6 +5845,143 @@ export interface components {
              */
             maxSizeBytes: number;
         };
+        /** @enum {string} */
+        sandboxStatus: "creating" | "running" | "errored" | "terminated";
+        /** @example sb-cph1rs3idesc73a2b2mg */
+        sandboxId: string;
+        sandboxNetworkPolicyRule: {
+            /**
+             * @description CIDR block to match outbound traffic against.
+             * @example 198.51.100.0/24
+             */
+            cidr: string;
+            /** @enum {string} */
+            action: "allow" | "deny";
+        };
+        sandboxNetworkPolicy: {
+            /**
+             * @description Default action when no rule matches.
+             * @enum {string}
+             */
+            default: "allow" | "deny";
+            /**
+             * @description Rules evaluated against outbound traffic. Explicit `deny` always beats explicit
+             *     `allow` regardless of rule order.
+             */
+            rules: components["schemas"]["sandboxNetworkPolicyRule"][];
+        };
+        sandboxError: {
+            /**
+             * @description Machine-readable error code.
+             * @example setup-failed
+             */
+            code: string;
+            /** @description Human-readable description. For `setup-failed`, includes the failing command and stderr. */
+            message: string;
+        };
+        sandbox: {
+            id: components["schemas"]["sandboxId"];
+            status: components["schemas"]["sandboxStatus"];
+            /**
+             * @description Render base image used, or null if a custom image is specified.
+             * @example render/sandbox-node
+             */
+            base?: string | null;
+            /** @description OCI image reference, or null if using a Render base image. */
+            image?: string | null;
+            /**
+             * @description Compute plan.
+             * @enum {string}
+             */
+            plan: "1-2gb" | "2-4gb" | "4-8gb";
+            networkPolicy: components["schemas"]["sandboxNetworkPolicy"];
+            /** @description Inline environment variables. Secret values are redacted. */
+            env: {
+                [key: string]: string;
+            };
+            /** @description Attached environment group name or ID, or null. */
+            envGroup?: string | null;
+            /** @description Key-value metadata for filtering and cost tracking. */
+            tags: {
+                [key: string]: string;
+            };
+            /**
+             * @description Region the sandbox is running in.
+             * @example oregon
+             */
+            region: string;
+            /**
+             * @description Maximum sandbox lifetime in seconds.
+             * @example 7200
+             */
+            timeout: number;
+            /**
+             * @description Seconds of inactivity before automatic lifecycle action.
+             * @example 900
+             */
+            idleTimeout: number;
+            /**
+             * Format: date-time
+             * @example 2026-04-01T18:30:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When the sandbox was terminated, or null.
+             */
+            terminatedAt?: string | null;
+            /** @description Error details when status is `errored`, or null. */
+            error?: components["schemas"]["sandboxError"];
+        };
+        sandboxPOST: {
+            /**
+             * @description Render base image: `render/sandbox-python` or `render/sandbox-node`.
+             * @example render/sandbox-node
+             */
+            base?: string;
+            /** @description Docker/OCI image reference. Overrides `base`. */
+            image?: string;
+            /**
+             * @description Shell commands run sequentially after boot, before the sandbox is marked ready.
+             * @example [
+             *       "pip install flask pytest"
+             *     ]
+             */
+            setup?: string[];
+            /** @description Seed files. Keys are absolute paths, values are file contents. Written after `setup` completes. */
+            files?: {
+                [key: string]: string;
+            };
+            networkPolicy?: components["schemas"]["sandboxNetworkPolicy"];
+            /** @description Render environment group name or ID. Variables injected at runtime. */
+            envGroup?: string;
+            /** @description Inline env vars. Merged with env group; inline wins on conflict. */
+            env?: {
+                [key: string]: string;
+            };
+            /**
+             * @description Compute plan.
+             * @default 1-2gb
+             * @enum {string}
+             */
+            plan: "1-2gb" | "2-4gb" | "4-8gb";
+            /**
+             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
+             * @default 7200
+             */
+            timeout: number;
+            /**
+             * @description Seconds of inactivity before the sandbox is suspended.
+             * @default 900
+             */
+            idleTimeout: number;
+            /** @description Key-value metadata for filtering and cost tracking. */
+            tags?: {
+                [key: string]: string;
+            };
+            /** @description Render region. Defaults to the workspace default. */
+            region?: string;
+        };
     };
     responses: {
         /** @description The request could not be understood by the server. */
@@ -6192,6 +6394,8 @@ export interface components {
         TaskRunIDParam: string;
         /** @description The key (path) of the object */
         objectKeyPathParam: string;
+        /** @description The ID of the sandbox */
+        sandboxId: components["schemas"]["sandboxId"];
     };
     requestBodies: never;
     headers: never;
@@ -13120,6 +13324,160 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-sandboxes": {
+        parameters: {
+            query?: {
+                /** @description The ID of the workspaces to return resources for */
+                ownerId?: components["parameters"]["ownerIdParam"];
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+                /** @description Filter by sandbox status. */
+                status?: components["schemas"]["sandboxStatus"][];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxWithCursor"][];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-sandbox": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description UUID v4 idempotency key to safely retry sandbox creation. */
+                "Idempotency-Key"?: string;
+                /** @description Must be `text/event-stream`. */
+                Accept?: "text/event-stream";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "base": "render/sandbox-python",
+                 *       "setup": [
+                 *         "pip install flask pytest"
+                 *       ],
+                 *       "networkPolicy": {
+                 *         "default": "deny",
+                 *         "rules": [
+                 *           {
+                 *             "cidr": "198.51.100.0/24",
+                 *             "action": "allow"
+                 *           }
+                 *         ]
+                 *       },
+                 *       "env": {
+                 *         "APP_ENV": "sandbox"
+                 *       },
+                 *       "plan": "2-4gb",
+                 *       "timeout": 7200,
+                 *       "idleTimeout": 900,
+                 *       "tags": {
+                 *         "team": "codegen"
+                 *       }
+                 *     }
+                 */
+                "application/json": components["schemas"]["sandboxPOST"];
+            };
+        };
+        responses: {
+            /** @description Event stream established. Emits `status` and `warning` events for the sandbox lifetime. */
+            200: {
+                headers: {
+                    /** @description Always `text/event-stream; charset=utf-8` */
+                    "Content-Type"?: string;
+                    /** @description SSE responses should be non-cacheable. */
+                    "Cache-Control"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-sandbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandbox"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "terminate-sandbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
