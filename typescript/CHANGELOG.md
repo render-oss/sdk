@@ -4,6 +4,13 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] - 2026-04-07
+
+### Fixed
+
+- (Workflows) Increased retry window from ~2 minutes to ~5 minutes for better resilience to transient failures
+- (Workflows) Omit private fields from `TaskRunResult`
+
 ## [0.5.0] - 2026-03-05
 
 ### Added

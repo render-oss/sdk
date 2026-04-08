@@ -1,6 +1,6 @@
-# Render Workflow SDK for TypeScript
+# Render SDK for TypeScript
 
-The official TypeScript SDK for Render Workflows, providing a simple and intuitive API for managing and executing tasks.
+The official TypeScript SDK for Render. Define Workflow tasks, manage task runs, and access experimental platform features like object storage.
 
 ## Features
 
@@ -11,6 +11,7 @@ The official TypeScript SDK for Render Workflows, providing a simple and intuiti
 - **TypeScript First**: Full type safety and IntelliSense support
 - **Retry Logic**: Configurable retry behavior for tasks
 - **Subtask Execution**: Execute tasks from within other tasks
+- **Object Storage**: Experimental object storage API with upload, download, and list
 
 ## Installation
 
@@ -118,6 +119,26 @@ task(
 // (when RENDER_SDK_SOCKET_PATH is set). No need to call startTaskServer() explicitly.
 //
 // To disable auto-start, set RENDER_SDK_AUTO_START=false in your environment.
+```
+
+### Run the Local Task Server
+
+For local development, use the Render CLI:
+
+```bash
+render workflows dev -- <start command>
+```
+
+For example:
+
+```bash
+render workflows dev -- npm start
+```
+
+To interact with tasks registered to the local task server, run CLI commands with the `--local` flag in another terminal. For example:
+
+```bash
+render workflows tasks start <task name> --local
 ```
 
 ## API Reference
