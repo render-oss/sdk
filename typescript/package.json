@@ -27,6 +27,15 @@
   ],
   "author": "Render",
   "license": "MIT",
+  "homepage": "https://render.com/docs/workflows-sdk-typescript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/render-oss/sdk.git",
+    "directory": "typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/render-oss/sdk/issues"
+  },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",
     "@types/node": "^20.0.0",
