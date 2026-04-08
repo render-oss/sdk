@@ -721,7 +721,7 @@ MIT
 ## Support
 
 For issues and questions, please visit:
-- GitHub Issues: https://github.com/renderinc/workflow-sdk/issues
+- GitHub Issues: https://github.com/render-oss/sdk/issues
 - Documentation: https://render.com/docs/workflows
 
 ## Contributing
