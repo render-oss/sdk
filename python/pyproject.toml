@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "render_sdk"
-version = "0.6.0"
+version = "0.6.1"
 description = "Python SDK for Render Workflows"
 authors = [{ name = "Render", email = "support@render.com" }]
 readme = "README.md"

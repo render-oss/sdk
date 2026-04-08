@@ -33,7 +33,7 @@ Async REST API access:
     result = await task_run
 """
 
-__version__ = "0.6.0"
+__version__ = "0.6.1"
 
 # Primary user-facing APIs
 from render_sdk.render import Render
