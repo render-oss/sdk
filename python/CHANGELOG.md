@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.1] - 2026-04-07
+
+### Fixed
+
+- (Workflows) Also retry on `RemoteProtocolError` failures over Unix domain sockets, and use a longer retry window (5 minutes) to survive server restarts
+- (Workflows) Coerce dict retry configs to `Retry` instances at task option construction, fixing possible `AttributeError` during registration
+- Handle non-JSON error responses (e.g. plain-text 401) in HTTP decorators instead of surfacing a misleading `JSONDecodeError`
+
 ## [0.6.0] - 2026-03-05
 
 ### Added

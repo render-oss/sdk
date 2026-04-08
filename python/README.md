@@ -1,6 +1,6 @@
-# Render Workflows Python SDK
+# Render SDK for Python
 
-A Python SDK for defining and executing tasks in the Render Workflows system.
+The official Python SDK for Render. Define Workflow tasks, manage task runs, and access experimental platform features like object storage.
 
 **⚠️ Early Access:** This SDK is in early access and subject to breaking changes without notice.
 
@@ -64,15 +64,25 @@ from tasks_b import app as app_b
 combined = Workflows.from_workflows(app_a, app_b)
 ```
 
-### Running the Task Server
+### Running the Local Task Server
 
 For local development, use the Render CLI:
 
 ```bash
-render ea tasks dev -- render-workflows main:app
+render workflows dev -- <start command>
 ```
 
-The `render-workflows` CLI takes a `module:app` argument pointing to your `Workflows` instance. You can also call `app.start()` directly if needed.
+For example:
+
+```bash
+render workflows dev -- python main.py
+```
+
+To interact with tasks registered to the local task server, run CLI commands with the `--local` flag in another terminal. For example:
+
+```bash
+render workflows tasks start <task name> --local
+```
 
 ### Running Tasks
 
@@ -83,7 +93,7 @@ from render_sdk import Render
 from render_sdk.client import ListTaskRunsParams
 from render_sdk.client.errors import TaskRunError
 
-render = Render()  # Uses RENDER_API_KEY from environment
+render = Render()  # Uses RENDER_API_KEY from the environment
 
 # run_task() starts a task and waits for completion in one call.
 try:
