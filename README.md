@@ -39,7 +39,7 @@ poetry add render_sdk
 
 Then initialize a SDK client with your API key
 ```python
-from render import Render
+from render_sdk import Render
 
 render = Render(token="rnd_...")
 ```
