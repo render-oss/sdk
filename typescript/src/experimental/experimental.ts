@@ -1,5 +1,6 @@
 import type { Client } from "openapi-fetch";
 import type { paths } from "../generated/schema.js";
+import { KeyValueApi, KeyValueProvider } from "./keyValue";
 import { ObjectClient } from "./object/client.js";
 
 /**
@@ -50,7 +51,11 @@ export class ExperimentalClient {
   /** Storage client for managing storage features */
   public readonly storage: StorageClient;
 
+  /** Key Value provider for connecting with Valkey / Redis instances */
+  public readonly keyValue: KeyValueProvider;
+
   constructor(apiClient: Client<paths>, defaultOwnerId?: string, defaultRegion?: string) {
     this.storage = new StorageClient(apiClient, defaultOwnerId, defaultRegion);
+    this.keyValue = new KeyValueProvider(new KeyValueApi(apiClient), defaultOwnerId);
   }
 }
