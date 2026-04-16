@@ -8,7 +8,18 @@ import type {
 } from "redis";
 import type { components } from "../../generated/schema";
 
+export type Plan = components["schemas"]["keyValuePlan"] extends infer R
+  ? R extends "custom"
+    ? never
+    : R
+  : never;
+export type MaxmemoryPolicy = components["schemas"]["maxmemoryPolicy"];
 export type KeyValueDetail = Omit<components["schemas"]["keyValueDetail"], "maintenance">;
+export type KeyValuePost = Omit<
+  components["schemas"]["keyValuePOSTInput"],
+  "region" | "environmentId"
+>;
+export type IPAllowListEntry = components["schemas"]["cidrBlockAndDescription"];
 
 interface ServiceId {
   serviceId: string;
@@ -21,6 +32,9 @@ interface NameOwnerId {
 
 interface InstanceConfiguration {
   autoProvisionEnabled?: boolean;
+  plan?: Plan;
+  maxmemoryPolicy?: MaxmemoryPolicy;
+  ipAllowList?: IPAllowListEntry[];
 }
 
 export type ServiceIdOptions = ServiceId & InstanceConfiguration;

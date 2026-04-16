@@ -1,7 +1,7 @@
 import type { Client } from "openapi-fetch";
 import { ClientError, ServerError } from "../../errors";
 import type { paths } from "../../generated/schema";
-import type { KeyValueDetail, OwnerId } from "./types";
+import type { KeyValueDetail, KeyValuePost, OwnerId } from "./types";
 import { formatErrorMessage, isRender } from "./utils";
 
 /**
@@ -104,6 +104,25 @@ export class KeyValueApi {
     } else {
       return data.externalConnectionString;
     }
+  }
+
+  /**
+   * Create a new Key Value instance, using the provided configuration settings
+   * @param details Instance configuration used to create the new instance
+   * @returns Details about the newly-created instance
+   */
+  public async createInstance(details: KeyValuePost): Promise<KeyValueDetail> {
+    const { data, error, response } = await this.client.POST("/key-value", {
+      body: details,
+    });
+
+    checkApiTokenError(response);
+
+    if (error) {
+      throw unexpectedError(`creating new Key Value named '${details.name}'`, response, error);
+    }
+
+    return data;
   }
 }
 
