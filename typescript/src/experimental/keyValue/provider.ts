@@ -22,6 +22,7 @@ import type {
 import { formatErrorMessage } from "./utils";
 
 const connectionRE = /rediss?:\/\/(([\w-]+):([\w]+)@)?([\w.-]+):([0-9]+)/;
+const maxDelayMS = 512 * 1000; // 512 seconds to line up with exponential backoff, ~8.5 minutes
 
 /**
  * Provider for connecting to Render Key Value instances. Allows searching by name or by service
@@ -38,7 +39,12 @@ export class KeyValueProvider {
   }
 
   /**
-   * Create a new client to connect to a given Render Key Value service
+   * Create a new client to connect to a given Render Key Value service.
+   *
+   * If searching by Name and there are no instances with that name in the given workspace, then
+   * one will be automatically created using the configuration provided in `options`. To disable
+   * this behavior, set `autoProvisionEnabled: false` in the `options` when calling this function.
+   *
    * @param options Render Key Value options for locating the appropriate instance
    * @param redisConfig Additional settings to pass through to the Redis client
    * @returns A configured (but not yet connected) `node-redis` client, set up to connect to
@@ -77,6 +83,11 @@ export class KeyValueProvider {
 
   /**
    * Get connection information for a given Render Key Value service
+   *
+   * If searching by Name and there are no instances with that name in the given workspace, then
+   * one will be automatically created using the configuration provided in `options`. To disable
+   * this behavior, set `autoProvisionEnabled: false` in the `options` when calling this function.
+   *
    * @param options Render Key Value options for locating the appropriate instance
    * @returns An object with the connection information needed to connect
    *
@@ -117,14 +128,82 @@ export class KeyValueProvider {
     const details = await this.api.findByName(options.name, ownerId);
 
     if (!details) {
-      const message = formatErrorMessage(
-        `Unable to locate Key Value named '${options.name}'`,
-        "Please double-check that the name is correct",
-      );
-      throw new RenderError(message);
+      if (options.autoProvisionEnabled === false) {
+        const message = formatErrorMessage(
+          `Unable to locate Key Value named '${options.name}'`,
+          `Please double-check that the name is correct.
+If you would like one to be created automatically, ensure that 'autoProvisionEnabled' is not set to 'false'.`,
+        );
+        throw new RenderError(message);
+      } else {
+        return this.provisionNewInstance(ownerId, options);
+      }
     }
 
     return details;
+  }
+
+  private async provisionNewInstance(
+    resolvedOwnerId: OwnerId,
+    options: NameOwnerIdOptions,
+  ): Promise<KeyValueDetail> {
+    const data = await this.api.createInstance({
+      name: options.name,
+      ownerId: resolvedOwnerId,
+      plan: options.plan ?? "free",
+      maxmemoryPolicy: options.maxmemoryPolicy,
+      ipAllowList: options.ipAllowList,
+    });
+
+    return await this.waitForInstanceAvailable(data.id);
+  }
+
+  private async waitForInstanceAvailable(keyValueId: string): Promise<KeyValueDetail> {
+    let retryDelay = 1000;
+
+    while (retryDelay <= maxDelayMS) {
+      let data: KeyValueDetail;
+      try {
+        data = await this.api.findById(keyValueId);
+      } catch (_err) {
+        const message = formatErrorMessage(
+          "Unable to look up status information about Key Value instance.",
+          "This is most likely a Render error, please try again.",
+        );
+        throw new RenderError(message);
+      }
+
+      switch (data.status) {
+        case "available":
+          // The instance is ready, so we're done waiting
+          return data;
+        case "creating":
+        case "config_restart":
+        case "updating_instance":
+          // The instance is still being updated / created, so we should wait and try again
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          break;
+        default: {
+          // If we're in any other state, the instance isn't available and we don't expect it to
+          // become available, so error out
+          const message = formatErrorMessage(
+            "The requested Key Value instance is not available.",
+            "Please view the Key Value on dashboard.render.com to verify its status.",
+          );
+          throw new RenderError(message);
+        }
+      }
+
+      // Double the retry delay each time so that we don't spam the API
+      retryDelay *= 2;
+    }
+
+    const message = formatErrorMessage(
+      "Timed out waiting for instance to become available.",
+      "Please check the Key Value on dashboard.render.com to make sure it is ready, then try again.",
+    );
+
+    throw new RenderError(message);
   }
 
   private resolveOwnerId(ownerId?: OwnerId): OwnerId {

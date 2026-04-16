@@ -5,19 +5,34 @@ import { KeyValueApi } from "./api";
 
 describe("KeyValueApi", () => {
   const getMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
-  const mockApiClient = { GET: getMock } as unknown as Client<paths>;
+  const postMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
+  const mockApiClient = { GET: getMock, POST: postMock } as unknown as Client<paths>;
 
   const api = new KeyValueApi(mockApiClient);
 
-  const mockSuccess = (data: any) => {
+  const mockGetSuccess = (data: any) => {
     getMock.mockResolvedValueOnce({
       data,
       response: { status: 200 },
     });
   };
 
-  const mockError = (status: number, error?: string) => {
+  const mockGetError = (status: number, error?: string) => {
     getMock.mockResolvedValueOnce({
+      error: error ?? "Error!",
+      response: { status },
+    });
+  };
+
+  const mockPostSuccess = (data: any) => {
+    postMock.mockResolvedValueOnce({
+      data,
+      response: { status: 200 },
+    });
+  };
+
+  const mockPostError = (status: number, error?: string) => {
+    postMock.mockResolvedValueOnce({
       error: error ?? "Error!",
       response: { status },
     });
@@ -25,25 +40,25 @@ describe("KeyValueApi", () => {
 
   describe("findById", () => {
     it("handles API token error", async () => {
-      mockError(401);
+      mockGetError(401);
 
       await expect(api.findById("abc")).rejects.toThrow("API Token is not authorized");
     });
 
     it("handles unable to find error", async () => {
-      mockError(404);
+      mockGetError(404);
 
       await expect(api.findById("abc")).rejects.toThrow("Unable to locate a Key Value with ID");
     });
 
     it("handles unknown client error", async () => {
-      mockError(429, "I'm a teapot!");
+      mockGetError(429, "I'm a teapot!");
 
       await expect(api.findById("abc")).rejects.toBeInstanceOf(ClientError);
     });
 
     it("handles unknown server error", async () => {
-      mockError(500, "Internal server error");
+      mockGetError(500, "Internal server error");
 
       await expect(api.findById("abc")).rejects.toBeInstanceOf(ServerError);
     });
@@ -53,7 +68,7 @@ describe("KeyValueApi", () => {
         id: "abc",
         status: "available",
       };
-      mockSuccess(data);
+      mockGetSuccess(data);
 
       await expect(api.findById("abc")).resolves.toEqual(data);
     });
@@ -61,7 +76,7 @@ describe("KeyValueApi", () => {
 
   describe("findByName", () => {
     it("handles API token error", async () => {
-      mockError(401);
+      mockGetError(401);
 
       await expect(api.findByName("test-redis", "tea-abc")).rejects.toThrow(
         "API Token is not authorized",
@@ -69,19 +84,19 @@ describe("KeyValueApi", () => {
     });
 
     it("handles unknown client error", async () => {
-      mockError(429, "I'm a teapot!");
+      mockGetError(429, "I'm a teapot!");
 
       await expect(api.findByName("test-redis", "tea-abc")).rejects.toBeInstanceOf(ClientError);
     });
 
     it("handles unknown server error", async () => {
-      mockError(500, "Internal server error");
+      mockGetError(500, "Internal server error");
 
       await expect(api.findByName("test-redis", "tea-abc")).rejects.toBeInstanceOf(ServerError);
     });
 
     it("handles no results", async () => {
-      mockSuccess([]);
+      mockGetSuccess([]);
 
       await expect(api.findByName("test-redis", "tea-abc")).resolves.toBeNull();
     });
@@ -91,7 +106,7 @@ describe("KeyValueApi", () => {
         id: "red-abc",
         status: "available",
       };
-      mockSuccess([
+      mockGetSuccess([
         {
           keyValue: data,
         },
@@ -103,26 +118,26 @@ describe("KeyValueApi", () => {
 
   describe("getConnectionInfo", () => {
     it("handles API token error", async () => {
-      mockError(401);
+      mockGetError(401);
 
       await expect(api.getConnectionInfo("red-abc")).rejects.toThrow("API Token is not authorized");
     });
 
     it("handles unknown client error", async () => {
-      mockError(429, "I'm a teapot!");
+      mockGetError(429, "I'm a teapot!");
 
       await expect(api.getConnectionInfo("red-abc")).rejects.toBeInstanceOf(ClientError);
     });
 
     it("handles unknown server error", async () => {
-      mockError(500, "Internal server error");
+      mockGetError(500, "Internal server error");
 
       await expect(api.getConnectionInfo("red-abc")).rejects.toBeInstanceOf(ServerError);
     });
 
     it("handles Render internal", async () => {
       const internalConnectionString = "redis://red-abc:6239";
-      mockSuccess({
+      mockGetSuccess({
         internalConnectionString,
         externalConnectionString: "rediss://abc:xyz@red-abc:6239",
       });
@@ -133,13 +148,48 @@ describe("KeyValueApi", () => {
 
     it("handles Render external", async () => {
       const externalConnectionString = "rediss://abc:xyz@red-abc:6239";
-      mockSuccess({
+      mockGetSuccess({
         internalConnectionString: "redis://red-abc:6239",
         externalConnectionString,
       });
       vi.stubEnv("RENDER", undefined);
 
       await expect(api.getConnectionInfo("red-abc")).resolves.toEqual(externalConnectionString);
+    });
+  });
+
+  describe("createInstance", () => {
+    it("handles API token error", async () => {
+      mockPostError(401);
+
+      await expect(
+        api.createInstance({ name: "test-redis", plan: "free", ownerId: "tea-abc" }),
+      ).rejects.toThrow("API Token is not authorized");
+    });
+    it("handles unknown client error", async () => {
+      mockPostError(429, "I'm a teapot!");
+
+      await expect(
+        api.createInstance({ name: "test-redis", plan: "free", ownerId: "tea-abc" }),
+      ).rejects.toBeInstanceOf(ClientError);
+    });
+    it("handles unknown server error", async () => {
+      mockPostError(500, "Internal server error");
+
+      await expect(
+        api.createInstance({ name: "test-redis", plan: "free", ownerId: "tea-abc" }),
+      ).rejects.toBeInstanceOf(ServerError);
+    });
+    it("returns data if no errors", async () => {
+      const data = {
+        id: "abc",
+        status: "available",
+      };
+      mockPostSuccess(data);
+
+      await expect(
+        api.createInstance({ name: "test-redis", plan: "free", ownerId: "tea-abc" }),
+      ).resolves.toEqual(data);
     });
   });
 });
