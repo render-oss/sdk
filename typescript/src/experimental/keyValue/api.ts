@@ -1,7 +1,7 @@
 import type { Client } from "openapi-fetch";
 import { ClientError, ServerError } from "../../errors";
 import type { paths } from "../../generated/schema";
-import type { KeyValueDetail, KeyValuePost, OwnerId } from "./types";
+import type { KeyValueDetail, KeyValuePatch, KeyValuePost, OwnerId } from "./types";
 import { formatErrorMessage, isRender } from "./utils";
 
 /**
@@ -120,6 +120,29 @@ export class KeyValueApi {
 
     if (error) {
       throw unexpectedError(`creating new Key Value named '${details.name}'`, response, error);
+    }
+
+    return data;
+  }
+
+  /**
+   * Updates a Key Value instance to have new configuration settings
+   * @param keyValueId Service ID for the instance to update
+   * @param update Changes that need to be applied to the instance
+   * @returns Details about the updated instance
+   */
+  public async updateInstance(keyValueId: string, update: KeyValuePatch): Promise<KeyValueDetail> {
+    const { data, error, response } = await this.client.PATCH("/key-value/{keyValueId}", {
+      params: {
+        path: { keyValueId },
+      },
+      body: update,
+    });
+
+    checkApiTokenError(response);
+
+    if (error) {
+      throw unexpectedError(`updating Key Value ${keyValueId}`, response, error);
     }
 
     return data;
