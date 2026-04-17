@@ -10,8 +10,10 @@ import type {
 import { createClient } from "redis";
 import { RenderError } from "../../errors";
 import type { KeyValueApi } from "./api";
+import { compareInstanceConfiguration } from "./compare";
 import type {
   ConnectionInfo,
+  InstanceConfiguration,
   KeyValueDetail,
   NameOwnerIdOptions,
   Options,
@@ -41,9 +43,14 @@ export class KeyValueProvider {
   /**
    * Create a new client to connect to a given Render Key Value service.
    *
-   * If searching by Name and there are no instances with that name in the given workspace, then
-   * one will be automatically created using the configuration provided in `options`. To disable
-   * this behavior, set `autoProvisionEnabled: false` in the `options` when calling this function.
+   * Once found, the instance configuration will be compared with what is set in
+   * `options.autoProvision`. If there are differences, the instance will be updated to match the
+   * requested configuration.
+   *
+   * If searching by Name and no instances with that name are found in the workspace, then one
+   * will be automatically created using the configuration provided in `options.autoProvision`.
+   *
+   * Setting `options.autoProvision = false` will disable both of the above behaviors.
    *
    * @param options Render Key Value options for locating the appropriate instance
    * @param redisConfig Additional settings to pass through to the Redis client
@@ -84,9 +91,14 @@ export class KeyValueProvider {
   /**
    * Get connection information for a given Render Key Value service
    *
-   * If searching by Name and there are no instances with that name in the given workspace, then
-   * one will be automatically created using the configuration provided in `options`. To disable
-   * this behavior, set `autoProvisionEnabled: false` in the `options` when calling this function.
+   * Once found, the instance configuration will be compared with what is set in
+   * `options.autoProvision`. If there are differences, the instance will be updated to match the
+   * requested configuration.
+   *
+   * If searching by Name and no instances with that name are found in the workspace, then one
+   * will be automatically created using the configuration provided in `options.autoProvision`.
+   *
+   * Setting `options.autoProvision = false` will disable both of the above behaviors.
    *
    * @param options Render Key Value options for locating the appropriate instance
    * @returns An object with the connection information needed to connect
@@ -120,7 +132,9 @@ export class KeyValueProvider {
   }
 
   private async findInstanceByServiceId(options: ServiceIdOptions): Promise<KeyValueDetail> {
-    return await this.api.findById(options.serviceId);
+    const details = await this.api.findById(options.serviceId);
+
+    return this.ensureConfigurationUpToDate(options, details);
   }
 
   private async findInstanceByNameOwnerId(options: NameOwnerIdOptions): Promise<KeyValueDetail> {
@@ -128,34 +142,54 @@ export class KeyValueProvider {
     const details = await this.api.findByName(options.name, ownerId);
 
     if (!details) {
-      if (options.autoProvisionEnabled === false) {
+      if (options.autoProvision === false) {
         const message = formatErrorMessage(
           `Unable to locate Key Value named '${options.name}'`,
           `Please double-check that the name is correct.
-If you would like one to be created automatically, ensure that 'autoProvisionEnabled' is not set to 'false'.`,
+If you would like one to be created automatically, ensure that 'autoProvision' is not set to 'false'.`,
         );
         throw new RenderError(message);
       } else {
-        return this.provisionNewInstance(ownerId, options);
+        return this.provisionNewInstance(options.name, ownerId, options.autoProvision);
       }
     }
 
-    return details;
+    return this.ensureConfigurationUpToDate(options, details);
   }
 
   private async provisionNewInstance(
+    name: string,
     resolvedOwnerId: OwnerId,
-    options: NameOwnerIdOptions,
+    options?: InstanceConfiguration,
   ): Promise<KeyValueDetail> {
     const data = await this.api.createInstance({
-      name: options.name,
+      name: name,
       ownerId: resolvedOwnerId,
-      plan: options.plan ?? "free",
-      maxmemoryPolicy: options.maxmemoryPolicy,
-      ipAllowList: options.ipAllowList,
+      plan: options?.plan ?? "free",
+      maxmemoryPolicy: options?.maxmemoryPolicy,
+      ipAllowList: options?.ipAllowList,
     });
 
     return await this.waitForInstanceAvailable(data.id);
+  }
+
+  private async ensureConfigurationUpToDate(
+    options: Options,
+    details: KeyValueDetail,
+  ): Promise<KeyValueDetail> {
+    if (!options.autoProvision) {
+      return details;
+    }
+
+    const update = compareInstanceConfiguration(options.autoProvision, details);
+
+    if (update) {
+      const data = await this.api.updateInstance(details.id, update);
+
+      return await this.waitForInstanceAvailable(data.id);
+    }
+
+    return details;
   }
 
   private async waitForInstanceAvailable(keyValueId: string): Promise<KeyValueDetail> {
@@ -180,6 +214,7 @@ If you would like one to be created automatically, ensure that 'autoProvisionEna
         case "creating":
         case "config_restart":
         case "updating_instance":
+        case "unavailable":
           // The instance is still being updated / created, so we should wait and try again
           await new Promise((resolve) => setTimeout(resolve, retryDelay));
           break;

@@ -15,6 +15,7 @@ export type Plan = components["schemas"]["keyValuePlan"] extends infer R
   : never;
 export type MaxmemoryPolicy = components["schemas"]["maxmemoryPolicy"];
 export type KeyValueDetail = Omit<components["schemas"]["keyValueDetail"], "maintenance">;
+export type KeyValuePatch = Omit<components["schemas"]["keyValuePATCHInput"], "name">;
 export type KeyValuePost = Omit<
   components["schemas"]["keyValuePOSTInput"],
   "region" | "environmentId"
@@ -30,15 +31,18 @@ interface NameOwnerId {
   ownerId?: OwnerId;
 }
 
-interface InstanceConfiguration {
-  autoProvisionEnabled?: boolean;
+interface AutoProvisionSetting {
+  autoProvision?: false | InstanceConfiguration;
+}
+
+export interface InstanceConfiguration {
   plan?: Plan;
   maxmemoryPolicy?: MaxmemoryPolicy;
   ipAllowList?: IPAllowListEntry[];
 }
 
-export type ServiceIdOptions = ServiceId & InstanceConfiguration;
-export type NameOwnerIdOptions = NameOwnerId & InstanceConfiguration;
+export type ServiceIdOptions = ServiceId & AutoProvisionSetting;
+export type NameOwnerIdOptions = NameOwnerId & AutoProvisionSetting;
 export type Options = ServiceIdOptions | NameOwnerIdOptions;
 export type RedisConfig<
   M extends RedisModules = RedisModules,

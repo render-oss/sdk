@@ -6,7 +6,12 @@ import { KeyValueApi } from "./api";
 describe("KeyValueApi", () => {
   const getMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
   const postMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
-  const mockApiClient = { GET: getMock, POST: postMock } as unknown as Client<paths>;
+  const patchMock = vi.fn().mockRejectedValue(new Error("should not reach API"));
+  const mockApiClient = {
+    GET: getMock,
+    POST: postMock,
+    PATCH: patchMock,
+  } as unknown as Client<paths>;
 
   const api = new KeyValueApi(mockApiClient);
 
@@ -33,6 +38,20 @@ describe("KeyValueApi", () => {
 
   const mockPostError = (status: number, error?: string) => {
     postMock.mockResolvedValueOnce({
+      error: error ?? "Error!",
+      response: { status },
+    });
+  };
+
+  const mockPatchSuccess = (data: any) => {
+    patchMock.mockResolvedValueOnce({
+      data,
+      response: { status: 200 },
+    });
+  };
+
+  const mockPatchError = (status: number, error?: string) => {
+    patchMock.mockResolvedValueOnce({
       error: error ?? "Error!",
       response: { status },
     });
@@ -190,6 +209,40 @@ describe("KeyValueApi", () => {
       await expect(
         api.createInstance({ name: "test-redis", plan: "free", ownerId: "tea-abc" }),
       ).resolves.toEqual(data);
+    });
+  });
+
+  describe("updateInstance", () => {
+    it("handles API token error", async () => {
+      mockPatchError(401);
+
+      await expect(api.updateInstance("red-abc", { plan: "free" })).rejects.toThrow(
+        "API Token is not authorized",
+      );
+    });
+    it("handles unknown client error", async () => {
+      mockPatchError(429, "I'm a teapot!");
+
+      await expect(api.updateInstance("red-abc", { plan: "free" })).rejects.toBeInstanceOf(
+        ClientError,
+      );
+    });
+    it("handles unknown server error", async () => {
+      mockPatchError(500, "Internal server error");
+
+      await expect(api.updateInstance("red-abc", { plan: "free" })).rejects.toBeInstanceOf(
+        ServerError,
+      );
+    });
+    it("returns data if no errors", async () => {
+      const data = {
+        id: "red-abc",
+        status: "available",
+        plan: "free",
+      };
+      mockPatchSuccess(data);
+
+      await expect(api.updateInstance("red-abc", { plan: "free" })).resolves.toEqual(data);
     });
   });
 });

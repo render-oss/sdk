@@ -4,7 +4,7 @@ describe("Options discriminated union", () => {
   it("accepts variant with serviceId", () => {
     const input: Options = {
       serviceId: "red-xyz",
-      autoProvisionEnabled: false,
+      autoProvision: false,
     };
     expectTypeOf(input).toExtend<Options>();
   });
@@ -13,7 +13,7 @@ describe("Options discriminated union", () => {
     const input: Options = {
       name: "redis-db",
       ownerId: "tea-abc",
-      autoProvisionEnabled: true,
+      autoProvision: {},
     };
     expectTypeOf(input).toExtend<Options>();
   });
