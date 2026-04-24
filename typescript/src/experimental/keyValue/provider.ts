@@ -23,7 +23,7 @@ import type {
 } from "./types";
 import { formatErrorMessage } from "./utils";
 
-const connectionRE = /rediss?:\/\/(([\w-]+):([\w]+)@)?([\w.-]+):([0-9]+)/;
+const connectionRE = /rediss?:\/\/(([\w.~_-]+):([\w.~_]+)@)?([\w.~_-]+):([0-9]+)/;
 const maxDelayMS = 512 * 1000; // 512 seconds to line up with exponential backoff, ~8.5 minutes
 
 /**
