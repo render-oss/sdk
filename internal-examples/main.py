@@ -5,9 +5,8 @@ import logging
 from render_sdk.workflows import start, task
 
 # Configure logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 @task
@@ -27,6 +26,42 @@ async def deadlock_test(n: int) -> int:
     logger.info(f"Deadlock test {n} complete")
 
     return n
+
+
+@task
+async def print_hello_world():
+    """Prints a simple string."""
+    print("Hello, world!")
+
+
+@task
+async def emit_logs():
+    """Emits a series of log messages at different log levels."""
+    logger.info("Logging to INFO")
+    logger.warning("Logging to WARNING")
+    logger.error("Logging to ERROR")
+    logger.critical("Logging to CRITICAL")
+
+
+@task
+async def calculate_square(n: int) -> int:
+    """Calculate the square of a number."""
+    return n * n
+
+
+@task
+async def add_squares(a: int, b: int) -> int:
+    """Add the squares of two numbers."""
+    logger.info(f"Computing add_squares: {a}, {b}")
+
+    # Execute subtasks
+    result1 = await calculate_square(a)
+    logger.info(f"Square result 1: {result1}")
+    result2 = await calculate_square(b)
+    logger.info(f"Square result 2: {result2}")
+
+    return result1 + result2
+
 
 if __name__ == "__main__":
     try:
