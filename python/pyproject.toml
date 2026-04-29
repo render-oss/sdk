@@ -27,6 +27,11 @@ dependencies = [
     "httpx>=0.28.1,<0.29",
 ]
 
+[project.optional-dependencies]
+key_value = [
+    "redis>=4.2.0",
+]
+
 [project.scripts]
 render-workflows = "render_sdk.workflows.cli:main"
 
@@ -40,6 +45,7 @@ dev = [
     "isort>=5.0,<6",
     "mypy>=1.18.2,<2",
     "tox>=4.0,<5",
+    "redis>=4.2.0",
     "ruff>=0.13,<0.14",
 ]
 
