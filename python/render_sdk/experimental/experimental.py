@@ -6,6 +6,8 @@ from the Render SDK.
 
 from typing import TYPE_CHECKING
 
+from render_sdk.experimental.key_value.api import KeyValueApi
+from render_sdk.experimental.key_value.provider import KeyValueProvider
 from render_sdk.experimental.object.client import ObjectClient
 
 if TYPE_CHECKING:
@@ -63,6 +65,12 @@ class ExperimentalService:
             key="file.png",
             data=b"content"
         )
+
+        # Access experimental Key Value support
+        from render_sdk.experimental.key_value import NameOwnerIdOptions
+        redis = await render.experimental.key_value.new_client(
+            NameOwnerIdOptions(name="my-cache")
+        )
         ```
     """
 
@@ -73,3 +81,7 @@ class ExperimentalService:
             client: The Render client instance
         """
         self.storage = StorageService(client)
+        self.key_value = KeyValueProvider(
+            KeyValueApi(client.internal),
+            default_owner_id=client.owner_id,
+        )
