@@ -15,6 +15,7 @@ DESTINATION_FILES = [
 
 DESTINATION_FILES_EXCLUDE = [
   "go/example/task/performance.go",
+  ".github/CODEOWNERS",
   ".github/workflows/copybara-push.yaml",
 ]
 
