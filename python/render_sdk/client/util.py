@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import functools
 import json
 import logging
 from asyncio import sleep
 from collections.abc import Awaitable, Callable
-from typing import Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
 
@@ -14,8 +16,10 @@ from render_sdk.client.errors import (
     ServerError,
     TimeoutError,
 )
-from render_sdk.public_api.models.error import Error
 from render_sdk.public_api.types import Response, Unset
+
+if TYPE_CHECKING:
+    from render_sdk.public_api.models.error import Error
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +188,10 @@ def handle_api_error(
         ServerError: For server errors (typically 5xx equivalent)
         RenderError: For unknown errors
     """
+    # Imported lazily so the workflow worker path stays fast — workers that
+    # never hit an API error path should not pull in the public_api models.
+    from render_sdk.public_api.models.error import Error
+
     message: str | None = None
     error_id: str | None = None
 
