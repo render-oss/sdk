@@ -35,10 +35,14 @@ Async REST API access:
 
 __version__ = "0.6.1"
 
-# Primary user-facing APIs
-from render_sdk.render import Render
-from render_sdk.render_async import RenderAsync
+# Render/RenderAsync are lazy-loaded so the workflow worker path stays fast.
+from typing import TYPE_CHECKING
+
 from render_sdk.workflows import Options, Retry, Workflows, start, task
+
+if TYPE_CHECKING:
+    from render_sdk.render import Render
+    from render_sdk.render_async import RenderAsync
 
 __all__ = [
     "__version__",
@@ -53,6 +57,30 @@ __all__ = [
     "start",
     "task",
 ]
+
+
+_LAZY_ATTRS = {
+    "Render": ("render_sdk.render", "Render"),
+    "RenderAsync": ("render_sdk.render_async", "RenderAsync"),
+}
+
+
+def __getattr__(name: str):
+    target = _LAZY_ATTRS.get(name)
+    if target is None:
+        raise AttributeError(f"module 'render_sdk' has no attribute {name!r}")
+
+    import importlib
+
+    module_name, attr_name = target
+    value = getattr(importlib.import_module(module_name), attr_name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY_ATTRS) | set(__all__))
+
 
 # Direct client access available via:
 #   render.client  # Access from existing Render instance
