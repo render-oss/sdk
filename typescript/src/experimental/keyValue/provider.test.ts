@@ -3,6 +3,12 @@ import { KeyValueProvider } from "./provider";
 import type { OwnerId } from "./types";
 
 describe("KeyValueProvider", () => {
+  beforeEach(() => {
+    vi.stubEnv("RENDER_USE_LOCAL_DEV", undefined);
+  });
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
   const findByIdMock = vi.fn().mockRejectedValue(new Error("findById should not be called"));
   const findByNameMock = vi.fn().mockRejectedValue(new Error("findByName should not be called"));
   const getConnectionInfoMock = vi
@@ -1134,6 +1140,46 @@ describe("KeyValueProvider", () => {
 
           expect(findByIdMock).toHaveBeenCalledTimes(2);
         });
+      });
+    });
+  });
+
+  describe("in local dev mode", () => {
+    beforeEach(() => {
+      vi.stubEnv("RENDER_USE_LOCAL_DEV", "true");
+    });
+
+    const provider = new KeyValueProvider(api, "tea-abc");
+
+    describe("newClient", () => {
+      it("loads with no overrides", async () => {
+        await expect(provider.newClient({ name: "test-redis" })).resolves.toBeDefined();
+      });
+
+      it("loads with overrides", async () => {
+        vi.stubEnv("RENDER_LOCAL_REDIS_HOST", "localhosta");
+        vi.stubEnv("RENDER_LOCAL_REDIS_PORT", "1234");
+        await expect(provider.newClient({ name: "test-redis" })).resolves.toBeDefined();
+      });
+    });
+
+    describe("connectionInfo", () => {
+      it("returns defaults if no overrides", async () => {
+        await expect(provider.connectionInfo({ name: "test-redis" })).resolves.toEqual({
+          host: "localhost",
+          port: 6379,
+        });
+      });
+
+      it("returns overrides if present", async () => {
+        const connection = {
+          host: "localhosta",
+          port: 1234,
+        };
+        vi.stubEnv("RENDER_LOCAL_REDIS_HOST", connection.host);
+        vi.stubEnv("RENDER_LOCAL_REDIS_PORT", String(connection.port));
+
+        await expect(provider.connectionInfo({ name: "test-redis" })).resolves.toEqual(connection);
       });
     });
   });

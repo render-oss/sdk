@@ -21,7 +21,7 @@ import type {
   RedisConfig,
   ServiceIdOptions,
 } from "./types";
-import { formatErrorMessage } from "./utils";
+import { formatErrorMessage, isLocalDev } from "./utils";
 
 const connectionRE = /rediss?:\/\/(([\w.~_-]+):([\w.~_]+)@)?([\w.~_-]+):([0-9]+)/;
 const maxDelayMS = 512 * 1000; // 512 seconds to line up with exponential backoff, ~8.5 minutes
@@ -121,6 +121,10 @@ export class KeyValueProvider {
 
   private async loadConnectionString(options: Options): Promise<string> {
     let details: KeyValueDetail;
+
+    if (isLocalDev()) {
+      return devConnectionString();
+    }
 
     if (hasServiceId(options)) {
       details = await this.findInstanceByServiceId(options);
@@ -273,4 +277,11 @@ function parseConnectionString(connection: string): ConnectionInfo {
     host: matches[4],
     port: Number(matches[5]),
   };
+}
+
+function devConnectionString(): string {
+  const host = process.env.RENDER_LOCAL_REDIS_HOST ?? "localhost";
+  const port = process.env.RENDER_LOCAL_REDIS_PORT ?? 6379;
+
+  return `redis://${host}:${port}`;
 }

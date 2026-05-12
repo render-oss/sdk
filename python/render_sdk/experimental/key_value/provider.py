@@ -1,6 +1,7 @@
 """High-level Key Value provider with automatic provisioning and configuration sync."""
 
 import asyncio
+import os
 import re
 from typing import TYPE_CHECKING, Any
 
@@ -20,7 +21,7 @@ from .types import (
     Options,
     ServiceIdOptions,
 )
-from .utils import _format_error_message
+from .utils import _format_error_message, _is_local_dev
 
 if TYPE_CHECKING:
     from redis.asyncio import Redis
@@ -128,6 +129,9 @@ class KeyValueProvider:
         return _parse_connection_string(connection_string)
 
     async def _load_connection_string(self, options: Options) -> str:
+        if _is_local_dev():
+            return _dev_connection_string()
+
         if isinstance(options, ServiceIdOptions):
             details = await self._find_instance_by_service_id(options)
         else:
@@ -276,3 +280,10 @@ def _parse_connection_string(connection: str) -> ConnectionInfo:
         host=match.group("host"),
         port=int(match.group("port")),
     )
+
+
+def _dev_connection_string() -> str:
+    host = os.environ.get("RENDER_LOCAL_REDIS_HOST") or "localhost"
+    port = os.environ.get("RENDER_LOCAL_REDIS_PORT") or "6379"
+
+    return f"redis://{host}:{port}"
