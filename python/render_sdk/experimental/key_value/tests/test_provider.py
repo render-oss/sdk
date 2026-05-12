@@ -1,6 +1,6 @@
 """Tests for KeyValueProvider."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -962,3 +962,55 @@ class TestWithoutDefaultOwnerId:
                     )
 
                 assert api.find_by_id.call_count == 2
+
+
+class TestLocalDevMode:
+    @pytest.fixture
+    def client(self, api):
+        return KeyValueProvider(api, default_owner_id="tea-abc")
+
+    class TestNewClient:
+        @pytest.mark.asyncio
+        @patch.dict("os.environ", {"RENDER_USE_LOCAL_DEV": "true"})
+        async def test_loads_with_no_overrides(self, client):
+            result = await client.new_client(NameOwnerIdOptions(name="test-redis"))
+
+            assert result is not None
+
+        @pytest.mark.asyncio
+        @patch.dict(
+            "os.environ",
+            {
+                "RENDER_USE_LOCAL_DEV": "true",
+                "RENDER_LOCAL_REDIS_HOST": "localhosta",
+                "RENDER_LOCAL_REDIS_PORT": "1234",
+            },
+        )
+        async def test_loads_with_overrides(self, client):
+            result = await client.new_client(NameOwnerIdOptions(name="test-redis"))
+
+            assert result is not None
+
+    class TestConnectionInfo:
+        @pytest.mark.asyncio
+        @patch.dict("os.environ", {"RENDER_USE_LOCAL_DEV": "true"})
+        async def test_returns_defaults_if_no_overrides(self, client):
+            result = await client.connection_info(NameOwnerIdOptions(name="test-redis"))
+
+            assert result.host == "localhost"
+            assert result.port == 6379
+
+        @pytest.mark.asyncio
+        @patch.dict(
+            "os.environ",
+            {
+                "RENDER_USE_LOCAL_DEV": "true",
+                "RENDER_LOCAL_REDIS_HOST": "localhosta",
+                "RENDER_LOCAL_REDIS_PORT": "1234",
+            },
+        )
+        async def test_returns_overrides_if_present(self, client):
+            result = await client.connection_info(NameOwnerIdOptions(name="test-redis"))
+
+            assert result.host == "localhosta"
+            assert result.port == 1234

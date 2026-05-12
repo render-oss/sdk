@@ -489,6 +489,8 @@ try {
 - `RENDER_LOCAL_DEV_URL` - Local development URL (default: `http://localhost:8120`)
 - `RENDER_SDK_MODE` - Task execution mode (`run` or `register`)
 - `RENDER_SDK_SOCKET_PATH` - Unix socket path for task communication
+- `RENDER_LOCAL_REDIS_HOST` - Custom host for local Redis / Valkey instance (default: `localhost`) (requires `RENDER_USE_LOCAL_DEV=true`)
+- `RENDER_LOCAL_REDIS_PORT` - Custom port for local Redis / Valkey instance (default: `6379`) (requires `RENDER_USE_LOCAL_DEV=true`)
 
 ### Object Storage
 

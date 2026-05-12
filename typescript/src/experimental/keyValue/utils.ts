@@ -7,3 +7,7 @@ export function formatErrorMessage(failure: string, call_to_action: string): str
 
 ${call_to_action}`;
 }
+
+export function isLocalDev(): boolean {
+  return process.env.RENDER_USE_LOCAL_DEV === "true";
+}
