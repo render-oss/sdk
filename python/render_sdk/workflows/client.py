@@ -1,8 +1,21 @@
-"""Unix domain socket client for communicating with the SDK server."""
+"""Unix domain socket client for communicating with the SDK server.
+
+Uses a hand-rolled HTTP/UDS transport (``_uds_http``) and hand-rolled
+data models (``_callback_models``) so this module — which is on the
+worker hot path — does not pull in ``httpx`` or ``attrs`` at import
+time.
+
+Error translation from raw transport exceptions to
+``render_sdk.client.errors`` types lives in the :func:`_translate_errors`
+decorator, applied per public method together with
+:func:`_retry_transient_errors`. That keeps ``_uds_http.py`` unaware of
+domain error vocabulary and operation labels.
+"""
 
 import asyncio
 import base64
 import functools
+import http.client
 import json
 import logging
 import time
@@ -11,41 +24,28 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-import httpx
-
 from render_sdk.client.errors import (
+    ClientError,
     RateLimitError,
     RenderError,
     ServerError,
     TaskRunError,
-    TimeoutError,
 )
-from render_sdk.client.util import handle_http_errors
+from render_sdk.client.errors import TimeoutError as SdkTimeoutError
 from render_sdk.version import get_user_agent
-from render_sdk.workflows.callback_api.api.default import (
-    get_input,
-    post_callback,
-    post_get_subtask_result,
-    post_register_tasks,
-    post_run_subtask,
-)
-from render_sdk.workflows.callback_api.client import Client
-from render_sdk.workflows.callback_api.models import (
-    CallbackRequest as GeneratedCallbackRequest,
-)
-from render_sdk.workflows.callback_api.models import (
+from render_sdk.workflows._callback_models import CallbackRequest as ApiCallbackRequest
+from render_sdk.workflows._callback_models import (
     InputResponse,
     RunSubtaskRequest,
     RunSubtaskResponse,
     SubtaskResultRequest,
+    SubtaskResultResponse,
     TaskComplete,
     TaskError,
     Tasks,
+    Unset,
 )
-from render_sdk.workflows.callback_api.models.subtask_result_response import (
-    SubtaskResultResponse,
-)
-from render_sdk.workflows.callback_api.types import Response, Unset
+from render_sdk.workflows._uds_http import HttpStatusError, request_json
 
 logger = logging.getLogger(__name__)
 
@@ -84,11 +84,13 @@ _UDS_MAX_DELAY_S = 16.0
 
 
 def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
-    """Decorator that retries async functions on transient UDS errors.
+    """Retry async functions on transient UDS errors.
 
-    Retries on ServerError (5xx, connection errors), TimeoutError,
-    and RateLimitError (429).
-    Does not retry on ClientError (4xx) or other exceptions.
+    Retries on ``ServerError`` (5xx, connection errors), our
+    ``TimeoutError``, and ``RateLimitError`` (429). Does not retry on
+    ``ClientError`` (4xx) or other exceptions. Stacked OUTSIDE
+    :func:`_translate_errors` so it sees translated typed errors, not raw
+    transport exceptions.
     """
 
     @functools.wraps(func)
@@ -97,7 +99,7 @@ def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
         for attempt in range(_UDS_MAX_RETRIES):
             try:
                 return await func(*args, **kwargs)
-            except (ServerError, TimeoutError, RateLimitError) as e:
+            except (ServerError, SdkTimeoutError, RateLimitError) as e:
                 last_error = e
                 if attempt < _UDS_MAX_RETRIES - 1:
                     delay = min(
@@ -118,70 +120,133 @@ def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
     return wrapper
 
 
+def _extract_status_message(body: bytes) -> str | None:
+    """Best-effort extraction of an error message from an HTTP error body.
+
+    Tries JSON ``{"message": ...}`` / ``{"error": ...}`` first, then falls
+    back to the raw body as UTF-8. Returns ``None`` if nothing usable is
+    found.
+    """
+    if not body:
+        return None
+    try:
+        payload = json.loads(body)
+        if isinstance(payload, dict):
+            raw = payload.get("message") or payload.get("error")
+            if isinstance(raw, str):
+                return raw
+    except (ValueError, UnicodeDecodeError):
+        pass
+    try:
+        return body.decode("utf-8", errors="replace").strip() or None
+    except Exception:  # pragma: no cover - defensive
+        return None
+
+
+def _translate_errors(operation: str) -> Callable[[Callable], Callable]:
+    """Translate raw transport exceptions into render_sdk.client.errors types.
+
+    The transport in ``_uds_http`` raises stdlib exceptions plus
+    :class:`HttpStatusError`. This decorator turns those into the
+    appropriate typed error with the operation label baked into the
+    message, so callers see a consistent error vocabulary regardless of
+    which transport-level failure occurred.
+    """
+
+    def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            # `socket.timeout` is an alias for the built-in ``TimeoutError``;
+            # our domain timeout is imported as ``SdkTimeoutError`` so the
+            # built-in name stays free for catching.
+            except TimeoutError as e:
+                raise SdkTimeoutError(f"{operation} timed out: {e}") from e
+            except (ConnectionError, FileNotFoundError) as e:
+                raise ServerError(f"{operation} failed to connect: {e}") from e
+            except http.client.HTTPException as e:
+                raise ServerError(f"{operation} got invalid HTTP response: {e}") from e
+            except HttpStatusError as e:
+                message = _extract_status_message(e.body)
+                full = f"{operation} failed with status {e.status}"
+                if message:
+                    full = f"{full}: {message}"
+                if e.status == 429:
+                    raise RateLimitError(full) from e
+                if e.status < 500:
+                    raise ClientError(full) from e
+                raise ServerError(full) from e
+            except json.JSONDecodeError as e:
+                raise RenderError(f"{operation} failed: non-JSON response: {e}") from e
+            except OSError as e:
+                raise ServerError(f"{operation} network error: {e}") from e
+
+        return wrapper
+
+    return decorator
+
+
 class UDSClient:
     """Client for communicating with the SDK server over Unix Domain Socket."""
 
     def __init__(self, socket_path: str):
         self.socket_path = socket_path
 
-    def get_client(self) -> Client:
-        return Client(
-            base_url="http://localhost",
-            headers={"User-Agent": get_user_agent()},
-            httpx_args={
-                "transport": httpx.AsyncHTTPTransport(uds=self.socket_path),
-            },
-            timeout=httpx.Timeout(timeout=QUERY_TIMEOUT),
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | None,
+    ) -> Any:
+        """Bundle the per-call constants (user agent, timeout, socket path).
+
+        This carries no error translation — that lives on the public
+        methods via :func:`_translate_errors`. Each public method is
+        responsible for asserting the response shape it expects.
+        """
+        return await request_json(
+            socket_path=self.socket_path,
+            method=method,
+            path=path,
+            body=body,
+            user_agent=get_user_agent(),
+            timeout=QUERY_TIMEOUT,
         )
 
+    @_retry_transient_errors
+    @_translate_errors("get input")
     async def get_input(self) -> InputResponse:
         """Get the task name and input for a task run."""
-        response = (await self._get_input_api_call()).parsed
-
-        return response
+        payload = await self._request("GET", "/input", None)
+        if not isinstance(payload, dict):
+            raise RenderError(f"get input failed: unexpected response: {payload!r}")
+        return InputResponse.from_dict(payload)
 
     @_retry_transient_errors
-    @handle_http_errors("get input")
-    async def _get_input_api_call(self) -> Response[Any | InputResponse]:
-        """Internal method to make the get input API call."""
-        async with self.get_client() as client:
-            return await get_input.asyncio_detailed(client=client)
-
+    @_translate_errors("post callback")
     async def post_callback(self, callback_request: CallbackRequest) -> None:
         """Send a callback to the server."""
-        data: GeneratedCallbackRequest
-
         if callback_request.status == Status.SUCCESS:
-            # Ensure result is wrapped in an array as expected by the API
+            # Wire format expects results to be wrapped in an array.
             result_array = (
                 [callback_request.result]
                 if not isinstance(callback_request.result, list)
                 else callback_request.result
             )
             result_json = json.dumps(result_array).encode()
-
-            data = GeneratedCallbackRequest(
+            data = ApiCallbackRequest(
                 complete=TaskComplete(output=base64.b64encode(result_json).decode())
             )
         elif (
             callback_request.status == Status.ERROR
             and callback_request.error is not None
         ):
-            data = GeneratedCallbackRequest(
-                error=TaskError(details=callback_request.error)
-            )
+            data = ApiCallbackRequest(error=TaskError(details=callback_request.error))
+        else:
+            data = ApiCallbackRequest()
 
-        # Send using the generated API
-        await self._post_callback_api_call(data)
-
-    @_retry_transient_errors
-    @handle_http_errors("post callback")
-    async def _post_callback_api_call(
-        self, data: GeneratedCallbackRequest
-    ) -> Response[Any]:
-        """Internal method to make the post callback API call."""
-        async with self.get_client() as client:
-            return await post_callback.asyncio_detailed(client=client, body=data)
+        await self._request("POST", "/callback", data.to_dict())
 
     async def run_subtask(
         self, task_name: str, input_data: list[Any] | dict[str, Any] | None = None
@@ -205,18 +270,14 @@ class UDSClient:
             input_=base64.b64encode(input_json).decode(),
         )
 
-        # Start the subtask
-        response = (await self._run_subtask_api_call(subtask_request)).parsed
-
+        response = await self._start_subtask(subtask_request)
         task_run_id = response.task_run_id
 
-        # Poll for completion
         start_time = time.time()
         while time.time() - start_time < POLLING_TIMEOUT:
             result = await self.get_task_result(task_run_id)
 
             if result.status == Status.SUCCESS:
-                # Extract the actual value from the array
                 actual_result = result.result
                 if isinstance(actual_result, list) and len(actual_result) == 1:
                     return actual_result[0]
@@ -224,58 +285,52 @@ class UDSClient:
             elif result.status == Status.ERROR:
                 raise TaskRunError(f"Subtask failed: {result.error}")
             elif result.status == Status.RUNNING:
-                # Wait a bit before polling again
                 await asyncio.sleep(POLLING_INTERVAL)
             else:
                 raise RenderError(f"Unknown subtask status: {result.status}")
 
     @_retry_transient_errors
-    @handle_http_errors("run subtask")
-    async def _run_subtask_api_call(
-        self, body: RunSubtaskRequest
-    ) -> Response[Any | RunSubtaskResponse]:
-        async with self.get_client() as client:
-            return await post_run_subtask.asyncio_detailed(client=client, body=body)
-
-    async def register_tasks(
-        self,
-        tasks: Tasks,
-    ) -> None:
-        """Register tasks with the server."""
-        await self._register_tasks_api_call(tasks)
+    @_translate_errors("run subtask")
+    async def _start_subtask(
+        self, subtask_request: RunSubtaskRequest
+    ) -> RunSubtaskResponse:
+        payload = await self._request("POST", "/run-subtask", subtask_request.to_dict())
+        if not isinstance(payload, dict):
+            raise RenderError(f"run subtask failed: unexpected response: {payload!r}")
+        return RunSubtaskResponse.from_dict(payload)
 
     @_retry_transient_errors
-    @handle_http_errors("register tasks")
-    async def _register_tasks_api_call(self, tasks: Tasks) -> Response[Any]:
-        """Internal method to make the register tasks API call."""
-        async with self.get_client() as client:
-            return await post_register_tasks.asyncio_detailed(client=client, body=tasks)
+    @_translate_errors("register tasks")
+    async def register_tasks(self, tasks: Tasks) -> None:
+        """Register tasks with the server."""
+        await self._request("POST", "/register-tasks", tasks.to_dict())
 
+    @_retry_transient_errors
+    @_translate_errors("get task result")
     async def get_task_result(self, task_run_id: str) -> TaskResultResponse:
         """Get the result of a task run."""
         subtask_result_request = SubtaskResultRequest(task_run_id=task_run_id)
 
-        response = (await self._get_task_result_api_call(subtask_result_request)).parsed
-
-        # Check if task is still running
-        if response.still_running:
-            return TaskResultResponse(
-                status=Status.RUNNING,
-                result=None,
-                error=None,
+        payload = await self._request(
+            "POST", "/get-subtask-result", subtask_result_request.to_dict()
+        )
+        if not isinstance(payload, dict):
+            raise RenderError(
+                f"get task result failed: unexpected response: {payload!r}"
             )
+        response = SubtaskResultResponse.from_dict(payload)
 
-        # Check if there was an error
+        if response.still_running:
+            return TaskResultResponse(status=Status.RUNNING)
+
         if not isinstance(response.error, Unset) and response.error is not None:
             return TaskResultResponse(
                 status=Status.ERROR,
-                result=None,
                 error=response.error.details,
             )
 
-        # Check if task completed successfully
         if not isinstance(response.complete, Unset) and response.complete is not None:
-            result = None
+            result: Any | None = None
             if response.complete.output:
                 try:
                     result = json.loads(
@@ -283,22 +338,6 @@ class UDSClient:
                     )
                 except (json.JSONDecodeError, ValueError) as e:
                     raise RenderError(f"Failed to decode task result: {e}") from e
-
-            return TaskResultResponse(
-                status=Status.SUCCESS,
-                result=result,
-                error=None,
-            )
+            return TaskResultResponse(status=Status.SUCCESS, result=result)
 
         raise RenderError("Unknown task status")
-
-    @_retry_transient_errors
-    @handle_http_errors("get task result")
-    async def _get_task_result_api_call(
-        self, body: SubtaskResultRequest
-    ) -> Response[Any | SubtaskResultResponse]:
-        """Internal method to make the get task result API call."""
-        async with self.get_client() as client:
-            return await post_get_subtask_result.asyncio_detailed(
-                client=client, body=body
-            )
