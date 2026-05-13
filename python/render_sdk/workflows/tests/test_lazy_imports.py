@@ -1,8 +1,9 @@
 """Regression guard for the worker import graph.
 
 The worker path (``from render_sdk import Workflows``) deliberately avoids
-loading the REST API client, the public_api models, and the experimental
-object storage code, since none of them are needed to run a task. Keeping
+loading the REST API client, the public_api models, the auto-generated
+callback API, the experimental object storage code, ``httpx``, and
+``attrs`` — none of those are needed to define or run a task. Keeping
 the import graph slim is what keeps the workflow path fast.
 
 If you find yourself adding an eager top-level ``from render_sdk.<heavy>
@@ -25,23 +26,29 @@ _FORBIDDEN_ON_WORKER_PATH: tuple[str, ...] = (
     "render_sdk.render",
     "render_sdk.render_async",
     # The auto-generated REST client + every model in it.
-    "render_sdk.public_api.models",
+    "render_sdk.public_api",
     # The hand-written REST client wrappers (Client, WorkflowsService, etc.)
     # plus client.types and client.sse. Worker-path leaf modules are listed
     # in _ALLOWED_ON_WORKER_PATH below.
     "render_sdk.client",
     # Object storage / experimental APIs.
     "render_sdk.experimental",
+    # Third-party HTTP/attribute libraries — only the REST/experimental
+    # paths should pull these in, never the worker path.
+    "httpx",
+    "httpcore",
+    "attr",
+    "attrs",
 )
 
 # Submodules of forbidden packages that ARE allowed on the worker path.
 _ALLOWED_ON_WORKER_PATH: frozenset[str] = frozenset(
     {
-        # Loaded transitively when runner.py imports client.errors / client.util.
-        # The package init itself is now lazy, so this is harmless.
+        # The errors module is shared between the REST client and the
+        # hand-rolled UDS HTTP transport. The package init itself is
+        # lazy, so loading it carries no other cost.
         "render_sdk.client",
         "render_sdk.client.errors",
-        "render_sdk.client.util",
     }
 )
 

@@ -3,7 +3,7 @@
 
 import pytest
 
-from render_sdk.workflows.callback_api.models.task_options import TaskOptions
+from render_sdk.workflows._callback_models import TaskOptions
 from render_sdk.workflows.client import Status, UDSClient
 from render_sdk.workflows.executor import TaskExecutor
 from render_sdk.workflows.runner import register
@@ -127,7 +127,7 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
     Test that task registration correctly serializes timeout_seconds
     in the network payload.
     """
-    from render_sdk.workflows.callback_api.types import UNSET
+    from render_sdk.workflows._callback_models import UNSET
 
     # Mock the UDSClient class
     mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
@@ -236,7 +236,7 @@ def test_task_registration_without_retry_config(task_registry, task_decorator, m
     Test that tasks with no retry config register successfully. This is the
     common case that was unaffected by the dict retry bug.
     """
-    from render_sdk.workflows.callback_api.types import UNSET
+    from render_sdk.workflows._callback_models import UNSET
 
     mock_uds_client_class = mocker.patch("render_sdk.workflows.runner.UDSClient")
     mock_client_instance = mocker.Mock()

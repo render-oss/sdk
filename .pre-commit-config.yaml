@@ -49,7 +49,7 @@ repos:
         entry: bash -c 'cd python && uv run ruff check .'
         language: system
         files: ^python/.*\.py$
-        exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+        exclude: ^python/render_sdk/public_api/
         pass_filenames: false
 
       - id: ruff-format
@@ -57,5 +57,5 @@ repos:
         entry: bash -c 'cd python && uv run ruff format --check .'
         language: system
         files: ^python/.*\.py$
-        exclude: ^python/(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+        exclude: ^python/render_sdk/public_api/
         pass_filenames: false

@@ -56,14 +56,14 @@ packages = ["render_sdk"]
 line-length = 88
 target-version = ['py310']
 extend-exclude = '''
-(render_sdk/public_api/|render_sdk/workflows/callback_api/)
+(render_sdk/public_api/)
 '''
 
 [tool.isort]
 profile = "black"
 multi_line_output = 3
 line_length = 88
-extend_skip = ["render_sdk/public_api", "render_sdk/workflows/callback_api/"]
+extend_skip = ["render_sdk/public_api"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -72,7 +72,7 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 explicit_package_bases = true
 namespace_packages = true
-exclude = ["tests/", "example/", "render_sdk/public_api/", "render_sdk/workflows/callback_api/"]
+exclude = ["tests/", "example/", "render_sdk/public_api/"]
 check_untyped_defs = false
 
 [tool.pytest.ini_options]
@@ -84,7 +84,7 @@ addopts = "-m 'not e2e'"
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-exclude = ["render_sdk/public_api/", "render_sdk/workflows/callback_api/"]
+exclude = ["render_sdk/public_api/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
