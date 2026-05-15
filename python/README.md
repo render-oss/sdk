@@ -167,6 +167,105 @@ obj = render.experimental.storage.objects.get(key="path/to/file.png")
 response = render.experimental.storage.objects.list()
 ```
 
+### Key Value
+
+The Key Value API provides a Redis client backed by Render's managed Key Value service. It supports automatic instance provisioning and configuration sync.
+
+Requires the [`redis`](https://pypi.org/project/redis/) package:
+
+```bash
+pip install redis
+```
+
+The Key Value provider is async-only and must be used with `RenderAsync`:
+
+#### Basic usage
+
+You can look up an instance by name and the SDK will create it if it doesn't exist. Note that the workspace ID needs to be set, either through the `RENDER_WORKSPACE_ID` environment variable or by passing the `owner_id` explicitly when calling the SDK:
+
+```python
+import asyncio
+from render_sdk import RenderAsync
+from render_sdk.experimental.key_value import NameOwnerIdOptions
+
+async def main():
+    render = RenderAsync()
+
+    # Returns a configured redis.asyncio.Redis client
+    redis = await render.experimental.key_value.new_client(
+        NameOwnerIdOptions(
+            name="my-cache",
+            owner_id="tea-abcdefghijklmnopqrst",
+        )
+    )
+
+    await redis.set("key", "value")
+    value = await redis.get("key")
+
+    await redis.aclose()
+
+asyncio.run(main())
+```
+
+#### Look up by service ID
+
+If you already have a Render Key Value service ID, pass it directly to skip the name lookup:
+
+```python
+from render_sdk.experimental.key_value import ServiceIdOptions
+
+redis = await render.experimental.key_value.new_client(
+    ServiceIdOptions(service_id="redis-xxxxxxxxxxxx")
+)
+```
+
+#### Auto-provisioning with configuration
+
+Pass an `auto_provision` configuration to control the plan and eviction policy. If the instance doesn't exist it will be created; if it exists but its settings differ they will be updated:
+
+```python
+from render_sdk.experimental.key_value import InstanceConfiguration, NameOwnerIdOptions
+
+redis = await render.experimental.key_value.new_client(
+    NameOwnerIdOptions(
+        name="my-cache",
+        auto_provision=InstanceConfiguration(
+            plan="starter",
+            maxmemory_policy="allkeys-lru",
+        ),
+    )
+)
+```
+
+Set `auto_provision=False` to disable all automatic changes and raise if the instance is not found:
+
+```python
+redis = await render.experimental.key_value.new_client(
+    NameOwnerIdOptions(name="my-cache", auto_provision=False)
+)
+```
+
+#### Connection info only
+
+Use `connection_info` when you need the host and port rather than a ready-made client:
+
+```python
+info = await render.experimental.key_value.connection_info(
+    NameOwnerIdOptions(name="my-cache")
+)
+print(f"redis://{info.host}:{info.port}")
+```
+
+#### Local development
+
+When `RENDER_USE_LOCAL_DEV=true` is set, the client connects to a local Valkey instance instead of the Render API. The easiest option for getting a local instance running is to use the [official Valkey Docker image](https://hub.docker.com/r/valkey/valkey):
+
+```bash
+docker run -p 6379:6379 valkey/valkey
+```
+
+When using the SDK in local development mode, the host and port default to `localhost:6379`. They can be overridden with the environment variables `RENDER_LOCAL_REDIS_HOST` and `RENDER_LOCAL_REDIS_PORT`.
+
 ## Environment Variables
 
 - `RENDER_API_KEY` - Your Render API key (required)
@@ -189,6 +288,7 @@ response = render.experimental.storage.objects.list()
 - **Subtask Execution**: Execute tasks from within other tasks
 - **Task Composition**: Combine tasks from multiple modules with `Workflows.from_workflows()`
 - **Object Storage**: Experimental object storage API with upload, download, and list
+- **Key Value**: Experimental Render Key value client with auto-provisioning and configuration sync
 
 ## Development
 

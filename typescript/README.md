@@ -12,6 +12,7 @@ The official TypeScript SDK for Render. Define Workflow tasks, manage task runs,
 - **Retry Logic**: Configurable retry behavior for tasks
 - **Subtask Execution**: Execute tasks from within other tasks
 - **Object Storage**: Experimental object storage API with upload, download, and list
+- **Key Value**: Experimental Render Key Value client with auto-provisioning and configuration sync
 
 ## Installation
 
@@ -514,6 +515,87 @@ const obj = await render.experimental.storage.objects.get({ key: 'path/to/file.p
 // List
 const response = await render.experimental.storage.objects.list();
 ```
+
+### Key Value
+
+The Key Value API provides a Redis client backed by Render's managed Key Value service. It supports automatic instance provisioning and configuration sync.
+
+Under the hood, it uses the [`redis`](https://www.npmjs.com/package/redis) package.
+
+#### Basic usage
+
+You can look up an instance by name and the SDK will create it if it doesn't exist. Note that the workspace ID needs to be set, either through the `RENDER_WORKSPACE_ID` environment variable or by passing the `ownerId` explicitly when calling the SDK:
+
+```typescript
+import { Render } from '@renderinc/sdk';
+
+const render = new Render();
+
+// Returns a configured (not yet connected) node-redis client
+const client = await render.experimental.keyValue.newClient({
+  name: 'my-cache',
+  ownerId: 'tea-abcdefghijklmnopqrst',
+});
+const conn = await client.connect();
+
+await conn.set('key', 'value');
+const value = await conn.get('key');
+
+conn.destroy();
+```
+
+#### Look up by service ID
+
+If you already have a Render Key Value service ID, pass it directly to skip the name lookup:
+
+```typescript
+const client = await render.experimental.keyValue.newClient({
+  serviceId: 'redis-xxxxxxxxxxxx',
+});
+```
+
+#### Auto-provisioning with configuration
+
+Pass an `autoProvision` configuration to control the plan and eviction policy. If the instance doesn't exist it will be created; if it exists but its settings differ they will be updated:
+
+```typescript
+const client = await render.experimental.keyValue.newClient({
+  name: 'my-cache',
+  autoProvision: {
+    plan: 'starter',
+    maxmemoryPolicy: 'allkeys-lru',
+  },
+});
+```
+
+Set `autoProvision: false` to disable all automatic changes and throw if the instance is not found:
+
+```typescript
+const client = await render.experimental.keyValue.newClient({
+  name: 'my-cache',
+  autoProvision: false,
+});
+```
+
+#### Connection info only
+
+Use `connectionInfo` when you need the host and port rather than a ready-made client:
+
+```typescript
+const info = await render.experimental.keyValue.connectionInfo({
+  name: 'my-cache',
+}); // { host: 'my.redis.url', port: 1234, username: '...', password: '...' }
+```
+
+#### Local development
+
+When `RENDER_USE_LOCAL_DEV=true` is set, the client connects to a local Valkey instance instead of the Render API. The easiest option for getting a local instance running is to use the [official Valkey Docker image](https://hub.docker.com/r/valkey/valkey):
+
+```bash
+docker run -p 6379:6379 valkey/valkey
+```
+
+When using the SDK in local development mode, the host and port default to `localhost:6379`. They can be overridden with the environment variables `RENDER_LOCAL_REDIS_HOST` and `RENDER_LOCAL_REDIS_PORT`.
 
 ## Examples
 
