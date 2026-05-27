@@ -5,8 +5,8 @@ describe("getBaseUrl", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    process.env.RENDER_USE_LOCAL_DEV = undefined;
-    process.env.RENDER_LOCAL_DEV_URL = undefined;
+    delete process.env.RENDER_USE_LOCAL_DEV;
+    delete process.env.RENDER_LOCAL_DEV_URL;
   });
 
   afterEach(() => {

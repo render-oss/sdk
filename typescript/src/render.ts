@@ -4,6 +4,7 @@ import { ExperimentalClient } from "./experimental/experimental.js";
 import type { paths } from "./generated/schema.js";
 import { createApiClient } from "./utils/create-api-client.js";
 import { getBaseUrl } from "./utils/get-base-url.js";
+import { isLocalDev } from "./utils/is-local-dev.js";
 import { WorkflowsClient } from "./workflows/client/index.js";
 import type { ClientOptions } from "./workflows/client/types.js";
 
@@ -21,13 +22,13 @@ export class Render {
    * @param options Client configuration options
    */
   constructor(options?: ClientOptions) {
-    const token = options?.token || process.env.RENDER_API_KEY;
-    if (!token) {
+    const token = options?.token || process.env.RENDER_API_KEY || "";
+    const baseUrl = getBaseUrl(options);
+    if (!token && !isLocalDev(options)) {
       throw new RenderError(
         "API token is required. Provide it via options.token or RENDER_API_KEY environment variable.",
       );
     }
-    const baseUrl = getBaseUrl(options);
     this.apiClient = createApiClient(baseUrl, token);
     this.workflows = new WorkflowsClient(this.apiClient, baseUrl, token);
 

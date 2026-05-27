@@ -157,10 +157,11 @@ class WorkflowsService:
                 {
                     "Accept": "text/event-stream",
                     "Cache-Control": "no-cache",
-                    "Authorization": f"Bearer {self.client.token}",
                     "User-Agent": get_user_agent(),
                 }
             )
+            if self.client.token:
+                headers["Authorization"] = f"Bearer {self.client.token}"
 
             url = f"{self.client.internal._base_url}{kwargs['url']}"
 

@@ -8,6 +8,7 @@ import os
 from render_sdk.client.workflows import WorkflowsService
 from render_sdk.experimental.experimental import ExperimentalService
 from render_sdk.public_api.client import AuthenticatedClient
+from render_sdk.public_api.client import Client as PublicApiClient
 from render_sdk.version import get_user_agent
 
 
@@ -45,10 +46,24 @@ class Client:
                    will look for RENDER_REGION environment variable.
             *options: Client configuration options
         """
+        # Use the local dev URL when provided,
+        # Otherwise if local dev is enabled, use the default local dev URL
+        # Otherwise, use the base URL
+        use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
+        local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
+        is_local_dev = bool(local_dev_url) or use_local_dev in [
+            "1",
+            "t",
+            "T",
+            "true",
+            "TRUE",
+            "True",
+        ]
+
         # Set default values
         if token is None:
             self.token = os.getenv("RENDER_API_KEY", "")
-            if self.token == "":
+            if self.token == "" and not is_local_dev:
                 raise ValueError(
                     "Either provide a token or set the RENDER_API_KEY "
                     + "environment variable"
@@ -60,14 +75,9 @@ class Client:
         self.owner_id: str | None = owner_id or workspace_id
         self.region: str | None = region or os.getenv("RENDER_REGION", "") or None
 
-        # Use the local dev URL when provided,
-        # Otherwise if local dev is enabled, use the default local dev URL
-        # Otherwise, use the base URL
-        use_local_dev = os.getenv("RENDER_USE_LOCAL_DEV", "")
-        local_dev_url = os.getenv("RENDER_LOCAL_DEV_URL", "")
         if local_dev_url:
             self.base_url = local_dev_url
-        elif use_local_dev in ["1", "t", "T", "true", "TRUE", "True"]:
+        elif is_local_dev:
             self.base_url = "http://localhost:8120"
         else:
             self.base_url = base_url
@@ -79,12 +89,21 @@ class Client:
         # Remove trailing slash and add /v1
         api_base = f"{self.base_url.rstrip('/')}/v1"
 
-        # Create the internal authenticated client
-        self.internal = AuthenticatedClient(
-            base_url=api_base,
-            token=self.token,
-            headers={"User-Agent": get_user_agent()},
-        )
+        # Create the internal API client. When running against local dev without a
+        # token, fall back to an unauthenticated client so we don't emit an
+        # invalid "Authorization: Bearer " header.
+        self.internal: AuthenticatedClient | PublicApiClient
+        if self.token:
+            self.internal = AuthenticatedClient(
+                base_url=api_base,
+                token=self.token,
+                headers={"User-Agent": get_user_agent()},
+            )
+        else:
+            self.internal = PublicApiClient(
+                base_url=api_base,
+                headers={"User-Agent": get_user_agent()},
+            )
 
         # Initialize service clients
         self.workflows = WorkflowsService(self)

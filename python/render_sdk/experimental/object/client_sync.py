@@ -25,7 +25,7 @@ from render_sdk.experimental.object.types import (
 from render_sdk.public_api.models.region import Region
 
 if TYPE_CHECKING:
-    from render_sdk.public_api.client import AuthenticatedClient
+    from render_sdk.public_api.client import AuthenticatedClient, Client
 
 
 FILE_UPLOAD_CHUNK_SIZE_BYTES = 64 * 1024  # 64 KiB
@@ -48,7 +48,7 @@ class SyncObjectClient:
 
     def __init__(
         self,
-        client: "AuthenticatedClient",
+        client: "AuthenticatedClient | Client",
         default_owner_id: str | None = None,
         default_region: str | None = None,
     ):

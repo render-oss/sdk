@@ -11,7 +11,7 @@ from render_sdk.public_api.api.key_value import (
     retrieve_key_value_connection_info,
     update_key_value,
 )
-from render_sdk.public_api.client import AuthenticatedClient
+from render_sdk.public_api.client import AuthenticatedClient, Client
 from render_sdk.public_api.models.key_value import KeyValue
 from render_sdk.public_api.models.key_value_connection_info import (
     KeyValueConnectionInfo,
@@ -69,7 +69,7 @@ class KeyValueApi:
     For most use cases, prefer :class:`KeyValueClient`.
     """
 
-    def __init__(self, client: "AuthenticatedClient"):
+    def __init__(self, client: "AuthenticatedClient | Client"):
         self.client = client
 
     async def find_by_id(self, key_value_id: str) -> KeyValueInstance:
