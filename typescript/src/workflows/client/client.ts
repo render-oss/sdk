@@ -87,16 +87,18 @@ export class WorkflowsClient {
     const url = new URL("/v1/task-runs/events", this.baseUrl);
     url.searchParams.append("taskRunIds", taskRunIds.join(","));
 
+    const token = this.token;
     const eventSource = new EventSource(url.toString(), {
-      fetch: (input, init) =>
-        fetch(input, {
-          ...init,
-          headers: {
-            ...init?.headers,
-            Authorization: `Bearer ${this.token}`,
-            "User-Agent": getUserAgent(),
-          },
-        }),
+      fetch: (input, init) => {
+        const headers: Record<string, string> = {
+          ...(init?.headers as Record<string, string> | undefined),
+          "User-Agent": getUserAgent(),
+        };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        return fetch(input, { ...init, headers });
+      },
     });
 
     const eventHandler = (event: MessageEvent) => {

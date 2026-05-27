@@ -37,7 +37,7 @@ from render_sdk.public_api.models.region import Region
 from render_sdk.public_api.types import UNSET, Response
 
 if TYPE_CHECKING:
-    from render_sdk.public_api.client import AuthenticatedClient
+    from render_sdk.public_api.client import AuthenticatedClient, Client
 
 
 class SyncObjectApi:
@@ -47,7 +47,7 @@ class SyncObjectApi:
     Handles presigned URL flow but still exposes the two-step nature.
     """
 
-    def __init__(self, client: "AuthenticatedClient"):
+    def __init__(self, client: "AuthenticatedClient | Client"):
         self.client = client
 
     def get_upload_url(
