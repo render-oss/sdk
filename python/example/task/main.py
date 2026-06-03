@@ -65,3 +65,4 @@ async def fan_out(n: int) -> list[int]:
 
 # Start via CLI: render-workflows example.task.main:app
 # Or call app.start() directly
+app.start()
