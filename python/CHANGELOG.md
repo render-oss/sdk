@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.7.0] - 2026-06-01
+
+### Added
+
+- Experimental Key Value SDK for provisioning and connecting to Render Key Value (Redis) instances, with automatic provisioning and service configuration sync
+- Local development support for Key Value client creation
+
+### Changed
+
+- Lazy-load SDK modules to speed up worker cold start
+- Hand-rolled the workflows callback API to slim the worker import graph
+
+### Fixed
+
+- Don't error when no API token is set in dev mode
+
 ## [0.6.1] - 2026-04-07
 
 ### Fixed
