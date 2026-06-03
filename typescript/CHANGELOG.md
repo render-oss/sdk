@@ -4,6 +4,18 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-06-01
+
+### Added
+
+- Experimental Key Value SDK client for provisioning and connecting to Render Key Value (Redis) instances, with automatic provisioning and service configuration sync
+- Local development support for Key Value client creation
+
+### Fixed
+
+- Don't error when no API token is set in dev mode
+- Preserve JSDoc comments in build output
+
 ## [0.5.1] - 2026-04-07
 
 ### Fixed
