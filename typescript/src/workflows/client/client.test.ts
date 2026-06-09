@@ -49,9 +49,10 @@ const { MockEventSource } = vi.hoisted(() => {
     }
 
     // Test helper: emit an error
-    emitError(message?: string) {
+    emitError(message?: string, status?: number) {
       const listeners = this.listeners.get("error") ?? [];
       const event = { message: message ?? "connection failed" } as any;
+      event.code = status;
       for (const fn of listeners) {
         fn(event);
       }
@@ -213,7 +214,11 @@ describe("WorkflowsClient", () => {
       expect(es.url).toContain("taskRunIds=run-1%2Crun-2");
 
       // Emit a completed event
-      const completedDetails = { id: "run-1", status: "completed", results: [42] };
+      const completedDetails = {
+        id: "run-1",
+        status: "completed",
+        results: [42],
+      };
       es.emit(TaskEventType.COMPLETED, completedDetails);
 
       const first = await firstPromise;
@@ -243,7 +248,60 @@ describe("WorkflowsClient", () => {
       expect(es.closed).toBe(true);
     });
 
-    it("throws on SSE connection error", async () => {
+    it("throws on SSE connection error after 5 retries with backoff", async () => {
+      vi.useFakeTimers();
+      const mockApiClient = {} as unknown as Client<paths>;
+      const client = new WorkflowsClient(mockApiClient, "http://test", "token");
+
+      const gen = client.taskRunEvents(["run-1"]);
+      const promise = gen.next();
+
+      // Attempt 0
+      let es = latestEventSource();
+      es.emitError("connection refused");
+
+      // Wait 250ms (first backoff)
+      await vi.advanceTimersByTimeAsync(250);
+
+      // Attempt 1
+      es = latestEventSource();
+      es.emitError("connection refused");
+
+      // Wait 500ms
+      await vi.advanceTimersByTimeAsync(500);
+
+      // Attempt 2
+      es = latestEventSource();
+      es.emitError("connection refused");
+
+      // Wait 1000ms
+      await vi.advanceTimersByTimeAsync(1000);
+
+      // Attempt 3
+      es = latestEventSource();
+      es.emitError("connection refused");
+
+      // Wait 2000ms
+      await vi.advanceTimersByTimeAsync(2000);
+
+      // Attempt 4
+      es = latestEventSource();
+      es.emitError("connection refused");
+
+      // Wait 4000ms
+      await vi.advanceTimersByTimeAsync(4000);
+
+      // Attempt 5 (6th connection error) - should propagate
+      es = latestEventSource();
+      es.emitError("connection refused");
+
+      await expect(promise).rejects.toThrow("SSE connection error: connection refused");
+      expect(es.closed).toBe(true);
+
+      vi.useRealTimers();
+    });
+
+    it("throws immediately on non-connection related error", async () => {
       const mockApiClient = {} as unknown as Client<paths>;
       const client = new WorkflowsClient(mockApiClient, "http://test", "token");
 
@@ -251,9 +309,9 @@ describe("WorkflowsClient", () => {
       const promise = gen.next();
 
       const es = latestEventSource();
-      es.emitError("connection refused");
+      es.emitError("Forbidden", 403);
 
-      await expect(promise).rejects.toThrow("SSE connection error: connection refused");
+      await expect(promise).rejects.toThrow("SSE connection error: Forbidden");
       expect(es.closed).toBe(true);
     });
 

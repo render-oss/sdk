@@ -1,7 +1,8 @@
-import { EventSource } from "eventsource";
+import { type ErrorEvent, EventSource } from "eventsource";
 import type { Client as ApiClient } from "openapi-fetch";
-import { AbortError, ClientError, ServerError } from "../../errors.js";
+import { AbortError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
+import { getApiError, isConnectionError } from "../../utils/http.js";
 import { getUserAgent } from "../../version.js";
 import { TaskEventType } from "./sse.js";
 import { TaskRunResult } from "./task-run-result.js";
@@ -14,22 +15,7 @@ import type {
 } from "./types.js";
 
 /**
- * Helper function to handle API errors and throw appropriate custom error types
- */
-function handleApiError(error: any, response: Response, context: string): never {
-  const statusCode = response.status;
-  const errorMessage = `${context}: ${error}`;
-
-  if (statusCode >= 500) {
-    throw new ServerError(errorMessage, statusCode, error);
-  } else if (statusCode >= 400) {
-    throw new ClientError(errorMessage, statusCode, error);
-  }
-  throw new ClientError(errorMessage, statusCode, error);
-}
-
-/**
- * Main Render SDK Client
+ * Main Workflow SDK Client
  */
 export class WorkflowsClient {
   private readonly apiClient: ApiClient<paths>;
@@ -54,11 +40,26 @@ export class WorkflowsClient {
    *
    * @param taskRunIds - One or more task run IDs to subscribe to
    * @param signal - Optional AbortSignal to cancel the stream
+   * @param options - Optional configuration for retry behavior
    */
-  async *taskRunEvents(taskRunIds: string[], signal?: AbortSignal): AsyncGenerator<TaskRunDetails> {
+  async *taskRunEvents(
+    taskRunIds: string[],
+    signal?: AbortSignal,
+    options?: {
+      maxRetries?: number;
+      initialDelayMs?: number;
+      backoffFactor?: number;
+      maxDelayMs?: number;
+    },
+  ): AsyncGenerator<TaskRunDetails> {
     if (signal?.aborted) {
       throw new AbortError();
     }
+
+    const maxRetries = options?.maxRetries ?? 5;
+    const initialDelayMs = options?.initialDelayMs ?? 250;
+    const backoffFactor = options?.backoffFactor ?? 2;
+    const maxDelayMs = options?.maxDelayMs ?? 16_000;
 
     // Simple async queue: push events from EventSource handlers,
     // yield them from the generator loop.
@@ -88,30 +89,47 @@ export class WorkflowsClient {
     url.searchParams.append("taskRunIds", taskRunIds.join(","));
 
     const token = this.token;
-    const eventSource = new EventSource(url.toString(), {
-      fetch: (input, init) => {
-        const headers: Record<string, string> = {
-          ...(init?.headers as Record<string, string> | undefined),
-          "User-Agent": getUserAgent(),
-        };
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-        return fetch(input, { ...init, headers });
-      },
-    });
+    let eventSource: EventSource | null = null;
+    let attempt = 0;
+    let retryTimeout: NodeJS.Timeout | null = null;
 
     const eventHandler = (event: MessageEvent) => {
       try {
         const details = JSON.parse(event.data) as TaskRunDetails;
+        attempt = 0; // Reset retry counter on successful event
         push(details);
       } catch (e) {
         fail(new Error(`Failed to parse task run details: ${e}`));
       }
     };
 
-    const errorHandler = (error: any) => {
-      fail(new Error(`SSE connection error: ${error.message || "Unknown error"}`));
+    const errorHandler = (error: ErrorEvent) => {
+      // If error is not connection related, propagate immediately
+      if (!isConnectionError(error)) {
+        fail(new Error(`SSE connection error: ${error.message || "Unknown error"}`));
+        return;
+      }
+
+      // If connection related but we exhausted retries, propagate
+      if (attempt >= maxRetries) {
+        fail(new Error(`SSE connection error: ${error.message || "Unknown error"}`));
+        return;
+      }
+
+      // Schedule a retry with exponential backoff
+      const delay = Math.min(initialDelayMs * backoffFactor ** attempt, maxDelayMs);
+      attempt++;
+
+      cleanupEventSource();
+
+      retryTimeout = setTimeout(() => {
+        retryTimeout = null;
+        connect();
+      }, delay);
+    };
+
+    const openHandler = () => {
+      attempt = 0; // Reset retry counter on successful open
     };
 
     const abortHandler = () => {
@@ -119,19 +137,57 @@ export class WorkflowsClient {
       fail(new AbortError());
     };
 
+    const cleanupEventSource = () => {
+      if (eventSource) {
+        eventSource.removeEventListener(TaskEventType.COMPLETED, eventHandler);
+        eventSource.removeEventListener(TaskEventType.FAILED, eventHandler);
+        eventSource.removeEventListener(TaskEventType.CANCELED, eventHandler);
+        eventSource.removeEventListener("error", errorHandler);
+        eventSource.removeEventListener("open", openHandler);
+        eventSource.close();
+        eventSource = null;
+      }
+    };
+
     const cleanup = () => {
-      eventSource.removeEventListener(TaskEventType.COMPLETED, eventHandler);
-      eventSource.removeEventListener(TaskEventType.FAILED, eventHandler);
-      eventSource.removeEventListener(TaskEventType.CANCELED, eventHandler);
-      eventSource.removeEventListener("error", errorHandler);
-      eventSource.close();
+      if (retryTimeout) {
+        clearTimeout(retryTimeout);
+        retryTimeout = null;
+      }
+      cleanupEventSource();
       signal?.removeEventListener("abort", abortHandler);
     };
 
-    eventSource.addEventListener(TaskEventType.COMPLETED, eventHandler);
-    eventSource.addEventListener(TaskEventType.FAILED, eventHandler);
-    eventSource.addEventListener(TaskEventType.CANCELED, eventHandler);
-    eventSource.addEventListener("error", errorHandler);
+    const connect = () => {
+      cleanupEventSource();
+
+      if (signal?.aborted) {
+        fail(new AbortError());
+        return;
+      }
+
+      eventSource = new EventSource(url.toString(), {
+        fetch: (input, init) => {
+          const headers: Record<string, string> = {
+            ...(init?.headers as Record<string, string> | undefined),
+            "User-Agent": getUserAgent(),
+          };
+          if (token) {
+            headers.Authorization = `Bearer ${token}`;
+          }
+          return fetch(input, { ...init, headers });
+        },
+      });
+
+      eventSource.addEventListener(TaskEventType.COMPLETED, eventHandler);
+      eventSource.addEventListener(TaskEventType.FAILED, eventHandler);
+      eventSource.addEventListener(TaskEventType.CANCELED, eventHandler);
+      eventSource.addEventListener("error", errorHandler);
+      eventSource.addEventListener("open", openHandler);
+    };
+
+    // Start initial connection
+    connect();
     signal?.addEventListener("abort", abortHandler);
 
     try {
@@ -184,7 +240,7 @@ export class WorkflowsClient {
       });
 
       if (error) {
-        handleApiError(error, response, "Failed to run task");
+        throw getApiError(error, response, "Failed to run task");
       }
 
       return new TaskRunResult((id, sig) => this.waitOnTaskRun(id, sig), data.id, signal);
@@ -220,7 +276,7 @@ export class WorkflowsClient {
       params: { path: { taskRunId } },
     });
     if (error) {
-      handleApiError(error, response, "Failed to get task run");
+      throw getApiError(error, response, "Failed to get task run");
     }
     return data;
   }
@@ -234,7 +290,7 @@ export class WorkflowsClient {
       params: { path: { taskRunId } },
     });
     if (error) {
-      handleApiError(error, response, "Failed to cancel task run");
+      getApiError(error, response, "Failed to cancel task run");
     }
   }
 
@@ -249,7 +305,7 @@ export class WorkflowsClient {
       params: { query: params },
     });
     if (error) {
-      handleApiError(error, response, "Failed to list task runs");
+      throw getApiError(error, response, "Failed to list task runs");
     }
     return data;
   }
