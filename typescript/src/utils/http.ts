@@ -1,16 +1,16 @@
 import type { ErrorEvent } from "eventsource";
 import { ClientError, ServerError } from "../errors.js";
 
-export const getApiError = (error: any, response: Response, context: string): Error => {
+export const getApiError = (message: string, response: Response, context: string): Error => {
   const statusCode = response.status;
-  const errorMessage = `${context}: ${error}`;
+  const errorMessage = `${context}: ${message}`;
 
   if (statusCode >= 500) {
-    return new ServerError(errorMessage, statusCode, error);
+    return new ServerError(errorMessage, statusCode, message);
   } else if (statusCode >= 400) {
-    return new ClientError(errorMessage, statusCode, error);
+    return new ClientError(errorMessage, statusCode, message);
   }
-  return new ClientError(errorMessage, statusCode, error);
+  return new ClientError(errorMessage, statusCode, message);
 };
 
 /**
