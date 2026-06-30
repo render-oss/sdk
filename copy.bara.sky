@@ -17,6 +17,7 @@ DESTINATION_FILES_EXCLUDE = [
   "go/example/task/performance.go",
   ".github/CODEOWNERS",
   ".github/workflows/copybara-push.yaml",
+  ".github/workflows/typescript-canary.yml",
 ]
 
 DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"
