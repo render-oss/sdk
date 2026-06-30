@@ -240,7 +240,7 @@ export class WorkflowsClient {
       });
 
       if (error) {
-        throw getApiError(error, response, "Failed to run task");
+        throw getApiError(`${error.message} ${error.id}`, response, "Failed to run task");
       }
 
       return new TaskRunResult((id, sig) => this.waitOnTaskRun(id, sig), data.id, signal);
@@ -276,7 +276,7 @@ export class WorkflowsClient {
       params: { path: { taskRunId } },
     });
     if (error) {
-      throw getApiError(error, response, "Failed to get task run");
+      throw getApiError(`${error.message} ${error.id}`, response, "Failed to get task run");
     }
     return data;
   }
@@ -290,7 +290,7 @@ export class WorkflowsClient {
       params: { path: { taskRunId } },
     });
     if (error) {
-      getApiError(error, response, "Failed to cancel task run");
+      throw getApiError(`${error.message} ${error.id}`, response, "Failed to cancel task run");
     }
   }
 
@@ -305,7 +305,7 @@ export class WorkflowsClient {
       params: { query: params },
     });
     if (error) {
-      throw getApiError(error, response, "Failed to list task runs");
+      throw getApiError(`${error.message} ${error.id}`, response, "Failed to list task runs");
     }
     return data;
   }
