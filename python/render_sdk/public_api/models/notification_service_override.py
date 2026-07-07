@@ -48,7 +48,9 @@ class NotificationServiceOverride:
         d = dict(src_dict)
         service_id = d.pop("serviceId")
 
-        preview_notifications_enabled = NotifyPreviewOverride(d.pop("previewNotificationsEnabled"))
+        preview_notifications_enabled = NotifyPreviewOverride(
+            d.pop("previewNotificationsEnabled")
+        )
 
         notifications_to_send = NotifyOverride(d.pop("notificationsToSend"))
 

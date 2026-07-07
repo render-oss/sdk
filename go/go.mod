@@ -6,8 +6,8 @@ require (
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/oapi-codegen/runtime v1.1.1
-	github.com/stretchr/testify v1.8.4
+	github.com/oapi-codegen/runtime v1.2.0
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

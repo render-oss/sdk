@@ -46,7 +46,9 @@ class BackgroundWorkerDetailsPOST:
     autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
     disk: Union[Unset, "ServiceDisk"] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
-    env_specific_details: Union["DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset] = UNSET
+    env_specific_details: Union[
+        "DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset
+    ] = UNSET
     num_instances: Union[Unset, int] = 1
     plan: Union[Unset, PaidPlan] = UNSET
     pre_deploy_command: Union[Unset, str] = UNSET
@@ -139,7 +141,9 @@ class BackgroundWorkerDetailsPOST:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.autoscaling_config import AutoscalingConfig
         from ..models.docker_details_post import DockerDetailsPOST
-        from ..models.native_environment_details_post import NativeEnvironmentDetailsPOST
+        from ..models.native_environment_details_post import (
+            NativeEnvironmentDetailsPOST,
+        )
         from ..models.previews import Previews
         from ..models.service_disk import ServiceDisk
 
@@ -175,18 +179,24 @@ class BackgroundWorkerDetailsPOST:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_post_type_0 = DockerDetailsPOST.from_dict(data)
+                componentsschemasenv_specific_details_post_type_0 = (
+                    DockerDetailsPOST.from_dict(data)
+                )
 
                 return componentsschemasenv_specific_details_post_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_post_type_1 = NativeEnvironmentDetailsPOST.from_dict(data)
+            componentsschemasenv_specific_details_post_type_1 = (
+                NativeEnvironmentDetailsPOST.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_post_type_1
 
-        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
+        env_specific_details = _parse_env_specific_details(
+            d.pop("envSpecificDetails", UNSET)
+        )
 
         num_instances = d.pop("numInstances", UNSET)
 
@@ -204,7 +214,9 @@ class BackgroundWorkerDetailsPOST:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(
+                _pull_request_previews_enabled
+            )
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]

@@ -39,7 +39,9 @@ class WebhookPOSTInput:
 
         event_filter = []
         for componentsschemasevent_filter_item_data in self.event_filter:
-            componentsschemasevent_filter_item = componentsschemasevent_filter_item_data.value
+            componentsschemasevent_filter_item = (
+                componentsschemasevent_filter_item_data.value
+            )
             event_filter.append(componentsschemasevent_filter_item)
 
         field_dict: dict[str, Any] = {}
@@ -70,7 +72,9 @@ class WebhookPOSTInput:
         event_filter = []
         _event_filter = d.pop("eventFilter")
         for componentsschemasevent_filter_item_data in _event_filter:
-            componentsschemasevent_filter_item = EventType(componentsschemasevent_filter_item_data)
+            componentsschemasevent_filter_item = EventType(
+                componentsschemasevent_filter_item_data
+            )
 
             event_filter.append(componentsschemasevent_filter_item)
 

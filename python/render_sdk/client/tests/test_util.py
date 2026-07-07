@@ -283,10 +283,7 @@ class TestHandleStorageHttpError:
 
     def test_413_payload_too_large(self):
         """Verify 413 errors are handled with appropriate message."""
-        xml_error = (
-            '<?xml version="1.0"?><Error><Code>EntityTooLarge</Code>'
-            "<MaxSizeAllowed>5368709120</MaxSizeAllowed></Error>"
-        )
+        xml_error = '<?xml version="1.0"?><Error><Code>EntityTooLarge</Code><MaxSizeAllowed>5368709120</MaxSizeAllowed></Error>'
         response = httpx.Response(status_code=413, text=xml_error)
 
         with pytest.raises(ClientError) as exc_info:

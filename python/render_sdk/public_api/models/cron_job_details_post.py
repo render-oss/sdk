@@ -33,7 +33,9 @@ class CronJobDetailsPOST:
     runtime: ServiceRuntime
     schedule: str
     env: Union[Unset, ServiceEnv] = UNSET
-    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails", Unset] = UNSET
+    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails", Unset] = (
+        UNSET
+    )
     plan: Union[Unset, PaidPlan] = UNSET
     region: Union[Unset, Region] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -101,24 +103,32 @@ class CronJobDetailsPOST:
         else:
             env = ServiceEnv(_env)
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails", Unset]:
+        def _parse_env_specific_details(
+            data: object,
+        ) -> Union["DockerDetails", "NativeEnvironmentDetails", Unset]:
             if isinstance(data, Unset):
                 return data
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
+                    data
+                )
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
+            componentsschemasenv_specific_details_type_1 = (
+                NativeEnvironmentDetails.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_type_1
 
-        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
+        env_specific_details = _parse_env_specific_details(
+            d.pop("envSpecificDetails", UNSET)
+        )
 
         _plan = d.pop("plan", UNSET)
         plan: Union[Unset, PaidPlan]

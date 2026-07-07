@@ -18,6 +18,7 @@ class FailureReason:
     """
     Attributes:
         evicted (bool):
+        eviction_reason (Union[Unset, str]): Details about why the application was evicted.
         non_zero_exit (Union[Unset, int]): If present, the application exited with the specified non-zero status.
         early_exit (Union[Unset, bool]): If true, the application exited early. Services besides cron jobs should not
             exit unless receiving a `SIGTERM` signal from Render.
@@ -28,6 +29,7 @@ class FailureReason:
     """
 
     evicted: bool
+    eviction_reason: Union[Unset, str] = UNSET
     non_zero_exit: Union[Unset, int] = UNSET
     early_exit: Union[Unset, bool] = UNSET
     oom_killed: Union[Unset, "OomKilled"] = UNSET
@@ -38,6 +40,8 @@ class FailureReason:
 
     def to_dict(self) -> dict[str, Any]:
         evicted = self.evicted
+
+        eviction_reason = self.eviction_reason
 
         non_zero_exit = self.non_zero_exit
 
@@ -60,6 +64,8 @@ class FailureReason:
                 "evicted": evicted,
             }
         )
+        if eviction_reason is not UNSET:
+            field_dict["evictionReason"] = eviction_reason
         if non_zero_exit is not UNSET:
             field_dict["nonZeroExit"] = non_zero_exit
         if early_exit is not UNSET:
@@ -82,6 +88,8 @@ class FailureReason:
         d = dict(src_dict)
         evicted = d.pop("evicted")
 
+        eviction_reason = d.pop("evictionReason", UNSET)
+
         non_zero_exit = d.pop("nonZeroExit", UNSET)
 
         early_exit = d.pop("earlyExit", UNSET)
@@ -101,6 +109,7 @@ class FailureReason:
 
         failure_reason = cls(
             evicted=evicted,
+            eviction_reason=eviction_reason,
             non_zero_exit=non_zero_exit,
             early_exit=early_exit,
             oom_killed=oom_killed,

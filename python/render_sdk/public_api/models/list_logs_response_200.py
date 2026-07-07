@@ -18,7 +18,7 @@ class ListLogsResponse200:
     """A run of a cron job
 
     Attributes:
-        has_more (bool): Ture if there are more logs to fetch
+        has_more (bool): True if there are more logs to fetch
         next_start_time (datetime.datetime): The start time to use in the next query to fetch the next set of logs
             Example: 2021-07-15T07:20:05.777035-07:00.
         next_end_time (datetime.datetime): The end time to use in the next query to fetch the next set of logs Example:

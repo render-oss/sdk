@@ -1,54 +1,46 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SandboxError")
+from ..types import UNSET, Unset
+
+T = TypeVar("T", bound="AddOrUpdateArtifactSourceSecretFileBody")
 
 
 @_attrs_define
-class SandboxError:
+class AddOrUpdateArtifactSourceSecretFileBody:
     """
     Attributes:
-        code (str): Machine-readable error code. Example: setup-failed.
-        message (str): Human-readable description. For `setup-failed`, includes the failing command and stderr.
+        content (Union[Unset, str]):
     """
 
-    code: str
-    message: str
+    content: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        code = self.code
-
-        message = self.message
+        content = self.content
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "code": code,
-                "message": message,
-            }
-        )
+        field_dict.update({})
+        if content is not UNSET:
+            field_dict["content"] = content
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        code = d.pop("code")
+        content = d.pop("content", UNSET)
 
-        message = d.pop("message")
-
-        sandbox_error = cls(
-            code=code,
-            message=message,
+        add_or_update_artifact_source_secret_file_body = cls(
+            content=content,
         )
 
-        sandbox_error.additional_properties = d
-        return sandbox_error
+        add_or_update_artifact_source_secret_file_body.additional_properties = d
+        return add_or_update_artifact_source_secret_file_body
 
     @property
     def additional_keys(self) -> list[str]:

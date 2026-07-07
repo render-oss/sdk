@@ -5,6 +5,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.build_plan import BuildPlan
+from ..models.internal_routing import InternalRouting
 from ..models.plan import Plan
 from ..models.pull_request_previews_enabled import PullRequestPreviewsEnabled
 from ..models.region import Region
@@ -39,8 +40,9 @@ class WebServiceDetails:
         num_instances (int): For a *manually* scaled service, this is the number of instances the service is scaled to.
             DOES NOT indicate the number of running instances for an *autoscaled* service.
         open_ports (list['ServerPort']):
-        plan (Plan): The instance type to use. Note that base services on any paid instance type can't create preview
-            instances with the `free` instance type. Example: starter.
+        plan (Plan): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
+            offered for new services. Note that base services on any paid instance type can't create preview instances with
+            the `free` instance type. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         url (str):
@@ -51,6 +53,10 @@ class WebServiceDetails:
         ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
         maintenance_mode (Union[Unset, MaintenanceMode]):
         parent_server (Union[Unset, Resource]):
+        internal_routing (Union[Unset, InternalRouting]): How requests from other services in the same workspace are
+            routed to this service's instances. When unset, Render's standard routing is used. `ipOnly` routes requests
+            directly to individual instance IPs. Only available to workspaces that Render has granted access. Can only be
+            set when creating a service.
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.
         previews (Union[Unset, Previews]):
@@ -78,6 +84,7 @@ class WebServiceDetails:
     ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
     parent_server: Union[Unset, "Resource"] = UNSET
+    internal_routing: Union[Unset, InternalRouting] = UNSET
     pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
     previews: Union[Unset, "Previews"] = UNSET
     ssh_address: Union[Unset, str] = UNSET
@@ -142,6 +149,10 @@ class WebServiceDetails:
         if not isinstance(self.parent_server, Unset):
             parent_server = self.parent_server.to_dict()
 
+        internal_routing: Union[Unset, str] = UNSET
+        if not isinstance(self.internal_routing, Unset):
+            internal_routing = self.internal_routing.value
+
         pull_request_previews_enabled: Union[Unset, str] = UNSET
         if not isinstance(self.pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = self.pull_request_previews_enabled.value
@@ -186,6 +197,8 @@ class WebServiceDetails:
             field_dict["maintenanceMode"] = maintenance_mode
         if parent_server is not UNSET:
             field_dict["parentServer"] = parent_server
+        if internal_routing is not UNSET:
+            field_dict["internalRouting"] = internal_routing
         if pull_request_previews_enabled is not UNSET:
             field_dict["pullRequestPreviewsEnabled"] = pull_request_previews_enabled
         if previews is not UNSET:
@@ -215,18 +228,24 @@ class WebServiceDetails:
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(
+            data: object,
+        ) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
+                    data
+                )
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
+            componentsschemasenv_specific_details_type_1 = (
+                NativeEnvironmentDetails.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_type_1
 
@@ -277,7 +296,9 @@ class WebServiceDetails:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(
+                ip_allow_list_item_data
+            )
 
             ip_allow_list.append(ip_allow_list_item)
 
@@ -295,12 +316,21 @@ class WebServiceDetails:
         else:
             parent_server = Resource.from_dict(_parent_server)
 
+        _internal_routing = d.pop("internalRouting", UNSET)
+        internal_routing: Union[Unset, InternalRouting]
+        if isinstance(_internal_routing, Unset):
+            internal_routing = UNSET
+        else:
+            internal_routing = InternalRouting(_internal_routing)
+
         _pull_request_previews_enabled = d.pop("pullRequestPreviewsEnabled", UNSET)
         pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled]
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(
+                _pull_request_previews_enabled
+            )
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]
@@ -337,6 +367,7 @@ class WebServiceDetails:
             ip_allow_list=ip_allow_list,
             maintenance_mode=maintenance_mode,
             parent_server=parent_server,
+            internal_routing=internal_routing,
             pull_request_previews_enabled=pull_request_previews_enabled,
             previews=previews,
             ssh_address=ssh_address,

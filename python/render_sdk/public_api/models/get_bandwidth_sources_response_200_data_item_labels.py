@@ -21,7 +21,9 @@ class GetBandwidthSourcesResponse200DataItemLabels:
     """
 
     resource: Union[Unset, str] = UNSET
-    traffic_source: Union[Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource] = UNSET
+    traffic_source: Union[
+        Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource
+    ] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -47,11 +49,15 @@ class GetBandwidthSourcesResponse200DataItemLabels:
         resource = d.pop("resource", UNSET)
 
         _traffic_source = d.pop("trafficSource", UNSET)
-        traffic_source: Union[Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource]
+        traffic_source: Union[
+            Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource
+        ]
         if isinstance(_traffic_source, Unset):
             traffic_source = UNSET
         else:
-            traffic_source = GetBandwidthSourcesResponse200DataItemLabelsTrafficSource(_traffic_source)
+            traffic_source = GetBandwidthSourcesResponse200DataItemLabelsTrafficSource(
+                _traffic_source
+            )
 
         get_bandwidth_sources_response_200_data_item_labels = cls(
             resource=resource,

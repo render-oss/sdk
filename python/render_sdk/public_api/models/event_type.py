@@ -5,6 +5,8 @@ class EventType(str, Enum):
     AUTOSCALING_CONFIG_CHANGED = "autoscaling_config_changed"
     AUTOSCALING_ENDED = "autoscaling_ended"
     AUTOSCALING_STARTED = "autoscaling_started"
+    AUTO_DEPLOY_DISABLED = "auto_deploy_disabled"
+    AUTO_DEPLOY_ENABLED = "auto_deploy_enabled"
     BRANCH_DELETED = "branch_deleted"
     BUILD_ENDED = "build_ended"
     BUILD_STARTED = "build_started"
@@ -36,8 +38,12 @@ class EventType(str, Enum):
     POSTGRES_BACKUP_FAILED = "postgres_backup_failed"
     POSTGRES_BACKUP_STARTED = "postgres_backup_started"
     POSTGRES_CLUSTER_LEADER_CHANGED = "postgres_cluster_leader_changed"
+    POSTGRES_CONNECTION_POOL_CHANGED = "postgres_connection_pool_changed"
+    POSTGRES_CONNECTION_POOL_ENABLED_CHANGED = "postgres_connection_pool_enabled_changed"
     POSTGRES_CREATED = "postgres_created"
-    POSTGRES_DISK_AUTOSCALING_ENABLED_CHANGED = "postgres_disk_autoscaling_enabled_changed"
+    POSTGRES_DISK_AUTOSCALING_ENABLED_CHANGED = (
+        "postgres_disk_autoscaling_enabled_changed"
+    )
     POSTGRES_DISK_SIZE_CHANGED = "postgres_disk_size_changed"
     POSTGRES_HA_STATUS_CHANGED = "postgres_ha_status_changed"
     POSTGRES_PITR_CHECKPOINT_COMPLETED = "postgres_pitr_checkpoint_completed"

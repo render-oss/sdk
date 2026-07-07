@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class ResourceRefType(str, Enum):
+    ARTIFACT_SOURCE = "artifact_source"
     BACKGROUND_WORKER = "background_worker"
     CRON_JOB = "cron_job"
     ENVIRONMENT_GROUP = "environment_group"

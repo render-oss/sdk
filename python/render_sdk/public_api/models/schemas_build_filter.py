@@ -1,37 +1,38 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-from ..models.sandbox_network_policy_rule_action import SandboxNetworkPolicyRuleAction
-
-T = TypeVar("T", bound="SandboxNetworkPolicyRule")
+T = TypeVar("T", bound="SchemasBuildFilter")
 
 
 @_attrs_define
-class SandboxNetworkPolicyRule:
-    """
-    Attributes:
-        cidr (str): CIDR block to match outbound traffic against. Example: 198.51.100.0/24.
-        action (SandboxNetworkPolicyRuleAction):
+class SchemasBuildFilter:
+    """Glob patterns matched against files changed by a commit. When set, a commit only triggers a build when at least one
+    changed file matches `paths` and none match `ignoredPaths`. Useful for monorepos where a single repo backs many
+    services.
+
+        Attributes:
+            paths (list[str]):
+            ignored_paths (list[str]):
     """
 
-    cidr: str
-    action: SandboxNetworkPolicyRuleAction
+    paths: list[str]
+    ignored_paths: list[str]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        cidr = self.cidr
+        paths = self.paths
 
-        action = self.action.value
+        ignored_paths = self.ignored_paths
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "cidr": cidr,
-                "action": action,
+                "paths": paths,
+                "ignoredPaths": ignored_paths,
             }
         )
 
@@ -40,17 +41,17 @@ class SandboxNetworkPolicyRule:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        cidr = d.pop("cidr")
+        paths = cast(list[str], d.pop("paths"))
 
-        action = SandboxNetworkPolicyRuleAction(d.pop("action"))
+        ignored_paths = cast(list[str], d.pop("ignoredPaths"))
 
-        sandbox_network_policy_rule = cls(
-            cidr=cidr,
-            action=action,
+        schemas_build_filter = cls(
+            paths=paths,
+            ignored_paths=ignored_paths,
         )
 
-        sandbox_network_policy_rule.additional_properties = d
-        return sandbox_network_policy_rule
+        schemas_build_filter.additional_properties = d
+        return schemas_build_filter
 
     @property
     def additional_keys(self) -> list[str]:

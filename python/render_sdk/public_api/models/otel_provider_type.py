@@ -8,6 +8,7 @@ class OtelProviderType(str, Enum):
     GRAFANA = "GRAFANA"
     GROUNDCOVER = "GROUNDCOVER"
     HONEYCOMB = "HONEYCOMB"
+    LOGFIRE = "LOGFIRE"
     NEW_RELIC = "NEW_RELIC"
     SIGNOZ = "SIGNOZ"
 

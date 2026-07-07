@@ -28,7 +28,9 @@ def _parse_response(
         response_200 = []
         _response_200 = response.json()
         for componentsschemasteam_members_item_data in _response_200:
-            componentsschemasteam_members_item = TeamMember.from_dict(componentsschemasteam_members_item_data)
+            componentsschemasteam_members_item = TeamMember.from_dict(
+                componentsschemasteam_members_item_data
+            )
 
             response_200.append(componentsschemasteam_members_item)
 

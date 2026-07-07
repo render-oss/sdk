@@ -7,7 +7,9 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.notification_service_override import NotificationServiceOverride
-from ...models.notification_service_override_patch import NotificationServiceOverridePATCH
+from ...models.notification_service_override_patch import (
+    NotificationServiceOverridePATCH,
+)
 from ...types import Response
 
 

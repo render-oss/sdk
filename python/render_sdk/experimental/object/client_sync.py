@@ -61,8 +61,7 @@ class SyncObjectClient:
         resolved = owner_id or self._default_owner_id
         if not resolved:
             raise RenderError(
-                "owner_id is required. Provide it as a parameter or set the "
-                "RENDER_WORKSPACE_ID environment variable."
+                "owner_id is required. Provide it as a parameter or set the RENDER_WORKSPACE_ID environment variable."
             )
         return resolved
 
@@ -70,8 +69,7 @@ class SyncObjectClient:
         resolved = region or self._default_region
         if not resolved:
             raise RenderError(
-                "region is required. Provide it as a parameter or set the "
-                "RENDER_REGION environment variable."
+                "region is required. Provide it as a parameter or set the RENDER_REGION environment variable."
             )
         return resolved
 
@@ -145,8 +143,7 @@ class SyncObjectClient:
         # Validate size against server expectation
         if resolved_size != presigned.max_size_bytes:
             raise ClientError(
-                f"File size {resolved_size} bytes does not match expected "
-                f"size of {presigned.max_size_bytes} bytes"
+                f"File size {resolved_size} bytes does not match expected size of {presigned.max_size_bytes} bytes"
             )
 
         # Step 2: Upload to storage via presigned URL
@@ -392,8 +389,7 @@ class SyncObjectClient:
 
             if size is not None and size != actual_size:
                 raise RenderError(
-                    f"Size mismatch: provided size {size} does not match "
-                    f"actual size {actual_size}"
+                    f"Size mismatch: provided size {size} does not match actual size {actual_size}"
                 )
 
             return actual_size

@@ -1,8 +1,10 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
+
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="PostgresConnectionInfo")
 
@@ -15,12 +17,16 @@ class PostgresConnectionInfo:
         internal_connection_string (str):
         external_connection_string (str):
         psql_command (str):
+        internal_connection_pool_string (Union[Unset, str]):
+        external_connection_pool_string (Union[Unset, str]):
     """
 
     password: str
     internal_connection_string: str
     external_connection_string: str
     psql_command: str
+    internal_connection_pool_string: Union[Unset, str] = UNSET
+    external_connection_pool_string: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -32,6 +38,10 @@ class PostgresConnectionInfo:
 
         psql_command = self.psql_command
 
+        internal_connection_pool_string = self.internal_connection_pool_string
+
+        external_connection_pool_string = self.external_connection_pool_string
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -42,6 +52,10 @@ class PostgresConnectionInfo:
                 "psqlCommand": psql_command,
             }
         )
+        if internal_connection_pool_string is not UNSET:
+            field_dict["internalConnectionPoolString"] = internal_connection_pool_string
+        if external_connection_pool_string is not UNSET:
+            field_dict["externalConnectionPoolString"] = external_connection_pool_string
 
         return field_dict
 
@@ -56,11 +70,17 @@ class PostgresConnectionInfo:
 
         psql_command = d.pop("psqlCommand")
 
+        internal_connection_pool_string = d.pop("internalConnectionPoolString", UNSET)
+
+        external_connection_pool_string = d.pop("externalConnectionPoolString", UNSET)
+
         postgres_connection_info = cls(
             password=password,
             internal_connection_string=internal_connection_string,
             external_connection_string=external_connection_string,
             psql_command=psql_command,
+            internal_connection_pool_string=internal_connection_pool_string,
+            external_connection_pool_string=external_connection_pool_string,
         )
 
         postgres_connection_info.additional_properties = d
