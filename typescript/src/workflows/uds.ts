@@ -44,8 +44,12 @@ export class UDSClient {
       };
     }
 
-    if (error === undefined) {
-      throw new Error("Either results or error must be provided");
+    if (!error) {
+      return {
+        complete: {
+          output: "",
+        },
+      };
     }
 
     return {
