@@ -47,6 +47,7 @@ class Postgres:
         suspenders (list[SuspenderType]):
         dashboard_url (str): The URL to view the Postgres instance in the Render Dashboard
         disk_autoscaling_enabled (bool):
+        connection_pool (str): What connection pool to use (if any) out of 'pgbouncer' and 'none'
         expires_at (Union[Unset, datetime.datetime]): The time at which the database will be expire. Applies to free
             tier databases only.
         environment_id (Union[Unset, str]):
@@ -73,6 +74,7 @@ class Postgres:
     suspenders: list[SuspenderType]
     dashboard_url: str
     disk_autoscaling_enabled: bool
+    connection_pool: str
     expires_at: Union[Unset, datetime.datetime] = UNSET
     environment_id: Union[Unset, str] = UNSET
     disk_size_gb: Union[Unset, int] = UNSET
@@ -107,7 +109,9 @@ class Postgres:
 
         read_replicas = []
         for componentsschemasread_replicas_item_data in self.read_replicas:
-            componentsschemasread_replicas_item = componentsschemasread_replicas_item_data.to_dict()
+            componentsschemasread_replicas_item = (
+                componentsschemasread_replicas_item_data.to_dict()
+            )
             read_replicas.append(componentsschemasread_replicas_item)
 
         role = self.role.value
@@ -126,6 +130,8 @@ class Postgres:
         dashboard_url = self.dashboard_url
 
         disk_autoscaling_enabled = self.disk_autoscaling_enabled
+
+        connection_pool = self.connection_pool
 
         expires_at: Union[Unset, str] = UNSET
         if not isinstance(self.expires_at, Unset):
@@ -160,6 +166,7 @@ class Postgres:
                 "suspenders": suspenders,
                 "dashboardUrl": dashboard_url,
                 "diskAutoscalingEnabled": disk_autoscaling_enabled,
+                "connectionPool": connection_pool,
             }
         )
         if expires_at is not UNSET:
@@ -185,7 +192,9 @@ class Postgres:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList")
         for ip_allow_list_item_data in _ip_allow_list:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(
+                ip_allow_list_item_data
+            )
 
             ip_allow_list.append(ip_allow_list_item)
 
@@ -210,7 +219,9 @@ class Postgres:
         read_replicas = []
         _read_replicas = d.pop("readReplicas")
         for componentsschemasread_replicas_item_data in _read_replicas:
-            componentsschemasread_replicas_item = ReadReplica.from_dict(componentsschemasread_replicas_item_data)
+            componentsschemasread_replicas_item = ReadReplica.from_dict(
+                componentsschemasread_replicas_item_data
+            )
 
             read_replicas.append(componentsschemasread_replicas_item)
 
@@ -232,6 +243,8 @@ class Postgres:
         dashboard_url = d.pop("dashboardUrl")
 
         disk_autoscaling_enabled = d.pop("diskAutoscalingEnabled")
+
+        connection_pool = d.pop("connectionPool")
 
         _expires_at = d.pop("expiresAt", UNSET)
         expires_at: Union[Unset, datetime.datetime]
@@ -266,6 +279,7 @@ class Postgres:
             suspenders=suspenders,
             dashboard_url=dashboard_url,
             disk_autoscaling_enabled=disk_autoscaling_enabled,
+            connection_pool=connection_pool,
             expires_at=expires_at,
             environment_id=environment_id,
             disk_size_gb=disk_size_gb,

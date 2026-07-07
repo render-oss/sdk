@@ -34,8 +34,9 @@ class PrivateServiceDetails:
         num_instances (int): For a *manually* scaled service, this is the number of instances the service is scaled to.
             DOES NOT indicate the number of running instances for an *autoscaled* service.
         open_ports (list['ServerPort']):
-        plan (Plan): The instance type to use. Note that base services on any paid instance type can't create preview
-            instances with the `free` instance type. Example: starter.
+        plan (Plan): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
+            offered for new services. Note that base services on any paid instance type can't create preview instances with
+            the `free` instance type. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         url (str):
@@ -167,18 +168,24 @@ class PrivateServiceDetails:
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(
+            data: object,
+        ) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
+                    data
+                )
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
+            componentsschemasenv_specific_details_type_1 = (
+                NativeEnvironmentDetails.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_type_1
 
@@ -229,7 +236,9 @@ class PrivateServiceDetails:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(
+                _pull_request_previews_enabled
+            )
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]

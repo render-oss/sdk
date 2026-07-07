@@ -27,8 +27,9 @@ class CronJobDetails:
     Attributes:
         env (ServiceEnv): This field has been deprecated, runtime should be used in its place.
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails']):
-        plan (Plan): The instance type to use. Note that base services on any paid instance type can't create preview
-            instances with the `free` instance type. Example: starter.
+        plan (Plan): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
+            offered for new services. Note that base services on any paid instance type can't create preview instances with
+            the `free` instance type. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         schedule (str):
@@ -97,18 +98,24 @@ class CronJobDetails:
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(
+            data: object,
+        ) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
+                    data
+                )
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
+            componentsschemasenv_specific_details_type_1 = (
+                NativeEnvironmentDetails.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_type_1
 

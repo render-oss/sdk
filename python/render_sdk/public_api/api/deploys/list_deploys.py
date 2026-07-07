@@ -88,7 +88,9 @@ def _parse_response(
         response_200 = []
         _response_200 = response.json()
         for componentsschemasdeploy_list_item_data in _response_200:
-            componentsschemasdeploy_list_item = DeployWithCursor.from_dict(componentsschemasdeploy_list_item_data)
+            componentsschemasdeploy_list_item = DeployWithCursor.from_dict(
+                componentsschemasdeploy_list_item_data
+            )
 
             response_200.append(componentsschemasdeploy_list_item)
 

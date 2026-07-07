@@ -6,6 +6,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.auto_deploy_trigger import AutoDeployTrigger
 from ..models.region import Region
 from ..types import UNSET, Unset
 
@@ -30,6 +31,9 @@ class Workflow:
         region (Region): Defaults to "oregon"
         environment_id (Union[Unset, str]):
         slug (Union[Unset, str]):
+        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
+            commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
+            autodeploy.
     """
 
     id: str
@@ -42,6 +46,7 @@ class Workflow:
     region: Region
     environment_id: Union[Unset, str] = UNSET
     slug: Union[Unset, str] = UNSET
+    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,6 +70,10 @@ class Workflow:
 
         slug = self.slug
 
+        auto_deploy_trigger: Union[Unset, str] = UNSET
+        if not isinstance(self.auto_deploy_trigger, Unset):
+            auto_deploy_trigger = self.auto_deploy_trigger.value
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -83,6 +92,8 @@ class Workflow:
             field_dict["environmentId"] = environment_id
         if slug is not UNSET:
             field_dict["slug"] = slug
+        if auto_deploy_trigger is not UNSET:
+            field_dict["autoDeployTrigger"] = auto_deploy_trigger
 
         return field_dict
 
@@ -111,6 +122,13 @@ class Workflow:
 
         slug = d.pop("slug", UNSET)
 
+        _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
+        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        if isinstance(_auto_deploy_trigger, Unset):
+            auto_deploy_trigger = UNSET
+        else:
+            auto_deploy_trigger = AutoDeployTrigger(_auto_deploy_trigger)
+
         workflow = cls(
             id=id,
             name=name,
@@ -122,6 +140,7 @@ class Workflow:
             region=region,
             environment_id=environment_id,
             slug=slug,
+            auto_deploy_trigger=auto_deploy_trigger,
         )
 
         workflow.additional_properties = d

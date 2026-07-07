@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class CreateSandboxAccept(str, Enum):
+class StreamSandboxLogsAccept(str, Enum):
     TEXTEVENT_STREAM = "text/event-stream"
 
     def __str__(self) -> str:

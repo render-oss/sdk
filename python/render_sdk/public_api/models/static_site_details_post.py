@@ -128,7 +128,9 @@ class StaticSiteDetailsPOST:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(
+                _pull_request_previews_enabled
+            )
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]
@@ -154,7 +156,9 @@ class StaticSiteDetailsPOST:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(
+                ip_allow_list_item_data
+            )
 
             ip_allow_list.append(ip_allow_list_item)
 

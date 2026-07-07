@@ -7,7 +7,9 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.filter_application_values_collection_item import FilterApplicationValuesCollectionItem
+from ...models.filter_application_values_collection_item import (
+    FilterApplicationValuesCollectionItem,
+)
 from ...types import UNSET, Response, Unset
 
 
@@ -54,14 +56,18 @@ def _parse_response(
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
-        for componentsschemasfilter_application_values_collection_item_data in _response_200:
+        for (
+            componentsschemasfilter_application_values_collection_item_data
+        ) in _response_200:
             componentsschemasfilter_application_values_collection_item = (
                 FilterApplicationValuesCollectionItem.from_dict(
                     componentsschemasfilter_application_values_collection_item_data
                 )
             )
 
-            response_200.append(componentsschemasfilter_application_values_collection_item)
+            response_200.append(
+                componentsschemasfilter_application_values_collection_item
+            )
 
         return response_200
 

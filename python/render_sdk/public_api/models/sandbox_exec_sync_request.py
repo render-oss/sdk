@@ -4,37 +4,53 @@ from typing import Any, TypeVar
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SandboxPOSTFiles")
+T = TypeVar("T", bound="SandboxExecSyncRequest")
 
 
 @_attrs_define
-class SandboxPOSTFiles:
-    """Seed files. Keys are absolute paths, values are file contents. Written after `setup` completes."""
+class SandboxExecSyncRequest:
+    """Body of the synchronous exec endpoint.
 
-    additional_properties: dict[str, str] = _attrs_field(init=False, factory=dict)
+    Attributes:
+        command (str): Bash command to run. Passed to `bash -c` in the sandbox. Example: echo hello.
+    """
+
+    command: str
+    additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        command = self.command
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
+        field_dict.update(
+            {
+                "command": command,
+            }
+        )
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        sandbox_post_files = cls()
+        command = d.pop("command")
 
-        sandbox_post_files.additional_properties = d
-        return sandbox_post_files
+        sandbox_exec_sync_request = cls(
+            command=command,
+        )
+
+        sandbox_exec_sync_request.additional_properties = d
+        return sandbox_exec_sync_request
 
     @property
     def additional_keys(self) -> list[str]:
         return list(self.additional_properties.keys())
 
-    def __getitem__(self, key: str) -> str:
+    def __getitem__(self, key: str) -> Any:
         return self.additional_properties[key]
 
-    def __setitem__(self, key: str, value: str) -> None:
+    def __setitem__(self, key: str, value: Any) -> None:
         self.additional_properties[key] = value
 
     def __delitem__(self, key: str) -> None:

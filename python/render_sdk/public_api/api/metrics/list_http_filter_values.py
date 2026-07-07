@@ -61,8 +61,10 @@ def _parse_response(
         response_200 = []
         _response_200 = response.json()
         for componentsschemasfilter_http_values_collection_item_data in _response_200:
-            componentsschemasfilter_http_values_collection_item = FilterHTTPValuesCollectionItem.from_dict(
-                componentsschemasfilter_http_values_collection_item_data
+            componentsschemasfilter_http_values_collection_item = (
+                FilterHTTPValuesCollectionItem.from_dict(
+                    componentsschemasfilter_http_values_collection_item_data
+                )
             )
 
             response_200.append(componentsschemasfilter_http_values_collection_item)

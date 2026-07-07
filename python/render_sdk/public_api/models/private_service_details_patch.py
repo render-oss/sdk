@@ -33,7 +33,9 @@ class PrivateServiceDetailsPATCH:
             your application process to exit gracefully after sending it a SIGTERM signal.
     """
 
-    env_specific_details: Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset] = UNSET
+    env_specific_details: Union[
+        "DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset
+    ] = UNSET
     plan: Union[Unset, PaidPlan] = UNSET
     pre_deploy_command: Union[Unset, str] = UNSET
     pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
@@ -96,7 +98,9 @@ class PrivateServiceDetailsPATCH:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.docker_details_patch import DockerDetailsPATCH
-        from ..models.native_environment_details_patch import NativeEnvironmentDetailsPATCH
+        from ..models.native_environment_details_patch import (
+            NativeEnvironmentDetailsPATCH,
+        )
         from ..models.previews import Previews
 
         d = dict(src_dict)
@@ -109,18 +113,24 @@ class PrivateServiceDetailsPATCH:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_patch_type_0 = DockerDetailsPATCH.from_dict(data)
+                componentsschemasenv_specific_details_patch_type_0 = (
+                    DockerDetailsPATCH.from_dict(data)
+                )
 
                 return componentsschemasenv_specific_details_patch_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_patch_type_1 = NativeEnvironmentDetailsPATCH.from_dict(data)
+            componentsschemasenv_specific_details_patch_type_1 = (
+                NativeEnvironmentDetailsPATCH.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_patch_type_1
 
-        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
+        env_specific_details = _parse_env_specific_details(
+            d.pop("envSpecificDetails", UNSET)
+        )
 
         _plan = d.pop("plan", UNSET)
         plan: Union[Unset, PaidPlan]
@@ -136,7 +146,9 @@ class PrivateServiceDetailsPATCH:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(
+                _pull_request_previews_enabled
+            )
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]

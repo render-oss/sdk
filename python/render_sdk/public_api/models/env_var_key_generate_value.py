@@ -12,7 +12,8 @@ class EnvVarKeyGenerateValue:
     """
     Attributes:
         key (str):
-        generate_value (bool):
+        generate_value (bool): If true, Render generates a strong random value for this environment variable on
+            creation. Cannot be combined with `value`.
     """
 
     key: str

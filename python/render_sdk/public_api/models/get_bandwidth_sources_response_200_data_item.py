@@ -27,7 +27,9 @@ class GetBandwidthSourcesResponse200DataItem:
     """
 
     labels: Union[Unset, "GetBandwidthSourcesResponse200DataItemLabels"] = UNSET
-    values: Union[Unset, list["GetBandwidthSourcesResponse200DataItemValuesItem"]] = UNSET
+    values: Union[Unset, list["GetBandwidthSourcesResponse200DataItemValuesItem"]] = (
+        UNSET
+    )
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -72,7 +74,9 @@ class GetBandwidthSourcesResponse200DataItem:
         values = []
         _values = d.pop("values", UNSET)
         for values_item_data in _values or []:
-            values_item = GetBandwidthSourcesResponse200DataItemValuesItem.from_dict(values_item_data)
+            values_item = GetBandwidthSourcesResponse200DataItemValuesItem.from_dict(
+                values_item_data
+            )
 
             values.append(values_item)
 

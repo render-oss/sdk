@@ -98,8 +98,7 @@ class KeyValueProvider:
             import redis.asyncio as redis_asyncio
         except ImportError as exc:
             raise ImportError(
-                "redis-py is required for new_client(). "
-                "Install it with: pip install redis"
+                "redis-py is required for new_client(). Install it with: pip install redis"
             ) from exc
 
         url = await self._load_connection_string(options)
@@ -238,8 +237,7 @@ class KeyValueProvider:
                 raise RenderError(
                     _format_error_message(
                         "The requested Key Value instance is not available.",
-                        "Please view the Key Value on dashboard.render.com to verify "
-                        "its status.",
+                        "Please view the Key Value on dashboard.render.com to verify its status.",
                     )
                 )
 
@@ -248,8 +246,7 @@ class KeyValueProvider:
         raise RenderError(
             _format_error_message(
                 "Timed out waiting for instance to become available.",
-                "Please check the Key Value on dashboard.render.com to make sure it is "
-                "ready, then try again.",
+                "Please check the Key Value on dashboard.render.com to make sure it is ready, then try again.",
             )
         )
 
@@ -257,8 +254,7 @@ class KeyValueProvider:
         resolved = owner_id or self._default_owner_id
         if not resolved:
             raise RenderError(
-                "owner_id is required. Provide it as a parameter or set the "
-                "RENDER_WORKSPACE_ID environment variable."
+                "owner_id is required. Provide it as a parameter or set the RENDER_WORKSPACE_ID environment variable."
             )
         return resolved
 

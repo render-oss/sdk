@@ -50,7 +50,9 @@ class NotificationServiceOverridePATCH:
         if isinstance(_preview_notifications_enabled, Unset):
             preview_notifications_enabled = UNSET
         else:
-            preview_notifications_enabled = NotifyPreviewOverride(_preview_notifications_enabled)
+            preview_notifications_enabled = NotifyPreviewOverride(
+                _preview_notifications_enabled
+            )
 
         _notifications_to_send = d.pop("notificationsToSend", UNSET)
         notifications_to_send: Union[Unset, NotifyOverride]

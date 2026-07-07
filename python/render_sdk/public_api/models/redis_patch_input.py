@@ -5,6 +5,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.maxmemory_policy import MaxmemoryPolicy
+from ..models.persistence_mode import PersistenceMode
 from ..models.redis_plan import RedisPlan
 from ..types import UNSET, Unset
 
@@ -23,12 +24,16 @@ class RedisPATCHInput:
         name (Union[Unset, str]): The name of the Redis instance
         plan (Union[Unset, RedisPlan]):
         maxmemory_policy (Union[Unset, MaxmemoryPolicy]): The eviction policy for the Key Value instance
+        persistence_mode (Union[Unset, PersistenceMode]): The persistence mode for the Key Value instance. The default
+            for paid instances is journal_snapshot (both journaling and snapshots). Only turn off persistence if you're
+            using this Key Value instance as a cache and are okay with losing data. Free instances do not have persistence.
         ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
     """
 
     name: Union[Unset, str] = UNSET
     plan: Union[Unset, RedisPlan] = UNSET
     maxmemory_policy: Union[Unset, MaxmemoryPolicy] = UNSET
+    persistence_mode: Union[Unset, PersistenceMode] = UNSET
     ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -42,6 +47,10 @@ class RedisPATCHInput:
         maxmemory_policy: Union[Unset, str] = UNSET
         if not isinstance(self.maxmemory_policy, Unset):
             maxmemory_policy = self.maxmemory_policy.value
+
+        persistence_mode: Union[Unset, str] = UNSET
+        if not isinstance(self.persistence_mode, Unset):
+            persistence_mode = self.persistence_mode.value
 
         ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
         if not isinstance(self.ip_allow_list, Unset):
@@ -59,6 +68,8 @@ class RedisPATCHInput:
             field_dict["plan"] = plan
         if maxmemory_policy is not UNSET:
             field_dict["maxmemoryPolicy"] = maxmemory_policy
+        if persistence_mode is not UNSET:
+            field_dict["persistenceMode"] = persistence_mode
         if ip_allow_list is not UNSET:
             field_dict["ipAllowList"] = ip_allow_list
 
@@ -85,10 +96,19 @@ class RedisPATCHInput:
         else:
             maxmemory_policy = MaxmemoryPolicy(_maxmemory_policy)
 
+        _persistence_mode = d.pop("persistenceMode", UNSET)
+        persistence_mode: Union[Unset, PersistenceMode]
+        if isinstance(_persistence_mode, Unset):
+            persistence_mode = UNSET
+        else:
+            persistence_mode = PersistenceMode(_persistence_mode)
+
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(
+                ip_allow_list_item_data
+            )
 
             ip_allow_list.append(ip_allow_list_item)
 
@@ -96,6 +116,7 @@ class RedisPATCHInput:
             name=name,
             plan=plan,
             maxmemory_policy=maxmemory_policy,
+            persistence_mode=persistence_mode,
             ip_allow_list=ip_allow_list,
         )
 

@@ -57,7 +57,9 @@ class ServicePATCH:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH
+        from ..models.background_worker_details_patch import (
+            BackgroundWorkerDetailsPATCH,
+        )
         from ..models.private_service_details_patch import PrivateServiceDetailsPATCH
         from ..models.static_site_details_patch import StaticSiteDetailsPATCH
         from ..models.web_service_details_patch import WebServiceDetailsPATCH
@@ -126,7 +128,9 @@ class ServicePATCH:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH
+        from ..models.background_worker_details_patch import (
+            BackgroundWorkerDetailsPATCH,
+        )
         from ..models.build_filter import BuildFilter
         from ..models.cron_job_details_patch import CronJobDetailsPATCH
         from ..models.image import Image

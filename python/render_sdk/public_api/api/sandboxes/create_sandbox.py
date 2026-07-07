@@ -1,29 +1,21 @@
 from http import HTTPStatus
 from typing import Any, Optional, Union
-from uuid import UUID
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.create_sandbox_accept import CreateSandboxAccept
 from ...models.error import Error
+from ...models.sandbox import Sandbox
 from ...models.sandbox_post import SandboxPOST
-from ...types import UNSET, Response, Unset
+from ...types import Response
 
 
 def _get_kwargs(
     *,
     body: SandboxPOST,
-    idempotency_key: Union[Unset, UUID] = UNSET,
-    accept: Union[Unset, CreateSandboxAccept] = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
-    if not isinstance(idempotency_key, Unset):
-        headers["Idempotency-Key"] = idempotency_key
-
-    if not isinstance(accept, Unset):
-        headers["Accept"] = str(accept)
 
     _kwargs: dict[str, Any] = {
         "method": "post",
@@ -40,10 +32,11 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, str]]:
-    if response.status_code == 200:
-        response_200 = response.text
-        return response_200
+) -> Optional[Union[Error, Sandbox]]:
+    if response.status_code == 201:
+        response_201 = Sandbox.from_dict(response.json())
+
+        return response_201
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -83,7 +76,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, str]]:
+) -> Response[Union[Error, Sandbox]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -96,23 +89,12 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxPOST,
-    idempotency_key: Union[Unset, UUID] = UNSET,
-    accept: Union[Unset, CreateSandboxAccept] = UNSET,
-) -> Response[Union[Error, str]]:
+) -> Response[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Responds with a server-sent event stream that stays open for the
-    sandbox's lifetime. The stream emits `status` events on every state transition and
-    `warning` advisories before termination. The stream closes when the sandbox reaches
-    `terminated` or `errored`.
-
-    Supply an `Idempotency-Key` header (UUID v4 recommended) to safely retry on network
-    error. A duplicate key within the retry window returns the existing sandbox's SSE
-    stream, replaying events from the current state.
+     Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
     Args:
-        idempotency_key (Union[Unset, UUID]):
-        accept (Union[Unset, CreateSandboxAccept]):
         body (SandboxPOST):
 
     Raises:
@@ -120,13 +102,11 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, str]]
+        Response[Union[Error, Sandbox]]
     """
 
     kwargs = _get_kwargs(
         body=body,
-        idempotency_key=idempotency_key,
-        accept=accept,
     )
 
     response = client.get_httpx_client().request(
@@ -140,23 +120,12 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxPOST,
-    idempotency_key: Union[Unset, UUID] = UNSET,
-    accept: Union[Unset, CreateSandboxAccept] = UNSET,
-) -> Optional[Union[Error, str]]:
+) -> Optional[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Responds with a server-sent event stream that stays open for the
-    sandbox's lifetime. The stream emits `status` events on every state transition and
-    `warning` advisories before termination. The stream closes when the sandbox reaches
-    `terminated` or `errored`.
-
-    Supply an `Idempotency-Key` header (UUID v4 recommended) to safely retry on network
-    error. A duplicate key within the retry window returns the existing sandbox's SSE
-    stream, replaying events from the current state.
+     Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
     Args:
-        idempotency_key (Union[Unset, UUID]):
-        accept (Union[Unset, CreateSandboxAccept]):
         body (SandboxPOST):
 
     Raises:
@@ -164,14 +133,12 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, str]
+        Union[Error, Sandbox]
     """
 
     return sync_detailed(
         client=client,
         body=body,
-        idempotency_key=idempotency_key,
-        accept=accept,
     ).parsed
 
 
@@ -179,23 +146,12 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxPOST,
-    idempotency_key: Union[Unset, UUID] = UNSET,
-    accept: Union[Unset, CreateSandboxAccept] = UNSET,
-) -> Response[Union[Error, str]]:
+) -> Response[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Responds with a server-sent event stream that stays open for the
-    sandbox's lifetime. The stream emits `status` events on every state transition and
-    `warning` advisories before termination. The stream closes when the sandbox reaches
-    `terminated` or `errored`.
-
-    Supply an `Idempotency-Key` header (UUID v4 recommended) to safely retry on network
-    error. A duplicate key within the retry window returns the existing sandbox's SSE
-    stream, replaying events from the current state.
+     Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
     Args:
-        idempotency_key (Union[Unset, UUID]):
-        accept (Union[Unset, CreateSandboxAccept]):
         body (SandboxPOST):
 
     Raises:
@@ -203,13 +159,11 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, str]]
+        Response[Union[Error, Sandbox]]
     """
 
     kwargs = _get_kwargs(
         body=body,
-        idempotency_key=idempotency_key,
-        accept=accept,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -221,23 +175,12 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxPOST,
-    idempotency_key: Union[Unset, UUID] = UNSET,
-    accept: Union[Unset, CreateSandboxAccept] = UNSET,
-) -> Optional[Union[Error, str]]:
+) -> Optional[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Responds with a server-sent event stream that stays open for the
-    sandbox's lifetime. The stream emits `status` events on every state transition and
-    `warning` advisories before termination. The stream closes when the sandbox reaches
-    `terminated` or `errored`.
-
-    Supply an `Idempotency-Key` header (UUID v4 recommended) to safely retry on network
-    error. A duplicate key within the retry window returns the existing sandbox's SSE
-    stream, replaying events from the current state.
+     Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
     Args:
-        idempotency_key (Union[Unset, UUID]):
-        accept (Union[Unset, CreateSandboxAccept]):
         body (SandboxPOST):
 
     Raises:
@@ -245,14 +188,12 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, str]
+        Union[Error, Sandbox]
     """
 
     return (
         await asyncio_detailed(
             client=client,
             body=body,
-            idempotency_key=idempotency_key,
-            accept=accept,
         )
     ).parsed

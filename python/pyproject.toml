@@ -88,4 +88,6 @@ exclude = ["render_sdk/public_api/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
+# Line length: Black/ruff-format often keep long string literals on one line.
+ignore = ["E501"]
 per-file-ignores = { "*test_*.py" = ["S101", "S106"] }

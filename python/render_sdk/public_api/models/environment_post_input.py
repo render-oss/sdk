@@ -90,7 +90,9 @@ class EnvironmentPOSTInput:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(
+                ip_allow_list_item_data
+            )
 
             ip_allow_list.append(ip_allow_list_item)
 

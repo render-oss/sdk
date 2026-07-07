@@ -7,7 +7,9 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.get_task_runs_completed_aggregate_by import GetTaskRunsCompletedAggregateBy
+from ...models.get_task_runs_completed_aggregate_by import (
+    GetTaskRunsCompletedAggregateBy,
+)
 from ...models.get_task_runs_completed_state import GetTaskRunsCompletedState
 from ...models.time_series import TimeSeries
 from ...types import UNSET, Response, Unset

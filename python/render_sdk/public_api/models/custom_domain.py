@@ -93,7 +93,9 @@ class CustomDomain:
 
         redirect_for_name = d.pop("redirectForName")
 
-        verification_status = CustomDomainVerificationStatus(d.pop("verificationStatus"))
+        verification_status = CustomDomainVerificationStatus(
+            d.pop("verificationStatus")
+        )
 
         created_at = isoparse(d.pop("createdAt"))
 

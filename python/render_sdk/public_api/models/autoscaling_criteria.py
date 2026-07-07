@@ -41,7 +41,9 @@ class AutoscalingCriteria:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.autoscaling_criteria_percentage import AutoscalingCriteriaPercentage
+        from ..models.autoscaling_criteria_percentage import (
+            AutoscalingCriteriaPercentage,
+        )
 
         d = dict(src_dict)
         cpu = AutoscalingCriteriaPercentage.from_dict(d.pop("cpu"))

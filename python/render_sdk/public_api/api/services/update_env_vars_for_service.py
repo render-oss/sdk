@@ -28,9 +28,13 @@ def _get_kwargs(
     for componentsschemasenv_var_input_array_item_data in body:
         componentsschemasenv_var_input_array_item: dict[str, Any]
         if isinstance(componentsschemasenv_var_input_array_item_data, EnvVarKeyValue):
-            componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+            componentsschemasenv_var_input_array_item = (
+                componentsschemasenv_var_input_array_item_data.to_dict()
+            )
         else:
-            componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+            componentsschemasenv_var_input_array_item = (
+                componentsschemasenv_var_input_array_item_data.to_dict()
+            )
 
         _kwargs["json"].append(componentsschemasenv_var_input_array_item)
 

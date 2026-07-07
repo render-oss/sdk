@@ -26,7 +26,9 @@ class CronJobDetailsPATCH:
         runtime (Union[Unset, ServiceRuntime]): Runtime
     """
 
-    env_specific_details: Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset] = UNSET
+    env_specific_details: Union[
+        "DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset
+    ] = UNSET
     plan: Union[Unset, PaidPlan] = UNSET
     schedule: Union[Unset, str] = UNSET
     runtime: Union[Unset, ServiceRuntime] = UNSET
@@ -70,7 +72,9 @@ class CronJobDetailsPATCH:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.docker_details_patch import DockerDetailsPATCH
-        from ..models.native_environment_details_patch import NativeEnvironmentDetailsPATCH
+        from ..models.native_environment_details_patch import (
+            NativeEnvironmentDetailsPATCH,
+        )
 
         d = dict(src_dict)
 
@@ -82,18 +86,24 @@ class CronJobDetailsPATCH:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_patch_type_0 = DockerDetailsPATCH.from_dict(data)
+                componentsschemasenv_specific_details_patch_type_0 = (
+                    DockerDetailsPATCH.from_dict(data)
+                )
 
                 return componentsschemasenv_specific_details_patch_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_patch_type_1 = NativeEnvironmentDetailsPATCH.from_dict(data)
+            componentsschemasenv_specific_details_patch_type_1 = (
+                NativeEnvironmentDetailsPATCH.from_dict(data)
+            )
 
             return componentsschemasenv_specific_details_patch_type_1
 
-        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
+        env_specific_details = _parse_env_specific_details(
+            d.pop("envSpecificDetails", UNSET)
+        )
 
         _plan = d.pop("plan", UNSET)
         plan: Union[Unset, PaidPlan]

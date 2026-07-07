@@ -9,7 +9,9 @@ from ...client import AuthenticatedClient, Client
 from ...models.custom_domain_with_cursor import CustomDomainWithCursor
 from ...models.error import Error
 from ...models.list_custom_domains_domain_type import ListCustomDomainsDomainType
-from ...models.list_custom_domains_verification_status import ListCustomDomainsVerificationStatus
+from ...models.list_custom_domains_verification_status import (
+    ListCustomDomainsVerificationStatus,
+)
 from ...types import UNSET, Response, Unset
 
 

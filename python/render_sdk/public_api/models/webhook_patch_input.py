@@ -38,7 +38,9 @@ class WebhookPATCHInput:
         if not isinstance(self.event_filter, Unset):
             event_filter = []
             for componentsschemasevent_filter_item_data in self.event_filter:
-                componentsschemasevent_filter_item = componentsschemasevent_filter_item_data.value
+                componentsschemasevent_filter_item = (
+                    componentsschemasevent_filter_item_data.value
+                )
                 event_filter.append(componentsschemasevent_filter_item)
 
         field_dict: dict[str, Any] = {}
@@ -67,7 +69,9 @@ class WebhookPATCHInput:
         event_filter = []
         _event_filter = d.pop("eventFilter", UNSET)
         for componentsschemasevent_filter_item_data in _event_filter or []:
-            componentsschemasevent_filter_item = EventType(componentsschemasevent_filter_item_data)
+            componentsschemasevent_filter_item = EventType(
+                componentsschemasevent_filter_item_data
+            )
 
             event_filter.append(componentsschemasevent_filter_item)
 

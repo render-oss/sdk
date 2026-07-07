@@ -45,10 +45,16 @@ class EnvGroupPOSTInput:
         env_vars = []
         for componentsschemasenv_var_input_array_item_data in self.env_vars:
             componentsschemasenv_var_input_array_item: dict[str, Any]
-            if isinstance(componentsschemasenv_var_input_array_item_data, EnvVarKeyValue):
-                componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+            if isinstance(
+                componentsschemasenv_var_input_array_item_data, EnvVarKeyValue
+            ):
+                componentsschemasenv_var_input_array_item = (
+                    componentsschemasenv_var_input_array_item_data.to_dict()
+                )
             else:
-                componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+                componentsschemasenv_var_input_array_item = (
+                    componentsschemasenv_var_input_array_item_data.to_dict()
+                )
 
             env_vars.append(componentsschemasenv_var_input_array_item)
 
@@ -104,19 +110,25 @@ class EnvGroupPOSTInput:
                 try:
                     if not isinstance(data, dict):
                         raise TypeError()
-                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(
+                        data
+                    )
 
                     return componentsschemasenv_var_input_type_0
                 except:  # noqa: E722
                     pass
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
+                componentsschemasenv_var_input_type_1 = (
+                    EnvVarKeyGenerateValue.from_dict(data)
+                )
 
                 return componentsschemasenv_var_input_type_1
 
-            componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
-                componentsschemasenv_var_input_array_item_data
+            componentsschemasenv_var_input_array_item = (
+                _parse_componentsschemasenv_var_input_array_item(
+                    componentsschemasenv_var_input_array_item_data
+                )
             )
 
             env_vars.append(componentsschemasenv_var_input_array_item)

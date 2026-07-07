@@ -61,7 +61,9 @@ class ServicePOST:
     image: Union[Unset, "Image"] = UNSET
     build_filter: Union[Unset, "BuildFilter"] = UNSET
     root_dir: Union[Unset, str] = UNSET
-    env_vars: Union[Unset, list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]]] = UNSET
+    env_vars: Union[Unset, list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]]] = (
+        UNSET
+    )
     secret_files: Union[Unset, list["SecretFileInput"]] = UNSET
     environment_id: Union[Unset, str] = UNSET
     service_details: Union[
@@ -114,10 +116,16 @@ class ServicePOST:
             env_vars = []
             for componentsschemasenv_var_input_array_item_data in self.env_vars:
                 componentsschemasenv_var_input_array_item: dict[str, Any]
-                if isinstance(componentsschemasenv_var_input_array_item_data, EnvVarKeyValue):
-                    componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+                if isinstance(
+                    componentsschemasenv_var_input_array_item_data, EnvVarKeyValue
+                ):
+                    componentsschemasenv_var_input_array_item = (
+                        componentsschemasenv_var_input_array_item_data.to_dict()
+                    )
                 else:
-                    componentsschemasenv_var_input_array_item = componentsschemasenv_var_input_array_item_data.to_dict()
+                    componentsschemasenv_var_input_array_item = (
+                        componentsschemasenv_var_input_array_item_data.to_dict()
+                    )
 
                 env_vars.append(componentsschemasenv_var_input_array_item)
 
@@ -242,19 +250,25 @@ class ServicePOST:
                 try:
                     if not isinstance(data, dict):
                         raise TypeError()
-                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(
+                        data
+                    )
 
                     return componentsschemasenv_var_input_type_0
                 except:  # noqa: E722
                     pass
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
+                componentsschemasenv_var_input_type_1 = (
+                    EnvVarKeyGenerateValue.from_dict(data)
+                )
 
                 return componentsschemasenv_var_input_type_1
 
-            componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
-                componentsschemasenv_var_input_array_item_data
+            componentsschemasenv_var_input_array_item = (
+                _parse_componentsschemasenv_var_input_array_item(
+                    componentsschemasenv_var_input_array_item_data
+                )
             )
 
             env_vars.append(componentsschemasenv_var_input_array_item)

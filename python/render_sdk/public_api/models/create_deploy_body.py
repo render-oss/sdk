@@ -39,7 +39,9 @@ class CreateDeployBody:
             as those are build related fields.
     """
 
-    clear_cache: Union[Unset, CreateDeployBodyClearCache] = CreateDeployBodyClearCache.DO_NOT_CLEAR
+    clear_cache: Union[Unset, CreateDeployBodyClearCache] = (
+        CreateDeployBodyClearCache.DO_NOT_CLEAR
+    )
     commit_id: Union[Unset, str] = UNSET
     image_url: Union[Unset, str] = UNSET
     deploy_mode: Union[Unset, DeployMode] = UNSET

@@ -99,7 +99,8 @@ def sync_detailed(
 ) -> Response[Union[Error, KeyValueDetail]]:
     """Update Key Value instance
 
-     Update a Key Value instance by ID.
+     Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
+    mode will restart your Key Value instance.
 
     Args:
         key_value_id (str):
@@ -133,7 +134,8 @@ def sync(
 ) -> Optional[Union[Error, KeyValueDetail]]:
     """Update Key Value instance
 
-     Update a Key Value instance by ID.
+     Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
+    mode will restart your Key Value instance.
 
     Args:
         key_value_id (str):
@@ -162,7 +164,8 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, KeyValueDetail]]:
     """Update Key Value instance
 
-     Update a Key Value instance by ID.
+     Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
+    mode will restart your Key Value instance.
 
     Args:
         key_value_id (str):
@@ -194,7 +197,8 @@ async def asyncio(
 ) -> Optional[Union[Error, KeyValueDetail]]:
     """Update Key Value instance
 
-     Update a Key Value instance by ID.
+     Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
+    mode will restart your Key Value instance.
 
     Args:
         key_value_id (str):
