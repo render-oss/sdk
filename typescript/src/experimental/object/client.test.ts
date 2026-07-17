@@ -359,60 +359,64 @@ describe("ObjectClient", () => {
     ];
 
     describe("presign API failures", () => {
-      it.each(
-        presignApiCases,
-      )("list: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const getMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
-        const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
-        await expect(client.list({ ownerId: "tea-test", region: "oregon" })).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(presignApiCases)(
+        "list: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const getMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
+          const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
+          await expect(client.list({ ownerId: "tea-test", region: "oregon" })).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
 
-      it.each(
-        presignApiCases,
-      )("get: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const getMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
-        const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
-        await expect(
-          client.get({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
-        ).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(presignApiCases)(
+        "get: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const getMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
+          const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
+          await expect(
+            client.get({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
+          ).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
 
-      it.each(
-        presignApiCases,
-      )("put: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const putMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
-        const client = new ObjectClient({ PUT: putMock } as unknown as Client<paths>);
-        await expect(
-          client.put({
-            ownerId: "tea-test",
-            region: "oregon",
-            key: "file.txt",
-            data: Buffer.from("hi"),
-          }),
-        ).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(presignApiCases)(
+        "put: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const putMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
+          const client = new ObjectClient({ PUT: putMock } as unknown as Client<paths>);
+          await expect(
+            client.put({
+              ownerId: "tea-test",
+              region: "oregon",
+              key: "file.txt",
+              data: Buffer.from("hi"),
+            }),
+          ).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
 
-      it.each(
-        presignApiCases,
-      )("delete: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const deleteMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
-        const client = new ObjectClient({ DELETE: deleteMock } as unknown as Client<paths>);
-        await expect(
-          client.delete({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
-        ).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(presignApiCases)(
+        "delete: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const deleteMock = vi.fn().mockResolvedValueOnce(mockApiError(status));
+          const client = new ObjectClient({ DELETE: deleteMock } as unknown as Client<paths>);
+          await expect(
+            client.delete({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
+          ).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
 
       it("uses error body message when available", async () => {
         const getMock = vi.fn().mockResolvedValueOnce(mockApiError(403, "Quota exceeded"));
@@ -428,49 +432,51 @@ describe("ObjectClient", () => {
         vi.unstubAllGlobals();
       });
 
-      it.each(
-        storageFetchCases,
-      )("put: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const putMock = vi.fn().mockResolvedValueOnce({
-          data: { url: "https://storage.example.com/presigned", maxSizeBytes: 2 },
-          error: null,
-          response: { status: 200 },
-        });
-        vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({ ok: false, status }));
-        const client = new ObjectClient({ PUT: putMock } as unknown as Client<paths>);
-        await expect(
-          client.put({
-            ownerId: "tea-test",
-            region: "oregon",
-            key: "file.txt",
-            data: Buffer.from("hi"),
-          }),
-        ).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(storageFetchCases)(
+        "put: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const putMock = vi.fn().mockResolvedValueOnce({
+            data: { url: "https://storage.example.com/presigned", maxSizeBytes: 2 },
+            error: null,
+            response: { status: 200 },
+          });
+          vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({ ok: false, status }));
+          const client = new ObjectClient({ PUT: putMock } as unknown as Client<paths>);
+          await expect(
+            client.put({
+              ownerId: "tea-test",
+              region: "oregon",
+              key: "file.txt",
+              data: Buffer.from("hi"),
+            }),
+          ).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
 
-      it.each(
-        storageFetchCases,
-      )("get: status %i throws %s containing '%s'", async (status, ErrorClass, detail) => {
-        const getMock = vi.fn().mockResolvedValueOnce({
-          data: {
-            url: "https://storage.example.com/presigned",
-            expiresAt: new Date().toISOString(),
-          },
-          error: null,
-          response: { status: 200 },
-        });
-        vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({ ok: false, status }));
-        const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
-        await expect(
-          client.get({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
-        ).rejects.toSatisfy(
-          (e: unknown) =>
-            e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
-        );
-      });
+      it.each(storageFetchCases)(
+        "get: status %i throws %s containing '%s'",
+        async (status, ErrorClass, detail) => {
+          const getMock = vi.fn().mockResolvedValueOnce({
+            data: {
+              url: "https://storage.example.com/presigned",
+              expiresAt: new Date().toISOString(),
+            },
+            error: null,
+            response: { status: 200 },
+          });
+          vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({ ok: false, status }));
+          const client = new ObjectClient({ GET: getMock } as unknown as Client<paths>);
+          await expect(
+            client.get({ ownerId: "tea-test", region: "oregon", key: "file.txt" }),
+          ).rejects.toSatisfy(
+            (e: unknown) =>
+              e instanceof ErrorClass && e.statusCode === status && e.message.includes(detail),
+          );
+        },
+      );
     });
   });
 });

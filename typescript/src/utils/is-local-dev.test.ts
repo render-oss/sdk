@@ -36,27 +36,19 @@ describe("isLocalDev", () => {
     expect(isLocalDev()).toBe(true);
   });
 
-  it.each([
-    "1",
-    "t",
-    "T",
-    "true",
-    "TRUE",
-    "True",
-  ])("accepts RENDER_USE_LOCAL_DEV=%s as truthy", (value) => {
-    process.env.RENDER_USE_LOCAL_DEV = value;
-    expect(isLocalDev()).toBe(true);
-  });
+  it.each(["1", "t", "T", "true", "TRUE", "True"])(
+    "accepts RENDER_USE_LOCAL_DEV=%s as truthy",
+    (value) => {
+      process.env.RENDER_USE_LOCAL_DEV = value;
+      expect(isLocalDev()).toBe(true);
+    },
+  );
 
-  it.each([
-    "0",
-    "false",
-    "False",
-    "no",
-    "",
-    "anything-else",
-  ])("rejects RENDER_USE_LOCAL_DEV=%s", (value) => {
-    process.env.RENDER_USE_LOCAL_DEV = value;
-    expect(isLocalDev()).toBe(false);
-  });
+  it.each(["0", "false", "False", "no", "", "anything-else"])(
+    "rejects RENDER_USE_LOCAL_DEV=%s",
+    (value) => {
+      process.env.RENDER_USE_LOCAL_DEV = value;
+      expect(isLocalDev()).toBe(false);
+    },
+  );
 });
