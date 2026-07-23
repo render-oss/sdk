@@ -23,8 +23,10 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp>=3.12.14,<4",
-    "openapi-python-client>=0.26.1,<0.27",
     "httpx>=0.28.1,<0.29",
+    # Runtime deps of the generated public_api client.
+    "attrs>=23.2.0",
+    "python-dateutil>=2.8.2,<3",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +49,7 @@ dev = [
     "tox>=4.0,<5",
     "redis>=4.2.0",
     "ruff>=0.13,<0.14",
+    "openapi-python-client>=0.26.1,<0.27",
 ]
 
 [tool.hatch.build.targets.wheel]
