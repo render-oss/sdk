@@ -1,0 +1,40 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "local>renderinc/renovate-config"
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true
+  },
+  "osvVulnerabilityAlerts": true,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
+  "packageRules": [
+    {
+      "description": "Renovate in this repo is currently opt-in for non-security, non-lockfile updates",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    },
+    {
+      "description": "Go doesn't have a way to cool off dependencies yet, so we can't do lock file maintenance",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "enabled": false
+    },
+    {
+      "description": "Always pin actions/images for security reasons",
+      "matchUpdateTypes": ["pinDigest"],
+      "enabled": true
+    },
+    {
+      "description": "Renovate manages these dependencies everywhere they appear (any file)",
+      "matchPackageNames": [
+        "github.com/go-chi/chi/v5"
+      ],
+      "enabled": true
+    }
+  ]
+}
