@@ -52,6 +52,9 @@ dev = [
     "openapi-python-client>=0.26.1,<0.27",
 ]
 
+[tool.uv]
+exclude-newer = "1 week"
+
 [tool.hatch.build.targets.wheel]
 packages = ["render_sdk"]
 
