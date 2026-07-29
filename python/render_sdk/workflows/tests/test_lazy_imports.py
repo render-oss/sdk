@@ -56,13 +56,11 @@ _ALLOWED_ON_WORKER_PATH: frozenset[str] = frozenset(
 def _modules_loaded_by(import_statement: str) -> set[str]:
     """Run the given import in a fresh interpreter and return sys.modules."""
     code = f"import sys\n{import_statement}\nimport json\nprint(json.dumps(sorted(sys.modules.keys())))\n"
-    result = (
-        subprocess.run(  # noqa: S603 — code is a constructed literal, not user input
-            [sys.executable, "-c", code],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+    result = subprocess.run(  # noqa: S603 — code is a constructed literal, not user input
+        [sys.executable, "-c", code],
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return set(json.loads(result.stdout))
 
