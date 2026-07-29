@@ -43,8 +43,6 @@ dev = [
     "pytest-cov>=4.0,<5",
     "pytest-asyncio>=0.21.0,<0.22",
     "pytest-mock>=3.10.0,<4",
-    "black>=25.1.0,<26",
-    "isort>=5.0,<6",
     "mypy>=1.18.2,<2",
     "tox>=4.0,<5",
     "redis>=4.2.0",
@@ -57,19 +55,6 @@ exclude-newer = "1 week"
 
 [tool.hatch.build.targets.wheel]
 packages = ["render_sdk"]
-
-[tool.black]
-line-length = 88
-target-version = ['py310']
-extend-exclude = '''
-(render_sdk/public_api/)
-'''
-
-[tool.isort]
-profile = "black"
-multi_line_output = 3
-line_length = 88
-extend_skip = ["render_sdk/public_api"]
 
 [tool.mypy]
 python_version = "3.10"
@@ -94,6 +79,6 @@ exclude = ["render_sdk/public_api/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S"]
-# Line length: Black/ruff-format often keep long string literals on one line.
+# Line length: let the formatter choose whether to keep long string literals on one line.
 ignore = ["E501"]
 per-file-ignores = { "*test_*.py" = ["S101", "S106"] }
