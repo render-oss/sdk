@@ -23,6 +23,7 @@ class Deploy:
     """
     Attributes:
         id (str):
+        artifact_id (Union[Unset, str]):
         commit (Union[Unset, DeployCommit]):
         image (Union[Unset, DeployImage]): Image information used when creating the deploy. Not present for Git-backed
             deploys
@@ -35,6 +36,7 @@ class Deploy:
     """
 
     id: str
+    artifact_id: Union[Unset, str] = UNSET
     commit: Union[Unset, "DeployCommit"] = UNSET
     image: Union[Unset, "DeployImage"] = UNSET
     status: Union[Unset, DeployStatus] = UNSET
@@ -47,6 +49,8 @@ class Deploy:
 
     def to_dict(self) -> dict[str, Any]:
         id = self.id
+
+        artifact_id = self.artifact_id
 
         commit: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.commit, Unset):
@@ -87,6 +91,8 @@ class Deploy:
                 "id": id,
             }
         )
+        if artifact_id is not UNSET:
+            field_dict["artifactId"] = artifact_id
         if commit is not UNSET:
             field_dict["commit"] = commit
         if image is not UNSET:
@@ -113,6 +119,8 @@ class Deploy:
 
         d = dict(src_dict)
         id = d.pop("id")
+
+        artifact_id = d.pop("artifactId", UNSET)
 
         _commit = d.pop("commit", UNSET)
         commit: Union[Unset, DeployCommit]
@@ -172,6 +180,7 @@ class Deploy:
 
         deploy = cls(
             id=id,
+            artifact_id=artifact_id,
             commit=commit,
             image=image,
             status=status,

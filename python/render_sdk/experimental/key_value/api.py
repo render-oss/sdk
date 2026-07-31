@@ -86,7 +86,7 @@ class KeyValueApi:
             ServerError: For 5xx server errors.
         """
         response = await retrieve_key_value.asyncio_detailed(
-            key_value_id=key_value_id,
+            redis_id=key_value_id,
             client=self.client,
         )
 
@@ -163,7 +163,7 @@ class KeyValueApi:
             ServerError: For 5xx server errors.
         """
         response = await retrieve_key_value_connection_info.asyncio_detailed(
-            key_value_id=key_value_id,
+            redis_id=key_value_id,
             client=self.client,
         )
 
@@ -226,7 +226,7 @@ class KeyValueApi:
             ServerError: For 5xx server errors.
         """
         response = await update_key_value.asyncio_detailed(
-            key_value_id=key_value_id,
+            redis_id=key_value_id,
             client=self.client,
             body=update,
         )

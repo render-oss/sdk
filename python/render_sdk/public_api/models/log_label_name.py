@@ -9,6 +9,7 @@ class LogLabelName(str, Enum):
     METHOD = "method"
     PATH = "path"
     RESOURCE = "resource"
+    SANDBOX = "sandbox"
     STATUSCODE = "statusCode"
     TASK = "task"
     TASKRUN = "taskRun"

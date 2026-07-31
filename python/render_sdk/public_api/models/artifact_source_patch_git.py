@@ -5,6 +5,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.artifact_source_patch_git_region import ArtifactSourcePATCHGitRegion
+from ..models.artifact_source_patch_git_runtime import ArtifactSourcePATCHGitRuntime
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -25,7 +26,8 @@ class ArtifactSourcePATCHGit:
             set, a commit only triggers a build when at least one changed file matches `paths` and none match
             `ignoredPaths`. Useful for monorepos where a single repo backs many services.
         dockerfile_path (Union[Unset, str]):
-        runtime (Union[Unset, str]):
+        runtime (Union[Unset, ArtifactSourcePATCHGitRuntime]): Build runtime for the artifact source. Static sites are
+            not supported for artifact sources.
         registry_credential_id (Union[Unset, str]):
         region (Union[Unset, ArtifactSourcePATCHGitRegion]): Region for the build. Honored only when this PATCH performs
             an image→build transition; rejected on a pure build patch (the cluster is pinned for an existing build), and
@@ -40,7 +42,7 @@ class ArtifactSourcePATCHGit:
     build_command: Union[Unset, str] = UNSET
     build_filter: Union[Unset, "SchemasBuildFilter"] = UNSET
     dockerfile_path: Union[Unset, str] = UNSET
-    runtime: Union[Unset, str] = UNSET
+    runtime: Union[Unset, ArtifactSourcePATCHGitRuntime] = UNSET
     registry_credential_id: Union[Unset, str] = UNSET
     region: Union[Unset, ArtifactSourcePATCHGitRegion] = UNSET
     repo_url: Union[Unset, str] = UNSET
@@ -60,7 +62,9 @@ class ArtifactSourcePATCHGit:
 
         dockerfile_path = self.dockerfile_path
 
-        runtime = self.runtime
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         registry_credential_id = self.registry_credential_id
 
@@ -118,7 +122,12 @@ class ArtifactSourcePATCHGit:
 
         dockerfile_path = d.pop("dockerfilePath", UNSET)
 
-        runtime = d.pop("runtime", UNSET)
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, ArtifactSourcePATCHGitRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = ArtifactSourcePATCHGitRuntime(_runtime)
 
         registry_credential_id = d.pop("registryCredentialId", UNSET)
 

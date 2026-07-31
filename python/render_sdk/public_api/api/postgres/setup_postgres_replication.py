@@ -1,37 +1,31 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...types import UNSET, File, Response
+from ...models.postgres_replication_setup_input import PostgresReplicationSetupInput
+from ...models.setup_postgres_replication_response_201 import SetupPostgresReplicationResponse201
+from ...types import Response
 
 
 def _get_kwargs(
-    sandbox_id: str,
+    postgres_id: str,
     *,
-    body: File,
-    path: str,
+    body: PostgresReplicationSetupInput,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
-    params: dict[str, Any] = {}
-
-    params["path"] = path
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
-
     _kwargs: dict[str, Any] = {
-        "method": "put",
-        "url": f"/sandboxes/{sandbox_id}/files",
-        "params": params,
+        "method": "post",
+        "url": f"/postgres/{postgres_id}/replication",
     }
 
-    _kwargs["content"] = body.payload
+    _kwargs["json"] = body.to_dict()
 
-    headers["Content-Type"] = "application/octet-stream"
+    headers["Content-Type"] = "application/json"
 
     _kwargs["headers"] = headers
     return _kwargs
@@ -39,10 +33,11 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, Error]]:
-    if response.status_code == 204:
-        response_204 = cast(Any, None)
-        return response_204
+) -> Optional[Union[Error, SetupPostgresReplicationResponse201]]:
+    if response.status_code == 201:
+        response_201 = SetupPostgresReplicationResponse201.from_dict(response.json())
+
+        return response_201
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -64,10 +59,15 @@ def _parse_response(
 
         return response_404
 
-    if response.status_code == 409:
-        response_409 = Error.from_dict(response.json())
+    if response.status_code == 406:
+        response_406 = Error.from_dict(response.json())
 
-        return response_409
+        return response_406
+
+    if response.status_code == 410:
+        response_410 = Error.from_dict(response.json())
+
+        return response_410
 
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
@@ -92,7 +92,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, Error]]:
+) -> Response[Union[Error, SetupPostgresReplicationResponse201]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -102,36 +102,31 @@ def _build_response(
 
 
 def sync_detailed(
-    sandbox_id: str,
+    postgres_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: File,
-    path: str,
-) -> Response[Union[Any, Error]]:
-    """Upload file or directory to sandbox
+    body: PostgresReplicationSetupInput,
+) -> Response[Union[Error, SetupPostgresReplicationResponse201]]:
+    """Set up logical replication
 
-     Upload a file or directory archive into a running sandbox. The sandbox must
-    be `running`. `Content-Type` determines how the body is handled:
-    `application/octet-stream` writes raw bytes to `path`;
-    `application/x-tar` extracts the archive at `path`.
+     Set up logical replication (a publication and, optionally, a replication slot) for a schema and
+    database on a Postgres instance by ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
-        body (File): Raw file bytes. Written to `path`, creating or overwriting the file.
+        postgres_id (str):
+        body (PostgresReplicationSetupInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, SetupPostgresReplicationResponse201]]
     """
 
     kwargs = _get_kwargs(
-        sandbox_id=sandbox_id,
+        postgres_id=postgres_id,
         body=body,
-        path=path,
     )
 
     response = client.get_httpx_client().request(
@@ -142,71 +137,61 @@ def sync_detailed(
 
 
 def sync(
-    sandbox_id: str,
+    postgres_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: File,
-    path: str,
-) -> Optional[Union[Any, Error]]:
-    """Upload file or directory to sandbox
+    body: PostgresReplicationSetupInput,
+) -> Optional[Union[Error, SetupPostgresReplicationResponse201]]:
+    """Set up logical replication
 
-     Upload a file or directory archive into a running sandbox. The sandbox must
-    be `running`. `Content-Type` determines how the body is handled:
-    `application/octet-stream` writes raw bytes to `path`;
-    `application/x-tar` extracts the archive at `path`.
+     Set up logical replication (a publication and, optionally, a replication slot) for a schema and
+    database on a Postgres instance by ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
-        body (File): Raw file bytes. Written to `path`, creating or overwriting the file.
+        postgres_id (str):
+        body (PostgresReplicationSetupInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, SetupPostgresReplicationResponse201]
     """
 
     return sync_detailed(
-        sandbox_id=sandbox_id,
+        postgres_id=postgres_id,
         client=client,
         body=body,
-        path=path,
     ).parsed
 
 
 async def asyncio_detailed(
-    sandbox_id: str,
+    postgres_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: File,
-    path: str,
-) -> Response[Union[Any, Error]]:
-    """Upload file or directory to sandbox
+    body: PostgresReplicationSetupInput,
+) -> Response[Union[Error, SetupPostgresReplicationResponse201]]:
+    """Set up logical replication
 
-     Upload a file or directory archive into a running sandbox. The sandbox must
-    be `running`. `Content-Type` determines how the body is handled:
-    `application/octet-stream` writes raw bytes to `path`;
-    `application/x-tar` extracts the archive at `path`.
+     Set up logical replication (a publication and, optionally, a replication slot) for a schema and
+    database on a Postgres instance by ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
-        body (File): Raw file bytes. Written to `path`, creating or overwriting the file.
+        postgres_id (str):
+        body (PostgresReplicationSetupInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Union[Error, SetupPostgresReplicationResponse201]]
     """
 
     kwargs = _get_kwargs(
-        sandbox_id=sandbox_id,
+        postgres_id=postgres_id,
         body=body,
-        path=path,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -215,37 +200,32 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    sandbox_id: str,
+    postgres_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: File,
-    path: str,
-) -> Optional[Union[Any, Error]]:
-    """Upload file or directory to sandbox
+    body: PostgresReplicationSetupInput,
+) -> Optional[Union[Error, SetupPostgresReplicationResponse201]]:
+    """Set up logical replication
 
-     Upload a file or directory archive into a running sandbox. The sandbox must
-    be `running`. `Content-Type` determines how the body is handled:
-    `application/octet-stream` writes raw bytes to `path`;
-    `application/x-tar` extracts the archive at `path`.
+     Set up logical replication (a publication and, optionally, a replication slot) for a schema and
+    database on a Postgres instance by ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
-        body (File): Raw file bytes. Written to `path`, creating or overwriting the file.
+        postgres_id (str):
+        body (PostgresReplicationSetupInput):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Union[Error, SetupPostgresReplicationResponse201]
     """
 
     return (
         await asyncio_detailed(
-            sandbox_id=sandbox_id,
+            postgres_id=postgres_id,
             client=client,
             body=body,
-            path=path,
         )
     ).parsed

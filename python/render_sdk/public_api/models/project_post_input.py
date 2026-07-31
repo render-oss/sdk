@@ -59,9 +59,7 @@ class ProjectPOSTInput:
         environments = []
         _environments = d.pop("environments")
         for environments_item_data in _environments:
-            environments_item = ProjectPOSTEnvironmentInput.from_dict(
-                environments_item_data
-            )
+            environments_item = ProjectPOSTEnvironmentInput.from_dict(environments_item_data)
 
             environments.append(environments_item)
 

@@ -1,37 +1,40 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SandboxExecStreamErrorEvent")
+if TYPE_CHECKING:
+    from ..models.sandbox_group import SandboxGroup
+
+
+T = TypeVar("T", bound="SandboxGroupWithCursor")
 
 
 @_attrs_define
-class SandboxExecStreamErrorEvent:
-    """Payload for terminal `event: error` in a sandbox exec SSE stream when a runtime or transport failure occurs after
-    streaming has started.
+class SandboxGroupWithCursor:
+    """A sandbox group with a cursor
 
-        Attributes:
-            status (int): HTTP-style status code for the terminal streaming error. Example: 500.
-            message (str): Error message.
+    Attributes:
+        sandbox_group (SandboxGroup):
+        cursor (str):
     """
 
-    status: int
-    message: str
+    sandbox_group: "SandboxGroup"
+    cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        status = self.status
+        sandbox_group = self.sandbox_group.to_dict()
 
-        message = self.message
+        cursor = self.cursor
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "status": status,
-                "message": message,
+                "sandboxGroup": sandbox_group,
+                "cursor": cursor,
             }
         )
 
@@ -39,18 +42,20 @@ class SandboxExecStreamErrorEvent:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.sandbox_group import SandboxGroup
+
         d = dict(src_dict)
-        status = d.pop("status")
+        sandbox_group = SandboxGroup.from_dict(d.pop("sandboxGroup"))
 
-        message = d.pop("message")
+        cursor = d.pop("cursor")
 
-        sandbox_exec_stream_error_event = cls(
-            status=status,
-            message=message,
+        sandbox_group_with_cursor = cls(
+            sandbox_group=sandbox_group,
+            cursor=cursor,
         )
 
-        sandbox_exec_stream_error_event.additional_properties = d
-        return sandbox_exec_stream_error_event
+        sandbox_group_with_cursor.additional_properties = d
+        return sandbox_group_with_cursor
 
     @property
     def additional_keys(self) -> list[str]:

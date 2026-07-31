@@ -13,7 +13,7 @@ from ...types import Response
 
 def _get_kwargs(
     service_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     body: AddOrUpdateSecretFileBody,
 ) -> dict[str, Any]:
@@ -21,7 +21,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/services/{service_id}/secret-files/{secret_file_name}",
+        "url": f"/services/{service_id}/secret-files/{env_var_key}",
     }
 
     _kwargs["json"] = body.to_dict()
@@ -104,7 +104,7 @@ def _build_response(
 
 def sync_detailed(
     service_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateSecretFileBody,
@@ -118,7 +118,7 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateSecretFileBody):
 
     Raises:
@@ -131,7 +131,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -144,7 +144,7 @@ def sync_detailed(
 
 def sync(
     service_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateSecretFileBody,
@@ -158,7 +158,7 @@ def sync(
 
     Args:
         service_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateSecretFileBody):
 
     Raises:
@@ -171,7 +171,7 @@ def sync(
 
     return sync_detailed(
         service_id=service_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         client=client,
         body=body,
     ).parsed
@@ -179,7 +179,7 @@ def sync(
 
 async def asyncio_detailed(
     service_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateSecretFileBody,
@@ -193,7 +193,7 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateSecretFileBody):
 
     Raises:
@@ -206,7 +206,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -217,7 +217,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     service_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateSecretFileBody,
@@ -231,7 +231,7 @@ async def asyncio(
 
     Args:
         service_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateSecretFileBody):
 
     Raises:
@@ -245,7 +245,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             service_id=service_id,
-            secret_file_name=secret_file_name,
+            env_var_key=env_var_key,
             client=client,
             body=body,
         )

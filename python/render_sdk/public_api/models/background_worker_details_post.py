@@ -27,6 +27,7 @@ class BackgroundWorkerDetailsPOST:
     """
     Attributes:
         runtime (ServiceRuntime): Runtime
+        artifact_source_id (Union[Unset, str]):
         autoscaling (Union[Unset, AutoscalingConfig]):
         disk (Union[Unset, ServiceDisk]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
@@ -43,12 +44,11 @@ class BackgroundWorkerDetailsPOST:
     """
 
     runtime: ServiceRuntime
+    artifact_source_id: Union[Unset, str] = UNSET
     autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
     disk: Union[Unset, "ServiceDisk"] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
-    env_specific_details: Union[
-        "DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset
-    ] = UNSET
+    env_specific_details: Union["DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset] = UNSET
     num_instances: Union[Unset, int] = 1
     plan: Union[Unset, PaidPlan] = UNSET
     pre_deploy_command: Union[Unset, str] = UNSET
@@ -62,6 +62,8 @@ class BackgroundWorkerDetailsPOST:
         from ..models.docker_details_post import DockerDetailsPOST
 
         runtime = self.runtime.value
+
+        artifact_source_id = self.artifact_source_id
 
         autoscaling: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.autoscaling, Unset):
@@ -112,6 +114,8 @@ class BackgroundWorkerDetailsPOST:
                 "runtime": runtime,
             }
         )
+        if artifact_source_id is not UNSET:
+            field_dict["artifactSourceId"] = artifact_source_id
         if autoscaling is not UNSET:
             field_dict["autoscaling"] = autoscaling
         if disk is not UNSET:
@@ -141,14 +145,14 @@ class BackgroundWorkerDetailsPOST:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.autoscaling_config import AutoscalingConfig
         from ..models.docker_details_post import DockerDetailsPOST
-        from ..models.native_environment_details_post import (
-            NativeEnvironmentDetailsPOST,
-        )
+        from ..models.native_environment_details_post import NativeEnvironmentDetailsPOST
         from ..models.previews import Previews
         from ..models.service_disk import ServiceDisk
 
         d = dict(src_dict)
         runtime = ServiceRuntime(d.pop("runtime"))
+
+        artifact_source_id = d.pop("artifactSourceId", UNSET)
 
         _autoscaling = d.pop("autoscaling", UNSET)
         autoscaling: Union[Unset, AutoscalingConfig]
@@ -179,24 +183,18 @@ class BackgroundWorkerDetailsPOST:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_post_type_0 = (
-                    DockerDetailsPOST.from_dict(data)
-                )
+                componentsschemasenv_specific_details_post_type_0 = DockerDetailsPOST.from_dict(data)
 
                 return componentsschemasenv_specific_details_post_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_post_type_1 = (
-                NativeEnvironmentDetailsPOST.from_dict(data)
-            )
+            componentsschemasenv_specific_details_post_type_1 = NativeEnvironmentDetailsPOST.from_dict(data)
 
             return componentsschemasenv_specific_details_post_type_1
 
-        env_specific_details = _parse_env_specific_details(
-            d.pop("envSpecificDetails", UNSET)
-        )
+        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
 
         num_instances = d.pop("numInstances", UNSET)
 
@@ -214,9 +212,7 @@ class BackgroundWorkerDetailsPOST:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(
-                _pull_request_previews_enabled
-            )
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]
@@ -236,6 +232,7 @@ class BackgroundWorkerDetailsPOST:
 
         background_worker_details_post = cls(
             runtime=runtime,
+            artifact_source_id=artifact_source_id,
             autoscaling=autoscaling,
             disk=disk,
             env=env,

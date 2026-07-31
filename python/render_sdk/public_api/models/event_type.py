@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class EventType(str, Enum):
+    ARTIFACT_FETCH_FAILED = "artifact_fetch_failed"
+    ARTIFACT_SOURCE_CHANGED = "artifact_source_changed"
     AUTOSCALING_CONFIG_CHANGED = "autoscaling_config_changed"
     AUTOSCALING_ENDED = "autoscaling_ended"
     AUTOSCALING_STARTED = "autoscaling_started"
@@ -41,9 +43,7 @@ class EventType(str, Enum):
     POSTGRES_CONNECTION_POOL_CHANGED = "postgres_connection_pool_changed"
     POSTGRES_CONNECTION_POOL_ENABLED_CHANGED = "postgres_connection_pool_enabled_changed"
     POSTGRES_CREATED = "postgres_created"
-    POSTGRES_DISK_AUTOSCALING_ENABLED_CHANGED = (
-        "postgres_disk_autoscaling_enabled_changed"
-    )
+    POSTGRES_DISK_AUTOSCALING_ENABLED_CHANGED = "postgres_disk_autoscaling_enabled_changed"
     POSTGRES_DISK_SIZE_CHANGED = "postgres_disk_size_changed"
     POSTGRES_HA_STATUS_CHANGED = "postgres_ha_status_changed"
     POSTGRES_PITR_CHECKPOINT_COMPLETED = "postgres_pitr_checkpoint_completed"

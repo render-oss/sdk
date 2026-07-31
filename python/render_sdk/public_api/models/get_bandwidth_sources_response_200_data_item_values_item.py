@@ -48,9 +48,7 @@ class GetBandwidthSourcesResponse200DataItemValuesItem:
             value=value,
         )
 
-        get_bandwidth_sources_response_200_data_item_values_item.additional_properties = (
-            d
-        )
+        get_bandwidth_sources_response_200_data_item_values_item.additional_properties = d
         return get_bandwidth_sources_response_200_data_item_values_item
 
     @property

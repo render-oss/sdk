@@ -30,8 +30,7 @@ class SandboxClient:
         resolved = owner_id or self._default_owner_id
         if not resolved:
             raise RenderError(
-                "owner_id is required. Provide it as a parameter or set the "
-                "RENDER_WORKSPACE_ID environment variable."
+                "owner_id is required. Provide it as a parameter or set the RENDER_WORKSPACE_ID environment variable."
             )
         return resolved
 

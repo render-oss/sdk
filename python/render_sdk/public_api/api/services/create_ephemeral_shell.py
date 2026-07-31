@@ -6,9 +6,7 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.create_ephemeral_shell_body import CreateEphemeralShellBody
-from ...models.create_ephemeral_shell_response_201 import (
-    CreateEphemeralShellResponse201,
-)
+from ...models.create_ephemeral_shell_response_201 import CreateEphemeralShellResponse201
 from ...models.error import Error
 from ...types import Response
 

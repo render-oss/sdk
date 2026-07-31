@@ -1,32 +1,37 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SandboxExecStreamExitEvent")
+if TYPE_CHECKING:
+    from ..models.postgres_size import PostgresSize
+
+
+T = TypeVar("T", bound="PostgresSizesResult")
 
 
 @_attrs_define
-class SandboxExecStreamExitEvent:
-    """Payload for terminal `event: exit` in a sandbox exec SSE stream. Non-zero process exit codes are reported here
-    rather than as HTTP errors.
-
-        Attributes:
-            exit_code (int): Process exit code.
+class PostgresSizesResult:
+    """
+    Attributes:
+        sizes (list['PostgresSize']):
     """
 
-    exit_code: int
+    sizes: list["PostgresSize"]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        exit_code = self.exit_code
+        sizes = []
+        for sizes_item_data in self.sizes:
+            sizes_item = sizes_item_data.to_dict()
+            sizes.append(sizes_item)
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "exit_code": exit_code,
+                "sizes": sizes,
             }
         )
 
@@ -34,15 +39,22 @@ class SandboxExecStreamExitEvent:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        d = dict(src_dict)
-        exit_code = d.pop("exit_code")
+        from ..models.postgres_size import PostgresSize
 
-        sandbox_exec_stream_exit_event = cls(
-            exit_code=exit_code,
+        d = dict(src_dict)
+        sizes = []
+        _sizes = d.pop("sizes")
+        for sizes_item_data in _sizes:
+            sizes_item = PostgresSize.from_dict(sizes_item_data)
+
+            sizes.append(sizes_item)
+
+        postgres_sizes_result = cls(
+            sizes=sizes,
         )
 
-        sandbox_exec_stream_exit_event.additional_properties = d
-        return sandbox_exec_stream_exit_event
+        postgres_sizes_result.additional_properties = d
+        return postgres_sizes_result
 
     @property
     def additional_keys(self) -> list[str]:

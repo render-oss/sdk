@@ -10,11 +10,11 @@ from ...types import Response
 
 
 def _get_kwargs(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/maintenance/{maintenance_run_param}/trigger",
+        "url": f"/maintenance/{maintenance_run_id}/trigger",
     }
 
     return _kwargs
@@ -75,7 +75,7 @@ def _build_response(
 
 
 def sync_detailed(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
@@ -90,7 +90,7 @@ def sync_detailed(
     `in_progress` and `succeeded`.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -101,7 +101,7 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
     )
 
     response = client.get_httpx_client().request(
@@ -112,7 +112,7 @@ def sync_detailed(
 
 
 def sync(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
@@ -127,7 +127,7 @@ def sync(
     `in_progress` and `succeeded`.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -138,13 +138,13 @@ def sync(
     """
 
     return sync_detailed(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Any, Error]]:
@@ -159,7 +159,7 @@ async def asyncio_detailed(
     `in_progress` and `succeeded`.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -170,7 +170,7 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -179,7 +179,7 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Any, Error]]:
@@ -194,7 +194,7 @@ async def asyncio(
     `in_progress` and `succeeded`.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -206,7 +206,7 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            maintenance_run_param=maintenance_run_param,
+            maintenance_run_id=maintenance_run_id,
             client=client,
         )
     ).parsed

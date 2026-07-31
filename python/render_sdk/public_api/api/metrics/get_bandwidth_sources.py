@@ -48,9 +48,7 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     if response.status_code == 200:
         response_200 = GetBandwidthSourcesResponse200.from_dict(response.json())
 
@@ -74,9 +72,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -92,9 +88,7 @@ def sync_detailed(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Response[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -139,9 +133,7 @@ def sync(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Optional[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -181,9 +173,7 @@ async def asyncio_detailed(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Response[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -226,9 +216,7 @@ async def asyncio(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Optional[
-    Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
-]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,

@@ -1,29 +1,31 @@
 from http import HTTPStatus
-from io import BytesIO
 from typing import Any, Optional, Union
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
+from ...models.connect_sandbox_run_operation import ConnectSandboxRunOperation
 from ...models.error import Error
-from ...types import UNSET, File, Response
+from ...models.sandbox_connect_response import SandboxConnectResponse
+from ...types import UNSET, Response
 
 
 def _get_kwargs(
     sandbox_id: str,
+    operation: ConnectSandboxRunOperation,
     *,
-    path: str,
+    owner_id: str,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    params["path"] = path
+    params["ownerId"] = owner_id
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
-        "method": "get",
-        "url": f"/sandboxes/{sandbox_id}/files",
+        "method": "post",
+        "url": f"/sandboxes/{sandbox_id}/runs/{operation}/token",
         "params": params,
     }
 
@@ -32,11 +34,11 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, File]]:
-    if response.status_code == 200:
-        response_200 = File(payload=BytesIO(response.content))
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    if response.status_code == 201:
+        response_201 = SandboxConnectResponse.from_dict(response.json())
 
-        return response_200
+        return response_201
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -57,11 +59,6 @@ def _parse_response(
         response_404 = Error.from_dict(response.json())
 
         return response_404
-
-    if response.status_code == 409:
-        response_409 = Error.from_dict(response.json())
-
-        return response_409
 
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
@@ -86,7 +83,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, File]]:
+) -> Response[Union[Error, SandboxConnectResponse]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -97,31 +94,34 @@ def _build_response(
 
 def sync_detailed(
     sandbox_id: str,
+    operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    path: str,
-) -> Response[Union[Error, File]]:
-    """Download file or directory from sandbox
+    owner_id: str,
+) -> Response[Union[Error, SandboxConnectResponse]]:
+    """Create a connect token for a sandbox run
 
-     Download a file or directory from a running sandbox. The sandbox must be
-    `running`. Response `Content-Type` reflects what `path` resolves to:
-    `application/octet-stream` for a file, `application/x-tar` for a directory.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single run operation against the specified sandbox. The response contains
+    the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
+        operation (ConnectSandboxRunOperation):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, File]]
+        Response[Union[Error, SandboxConnectResponse]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        path=path,
+        operation=operation,
+        owner_id=owner_id,
     )
 
     response = client.get_httpx_client().request(
@@ -133,62 +133,68 @@ def sync_detailed(
 
 def sync(
     sandbox_id: str,
+    operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    path: str,
-) -> Optional[Union[Error, File]]:
-    """Download file or directory from sandbox
+    owner_id: str,
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    """Create a connect token for a sandbox run
 
-     Download a file or directory from a running sandbox. The sandbox must be
-    `running`. Response `Content-Type` reflects what `path` resolves to:
-    `application/octet-stream` for a file, `application/x-tar` for a directory.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single run operation against the specified sandbox. The response contains
+    the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
+        operation (ConnectSandboxRunOperation):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, File]
+        Union[Error, SandboxConnectResponse]
     """
 
     return sync_detailed(
         sandbox_id=sandbox_id,
+        operation=operation,
         client=client,
-        path=path,
+        owner_id=owner_id,
     ).parsed
 
 
 async def asyncio_detailed(
     sandbox_id: str,
+    operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    path: str,
-) -> Response[Union[Error, File]]:
-    """Download file or directory from sandbox
+    owner_id: str,
+) -> Response[Union[Error, SandboxConnectResponse]]:
+    """Create a connect token for a sandbox run
 
-     Download a file or directory from a running sandbox. The sandbox must be
-    `running`. Response `Content-Type` reflects what `path` resolves to:
-    `application/octet-stream` for a file, `application/x-tar` for a directory.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single run operation against the specified sandbox. The response contains
+    the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
+        operation (ConnectSandboxRunOperation):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, File]]
+        Response[Union[Error, SandboxConnectResponse]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        path=path,
+        operation=operation,
+        owner_id=owner_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -198,32 +204,35 @@ async def asyncio_detailed(
 
 async def asyncio(
     sandbox_id: str,
+    operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    path: str,
-) -> Optional[Union[Error, File]]:
-    """Download file or directory from sandbox
+    owner_id: str,
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    """Create a connect token for a sandbox run
 
-     Download a file or directory from a running sandbox. The sandbox must be
-    `running`. Response `Content-Type` reflects what `path` resolves to:
-    `application/octet-stream` for a file, `application/x-tar` for a directory.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single run operation against the specified sandbox. The response contains
+    the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
-        path (str):
+        operation (ConnectSandboxRunOperation):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, File]
+        Union[Error, SandboxConnectResponse]
     """
 
     return (
         await asyncio_detailed(
             sandbox_id=sandbox_id,
+            operation=operation,
             client=client,
-            path=path,
+            owner_id=owner_id,
         )
     ).parsed

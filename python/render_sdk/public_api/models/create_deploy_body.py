@@ -15,6 +15,8 @@ T = TypeVar("T", bound="CreateDeployBody")
 class CreateDeployBody:
     """
     Attributes:
+        artifact_id (Union[Unset, str]): The ID of the artifact to deploy. Cannot be combined with `commitId`,
+            `imageUrl`, or `deployMode`.
         clear_cache (Union[Unset, CreateDeployBodyClearCache]): If `clear`, Render clears the service's build cache
             before deploying. This can be useful if you're experiencing issues with your build. Default:
             CreateDeployBodyClearCache.DO_NOT_CLEAR.
@@ -39,15 +41,16 @@ class CreateDeployBody:
             as those are build related fields.
     """
 
-    clear_cache: Union[Unset, CreateDeployBodyClearCache] = (
-        CreateDeployBodyClearCache.DO_NOT_CLEAR
-    )
+    artifact_id: Union[Unset, str] = UNSET
+    clear_cache: Union[Unset, CreateDeployBodyClearCache] = CreateDeployBodyClearCache.DO_NOT_CLEAR
     commit_id: Union[Unset, str] = UNSET
     image_url: Union[Unset, str] = UNSET
     deploy_mode: Union[Unset, DeployMode] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        artifact_id = self.artifact_id
+
         clear_cache: Union[Unset, str] = UNSET
         if not isinstance(self.clear_cache, Unset):
             clear_cache = self.clear_cache.value
@@ -63,6 +66,8 @@ class CreateDeployBody:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if artifact_id is not UNSET:
+            field_dict["artifactId"] = artifact_id
         if clear_cache is not UNSET:
             field_dict["clearCache"] = clear_cache
         if commit_id is not UNSET:
@@ -77,6 +82,8 @@ class CreateDeployBody:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        artifact_id = d.pop("artifactId", UNSET)
+
         _clear_cache = d.pop("clearCache", UNSET)
         clear_cache: Union[Unset, CreateDeployBodyClearCache]
         if isinstance(_clear_cache, Unset):
@@ -96,6 +103,7 @@ class CreateDeployBody:
             deploy_mode = DeployMode(_deploy_mode)
 
         create_deploy_body = cls(
+            artifact_id=artifact_id,
             clear_cache=clear_cache,
             commit_id=commit_id,
             image_url=image_url,

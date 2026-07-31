@@ -63,9 +63,7 @@ class ReadReplica:
         if isinstance(_parameter_overrides, Unset):
             parameter_overrides = UNSET
         else:
-            parameter_overrides = PostgresParameterOverrides.from_dict(
-                _parameter_overrides
-            )
+            parameter_overrides = PostgresParameterOverrides.from_dict(_parameter_overrides)
 
         read_replica = cls(
             id=id,

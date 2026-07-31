@@ -16,6 +16,7 @@ class AuditLogEvent(str, Enum):
     CHANGETEAMMEMBERROLEEVENT = "ChangeTeamMemberRoleEvent"
     CHANGEWORKSPACEDEPLOYHANDLINGEVENT = "ChangeWorkspaceDeployHandlingEvent"
     CHANGEWORKSPACEPRIVACYEVENT = "ChangeWorkspacePrivacyEvent"
+    CREATEARTIFACTSOURCEEVENT = "CreateArtifactSourceEvent"
     CREATECRONJOBEVENT = "CreateCronJobEvent"
     CREATEENVIRONMENTEVENT = "CreateEnvironmentEvent"
     CREATEENVVARSEVENT = "CreateEnvVarsEvent"

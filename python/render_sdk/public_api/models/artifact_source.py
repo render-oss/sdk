@@ -11,6 +11,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.artifact_source_git import ArtifactSourceGit
     from ..models.artifact_source_image import ArtifactSourceImage
+    from ..models.artifact_source_service_link import ArtifactSourceServiceLink
 
 
 T = TypeVar("T", bound="ArtifactSource")
@@ -25,6 +26,7 @@ class ArtifactSource:
         owner_id (str): ID of the workspace this artifact source belongs to.
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
+        service_links (list['ArtifactSourceServiceLink']): Services currently linked to this artifact source.
         project_id (Union[Unset, str]): ID of the project this artifact source is scoped to, if any.
         git (Union[Unset, ArtifactSourceGit]):
         image (Union[Unset, ArtifactSourceImage]):
@@ -35,6 +37,7 @@ class ArtifactSource:
     owner_id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
+    service_links: list["ArtifactSourceServiceLink"]
     project_id: Union[Unset, str] = UNSET
     git: Union[Unset, "ArtifactSourceGit"] = UNSET
     image: Union[Unset, "ArtifactSourceImage"] = UNSET
@@ -50,6 +53,11 @@ class ArtifactSource:
         created_at = self.created_at.isoformat()
 
         updated_at = self.updated_at.isoformat()
+
+        service_links = []
+        for service_links_item_data in self.service_links:
+            service_links_item = service_links_item_data.to_dict()
+            service_links.append(service_links_item)
 
         project_id = self.project_id
 
@@ -70,6 +78,7 @@ class ArtifactSource:
                 "ownerId": owner_id,
                 "createdAt": created_at,
                 "updatedAt": updated_at,
+                "serviceLinks": service_links,
             }
         )
         if project_id is not UNSET:
@@ -85,6 +94,7 @@ class ArtifactSource:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.artifact_source_git import ArtifactSourceGit
         from ..models.artifact_source_image import ArtifactSourceImage
+        from ..models.artifact_source_service_link import ArtifactSourceServiceLink
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -96,6 +106,13 @@ class ArtifactSource:
         created_at = isoparse(d.pop("createdAt"))
 
         updated_at = isoparse(d.pop("updatedAt"))
+
+        service_links = []
+        _service_links = d.pop("serviceLinks")
+        for service_links_item_data in _service_links:
+            service_links_item = ArtifactSourceServiceLink.from_dict(service_links_item_data)
+
+            service_links.append(service_links_item)
 
         project_id = d.pop("projectId", UNSET)
 
@@ -119,6 +136,7 @@ class ArtifactSource:
             owner_id=owner_id,
             created_at=created_at,
             updated_at=updated_at,
+            service_links=service_links,
             project_id=project_id,
             git=git,
             image=image,
