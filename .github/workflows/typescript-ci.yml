@@ -5,21 +5,35 @@ permissions:
 on:
   push:
     branches: [main]
-    paths:
-      - "typescript/**"
-      - ".github/workflows/typescript-ci.yml"
   pull_request:
-    paths:
-      - "typescript/**"
-      - ".github/workflows/typescript-ci.yml"
 
 defaults:
   run:
     working-directory: ./typescript
 
 jobs:
+  changes:
+    name: Determine if TypeScript files changed
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      typescript: ${{ steps.filter.outputs.typescript }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+      - id: filter
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706  # v4.0.2
+        with:
+          filters: |
+            typescript:
+              - 'typescript/**'
+              - '.github/workflows/typescript-ci.yml'
+
   lint-and-format:
-    name: Lint and Format Check
+    name: TypeScript Lint and Format Check
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
@@ -45,6 +59,8 @@ jobs:
 
   test:
     name: Test Node ${{ matrix.node-version }}
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -69,6 +85,8 @@ jobs:
 
   bun-test:
     name: Test (Bun)
+    needs: changes
+    if: needs.changes.outputs.typescript == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
@@ -81,13 +99,14 @@ jobs:
         run: bun --bun run test
 
   e2e:
-    name: E2E Tests
-    needs: [lint-and-format, test]
+    name: TypeScript E2E Tests
+    needs: [changes, lint-and-format, test]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: >-
-      github.event_name == 'push' ||
-      contains(github.event.pull_request.labels.*.name, 'run-e2e')
+      needs.changes.outputs.typescript == 'true' &&
+      (github.event_name == 'push' ||
+       contains(github.event.pull_request.labels.*.name, 'run-e2e'))
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
 
