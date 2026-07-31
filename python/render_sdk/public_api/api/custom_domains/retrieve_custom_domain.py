@@ -12,11 +12,11 @@ from ...types import Response
 
 def _get_kwargs(
     service_id: str,
-    custom_domain_id_or_name: str,
+    custom_domain_name_or_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/custom-domains/{custom_domain_id_or_name}",
+        "url": f"/services/{service_id}/custom-domains/{custom_domain_name_or_id}",
     }
 
     return _kwargs
@@ -94,7 +94,7 @@ def _build_response(
 
 def sync_detailed(
     service_id: str,
-    custom_domain_id_or_name: str,
+    custom_domain_name_or_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[CustomDomain, Error]]:
@@ -104,7 +104,7 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        custom_domain_id_or_name (str):
+        custom_domain_name_or_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -116,7 +116,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
-        custom_domain_id_or_name=custom_domain_id_or_name,
+        custom_domain_name_or_id=custom_domain_name_or_id,
     )
 
     response = client.get_httpx_client().request(
@@ -128,7 +128,7 @@ def sync_detailed(
 
 def sync(
     service_id: str,
-    custom_domain_id_or_name: str,
+    custom_domain_name_or_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[CustomDomain, Error]]:
@@ -138,7 +138,7 @@ def sync(
 
     Args:
         service_id (str):
-        custom_domain_id_or_name (str):
+        custom_domain_name_or_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -150,14 +150,14 @@ def sync(
 
     return sync_detailed(
         service_id=service_id,
-        custom_domain_id_or_name=custom_domain_id_or_name,
+        custom_domain_name_or_id=custom_domain_name_or_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
     service_id: str,
-    custom_domain_id_or_name: str,
+    custom_domain_name_or_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[CustomDomain, Error]]:
@@ -167,7 +167,7 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        custom_domain_id_or_name (str):
+        custom_domain_name_or_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -179,7 +179,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
-        custom_domain_id_or_name=custom_domain_id_or_name,
+        custom_domain_name_or_id=custom_domain_name_or_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -189,7 +189,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     service_id: str,
-    custom_domain_id_or_name: str,
+    custom_domain_name_or_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[CustomDomain, Error]]:
@@ -199,7 +199,7 @@ async def asyncio(
 
     Args:
         service_id (str):
-        custom_domain_id_or_name (str):
+        custom_domain_name_or_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -212,7 +212,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             service_id=service_id,
-            custom_domain_id_or_name=custom_domain_id_or_name,
+            custom_domain_name_or_id=custom_domain_name_or_id,
             client=client,
         )
     ).parsed

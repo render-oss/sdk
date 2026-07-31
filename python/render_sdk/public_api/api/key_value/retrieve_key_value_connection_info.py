@@ -11,11 +11,11 @@ from ...types import Response
 
 
 def _get_kwargs(
-    key_value_id: str,
+    redis_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/key-value/{key_value_id}/connection-info",
+        "url": f"/key-value/{redis_id}/connection-info",
     }
 
     return _kwargs
@@ -77,7 +77,7 @@ def _build_response(
 
 
 def sync_detailed(
-    key_value_id: str,
+    redis_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Error, KeyValueConnectionInfo]]:
@@ -87,7 +87,7 @@ def sync_detailed(
     information.
 
     Args:
-        key_value_id (str):
+        redis_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -98,7 +98,7 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        key_value_id=key_value_id,
+        redis_id=redis_id,
     )
 
     response = client.get_httpx_client().request(
@@ -109,7 +109,7 @@ def sync_detailed(
 
 
 def sync(
-    key_value_id: str,
+    redis_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Error, KeyValueConnectionInfo]]:
@@ -119,7 +119,7 @@ def sync(
     information.
 
     Args:
-        key_value_id (str):
+        redis_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -130,13 +130,13 @@ def sync(
     """
 
     return sync_detailed(
-        key_value_id=key_value_id,
+        redis_id=redis_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    key_value_id: str,
+    redis_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Error, KeyValueConnectionInfo]]:
@@ -146,7 +146,7 @@ async def asyncio_detailed(
     information.
 
     Args:
-        key_value_id (str):
+        redis_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -157,7 +157,7 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        key_value_id=key_value_id,
+        redis_id=redis_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -166,7 +166,7 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    key_value_id: str,
+    redis_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Error, KeyValueConnectionInfo]]:
@@ -176,7 +176,7 @@ async def asyncio(
     information.
 
     Args:
-        key_value_id (str):
+        redis_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -188,7 +188,7 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            key_value_id=key_value_id,
+            redis_id=redis_id,
             client=client,
         )
     ).parsed

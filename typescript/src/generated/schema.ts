@@ -880,7 +880,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/{serviceId}/secret-files/{secretFileName}": {
+    "/services/{serviceId}/secret-files/{envVarKey}": {
         parameters: {
             query?: never;
             header?: never;
@@ -888,7 +888,7 @@ export interface paths {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -1029,15 +1029,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /**
-         * Update redirect/rewrite rule priority
-         * @description Update the priority for a particular redirect/rewrite rule.
-         *
-         *     To apply redirect/rewrite rules to an incoming request, Render starts from the rule with priority `0` and applies the first encountered rule that matches the request's path (if any).
-         *
-         *     Render increments the priority of other rules by `1` as necessary to make space for the updated rule.
-         */
-        patch: operations["patch-route"];
+        patch?: never;
         trace?: never;
     };
     "/services/{serviceId}/routes/{routeId}": {
@@ -1062,7 +1054,15 @@ export interface paths {
         delete: operations["delete-route"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Update redirect/rewrite rule priority
+         * @description Update the priority for a particular redirect/rewrite rule.
+         *
+         *     To apply redirect/rewrite rules to an incoming request, Render starts from the rule with priority `0` and applies the first encountered rule that matches the request's path (if any).
+         *
+         *     Render increments the priority of other rules by `1` as necessary to make space for the updated rule.
+         */
+        patch: operations["patch-route"];
         trace?: never;
     };
     "/services/{serviceId}/custom-domains": {
@@ -1092,7 +1092,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/{serviceId}/custom-domains/{customDomainIdOrName}": {
+    "/services/{serviceId}/custom-domains/{customDomainNameOrID}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1100,7 +1100,7 @@ export interface paths {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The ID or name of the custom domain */
-                customDomainIdOrName: components["parameters"]["customDomainIdOrNameParam"];
+                customDomainNameOrID: components["parameters"]["customDomainIdOrNameParam"];
             };
             cookie?: never;
         };
@@ -1121,7 +1121,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/services/{serviceId}/custom-domains/{customDomainIdOrName}/verify": {
+    "/services/{serviceId}/custom-domains/{customDomainNameOrID}/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -1129,7 +1129,7 @@ export interface paths {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The ID or name of the custom domain */
-                customDomainIdOrName: components["parameters"]["customDomainIdOrNameParam"];
+                customDomainNameOrID: components["parameters"]["customDomainIdOrNameParam"];
             };
             cookie?: never;
         };
@@ -2342,7 +2342,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/key-value/{keyValueId}": {
+    "/key-value/{redisId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2370,7 +2370,7 @@ export interface paths {
         patch: operations["update-key-value"];
         trace?: never;
     };
-    "/key-value/{keyValueId}/connection-info": {
+    "/key-value/{redisId}/connection-info": {
         parameters: {
             query?: never;
             header?: never;
@@ -2390,12 +2390,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/key-value/{keyValueId}/suspend": {
+    "/key-value/{redisId}/suspend": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -2412,12 +2412,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/key-value/{keyValueId}/resume": {
+    "/key-value/{redisId}/resume": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -2508,6 +2508,52 @@ export interface paths {
         get: operations["retrieve-redis-connection-info"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/redis/{redisId}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                redisId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend Redis instance
+         * @deprecated
+         * @description Suspend a Redis instance by ID. This API is deprecated in favor of the Key Value API.
+         */
+        post: operations["suspend-redis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/redis/{redisId}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                redisId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resume Redis instance
+         * @deprecated
+         * @description Resume a Redis instance by ID. This API is deprecated in favor of the Key Value API.
+         */
+        post: operations["resume-redis"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2774,6 +2820,186 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/postgres/{postgresId}/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Promote Postgres read replica
+         * @description Promote a Postgres read replica to a standalone primary instance by ID.
+         */
+        post: operations["promote-postgres"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/replication": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set up logical replication
+         * @description Set up logical replication (a publication and, optionally, a replication slot) for a schema and database on a Postgres instance by ID.
+         */
+        post: operations["setup-postgres-replication"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/parameter-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List Postgres parameter overrides
+         * @description List the configuration parameter overrides currently applied to a Postgres instance by ID.
+         */
+        get: operations["list-postgres-parameter-overrides"];
+        /**
+         * Update Postgres parameter overrides
+         * @description Update the configuration parameter overrides applied to a Postgres instance by ID.
+         */
+        put: operations["update-postgres-parameter-overrides"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/parameter-overrides/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List available Postgres parameter overrides
+         * @description List the configuration parameter overrides that could be applied to a Postgres instance by ID.
+         */
+        get: operations["list-available-postgres-parameter-overrides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/query/processes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List live queries
+         * @description List currently running queries (from `pg_stat_activity`) on a Postgres instance by ID.
+         */
+        get: operations["list-postgres-processes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/query/top-queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List top queries
+         * @description List the top 50 queries by total execution time (from `pg_stat_statements`) on a Postgres instance by ID.
+         */
+        get: operations["list-postgres-top-queries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/query/sizes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List database, table, and index sizes
+         * @description List the sizes of databases, tables, and indexes on a Postgres instance by ID.
+         */
+        get: operations["list-postgres-sizes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/postgres/{postgresId}/query/table-scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List table scans
+         * @description List the number of sequential scans performed against each table on a Postgres instance by ID.
+         */
+        get: operations["list-postgres-table-scans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/projects": {
         parameters: {
             query?: never;
@@ -3024,7 +3250,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/env-groups/{envGroupId}/secret-files/{secretFileName}": {
+    "/env-groups/{envGroupId}/secret-files/{envVarKey}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3072,7 +3298,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/maintenance/{maintenanceRunParam}": {
+    "/maintenance/{maintenanceRunID}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3098,7 +3324,7 @@ export interface paths {
         patch: operations["update-maintenance"];
         trace?: never;
     };
-    "/maintenance/{maintenanceRunParam}/trigger": {
+    "/maintenance/{maintenanceRunID}/trigger": {
         parameters: {
             query?: never;
             header?: never;
@@ -3146,6 +3372,10 @@ export interface paths {
          *        the requested `region` (defaults to `oregon`).
          *     - `image`: the artifact source is image-backed. It points at an
          *       existing image in an external registry; no build is performed.
+         *
+         *     `envVars`, `secretFiles`, and `envGroupIds` set the build-time
+         *     environment and are only valid for `git` sources; the request fails
+         *     if any are provided with `image`.
          */
         post: operations["create-artifact-source"];
         delete?: never;
@@ -3308,14 +3538,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/secret-files/{secretFileName}": {
+    "/artifact-sources/{artifactSourceId}/secret-files/{envVarKey}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -3772,6 +4002,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandbox-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List sandbox groups
+         * @description List sandbox groups for the specified workspaces. Alpha guarantees at most one
+         *     group per owner, so the response is either empty or a single-item list.
+         */
+        get: operations["list-sandbox-groups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandboxes/{sandboxId}": {
         parameters: {
             query?: never;
@@ -3820,30 +4071,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sandboxes/{sandboxId}/exec": {
+    "/sandboxes/{sandboxId}/runs/{operation}/token": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 /** @description The ID of the sandbox */
                 sandboxId: components["parameters"]["sandboxId"];
+                /** @description The run operation to authorize — `sync` (buffered) or `stream` (server-sent events). */
+                operation: "sync" | "stream";
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
         /**
-         * Execute command in sandbox synchronously
-         * @description Run a single command in a running sandbox. By default, blocks until the
-         *     command exits and returns stdout, stderr, and exit code in one JSON
-         *     response.
-         *
-         *     To receive stdout and stderr as they are produced, set
-         *     `Accept: text/event-stream`. Streaming responses use finite
-         *     server-sent events and end with either an `exit` event or an `error`
-         *     event.
+         * Create a connect token for a sandbox run
+         * @description Mint a short-lived, capability-scoped connect token that authorizes a
+         *     single run operation against the specified sandbox. The response contains
+         *     the sandbox URI where the caller sends the command with the token as a bearer credential.
          */
-        post: operations["exec-sandbox-sync"];
+        post: operations["connect-sandbox-run"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3876,38 +4124,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sandboxes/{sandboxId}/files": {
+    "/sandboxes/{sandboxId}/files/{operation}/token": {
         parameters: {
-            query: {
-                /**
-                 * @description Absolute path in the sandbox filesystem. For PUT archives, this is the extraction root.
-                 * @example /app/agent.py
-                 */
-                path: string;
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description The ID of the sandbox */
                 sandboxId: components["parameters"]["sandboxId"];
+                /** @description The file operation to authorize — `upload` (PUT a file or tar archive) or `download` (GET a file, or a directory as a tar archive). */
+                operation: "upload" | "download";
             };
             cookie?: never;
         };
+        get?: never;
+        put?: never;
         /**
-         * Download file or directory from sandbox
-         * @description Download a file or directory from a running sandbox. The sandbox must be
-         *     `running`. Response `Content-Type` reflects what `path` resolves to:
-         *     `application/octet-stream` for a file, `application/x-tar` for a directory.
+         * Mint a connect token for a sandbox file transfer
+         * @description Mint a short-lived, capability-scoped connect token that authorizes a
+         *     single file upload or download against the sandbox, and return the
+         *     sandbox-proxy endpoint to invoke with it. The caller streams the file
+         *     bytes directly to (or from) that endpoint with the token as a bearer
+         *     credential. `application/octet-stream` carries a single file; uploads
+         *     accept a directory archive as `application/x-tar` or `application/gzip`
+         *     (gzipped tar), and directory downloads return `application/gzip`. The
+         *     token is bound to this sandbox, operation, and path, and expires
+         *     shortly after issuance.
          */
-        get: operations["download-sandbox-files"];
-        /**
-         * Upload file or directory to sandbox
-         * @description Upload a file or directory archive into a running sandbox. The sandbox must
-         *     be `running`. `Content-Type` determines how the body is handled:
-         *     `application/octet-stream` writes raw bytes to `path`;
-         *     `application/x-tar` extracts the archive at `path`.
-         */
-        put: operations["upload-sandbox-files"];
-        post?: never;
+        post: operations["connect-sandbox-files"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3973,7 +4216,7 @@ export interface components {
              * @example CreateServerEvent
              * @enum {string}
              */
-            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
+            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateArtifactSourceEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
             /**
              * @description The status of the event
              * @example success
@@ -4012,7 +4255,7 @@ export interface components {
         };
         service: {
             id: string;
-            artifactSourceId?: string;
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
             autoDeploy: components["schemas"]["autoDeploy"];
             autoDeployTrigger?: components["schemas"]["autoDeployTrigger"];
             branch?: string;
@@ -4348,6 +4591,8 @@ export interface components {
             ipAllowList?: components["schemas"]["cidrBlockAndDescription"][];
         };
         webServiceDetailsPOST: {
+            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4372,6 +4617,8 @@ export interface components {
             ipAllowList?: components["schemas"]["cidrBlockAndDescription"][];
         };
         privateServiceDetailsPOST: {
+            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4390,6 +4637,8 @@ export interface components {
             maxShutdownDelaySeconds?: components["schemas"]["maxShutdownDelaySeconds"];
         };
         backgroundWorkerDetailsPOST: {
+            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4408,6 +4657,8 @@ export interface components {
             maxShutdownDelaySeconds?: components["schemas"]["maxShutdownDelaySeconds"];
         };
         cronJobDetailsPOST: {
+            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
             env?: components["schemas"]["serviceEnv"];
             runtime: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetails"];
@@ -4416,6 +4667,9 @@ export interface components {
             schedule: string;
         };
         servicePATCH: {
+            /** @description The ID of the Artifact Source to attach this service to. Cannot be combined with other build-configuration changes. Attaching to an Artifact Source with no builds triggers one. */
+            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            artifactId?: string;
             autoDeploy?: components["schemas"]["autoDeploy"];
             autoDeployTrigger?: components["schemas"]["autoDeployTrigger"];
             repo?: string;
@@ -4634,6 +4888,7 @@ export interface components {
         deployStatus: "created" | "queued" | "build_in_progress" | "update_in_progress" | "live" | "deactivated" | "build_failed" | "update_failed" | "canceled" | "pre_deploy_in_progress" | "pre_deploy_failed";
         deploy: {
             id: string;
+            artifactId?: string;
             commit?: {
                 id?: string;
                 message?: string;
@@ -5054,10 +5309,6 @@ export interface components {
         envGroupPATCHInput: {
             name: string;
         };
-        secretFileInput: {
-            name: string;
-            content: string;
-        };
         envGroup: components["schemas"]["envGroupMeta"] & {
             envVars: components["schemas"]["envVar"][];
             secretFiles: components["schemas"]["secretFile"][];
@@ -5162,6 +5413,16 @@ export interface components {
         };
         postgresParameterOverrides: {
             [key: string]: string;
+        };
+        postgresParameterOverridesWrapper: {
+            parameterOverrides: components["schemas"]["postgresParameterOverrides"];
+        };
+        postgresPutParameterOverridesResult: {
+            /** @description IDs of databases affected by this update (the primary and any read replicas). */
+            affectedDatabases: string[];
+            appliedOverrides: components["schemas"]["postgresParameterOverrides"];
+            /** @description Whether the affected databases must be restarted for the applied overrides to take effect. */
+            requiresRestart: boolean;
         };
         postgresConnectionInfo: {
             /** Format: password */
@@ -5290,6 +5551,11 @@ export interface components {
         /** @description A sandbox with a cursor */
         sandboxWithCursor: {
             sandbox: components["schemas"]["sandbox"];
+            cursor: components["schemas"]["cursor"];
+        };
+        /** @description A sandbox group with a cursor */
+        sandboxGroupWithCursor: {
+            sandboxGroup: components["schemas"]["sandboxGroup"];
             cursor: components["schemas"]["cursor"];
         };
         /** @description A Blueprint with a cursor */
@@ -5495,6 +5761,7 @@ export interface components {
             previewNotificationsEnabled?: components["schemas"]["notifyPreviewOverride"];
             notificationsToSend?: components["schemas"]["notifyOverride"];
         };
+        artifactSourceId: string;
         /**
          * @description Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
          * @enum {string}
@@ -5536,10 +5803,26 @@ export interface components {
         };
         envVarInput: components["schemas"]["envVarKeyValue"] | components["schemas"]["envVarKeyGenerateValue"];
         envVarInputArray: components["schemas"]["envVarInput"][];
+        secretFileInput: {
+            name: string;
+            content: string;
+        };
         /** @enum {string} */
-        serviceEventType: "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "image_pull_failed" | "initial_deploy_hook_ended" | "initial_deploy_hook_started" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "suspender_added" | "suspender_removed" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "auto_deploy_disabled" | "auto_deploy_enabled";
+        serviceEventType: "artifact_fetch_failed" | "artifact_source_changed" | "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "image_pull_failed" | "initial_deploy_hook_ended" | "initial_deploy_hook_started" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "suspender_added" | "suspender_removed" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "auto_deploy_disabled" | "auto_deploy_enabled";
         /** @example evt-cph1rs3idesc73a2b2mg */
         eventId: string;
+        /** Artifact Fetch Failed */
+        artifactFetchFailedEvent: {
+            artifactId: string;
+            message: string;
+        };
+        /** Artifact Source Changed */
+        artifactSourceChangedEvent: {
+            /** @description The previously linked artifact source. Absent when the service was newly attached. */
+            fromArtifactSourceId?: string;
+            /** @description The newly linked artifact source. Absent when the service was detached. */
+            toArtifactSourceId?: string;
+        };
         /** Autoscaling Config Changed */
         autoscalingConfigChangedEvent: {
             fromConfig?: components["schemas"]["autoscalingConfig"];
@@ -5658,11 +5941,15 @@ export interface components {
             deployStatus: components["schemas"]["eventStatus"];
             /** @deprecated */
             status: number;
+            /** @description Set when the deploy shipped an artifact published by the service's linked artifact source. */
+            artifactId?: string;
         };
         /** Deploy Started */
         deployStartedEvent: {
             deployId: string;
             trigger: components["schemas"]["buildDeployTrigger"];
+            /** @description Set when the deploy ships an artifact published by the service's linked artifact source. */
+            artifactId?: string;
         };
         /** Disk Created */
         diskCreatedEvent: {
@@ -5820,7 +6107,7 @@ export interface components {
             newTrigger?: components["schemas"]["autoDeployTrigger"];
         };
         /** Service Event Details */
-        serviceEventDetails: components["schemas"]["autoscalingConfigChangedEvent"] | components["schemas"]["autoscalingEndedEvent"] | components["schemas"]["autoscalingStartedEvent"] | components["schemas"]["branchDeletedEvent"] | components["schemas"]["buildEndedEvent"] | components["schemas"]["buildStartedEvent"] | components["schemas"]["commitIgnoredEvent"] | components["schemas"]["cronJobRunEndedEvent"] | components["schemas"]["cronJobRunStartedEvent"] | components["schemas"]["deployEndedEvent"] | components["schemas"]["deployStartedEvent"] | components["schemas"]["diskCreatedEvent"] | components["schemas"]["diskUpdatedEvent"] | components["schemas"]["diskDeletedEvent"] | components["schemas"]["imagePullFailedEvent"] | components["schemas"]["initialDeployHookStartedEvent"] | components["schemas"]["initialDeployHookEndedEvent"] | components["schemas"]["instanceCountChangedEvent"] | components["schemas"]["jobRunEndedEvent"] | components["schemas"]["maintenanceModeEnabledEvent"] | components["schemas"]["maintenanceModeURIUpdatedEvent"] | components["schemas"]["maintenanceEndedEvent"] | components["schemas"]["maintenanceStartedEvent"] | components["schemas"]["pipelineMinutesExhaustedEvent"] | components["schemas"]["planChangedEvent"] | components["schemas"]["preDeployEndedEvent"] | components["schemas"]["preDeployStartedEvent"] | components["schemas"]["serverAvailableEvent"] | components["schemas"]["serverFailedEvent"] | components["schemas"]["serverHardwareFailureEvent"] | components["schemas"]["serverRestartedEvent"] | components["schemas"]["serviceResumedEvent"] | components["schemas"]["serviceSuspendedEvent"] | components["schemas"]["suspenderAddedEvent"] | components["schemas"]["suspenderRemovedEvent"] | components["schemas"]["zeroDowntimeRedeployEndedEvent"] | components["schemas"]["zeroDowntimeRedeployStartedEvent"] | components["schemas"]["edgeCacheDisabledEvent"] | components["schemas"]["edgeCacheEnabledEvent"] | components["schemas"]["edgeCachePurgedEvent"] | components["schemas"]["autoDeployDisabledEvent"] | components["schemas"]["autoDeployEnabledEvent"];
+        serviceEventDetails: components["schemas"]["artifactFetchFailedEvent"] | components["schemas"]["artifactSourceChangedEvent"] | components["schemas"]["autoscalingConfigChangedEvent"] | components["schemas"]["autoscalingEndedEvent"] | components["schemas"]["autoscalingStartedEvent"] | components["schemas"]["branchDeletedEvent"] | components["schemas"]["buildEndedEvent"] | components["schemas"]["buildStartedEvent"] | components["schemas"]["commitIgnoredEvent"] | components["schemas"]["cronJobRunEndedEvent"] | components["schemas"]["cronJobRunStartedEvent"] | components["schemas"]["deployEndedEvent"] | components["schemas"]["deployStartedEvent"] | components["schemas"]["diskCreatedEvent"] | components["schemas"]["diskUpdatedEvent"] | components["schemas"]["diskDeletedEvent"] | components["schemas"]["imagePullFailedEvent"] | components["schemas"]["initialDeployHookStartedEvent"] | components["schemas"]["initialDeployHookEndedEvent"] | components["schemas"]["instanceCountChangedEvent"] | components["schemas"]["jobRunEndedEvent"] | components["schemas"]["maintenanceModeEnabledEvent"] | components["schemas"]["maintenanceModeURIUpdatedEvent"] | components["schemas"]["maintenanceEndedEvent"] | components["schemas"]["maintenanceStartedEvent"] | components["schemas"]["pipelineMinutesExhaustedEvent"] | components["schemas"]["planChangedEvent"] | components["schemas"]["preDeployEndedEvent"] | components["schemas"]["preDeployStartedEvent"] | components["schemas"]["serverAvailableEvent"] | components["schemas"]["serverFailedEvent"] | components["schemas"]["serverHardwareFailureEvent"] | components["schemas"]["serverRestartedEvent"] | components["schemas"]["serviceResumedEvent"] | components["schemas"]["serviceSuspendedEvent"] | components["schemas"]["suspenderAddedEvent"] | components["schemas"]["suspenderRemovedEvent"] | components["schemas"]["zeroDowntimeRedeployEndedEvent"] | components["schemas"]["zeroDowntimeRedeployStartedEvent"] | components["schemas"]["edgeCacheDisabledEvent"] | components["schemas"]["edgeCacheEnabledEvent"] | components["schemas"]["edgeCachePurgedEvent"] | components["schemas"]["autoDeployDisabledEvent"] | components["schemas"]["autoDeployEnabledEvent"];
         serviceEvent: {
             id: components["schemas"]["eventId"];
             /** Format: date-time */
@@ -5855,7 +6142,7 @@ export interface components {
             finishedAt?: string;
         };
         /** @enum {string} */
-        eventType: "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "image_pull_failed" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "edge_cache_enabled" | "edge_cache_disabled" | "edge_cache_purged" | "auto_deploy_disabled" | "auto_deploy_enabled" | "postgres_available" | "postgres_backup_completed" | "postgres_backup_failed" | "postgres_backup_started" | "postgres_cluster_leader_changed" | "postgres_connection_pool_changed" | "postgres_connection_pool_enabled_changed" | "postgres_created" | "postgres_disk_size_changed" | "postgres_disk_autoscaling_enabled_changed" | "postgres_ha_status_changed" | "postgres_restarted" | "postgres_unavailable" | "postgres_upgrade_failed" | "postgres_upgrade_started" | "postgres_upgrade_succeeded" | "postgres_restore_failed" | "postgres_restore_succeeded" | "postgres_read_replicas_changed" | "postgres_pitr_checkpoint_started" | "postgres_pitr_checkpoint_failed" | "postgres_pitr_checkpoint_completed" | "postgres_read_replica_stale" | "postgres_wal_archive_failed" | "key_value_available" | "key_value_config_restart" | "key_value_unhealthy";
+        eventType: "artifact_fetch_failed" | "artifact_source_changed" | "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "image_pull_failed" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "edge_cache_enabled" | "edge_cache_disabled" | "edge_cache_purged" | "auto_deploy_disabled" | "auto_deploy_enabled" | "postgres_available" | "postgres_backup_completed" | "postgres_backup_failed" | "postgres_backup_started" | "postgres_cluster_leader_changed" | "postgres_connection_pool_changed" | "postgres_connection_pool_enabled_changed" | "postgres_created" | "postgres_disk_size_changed" | "postgres_disk_autoscaling_enabled_changed" | "postgres_ha_status_changed" | "postgres_restarted" | "postgres_unavailable" | "postgres_upgrade_failed" | "postgres_upgrade_started" | "postgres_upgrade_succeeded" | "postgres_restore_failed" | "postgres_restore_succeeded" | "postgres_read_replicas_changed" | "postgres_pitr_checkpoint_started" | "postgres_pitr_checkpoint_failed" | "postgres_pitr_checkpoint_completed" | "postgres_read_replica_stale" | "postgres_wal_archive_failed" | "key_value_available" | "key_value_config_restart" | "key_value_unhealthy";
         /** Postgres Available */
         postgresAvailableEvent: Record<string, never>;
         /** Postgres Backup Completed */
@@ -5952,7 +6239,7 @@ export interface components {
             details: components["schemas"]["eventDetails"];
         };
         /** @enum {string} */
-        logLabelName: "resource" | "instance" | "host" | "statusCode" | "method" | "level" | "workflowService" | "workflowVeresion" | "task" | "taskRun" | "type" | "text" | "path" | "blocked";
+        logLabelName: "resource" | "instance" | "host" | "statusCode" | "method" | "level" | "workflowService" | "workflowVeresion" | "task" | "taskRun" | "sandbox" | "type" | "text" | "path" | "blocked";
         /** @description A log label */
         logLabel: {
             /** @description The name of the log label */
@@ -6131,6 +6418,101 @@ export interface components {
             /** @description Name of the new user. */
             username: string;
         };
+        postgresReplicationSetupInput: {
+            /** @description Schema to replicate. */
+            schemaName: string;
+            /** @description Database to replicate. */
+            databaseName: string;
+            /** @description Publication name to create. */
+            allTablesPublicationName?: string;
+            /** @description Replication slot name to create. */
+            replicationSlotName?: string;
+            /** @description Immediately enqueue a restart to apply. */
+            restartNow?: boolean;
+        };
+        postgresAvailableParameterOverride: {
+            name: string;
+            description: string;
+            /** @description Whether setting this parameter requires a restart to take effect. */
+            requiresRestart: boolean;
+            examples?: string[];
+            /** @description The minimum value allowed for numeric parameters. */
+            minValue?: number;
+            /** @description The maximum value allowed for numeric parameters. */
+            maxValue?: number;
+        };
+        postgresAvailableParameterOverridesResult: {
+            availableParameterOverrides: components["schemas"]["postgresAvailableParameterOverride"][];
+        };
+        /** @description A single live process from pg_stat_activity. */
+        postgresProcess: {
+            pid?: number;
+            databaseName?: string;
+            username?: string;
+            applicationName?: string;
+            clientAddr?: string;
+            /** Format: date-time */
+            backendStart?: string;
+            /** Format: date-time */
+            queryStart?: string;
+            state?: string;
+            waitEvent?: string;
+            waitEventType?: string;
+            query?: string;
+            /** @description Duration of the query, in seconds. */
+            duration?: number;
+            /** @description Whether this process is running against the primary instance of a highly available database. */
+            isLeader?: boolean;
+        };
+        postgresProcessesResult: {
+            processes: components["schemas"]["postgresProcess"][];
+        };
+        /** @description A single query from pg_stat_statements. */
+        postgresQueryStatistic: {
+            queryId?: string;
+            query?: string;
+            calls?: number;
+            totalTimeMs?: number;
+            minTimeMs?: number;
+            maxTimeMs?: number;
+            meanTimeMs?: number;
+            stddevTimeMs?: number;
+            rows?: number;
+            sharedBlocksHit?: number;
+            sharedBlocksRead?: number;
+            sharedBlocksDirtied?: number;
+            sharedBlocksWritten?: number;
+            localBlocksHit?: number;
+            localBlocksRead?: number;
+            localBlocksDirtied?: number;
+            localBlocksWritten?: number;
+            tempBlocksRead?: number;
+            tempBlocksWritten?: number;
+        };
+        postgresTopQueriesResult: {
+            topQueries: components["schemas"]["postgresQueryStatistic"][];
+        };
+        /** @description The size of an index, table, or database. */
+        postgresSize: {
+            Database?: string;
+            Schema?: string;
+            Table?: string;
+            Index?: string;
+            Bytes?: number;
+        };
+        postgresSizesResult: {
+            sizes: components["schemas"]["postgresSize"][];
+        };
+        /** @description The number of sequential scans performed against a table. */
+        postgresTableScan: {
+            Database?: string;
+            Schema?: string;
+            Table?: string;
+            Scans?: number;
+        };
+        postgresTableScansResult: {
+            tableScans: components["schemas"]["postgresTableScan"][];
+        };
         /** @description The Id of a resource that can undergo maintenance (Id of a service, a Postgres instance, or a Redis instance) */
         maintenanceResourceId: string;
         maintenanceRunWithResource: {
@@ -6153,7 +6535,6 @@ export interface components {
              */
             scheduledAt?: string;
         };
-        artifactSourceId: string;
         /** @description Glob patterns matched against files changed by a commit. When set, a commit only triggers a build when at least one changed file matches `paths` and none match `ignoredPaths`. Useful for monorepos where a single repo backs many services. */
         "schemas-buildFilter": {
             paths: string[];
@@ -6165,7 +6546,11 @@ export interface components {
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
             dockerfilePath?: string;
-            runtime: string;
+            /**
+             * @description Build runtime for the artifact source. Static sites are not supported for artifact sources.
+             * @enum {string}
+             */
+            runtime: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
             registryCredentialId?: string;
             /**
              * @description Defaults to "oregon"
@@ -6180,6 +6565,10 @@ export interface components {
             ownerId: string;
             registryCredentialId?: string;
             imageUrl: string;
+        };
+        artifactSourceServiceLink: {
+            id: string;
+            name: string;
         };
         artifactSource: {
             id: components["schemas"]["artifactSourceId"];
@@ -6196,6 +6585,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Services currently linked to this artifact source. */
+            serviceLinks: components["schemas"]["artifactSourceServiceLink"][];
         };
         artifactSourceWithCursor: {
             artifactSource: components["schemas"]["artifactSource"];
@@ -6207,6 +6598,12 @@ export interface components {
             projectId?: string;
             git?: components["schemas"]["artifactSourceGit"];
             image?: components["schemas"]["artifactSourceImage"];
+            serviceIds?: string[];
+            envVars?: components["schemas"]["envVarInputArray"];
+            /** @description Secret files for the artifact source's build. Only valid for `git` sources. */
+            secretFiles?: components["schemas"]["secretFileInput"][];
+            /** @description IDs of env groups to link to the artifact source. Only valid for `git` sources; env groups must belong to the same workspace and must not be scoped to an environment. */
+            envGroupIds?: string[];
         };
         artifactSourcePATCHGit: {
             baseDir?: string;
@@ -6214,7 +6611,11 @@ export interface components {
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
             dockerfilePath?: string;
-            runtime?: string;
+            /**
+             * @description Build runtime for the artifact source. Static sites are not supported for artifact sources.
+             * @enum {string}
+             */
+            runtime?: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
             registryCredentialId?: string;
             /**
              * @description Region for the build. Honored only when this PATCH performs an image→build transition; rejected on a pure build patch (the cluster is pinned for an existing build), and must match the prior build region when switching back to build after time as an external image. Defaults to "oregon" for first-time builds.
@@ -6244,7 +6645,8 @@ export interface components {
             buildStartedAt?: string;
             /** Format: date-time */
             buildFinishedAt?: string;
-            runtime?: string;
+            /** @enum {string} */
+            runtime?: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
             commitId?: string;
             commitUrl?: string;
         };
@@ -6582,54 +6984,75 @@ export interface components {
             timeoutSeconds: number;
             /** @description Render region. Defaults to the workspace default. */
             region?: string;
+            /** @description Inline environment variables injected into the sandbox at creation. Treated as secrets; not returned by the API. */
+            env?: {
+                [key: string]: string;
+            };
         };
-        /** @description Body of the synchronous exec endpoint. */
-        sandboxExecSyncRequest: {
+        /** @example sbg-cph1rs3idesc73a2b2mg */
+        sandboxGroupId: string;
+        sandboxGroup: {
+            id: components["schemas"]["sandboxGroupId"];
             /**
-             * @description Bash command to run. Passed to `bash -c` in the sandbox.
-             * @example echo hello
+             * @description The ID of the workspace this group belongs to.
+             * @example tea-cph1rs3idesc73a2b2mg
              */
-            command: string;
+            ownerId: string;
+            /**
+             * @description Human-friendly name for the group.
+             * @example Default
+             */
+            name: string;
+            /**
+             * @description Render region the group operates in.
+             * @example oregon
+             */
+            region: string;
+            /** @description Whether this is the workspace's default group. Exactly one group per workspace is the default. */
+            isDefault: boolean;
+            /** @description Environment this group is bound to. */
+            environmentId?: string | null;
+            /**
+             * Format: date-time
+             * @example 2026-07-02T18:30:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-07-02T18:30:00Z
+             */
+            updatedAt: string;
         };
-        /** @description Response from the synchronous exec endpoint. Returned after the command exits. */
-        sandboxExecSyncResponse: {
+        /**
+         * @description A minted connect token and the sandbox-proxy endpoint to invoke with it.
+         *     Send the request (and body, where the operation takes one) to `uri`
+         *     using `method`, with `token` as a bearer credential.
+         */
+        sandboxConnectResponse: {
             /**
-             * @description Process exit code.
-             * @example 0
+             * @description Identifier for this execution.
+             * @example exe-abc123
              */
-            exitCode: number;
-            /** @description Captured stdout. */
-            stdout: string;
-            /** @description Captured stderr. */
-            stderr: string;
-        };
-        /** @description Payload for `event: output` in a sandbox exec SSE stream. */
-        sandboxExecStreamOutputEvent: {
+            executionId: string;
+            /** @description Short-lived bearer token authorizing exactly this operation against the sandbox. */
+            token: string;
             /**
-             * @description Output stream that produced this chunk.
-             * @enum {string}
+             * Format: uri
+             * @description The sandbox-proxy endpoint to invoke.
+             * @example https://sbx-abc123.oregon.sandbox.onrender.com/runs/stream
              */
-            stream: "stdout" | "stderr";
-            /** @description Output chunk. */
-            data: string;
-        };
-        /** @description Payload for terminal `event: exit` in a sandbox exec SSE stream. Non-zero process exit codes are reported here rather than as HTTP errors. */
-        sandboxExecStreamExitEvent: {
+            uri: string;
             /**
-             * @description Process exit code.
-             * @example 0
+             * @description HTTP method to use against `uri`.
+             * @example POST
              */
-            exit_code: number;
-        };
-        /** @description Payload for terminal `event: error` in a sandbox exec SSE stream when a runtime or transport failure occurs after streaming has started. */
-        sandboxExecStreamErrorEvent: {
+            method: string;
             /**
-             * @description HTTP-style status code for the terminal streaming error.
-             * @example 500
+             * Format: date-time
+             * @description When `token` stops being valid. Start the run before this time.
+             * @example 2026-07-10T12:00:00Z
              */
-            status: number;
-            /** @description Error message. */
-            message: string;
+            expiresAt: string;
         };
         /** @description A file or directory entry in a sandbox filesystem listing. */
         sandboxFileEntry: {
@@ -6975,7 +7398,7 @@ export interface components {
         directionParam: components["schemas"]["logDirection"];
         /** @description The ID of the job */
         jobId: components["schemas"]["jobId"];
-        /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, or workflow. */
+        /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, workflow, or sandbox group. */
         logFilterResource: string[];
         /** @description Filter logs by the instance they were emitted from. An instance is the id of a specific running server. */
         logFilterInstance: string[];
@@ -6989,6 +7412,8 @@ export interface components {
         logFilterTask: string[];
         /** @description Filter logs by their task run id(s) */
         logFilterTaskRun: string[];
+        /** @description Filter logs by sandbox ID. */
+        logFilterSandbox: string[];
         /** @description Filter logs by their severity level. [Wildcards and regex](https://render.com/docs/logging#wildcards-and-regular-expressions) are supported. */
         logFilterLevel: string[];
         /** @description Filter logs by their type. Types include `app` for application logs, `request` for request logs, and `build` for build logs. You can find the full set of types available for a query by using the `GET /logs/values` endpoint. */
@@ -8663,6 +9088,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    /** @description The ID of the artifact to deploy. Cannot be combined with `commitId`, `imageUrl`, or `deployMode`. */
+                    artifactId?: string;
                     /**
                      * @description If `clear`, Render clears the service's build cache before deploying. This can be useful if you're experiencing issues with your build.
                      * @default do_not_clear
@@ -9129,7 +9556,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -9162,7 +9589,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -9202,7 +9629,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -9525,43 +9952,6 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "patch-route": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The ID of the service */
-                serviceId: components["parameters"]["serviceIdParam"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["routePatch"];
-            };
-        };
-        responses: {
-            /** @description Updated */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        headers?: components["schemas"]["route"];
-                    };
-                };
-            };
-            401: components["responses"]["401Unauthorized"];
-            403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            406: components["responses"]["406NotAcceptable"];
-            410: components["responses"]["410Gone"];
-            429: components["responses"]["429RateLimit"];
-            500: components["responses"]["500InternalServerError"];
-            503: components["responses"]["503ServiceUnavailable"];
-        };
-    };
     "delete-route": {
         parameters: {
             query?: never;
@@ -9582,6 +9972,45 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "patch-route": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the service */
+                serviceId: components["parameters"]["serviceIdParam"];
+                /** @description The id of the route */
+                routeId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["routePatch"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        headers?: components["schemas"]["route"];
+                    };
+                };
             };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
@@ -9694,7 +10123,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The ID or name of the custom domain */
-                customDomainIdOrName: components["parameters"]["customDomainIdOrNameParam"];
+                customDomainNameOrID: components["parameters"]["customDomainIdOrNameParam"];
             };
             cookie?: never;
         };
@@ -9728,7 +10157,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The ID or name of the custom domain */
-                customDomainIdOrName: components["parameters"]["customDomainIdOrNameParam"];
+                customDomainNameOrID: components["parameters"]["customDomainIdOrNameParam"];
             };
             cookie?: never;
         };
@@ -9760,7 +10189,7 @@ export interface operations {
                 /** @description The ID of the service */
                 serviceId: components["parameters"]["serviceIdParam"];
                 /** @description The ID or name of the custom domain */
-                customDomainIdOrName: components["parameters"]["customDomainIdOrNameParam"];
+                customDomainNameOrID: components["parameters"]["customDomainIdOrNameParam"];
             };
             cookie?: never;
         };
@@ -10302,7 +10731,7 @@ export interface operations {
                  *     Forward will start with the oldest logs in the time range.
                  */
                 direction?: components["parameters"]["directionParam"];
-                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, or workflow. */
+                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, workflow, or sandbox group. */
                 resource: components["parameters"]["logFilterResource"];
                 /** @description Filter logs by the instance they were emitted from. An instance is the id of a specific running server. */
                 instance?: components["parameters"]["logFilterInstance"];
@@ -10316,6 +10745,8 @@ export interface operations {
                 task?: components["parameters"]["logFilterTask"];
                 /** @description Filter logs by their task run id(s) */
                 taskRun?: components["parameters"]["logFilterTaskRun"];
+                /** @description Filter logs by sandbox ID. */
+                sandbox?: components["parameters"]["logFilterSandbox"];
                 /** @description Filter logs by their severity level. [Wildcards and regex](https://render.com/docs/logging#wildcards-and-regular-expressions) are supported. */
                 level?: components["parameters"]["logFilterLevel"];
                 /** @description Filter logs by their type. Types include `app` for application logs, `request` for request logs, and `build` for build logs. You can find the full set of types available for a query by using the `GET /logs/values` endpoint. */
@@ -10359,7 +10790,7 @@ export interface operations {
                  *     Forward will start with the oldest logs in the time range.
                  */
                 direction?: components["parameters"]["directionParam"];
-                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, or workflow. */
+                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, workflow, or sandbox group. */
                 resource: components["parameters"]["logFilterResource"];
                 /** @description Filter logs by the instance they were emitted from. An instance is the id of a specific running server. */
                 instance?: components["parameters"]["logFilterInstance"];
@@ -10373,6 +10804,8 @@ export interface operations {
                 task?: components["parameters"]["logFilterTask"];
                 /** @description Filter logs by their task run id(s) */
                 taskRun?: components["parameters"]["logFilterTaskRun"];
+                /** @description Filter logs by sandbox ID. */
+                sandbox?: components["parameters"]["logFilterSandbox"];
                 /** @description Filter logs by their severity level. [Wildcards and regex](https://render.com/docs/logging#wildcards-and-regular-expressions) are supported. */
                 level?: components["parameters"]["logFilterLevel"];
                 /** @description Filter logs by their type. Types include `app` for application logs, `request` for request logs, and `build` for build logs. You can find the full set of types available for a query by using the `GET /logs/values` endpoint. */
@@ -10426,7 +10859,7 @@ export interface operations {
                  *     Forward will start with the oldest logs in the time range.
                  */
                 direction?: components["parameters"]["directionParam"];
-                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, or workflow. */
+                /** @description Filter logs by their resource. A resource is the id of a server, cronjob, job, postgres, redis, workflow, or sandbox group. */
                 resource: components["parameters"]["logFilterResource"];
                 /** @description Filter logs by the instance they were emitted from. An instance is the id of a specific running server. */
                 instance?: components["parameters"]["logFilterInstance"];
@@ -10440,6 +10873,8 @@ export interface operations {
                 task?: components["parameters"]["logFilterTask"];
                 /** @description Filter logs by their task run id(s) */
                 taskRun?: components["parameters"]["logFilterTaskRun"];
+                /** @description Filter logs by sandbox ID. */
+                sandbox?: components["parameters"]["logFilterSandbox"];
                 /** @description Filter logs by their severity level. [Wildcards and regex](https://render.com/docs/logging#wildcards-and-regular-expressions) are supported. */
                 level?: components["parameters"]["logFilterLevel"];
                 /** @description Filter logs by their type. Types include `app` for application logs, `request` for request logs, and `build` for build logs. You can find the full set of types available for a query by using the `GET /logs/values` endpoint. */
@@ -11506,7 +11941,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11534,7 +11969,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11560,7 +11995,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11593,7 +12028,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11621,7 +12056,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11650,7 +12085,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                keyValueId: string;
+                redisId: string;
             };
             cookie?: never;
         };
@@ -11874,6 +12309,64 @@ export interface operations {
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "suspend-redis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                redisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service suspended successfully */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "resume-redis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                redisId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Service resumed successfully */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -12408,6 +12901,271 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "promote-postgres": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Database promoted successfully */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "setup-postgres-replication": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["postgresReplicationSetupInput"];
+            };
+        };
+        responses: {
+            /** @description Replication set up successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": Record<string, never>;
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-postgres-parameter-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresParameterOverridesWrapper"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "update-postgres-parameter-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["postgresParameterOverridesWrapper"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresPutParameterOverridesResult"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-available-postgres-parameter-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresAvailableParameterOverridesResult"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-postgres-processes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresProcessesResult"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-postgres-top-queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresTopQueriesResult"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-postgres-sizes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresSizesResult"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-postgres-table-scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postgresId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["postgresTableScansResult"];
+                };
             };
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
@@ -13157,7 +13915,7 @@ export interface operations {
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
                 /** @description The name of the secret file */
-                secretFileName: components["parameters"]["secretFileNameParam"];
+                envVarKey: components["parameters"]["secretFileNameParam"];
             };
             cookie?: never;
         };
@@ -13186,7 +13944,7 @@ export interface operations {
             header?: never;
             path: {
                 envGroupId: string;
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -13223,7 +13981,7 @@ export interface operations {
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
                 /** @description The name of the secret file */
-                secretFileName: components["parameters"]["secretFileNameParam"];
+                envVarKey: components["parameters"]["secretFileNameParam"];
             };
             cookie?: never;
         };
@@ -13280,7 +14038,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                maintenanceRunParam: components["parameters"]["maintenanceRunParam"];
+                maintenanceRunID: components["parameters"]["maintenanceRunParam"];
             };
             cookie?: never;
         };
@@ -13308,7 +14066,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                maintenanceRunParam: components["parameters"]["maintenanceRunParam"];
+                maintenanceRunID: components["parameters"]["maintenanceRunParam"];
             };
             cookie?: never;
         };
@@ -13338,7 +14096,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                maintenanceRunParam: components["parameters"]["maintenanceRunParam"];
+                maintenanceRunID: components["parameters"]["maintenanceRunParam"];
             };
             cookie?: never;
         };
@@ -13809,7 +14567,7 @@ export interface operations {
             path: {
                 artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -13841,7 +14599,7 @@ export interface operations {
             path: {
                 artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -13880,7 +14638,7 @@ export interface operations {
             path: {
                 artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description The file name of the secret file */
-                secretFileName: string;
+                envVarKey: string;
             };
             cookie?: never;
         };
@@ -14887,6 +15645,36 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
+    "list-sandbox-groups": {
+        parameters: {
+            query?: {
+                /** @description The ID of the workspaces to return resources for */
+                ownerId?: components["parameters"]["ownerIdParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxGroupWithCursor"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
     "retrieve-sandbox": {
         parameters: {
             query: {
@@ -14949,36 +15737,30 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "exec-sandbox-sync": {
+    "connect-sandbox-run": {
         parameters: {
             query: {
-                /** @description The ID of the workspace the sandbox belongs to. */
+                /** @description The ID of sandbox workspace. */
                 ownerId: string;
             };
-            header?: {
-                /** @description Set to `text/event-stream` to stream stdout and stderr chunks as server-sent events. Omit or set to `application/json` for the buffered JSON response. */
-                Accept?: "application/json" | "text/event-stream";
-            };
+            header?: never;
             path: {
                 /** @description The ID of the sandbox */
                 sandboxId: components["parameters"]["sandboxId"];
+                /** @description The run operation to authorize — `sync` (buffered) or `stream` (server-sent events). */
+                operation: "sync" | "stream";
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["sandboxExecSyncRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Command exited, or command output stream started. */
-            200: {
+            /** @description Connect token minted. */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["sandboxExecSyncResponse"];
-                    "text/event-stream": components["schemas"]["sandboxExecStreamOutputEvent"] | components["schemas"]["sandboxExecStreamExitEvent"] | components["schemas"]["sandboxExecStreamErrorEvent"];
+                    "application/json": components["schemas"]["sandboxConnectResponse"];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -15032,80 +15814,38 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "download-sandbox-files": {
+    "connect-sandbox-files": {
         parameters: {
             query: {
-                /**
-                 * @description Absolute path in the sandbox filesystem. For PUT archives, this is the extraction root.
-                 * @example /app/agent.py
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. */
+                ownerId: string;
+                /** @description Path in the sandbox this token authorizes. A relative path resolves within the sandbox's home directory ("." is the home directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch. */
                 path: string;
             };
             header?: never;
             path: {
                 /** @description The ID of the sandbox */
                 sandboxId: components["parameters"]["sandboxId"];
+                /** @description The file operation to authorize — `upload` (PUT a file or tar archive) or `download` (GET a file, or a directory as a tar archive). */
+                operation: "upload" | "download";
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
-            200: {
+            /** @description Connect token minted. */
+            201: {
                 headers: {
-                    "Content-Disposition"?: string;
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/octet-stream": string;
-                    "application/x-tar": string;
+                    "application/json": components["schemas"]["sandboxConnectResponse"];
                 };
             };
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
-            500: components["responses"]["500InternalServerError"];
-            503: components["responses"]["503ServiceUnavailable"];
-        };
-    };
-    "upload-sandbox-files": {
-        parameters: {
-            query: {
-                /**
-                 * @description Absolute path in the sandbox filesystem. For PUT archives, this is the extraction root.
-                 * @example /app/agent.py
-                 */
-                path: string;
-            };
-            header?: never;
-            path: {
-                /** @description The ID of the sandbox */
-                sandboxId: components["parameters"]["sandboxId"];
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/octet-stream": string;
-                "application/x-tar": string;
-            };
-        };
-        responses: {
-            /** @description No Content */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: components["responses"]["400BadRequest"];
-            401: components["responses"]["401Unauthorized"];
-            403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

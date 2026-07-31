@@ -24,6 +24,7 @@ class CronJobDetailsPOST:
     Attributes:
         runtime (ServiceRuntime): Runtime
         schedule (str):
+        artifact_source_id (Union[Unset, str]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails', Unset]):
         plan (Union[Unset, PaidPlan]): Defaults to `starter` when creating a new database.
@@ -32,10 +33,9 @@ class CronJobDetailsPOST:
 
     runtime: ServiceRuntime
     schedule: str
+    artifact_source_id: Union[Unset, str] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
-    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails", Unset] = (
-        UNSET
-    )
+    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails", Unset] = UNSET
     plan: Union[Unset, PaidPlan] = UNSET
     region: Union[Unset, Region] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -46,6 +46,8 @@ class CronJobDetailsPOST:
         runtime = self.runtime.value
 
         schedule = self.schedule
+
+        artifact_source_id = self.artifact_source_id
 
         env: Union[Unset, str] = UNSET
         if not isinstance(self.env, Unset):
@@ -75,6 +77,8 @@ class CronJobDetailsPOST:
                 "schedule": schedule,
             }
         )
+        if artifact_source_id is not UNSET:
+            field_dict["artifactSourceId"] = artifact_source_id
         if env is not UNSET:
             field_dict["env"] = env
         if env_specific_details is not UNSET:
@@ -96,6 +100,8 @@ class CronJobDetailsPOST:
 
         schedule = d.pop("schedule")
 
+        artifact_source_id = d.pop("artifactSourceId", UNSET)
+
         _env = d.pop("env", UNSET)
         env: Union[Unset, ServiceEnv]
         if isinstance(_env, Unset):
@@ -103,32 +109,24 @@ class CronJobDetailsPOST:
         else:
             env = ServiceEnv(_env)
 
-        def _parse_env_specific_details(
-            data: object,
-        ) -> Union["DockerDetails", "NativeEnvironmentDetails", Unset]:
+        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails", Unset]:
             if isinstance(data, Unset):
                 return data
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
-                    data
-                )
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = (
-                NativeEnvironmentDetails.from_dict(data)
-            )
+            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
 
             return componentsschemasenv_specific_details_type_1
 
-        env_specific_details = _parse_env_specific_details(
-            d.pop("envSpecificDetails", UNSET)
-        )
+        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
 
         _plan = d.pop("plan", UNSET)
         plan: Union[Unset, PaidPlan]
@@ -147,6 +145,7 @@ class CronJobDetailsPOST:
         cron_job_details_post = cls(
             runtime=runtime,
             schedule=schedule,
+            artifact_source_id=artifact_source_id,
             env=env,
             env_specific_details=env_specific_details,
             plan=plan,

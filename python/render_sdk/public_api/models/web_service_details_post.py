@@ -31,6 +31,7 @@ class WebServiceDetailsPOST:
     """
     Attributes:
         runtime (ServiceRuntime): Runtime
+        artifact_source_id (Union[Unset, str]):
         autoscaling (Union[Unset, AutoscalingConfig]):
         disk (Union[Unset, ServiceDisk]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
@@ -58,12 +59,11 @@ class WebServiceDetailsPOST:
     """
 
     runtime: ServiceRuntime
+    artifact_source_id: Union[Unset, str] = UNSET
     autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
     disk: Union[Unset, "ServiceDisk"] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
-    env_specific_details: Union[
-        "DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset
-    ] = UNSET
+    env_specific_details: Union["DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset] = UNSET
     health_check_path: Union[Unset, str] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
     num_instances: Union[Unset, int] = UNSET
@@ -82,6 +82,8 @@ class WebServiceDetailsPOST:
         from ..models.docker_details_post import DockerDetailsPOST
 
         runtime = self.runtime.value
+
+        artifact_source_id = self.artifact_source_id
 
         autoscaling: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.autoscaling, Unset):
@@ -153,6 +155,8 @@ class WebServiceDetailsPOST:
                 "runtime": runtime,
             }
         )
+        if artifact_source_id is not UNSET:
+            field_dict["artifactSourceId"] = artifact_source_id
         if autoscaling is not UNSET:
             field_dict["autoscaling"] = autoscaling
         if disk is not UNSET:
@@ -194,14 +198,14 @@ class WebServiceDetailsPOST:
         from ..models.cidr_block_and_description import CidrBlockAndDescription
         from ..models.docker_details_post import DockerDetailsPOST
         from ..models.maintenance_mode import MaintenanceMode
-        from ..models.native_environment_details_post import (
-            NativeEnvironmentDetailsPOST,
-        )
+        from ..models.native_environment_details_post import NativeEnvironmentDetailsPOST
         from ..models.previews import Previews
         from ..models.service_disk import ServiceDisk
 
         d = dict(src_dict)
         runtime = ServiceRuntime(d.pop("runtime"))
+
+        artifact_source_id = d.pop("artifactSourceId", UNSET)
 
         _autoscaling = d.pop("autoscaling", UNSET)
         autoscaling: Union[Unset, AutoscalingConfig]
@@ -232,24 +236,18 @@ class WebServiceDetailsPOST:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_post_type_0 = (
-                    DockerDetailsPOST.from_dict(data)
-                )
+                componentsschemasenv_specific_details_post_type_0 = DockerDetailsPOST.from_dict(data)
 
                 return componentsschemasenv_specific_details_post_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_post_type_1 = (
-                NativeEnvironmentDetailsPOST.from_dict(data)
-            )
+            componentsschemasenv_specific_details_post_type_1 = NativeEnvironmentDetailsPOST.from_dict(data)
 
             return componentsschemasenv_specific_details_post_type_1
 
-        env_specific_details = _parse_env_specific_details(
-            d.pop("envSpecificDetails", UNSET)
-        )
+        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
 
         health_check_path = d.pop("healthCheckPath", UNSET)
 
@@ -283,9 +281,7 @@ class WebServiceDetailsPOST:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(
-                _pull_request_previews_enabled
-            )
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]
@@ -313,14 +309,13 @@ class WebServiceDetailsPOST:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(
-                ip_allow_list_item_data
-            )
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
             ip_allow_list.append(ip_allow_list_item)
 
         web_service_details_post = cls(
             runtime=runtime,
+            artifact_source_id=artifact_source_id,
             autoscaling=autoscaling,
             disk=disk,
             env=env,

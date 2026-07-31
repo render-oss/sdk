@@ -5,6 +5,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.artifact_source_git_region import ArtifactSourceGitRegion
+from ..models.artifact_source_git_runtime import ArtifactSourceGitRuntime
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
@@ -18,7 +19,8 @@ T = TypeVar("T", bound="ArtifactSourceGit")
 class ArtifactSourceGit:
     """
     Attributes:
-        runtime (str):
+        runtime (ArtifactSourceGitRuntime): Build runtime for the artifact source. Static sites are not supported for
+            artifact sources.
         base_dir (Union[Unset, str]):
         branch (Union[Unset, str]):
         build_command (Union[Unset, str]):
@@ -32,7 +34,7 @@ class ArtifactSourceGit:
         root_dir (Union[Unset, str]):
     """
 
-    runtime: str
+    runtime: ArtifactSourceGitRuntime
     base_dir: Union[Unset, str] = UNSET
     branch: Union[Unset, str] = UNSET
     build_command: Union[Unset, str] = UNSET
@@ -45,7 +47,7 @@ class ArtifactSourceGit:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        runtime = self.runtime
+        runtime = self.runtime.value
 
         base_dir = self.base_dir
 
@@ -102,7 +104,7 @@ class ArtifactSourceGit:
         from ..models.schemas_build_filter import SchemasBuildFilter
 
         d = dict(src_dict)
-        runtime = d.pop("runtime")
+        runtime = ArtifactSourceGitRuntime(d.pop("runtime"))
 
         base_dir = d.pop("baseDir", UNSET)
 

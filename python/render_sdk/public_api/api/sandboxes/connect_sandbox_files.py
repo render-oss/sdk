@@ -5,51 +5,43 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
+from ...models.connect_sandbox_files_operation import ConnectSandboxFilesOperation
 from ...models.error import Error
-from ...models.exec_sandbox_sync_accept import ExecSandboxSyncAccept
-from ...models.sandbox_exec_sync_request import SandboxExecSyncRequest
-from ...models.sandbox_exec_sync_response import SandboxExecSyncResponse
-from ...types import UNSET, Response, Unset
+from ...models.sandbox_connect_response import SandboxConnectResponse
+from ...types import UNSET, Response
 
 
 def _get_kwargs(
     sandbox_id: str,
+    operation: ConnectSandboxFilesOperation,
     *,
-    body: SandboxExecSyncRequest,
     owner_id: str,
-    accept: Union[Unset, ExecSandboxSyncAccept] = UNSET,
+    path: str,
 ) -> dict[str, Any]:
-    headers: dict[str, Any] = {}
-    if not isinstance(accept, Unset):
-        headers["Accept"] = str(accept)
-
     params: dict[str, Any] = {}
 
     params["ownerId"] = owner_id
+
+    params["path"] = path
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/sandboxes/{sandbox_id}/exec",
+        "url": f"/sandboxes/{sandbox_id}/files/{operation}/token",
         "params": params,
     }
 
-    _kwargs["json"] = body.to_dict()
-
-    headers["Content-Type"] = "application/json"
-
-    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, SandboxExecSyncResponse]]:
-    if response.status_code == 200:
-        response_200 = SandboxExecSyncResponse.from_dict(response.json())
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    if response.status_code == 201:
+        response_201 = SandboxConnectResponse.from_dict(response.json())
 
-        return response_200
+        return response_201
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -94,7 +86,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, SandboxExecSyncResponse]]:
+) -> Response[Union[Error, SandboxConnectResponse]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -105,42 +97,43 @@ def _build_response(
 
 def sync_detailed(
     sandbox_id: str,
+    operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecSyncRequest,
     owner_id: str,
-    accept: Union[Unset, ExecSandboxSyncAccept] = UNSET,
-) -> Response[Union[Error, SandboxExecSyncResponse]]:
-    """Execute command in sandbox synchronously
+    path: str,
+) -> Response[Union[Error, SandboxConnectResponse]]:
+    """Mint a connect token for a sandbox file transfer
 
-     Run a single command in a running sandbox. By default, blocks until the
-    command exits and returns stdout, stderr, and exit code in one JSON
-    response.
-
-    To receive stdout and stderr as they are produced, set
-    `Accept: text/event-stream`. Streaming responses use finite
-    server-sent events and end with either an `exit` event or an `error`
-    event.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single file upload or download against the sandbox, and return the
+    sandbox-proxy endpoint to invoke with it. The caller streams the file
+    bytes directly to (or from) that endpoint with the token as a bearer
+    credential. `application/octet-stream` carries a single file; uploads
+    accept a directory archive as `application/x-tar` or `application/gzip`
+    (gzipped tar), and directory downloads return `application/gzip`. The
+    token is bound to this sandbox, operation, and path, and expires
+    shortly after issuance.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        operation (ConnectSandboxFilesOperation):
         owner_id (str):
-        accept (Union[Unset, ExecSandboxSyncAccept]):
-        body (SandboxExecSyncRequest): Body of the synchronous exec endpoint.
+        path (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxExecSyncResponse]]
+        Response[Union[Error, SandboxConnectResponse]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        body=body,
+        operation=operation,
         owner_id=owner_id,
-        accept=accept,
+        path=path,
     )
 
     response = client.get_httpx_client().request(
@@ -152,84 +145,86 @@ def sync_detailed(
 
 def sync(
     sandbox_id: str,
+    operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecSyncRequest,
     owner_id: str,
-    accept: Union[Unset, ExecSandboxSyncAccept] = UNSET,
-) -> Optional[Union[Error, SandboxExecSyncResponse]]:
-    """Execute command in sandbox synchronously
+    path: str,
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    """Mint a connect token for a sandbox file transfer
 
-     Run a single command in a running sandbox. By default, blocks until the
-    command exits and returns stdout, stderr, and exit code in one JSON
-    response.
-
-    To receive stdout and stderr as they are produced, set
-    `Accept: text/event-stream`. Streaming responses use finite
-    server-sent events and end with either an `exit` event or an `error`
-    event.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single file upload or download against the sandbox, and return the
+    sandbox-proxy endpoint to invoke with it. The caller streams the file
+    bytes directly to (or from) that endpoint with the token as a bearer
+    credential. `application/octet-stream` carries a single file; uploads
+    accept a directory archive as `application/x-tar` or `application/gzip`
+    (gzipped tar), and directory downloads return `application/gzip`. The
+    token is bound to this sandbox, operation, and path, and expires
+    shortly after issuance.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        operation (ConnectSandboxFilesOperation):
         owner_id (str):
-        accept (Union[Unset, ExecSandboxSyncAccept]):
-        body (SandboxExecSyncRequest): Body of the synchronous exec endpoint.
+        path (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxExecSyncResponse]
+        Union[Error, SandboxConnectResponse]
     """
 
     return sync_detailed(
         sandbox_id=sandbox_id,
+        operation=operation,
         client=client,
-        body=body,
         owner_id=owner_id,
-        accept=accept,
+        path=path,
     ).parsed
 
 
 async def asyncio_detailed(
     sandbox_id: str,
+    operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecSyncRequest,
     owner_id: str,
-    accept: Union[Unset, ExecSandboxSyncAccept] = UNSET,
-) -> Response[Union[Error, SandboxExecSyncResponse]]:
-    """Execute command in sandbox synchronously
+    path: str,
+) -> Response[Union[Error, SandboxConnectResponse]]:
+    """Mint a connect token for a sandbox file transfer
 
-     Run a single command in a running sandbox. By default, blocks until the
-    command exits and returns stdout, stderr, and exit code in one JSON
-    response.
-
-    To receive stdout and stderr as they are produced, set
-    `Accept: text/event-stream`. Streaming responses use finite
-    server-sent events and end with either an `exit` event or an `error`
-    event.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single file upload or download against the sandbox, and return the
+    sandbox-proxy endpoint to invoke with it. The caller streams the file
+    bytes directly to (or from) that endpoint with the token as a bearer
+    credential. `application/octet-stream` carries a single file; uploads
+    accept a directory archive as `application/x-tar` or `application/gzip`
+    (gzipped tar), and directory downloads return `application/gzip`. The
+    token is bound to this sandbox, operation, and path, and expires
+    shortly after issuance.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        operation (ConnectSandboxFilesOperation):
         owner_id (str):
-        accept (Union[Unset, ExecSandboxSyncAccept]):
-        body (SandboxExecSyncRequest): Body of the synchronous exec endpoint.
+        path (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxExecSyncResponse]]
+        Response[Union[Error, SandboxConnectResponse]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        body=body,
+        operation=operation,
         owner_id=owner_id,
-        accept=accept,
+        path=path,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -239,43 +234,44 @@ async def asyncio_detailed(
 
 async def asyncio(
     sandbox_id: str,
+    operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecSyncRequest,
     owner_id: str,
-    accept: Union[Unset, ExecSandboxSyncAccept] = UNSET,
-) -> Optional[Union[Error, SandboxExecSyncResponse]]:
-    """Execute command in sandbox synchronously
+    path: str,
+) -> Optional[Union[Error, SandboxConnectResponse]]:
+    """Mint a connect token for a sandbox file transfer
 
-     Run a single command in a running sandbox. By default, blocks until the
-    command exits and returns stdout, stderr, and exit code in one JSON
-    response.
-
-    To receive stdout and stderr as they are produced, set
-    `Accept: text/event-stream`. Streaming responses use finite
-    server-sent events and end with either an `exit` event or an `error`
-    event.
+     Mint a short-lived, capability-scoped connect token that authorizes a
+    single file upload or download against the sandbox, and return the
+    sandbox-proxy endpoint to invoke with it. The caller streams the file
+    bytes directly to (or from) that endpoint with the token as a bearer
+    credential. `application/octet-stream` carries a single file; uploads
+    accept a directory archive as `application/x-tar` or `application/gzip`
+    (gzipped tar), and directory downloads return `application/gzip`. The
+    token is bound to this sandbox, operation, and path, and expires
+    shortly after issuance.
 
     Args:
         sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        operation (ConnectSandboxFilesOperation):
         owner_id (str):
-        accept (Union[Unset, ExecSandboxSyncAccept]):
-        body (SandboxExecSyncRequest): Body of the synchronous exec endpoint.
+        path (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxExecSyncResponse]
+        Union[Error, SandboxConnectResponse]
     """
 
     return (
         await asyncio_detailed(
             sandbox_id=sandbox_id,
+            operation=operation,
             client=client,
-            body=body,
             owner_id=owner_id,
-            accept=accept,
+            path=path,
         )
     ).parsed

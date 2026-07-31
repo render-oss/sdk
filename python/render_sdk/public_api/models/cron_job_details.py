@@ -98,24 +98,18 @@ class CronJobDetails:
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(
-            data: object,
-        ) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(
-                    data
-                )
+                componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
 
                 return componentsschemasenv_specific_details_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_type_1 = (
-                NativeEnvironmentDetails.from_dict(data)
-            )
+            componentsschemasenv_specific_details_type_1 = NativeEnvironmentDetails.from_dict(data)
 
             return componentsschemasenv_specific_details_type_1
 

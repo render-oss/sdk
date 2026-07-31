@@ -1,10 +1,11 @@
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.event_status import EventStatus
+from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.build_deploy_end_reason import BuildDeployEndReason
@@ -21,12 +22,15 @@ class DeployEnded:
         reason (BuildDeployEndReason):
         deploy_status (EventStatus):
         status (int):
+        artifact_id (Union[Unset, str]): Set when the deploy shipped an artifact published by the service's linked
+            artifact source.
     """
 
     deploy_id: str
     reason: "BuildDeployEndReason"
     deploy_status: EventStatus
     status: int
+    artifact_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -38,6 +42,8 @@ class DeployEnded:
 
         status = self.status
 
+        artifact_id = self.artifact_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -48,6 +54,8 @@ class DeployEnded:
                 "status": status,
             }
         )
+        if artifact_id is not UNSET:
+            field_dict["artifactId"] = artifact_id
 
         return field_dict
 
@@ -64,11 +72,14 @@ class DeployEnded:
 
         status = d.pop("status")
 
+        artifact_id = d.pop("artifactId", UNSET)
+
         deploy_ended = cls(
             deploy_id=deploy_id,
             reason=reason,
             deploy_status=deploy_status,
             status=status,
+            artifact_id=artifact_id,
         )
 
         deploy_ended.additional_properties = d

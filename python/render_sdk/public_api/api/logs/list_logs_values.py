@@ -26,6 +26,7 @@ def _get_kwargs(
     method: Union[Unset, list[str]] = UNSET,
     task: Union[Unset, list[str]] = UNSET,
     task_run: Union[Unset, list[str]] = UNSET,
+    sandbox: Union[Unset, list[str]] = UNSET,
     level: Union[Unset, list[str]] = UNSET,
     type_: Union[Unset, list[str]] = UNSET,
     text: Union[Unset, list[str]] = UNSET,
@@ -94,6 +95,12 @@ def _get_kwargs(
         json_task_run = task_run
 
     params["taskRun"] = json_task_run
+
+    json_sandbox: Union[Unset, list[str]] = UNSET
+    if not isinstance(sandbox, Unset):
+        json_sandbox = sandbox
+
+    params["sandbox"] = json_sandbox
 
     json_level: Union[Unset, list[str]] = UNSET
     if not isinstance(level, Unset):
@@ -217,6 +224,7 @@ def sync_detailed(
     method: Union[Unset, list[str]] = UNSET,
     task: Union[Unset, list[str]] = UNSET,
     task_run: Union[Unset, list[str]] = UNSET,
+    sandbox: Union[Unset, list[str]] = UNSET,
     level: Union[Unset, list[str]] = UNSET,
     type_: Union[Unset, list[str]] = UNSET,
     text: Union[Unset, list[str]] = UNSET,
@@ -240,6 +248,7 @@ def sync_detailed(
         method (Union[Unset, list[str]]):
         task (Union[Unset, list[str]]):
         task_run (Union[Unset, list[str]]):
+        sandbox (Union[Unset, list[str]]):
         level (Union[Unset, list[str]]):
         type_ (Union[Unset, list[str]]):
         text (Union[Unset, list[str]]):
@@ -267,6 +276,7 @@ def sync_detailed(
         method=method,
         task=task,
         task_run=task_run,
+        sandbox=sandbox,
         level=level,
         type_=type_,
         text=text,
@@ -296,6 +306,7 @@ def sync(
     method: Union[Unset, list[str]] = UNSET,
     task: Union[Unset, list[str]] = UNSET,
     task_run: Union[Unset, list[str]] = UNSET,
+    sandbox: Union[Unset, list[str]] = UNSET,
     level: Union[Unset, list[str]] = UNSET,
     type_: Union[Unset, list[str]] = UNSET,
     text: Union[Unset, list[str]] = UNSET,
@@ -319,6 +330,7 @@ def sync(
         method (Union[Unset, list[str]]):
         task (Union[Unset, list[str]]):
         task_run (Union[Unset, list[str]]):
+        sandbox (Union[Unset, list[str]]):
         level (Union[Unset, list[str]]):
         type_ (Union[Unset, list[str]]):
         text (Union[Unset, list[str]]):
@@ -347,6 +359,7 @@ def sync(
         method=method,
         task=task,
         task_run=task_run,
+        sandbox=sandbox,
         level=level,
         type_=type_,
         text=text,
@@ -370,6 +383,7 @@ async def asyncio_detailed(
     method: Union[Unset, list[str]] = UNSET,
     task: Union[Unset, list[str]] = UNSET,
     task_run: Union[Unset, list[str]] = UNSET,
+    sandbox: Union[Unset, list[str]] = UNSET,
     level: Union[Unset, list[str]] = UNSET,
     type_: Union[Unset, list[str]] = UNSET,
     text: Union[Unset, list[str]] = UNSET,
@@ -393,6 +407,7 @@ async def asyncio_detailed(
         method (Union[Unset, list[str]]):
         task (Union[Unset, list[str]]):
         task_run (Union[Unset, list[str]]):
+        sandbox (Union[Unset, list[str]]):
         level (Union[Unset, list[str]]):
         type_ (Union[Unset, list[str]]):
         text (Union[Unset, list[str]]):
@@ -420,6 +435,7 @@ async def asyncio_detailed(
         method=method,
         task=task,
         task_run=task_run,
+        sandbox=sandbox,
         level=level,
         type_=type_,
         text=text,
@@ -447,6 +463,7 @@ async def asyncio(
     method: Union[Unset, list[str]] = UNSET,
     task: Union[Unset, list[str]] = UNSET,
     task_run: Union[Unset, list[str]] = UNSET,
+    sandbox: Union[Unset, list[str]] = UNSET,
     level: Union[Unset, list[str]] = UNSET,
     type_: Union[Unset, list[str]] = UNSET,
     text: Union[Unset, list[str]] = UNSET,
@@ -470,6 +487,7 @@ async def asyncio(
         method (Union[Unset, list[str]]):
         task (Union[Unset, list[str]]):
         task_run (Union[Unset, list[str]]):
+        sandbox (Union[Unset, list[str]]):
         level (Union[Unset, list[str]]):
         type_ (Union[Unset, list[str]]):
         text (Union[Unset, list[str]]):
@@ -499,6 +517,7 @@ async def asyncio(
             method=method,
             task=task,
             task_run=task_run,
+            sandbox=sandbox,
             level=level,
             type_=type_,
             text=text,

@@ -16,8 +16,8 @@ export class KeyValueApi {
    * @returns Detailed information about the Key Value instance with the provided id
    */
   public async findById(keyValueId: string): Promise<KeyValueDetail> {
-    const { data, error, response } = await this.client.GET("/key-value/{keyValueId}", {
-      params: { path: { keyValueId } },
+    const { data, error, response } = await this.client.GET("/key-value/{redisId}", {
+      params: { path: { redisId: keyValueId } },
     });
 
     checkApiTokenError(response);
@@ -79,11 +79,11 @@ export class KeyValueApi {
    */
   public async getConnectionInfo(keyValueId: string): Promise<string> {
     const { data, error, response } = await this.client.GET(
-      "/key-value/{keyValueId}/connection-info",
+      "/key-value/{redisId}/connection-info",
       {
         params: {
           path: {
-            keyValueId,
+            redisId: keyValueId,
           },
         },
       },
@@ -132,9 +132,9 @@ export class KeyValueApi {
    * @returns Details about the updated instance
    */
   public async updateInstance(keyValueId: string, update: KeyValuePatch): Promise<KeyValueDetail> {
-    const { data, error, response } = await this.client.PATCH("/key-value/{keyValueId}", {
+    const { data, error, response } = await this.client.PATCH("/key-value/{redisId}", {
       params: {
-        path: { keyValueId },
+        path: { redisId: keyValueId },
       },
       body: update,
     });

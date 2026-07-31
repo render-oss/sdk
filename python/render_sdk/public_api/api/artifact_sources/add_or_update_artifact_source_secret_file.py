@@ -5,9 +5,7 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.add_or_update_artifact_source_secret_file_body import (
-    AddOrUpdateArtifactSourceSecretFileBody,
-)
+from ...models.add_or_update_artifact_source_secret_file_body import AddOrUpdateArtifactSourceSecretFileBody
 from ...models.error import Error
 from ...models.secret_file import SecretFile
 from ...types import Response
@@ -15,7 +13,7 @@ from ...types import Response
 
 def _get_kwargs(
     artifact_source_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     body: AddOrUpdateArtifactSourceSecretFileBody,
 ) -> dict[str, Any]:
@@ -23,7 +21,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/artifact-sources/{artifact_source_id}/secret-files/{secret_file_name}",
+        "url": f"/artifact-sources/{artifact_source_id}/secret-files/{env_var_key}",
     }
 
     _kwargs["json"] = body.to_dict()
@@ -106,7 +104,7 @@ def _build_response(
 
 def sync_detailed(
     artifact_source_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateArtifactSourceSecretFileBody,
@@ -120,7 +118,7 @@ def sync_detailed(
 
     Args:
         artifact_source_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateArtifactSourceSecretFileBody):
 
     Raises:
@@ -133,7 +131,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         artifact_source_id=artifact_source_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -146,7 +144,7 @@ def sync_detailed(
 
 def sync(
     artifact_source_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateArtifactSourceSecretFileBody,
@@ -160,7 +158,7 @@ def sync(
 
     Args:
         artifact_source_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateArtifactSourceSecretFileBody):
 
     Raises:
@@ -173,7 +171,7 @@ def sync(
 
     return sync_detailed(
         artifact_source_id=artifact_source_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         client=client,
         body=body,
     ).parsed
@@ -181,7 +179,7 @@ def sync(
 
 async def asyncio_detailed(
     artifact_source_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateArtifactSourceSecretFileBody,
@@ -195,7 +193,7 @@ async def asyncio_detailed(
 
     Args:
         artifact_source_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateArtifactSourceSecretFileBody):
 
     Raises:
@@ -208,7 +206,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         artifact_source_id=artifact_source_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -219,7 +217,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     artifact_source_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: AddOrUpdateArtifactSourceSecretFileBody,
@@ -233,7 +231,7 @@ async def asyncio(
 
     Args:
         artifact_source_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (AddOrUpdateArtifactSourceSecretFileBody):
 
     Raises:
@@ -247,7 +245,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             artifact_source_id=artifact_source_id,
-            secret_file_name=secret_file_name,
+            env_var_key=env_var_key,
             client=client,
             body=body,
         )

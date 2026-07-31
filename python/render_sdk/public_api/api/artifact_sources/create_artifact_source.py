@@ -101,6 +101,10 @@ def sync_detailed(
     - `image`: the artifact source is image-backed. It points at an
       existing image in an external registry; no build is performed.
 
+    `envVars`, `secretFiles`, and `envGroupIds` set the build-time
+    environment and are only valid for `git` sources; the request fails
+    if any are provided with `image`.
+
     Args:
         body (ArtifactSourcePOSTInput):
 
@@ -139,6 +143,10 @@ def sync(
     - `image`: the artifact source is image-backed. It points at an
       existing image in an external registry; no build is performed.
 
+    `envVars`, `secretFiles`, and `envGroupIds` set the build-time
+    environment and are only valid for `git` sources; the request fails
+    if any are provided with `image`.
+
     Args:
         body (ArtifactSourcePOSTInput):
 
@@ -171,6 +179,10 @@ async def asyncio_detailed(
        the requested `region` (defaults to `oregon`).
     - `image`: the artifact source is image-backed. It points at an
       existing image in an external registry; no build is performed.
+
+    `envVars`, `secretFiles`, and `envGroupIds` set the build-time
+    environment and are only valid for `git` sources; the request fails
+    if any are provided with `image`.
 
     Args:
         body (ArtifactSourcePOSTInput):
@@ -207,6 +219,10 @@ async def asyncio(
        the requested `region` (defaults to `oregon`).
     - `image`: the artifact source is image-backed. It points at an
       existing image in an external registry; no build is performed.
+
+    `envVars`, `secretFiles`, and `envGroupIds` set the build-time
+    environment and are only valid for `git` sources; the request fails
+    if any are provided with `image`.
 
     Args:
         body (ArtifactSourcePOSTInput):

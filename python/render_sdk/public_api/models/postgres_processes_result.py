@@ -1,41 +1,37 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
-T = TypeVar("T", bound="SandboxExecSyncResponse")
+if TYPE_CHECKING:
+    from ..models.postgres_process import PostgresProcess
+
+
+T = TypeVar("T", bound="PostgresProcessesResult")
 
 
 @_attrs_define
-class SandboxExecSyncResponse:
-    """Response from the synchronous exec endpoint. Returned after the command exits.
-
+class PostgresProcessesResult:
+    """
     Attributes:
-        exit_code (int): Process exit code.
-        stdout (str): Captured stdout.
-        stderr (str): Captured stderr.
+        processes (list['PostgresProcess']):
     """
 
-    exit_code: int
-    stdout: str
-    stderr: str
+    processes: list["PostgresProcess"]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        exit_code = self.exit_code
-
-        stdout = self.stdout
-
-        stderr = self.stderr
+        processes = []
+        for processes_item_data in self.processes:
+            processes_item = processes_item_data.to_dict()
+            processes.append(processes_item)
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "exitCode": exit_code,
-                "stdout": stdout,
-                "stderr": stderr,
+                "processes": processes,
             }
         )
 
@@ -43,21 +39,22 @@ class SandboxExecSyncResponse:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.postgres_process import PostgresProcess
+
         d = dict(src_dict)
-        exit_code = d.pop("exitCode")
+        processes = []
+        _processes = d.pop("processes")
+        for processes_item_data in _processes:
+            processes_item = PostgresProcess.from_dict(processes_item_data)
 
-        stdout = d.pop("stdout")
+            processes.append(processes_item)
 
-        stderr = d.pop("stderr")
-
-        sandbox_exec_sync_response = cls(
-            exit_code=exit_code,
-            stdout=stdout,
-            stderr=stderr,
+        postgres_processes_result = cls(
+            processes=processes,
         )
 
-        sandbox_exec_sync_response.additional_properties = d
-        return sandbox_exec_sync_response
+        postgres_processes_result.additional_properties = d
+        return postgres_processes_result
 
     @property
     def additional_keys(self) -> list[str]:

@@ -7,9 +7,7 @@ from attrs import field as _attrs_field
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.get_bandwidth_sources_response_200_data_item import (
-        GetBandwidthSourcesResponse200DataItem,
-    )
+    from ..models.get_bandwidth_sources_response_200_data_item import GetBandwidthSourcesResponse200DataItem
 
 
 T = TypeVar("T", bound="GetBandwidthSourcesResponse200")
@@ -43,9 +41,7 @@ class GetBandwidthSourcesResponse200:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.get_bandwidth_sources_response_200_data_item import (
-            GetBandwidthSourcesResponse200DataItem,
-        )
+        from ..models.get_bandwidth_sources_response_200_data_item import GetBandwidthSourcesResponse200DataItem
 
         d = dict(src_dict)
         data = []

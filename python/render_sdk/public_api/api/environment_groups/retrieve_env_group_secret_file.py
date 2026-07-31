@@ -12,11 +12,11 @@ from ...types import Response
 
 def _get_kwargs(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/env-groups/{env_group_id}/secret-files/{secret_file_name}",
+        "url": f"/env-groups/{env_group_id}/secret-files/{env_var_key}",
     }
 
     return _kwargs
@@ -79,7 +79,7 @@ def _build_response(
 
 def sync_detailed(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Error, SecretFile]]:
@@ -89,7 +89,7 @@ def sync_detailed(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -101,7 +101,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
     )
 
     response = client.get_httpx_client().request(
@@ -113,7 +113,7 @@ def sync_detailed(
 
 def sync(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Error, SecretFile]]:
@@ -123,7 +123,7 @@ def sync(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -135,14 +135,14 @@ def sync(
 
     return sync_detailed(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Response[Union[Error, SecretFile]]:
@@ -152,7 +152,7 @@ async def asyncio_detailed(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -164,7 +164,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -174,7 +174,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
 ) -> Optional[Union[Error, SecretFile]]:
@@ -184,7 +184,7 @@ async def asyncio(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -197,7 +197,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             env_group_id=env_group_id,
-            secret_file_name=secret_file_name,
+            env_var_key=env_var_key,
             client=client,
         )
     ).parsed

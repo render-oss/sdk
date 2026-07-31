@@ -13,7 +13,7 @@ from ...types import Response
 
 def _get_kwargs(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     body: UpdateEnvGroupSecretFileBody,
 ) -> dict[str, Any]:
@@ -21,7 +21,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/env-groups/{env_group_id}/secret-files/{secret_file_name}",
+        "url": f"/env-groups/{env_group_id}/secret-files/{env_var_key}",
     }
 
     _kwargs["json"] = body.to_dict()
@@ -89,7 +89,7 @@ def _build_response(
 
 def sync_detailed(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: UpdateEnvGroupSecretFileBody,
@@ -100,7 +100,7 @@ def sync_detailed(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (UpdateEnvGroupSecretFileBody):
 
     Raises:
@@ -113,7 +113,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -126,7 +126,7 @@ def sync_detailed(
 
 def sync(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: UpdateEnvGroupSecretFileBody,
@@ -137,7 +137,7 @@ def sync(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (UpdateEnvGroupSecretFileBody):
 
     Raises:
@@ -150,7 +150,7 @@ def sync(
 
     return sync_detailed(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         client=client,
         body=body,
     ).parsed
@@ -158,7 +158,7 @@ def sync(
 
 async def asyncio_detailed(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: UpdateEnvGroupSecretFileBody,
@@ -169,7 +169,7 @@ async def asyncio_detailed(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (UpdateEnvGroupSecretFileBody):
 
     Raises:
@@ -182,7 +182,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         env_group_id=env_group_id,
-        secret_file_name=secret_file_name,
+        env_var_key=env_var_key,
         body=body,
     )
 
@@ -193,7 +193,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     env_group_id: str,
-    secret_file_name: str,
+    env_var_key: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: UpdateEnvGroupSecretFileBody,
@@ -204,7 +204,7 @@ async def asyncio(
 
     Args:
         env_group_id (str):
-        secret_file_name (str):
+        env_var_key (str):
         body (UpdateEnvGroupSecretFileBody):
 
     Raises:
@@ -218,7 +218,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             env_group_id=env_group_id,
-            secret_file_name=secret_file_name,
+            env_var_key=env_var_key,
             client=client,
             body=body,
         )

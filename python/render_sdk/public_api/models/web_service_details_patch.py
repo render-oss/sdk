@@ -45,9 +45,7 @@ class WebServiceDetailsPATCH:
         cache (Union[Unset, Cache]):
     """
 
-    env_specific_details: Union[
-        "DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset
-    ] = UNSET
+    env_specific_details: Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset] = UNSET
     health_check_path: Union[Unset, str] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
     plan: Union[Unset, Plan] = UNSET
@@ -149,9 +147,7 @@ class WebServiceDetailsPATCH:
         from ..models.cidr_block_and_description import CidrBlockAndDescription
         from ..models.docker_details_patch import DockerDetailsPATCH
         from ..models.maintenance_mode import MaintenanceMode
-        from ..models.native_environment_details_patch import (
-            NativeEnvironmentDetailsPATCH,
-        )
+        from ..models.native_environment_details_patch import NativeEnvironmentDetailsPATCH
         from ..models.previews import Previews
 
         d = dict(src_dict)
@@ -164,24 +160,18 @@ class WebServiceDetailsPATCH:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
-                componentsschemasenv_specific_details_patch_type_0 = (
-                    DockerDetailsPATCH.from_dict(data)
-                )
+                componentsschemasenv_specific_details_patch_type_0 = DockerDetailsPATCH.from_dict(data)
 
                 return componentsschemasenv_specific_details_patch_type_0
             except:  # noqa: E722
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
-            componentsschemasenv_specific_details_patch_type_1 = (
-                NativeEnvironmentDetailsPATCH.from_dict(data)
-            )
+            componentsschemasenv_specific_details_patch_type_1 = NativeEnvironmentDetailsPATCH.from_dict(data)
 
             return componentsschemasenv_specific_details_patch_type_1
 
-        env_specific_details = _parse_env_specific_details(
-            d.pop("envSpecificDetails", UNSET)
-        )
+        env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
 
         health_check_path = d.pop("healthCheckPath", UNSET)
 
@@ -206,9 +196,7 @@ class WebServiceDetailsPATCH:
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
-            pull_request_previews_enabled = PullRequestPreviewsEnabled(
-                _pull_request_previews_enabled
-            )
+            pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
         previews: Union[Unset, Previews]
@@ -236,9 +224,7 @@ class WebServiceDetailsPATCH:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
         for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(
-                ip_allow_list_item_data
-            )
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
             ip_allow_list.append(ip_allow_list_item)
 

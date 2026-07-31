@@ -13,6 +13,7 @@ from ...types import Response
 
 def _get_kwargs(
     service_id: str,
+    route_id: str,
     *,
     body: RoutePatch,
 ) -> dict[str, Any]:
@@ -20,7 +21,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/services/{service_id}/routes",
+        "url": f"/services/{service_id}/routes/{route_id}",
     }
 
     _kwargs["json"] = body.to_dict()
@@ -98,6 +99,7 @@ def _build_response(
 
 def sync_detailed(
     service_id: str,
+    route_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: RoutePatch,
@@ -114,6 +116,7 @@ def sync_detailed(
 
     Args:
         service_id (str):
+        route_id (str):
         body (RoutePatch):
 
     Raises:
@@ -126,6 +129,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
+        route_id=route_id,
         body=body,
     )
 
@@ -138,6 +142,7 @@ def sync_detailed(
 
 def sync(
     service_id: str,
+    route_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: RoutePatch,
@@ -154,6 +159,7 @@ def sync(
 
     Args:
         service_id (str):
+        route_id (str):
         body (RoutePatch):
 
     Raises:
@@ -166,6 +172,7 @@ def sync(
 
     return sync_detailed(
         service_id=service_id,
+        route_id=route_id,
         client=client,
         body=body,
     ).parsed
@@ -173,6 +180,7 @@ def sync(
 
 async def asyncio_detailed(
     service_id: str,
+    route_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: RoutePatch,
@@ -189,6 +197,7 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
+        route_id (str):
         body (RoutePatch):
 
     Raises:
@@ -201,6 +210,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         service_id=service_id,
+        route_id=route_id,
         body=body,
     )
 
@@ -211,6 +221,7 @@ async def asyncio_detailed(
 
 async def asyncio(
     service_id: str,
+    route_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: RoutePatch,
@@ -227,6 +238,7 @@ async def asyncio(
 
     Args:
         service_id (str):
+        route_id (str):
         body (RoutePatch):
 
     Raises:
@@ -240,6 +252,7 @@ async def asyncio(
     return (
         await asyncio_detailed(
             service_id=service_id,
+            route_id=route_id,
             client=client,
             body=body,
         )

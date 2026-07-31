@@ -9,6 +9,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.sandbox_network_policy import SandboxNetworkPolicy
+    from ..models.sandbox_post_env import SandboxPOSTEnv
 
 
 T = TypeVar("T", bound="SandboxPOST")
@@ -25,6 +26,8 @@ class SandboxPOST:
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
             Default: 7200.
         region (Union[Unset, str]): Render region. Defaults to the workspace default.
+        env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation. Treated
+            as secrets; not returned by the API.
     """
 
     owner_id: str
@@ -32,6 +35,7 @@ class SandboxPOST:
     plan: Union[Unset, SandboxPlan] = SandboxPlan.STARTER
     timeout_seconds: Union[Unset, int] = 7200
     region: Union[Unset, str] = UNSET
+    env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,6 +53,10 @@ class SandboxPOST:
 
         region = self.region
 
+        env: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.env, Unset):
+            env = self.env.to_dict()
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -64,12 +72,15 @@ class SandboxPOST:
             field_dict["timeoutSeconds"] = timeout_seconds
         if region is not UNSET:
             field_dict["region"] = region
+        if env is not UNSET:
+            field_dict["env"] = env
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.sandbox_network_policy import SandboxNetworkPolicy
+        from ..models.sandbox_post_env import SandboxPOSTEnv
 
         d = dict(src_dict)
         owner_id = d.pop("ownerId")
@@ -92,12 +103,20 @@ class SandboxPOST:
 
         region = d.pop("region", UNSET)
 
+        _env = d.pop("env", UNSET)
+        env: Union[Unset, SandboxPOSTEnv]
+        if isinstance(_env, Unset):
+            env = UNSET
+        else:
+            env = SandboxPOSTEnv.from_dict(_env)
+
         sandbox_post = cls(
             owner_id=owner_id,
             network_policy=network_policy,
             plan=plan,
             timeout_seconds=timeout_seconds,
             region=region,
+            env=env,
         )
 
         sandbox_post.additional_properties = d

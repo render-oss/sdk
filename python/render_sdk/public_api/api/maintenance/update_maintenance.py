@@ -11,7 +11,7 @@ from ...types import Response
 
 
 def _get_kwargs(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     body: MaintenanceRunPATCH,
 ) -> dict[str, Any]:
@@ -19,7 +19,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/maintenance/{maintenance_run_param}",
+        "url": f"/maintenance/{maintenance_run_id}",
     }
 
     _kwargs["json"] = body.to_dict()
@@ -85,7 +85,7 @@ def _build_response(
 
 
 def sync_detailed(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: MaintenanceRunPATCH,
@@ -98,7 +98,7 @@ def sync_detailed(
     maintenance run](https://api-docs.render.com/reference/retrieve-maintenance) endpoint.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
         body (MaintenanceRunPATCH):
 
     Raises:
@@ -110,7 +110,7 @@ def sync_detailed(
     """
 
     kwargs = _get_kwargs(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
         body=body,
     )
 
@@ -122,7 +122,7 @@ def sync_detailed(
 
 
 def sync(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: MaintenanceRunPATCH,
@@ -135,7 +135,7 @@ def sync(
     maintenance run](https://api-docs.render.com/reference/retrieve-maintenance) endpoint.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
         body (MaintenanceRunPATCH):
 
     Raises:
@@ -147,14 +147,14 @@ def sync(
     """
 
     return sync_detailed(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
         client=client,
         body=body,
     ).parsed
 
 
 async def asyncio_detailed(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: MaintenanceRunPATCH,
@@ -167,7 +167,7 @@ async def asyncio_detailed(
     maintenance run](https://api-docs.render.com/reference/retrieve-maintenance) endpoint.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
         body (MaintenanceRunPATCH):
 
     Raises:
@@ -179,7 +179,7 @@ async def asyncio_detailed(
     """
 
     kwargs = _get_kwargs(
-        maintenance_run_param=maintenance_run_param,
+        maintenance_run_id=maintenance_run_id,
         body=body,
     )
 
@@ -189,7 +189,7 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    maintenance_run_param: str,
+    maintenance_run_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     body: MaintenanceRunPATCH,
@@ -202,7 +202,7 @@ async def asyncio(
     maintenance run](https://api-docs.render.com/reference/retrieve-maintenance) endpoint.
 
     Args:
-        maintenance_run_param (str):  Example: mrn-cph1rs3idesc73a2b2mg.
+        maintenance_run_id (str):  Example: mrn-cph1rs3idesc73a2b2mg.
         body (MaintenanceRunPATCH):
 
     Raises:
@@ -215,7 +215,7 @@ async def asyncio(
 
     return (
         await asyncio_detailed(
-            maintenance_run_param=maintenance_run_param,
+            maintenance_run_id=maintenance_run_id,
             client=client,
             body=body,
         )

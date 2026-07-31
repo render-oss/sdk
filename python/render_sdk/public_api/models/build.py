@@ -6,6 +6,7 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
+from ..models.build_runtime import BuildRuntime
 from ..models.build_status import BuildStatus
 from ..types import UNSET, Unset
 
@@ -21,7 +22,7 @@ class Build:
         status (Union[Unset, BuildStatus]):
         build_started_at (Union[Unset, datetime.datetime]):
         build_finished_at (Union[Unset, datetime.datetime]):
-        runtime (Union[Unset, str]):
+        runtime (Union[Unset, BuildRuntime]):
         commit_id (Union[Unset, str]):
         commit_url (Union[Unset, str]):
     """
@@ -30,7 +31,7 @@ class Build:
     status: Union[Unset, BuildStatus] = UNSET
     build_started_at: Union[Unset, datetime.datetime] = UNSET
     build_finished_at: Union[Unset, datetime.datetime] = UNSET
-    runtime: Union[Unset, str] = UNSET
+    runtime: Union[Unset, BuildRuntime] = UNSET
     commit_id: Union[Unset, str] = UNSET
     commit_url: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -50,7 +51,9 @@ class Build:
         if not isinstance(self.build_finished_at, Unset):
             build_finished_at = self.build_finished_at.isoformat()
 
-        runtime = self.runtime
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         commit_id = self.commit_id
 
@@ -104,7 +107,12 @@ class Build:
         else:
             build_finished_at = isoparse(_build_finished_at)
 
-        runtime = d.pop("runtime", UNSET)
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, BuildRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = BuildRuntime(_runtime)
 
         commit_id = d.pop("commitId", UNSET)
 

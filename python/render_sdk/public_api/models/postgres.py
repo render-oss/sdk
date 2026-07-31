@@ -109,9 +109,7 @@ class Postgres:
 
         read_replicas = []
         for componentsschemasread_replicas_item_data in self.read_replicas:
-            componentsschemasread_replicas_item = (
-                componentsschemasread_replicas_item_data.to_dict()
-            )
+            componentsschemasread_replicas_item = componentsschemasread_replicas_item_data.to_dict()
             read_replicas.append(componentsschemasread_replicas_item)
 
         role = self.role.value
@@ -192,9 +190,7 @@ class Postgres:
         ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList")
         for ip_allow_list_item_data in _ip_allow_list:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(
-                ip_allow_list_item_data
-            )
+            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
             ip_allow_list.append(ip_allow_list_item)
 
@@ -219,9 +215,7 @@ class Postgres:
         read_replicas = []
         _read_replicas = d.pop("readReplicas")
         for componentsschemasread_replicas_item_data in _read_replicas:
-            componentsschemasread_replicas_item = ReadReplica.from_dict(
-                componentsschemasread_replicas_item_data
-            )
+            componentsschemasread_replicas_item = ReadReplica.from_dict(componentsschemasread_replicas_item_data)
 
             read_replicas.append(componentsschemasread_replicas_item)
 
