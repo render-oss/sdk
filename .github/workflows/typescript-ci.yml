@@ -128,3 +128,13 @@ jobs:
           RENDER_E2E_OWNER_ID: ${{ secrets.RENDER_E2E_OWNER_ID }}
           RENDER_E2E_PAGINATION_OWNER_ID: ${{ secrets.RENDER_E2E_PAGINATION_OWNER_ID }}
           RENDER_E2E_REGION: ${{ secrets.RENDER_E2E_REGION }}
+
+  # Fixed name so branch rules can require one check that survives matrix expansion and skips.
+  required:
+    name: TypeScript CI Required Checks
+    needs: [changes, lint-and-format, test, bun-test, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
