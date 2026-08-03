@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { getUserAgent } from "../version.js";
 
@@ -71,9 +72,13 @@ export class UDSClient {
    */
   async runSubtask(taskName: string, input: any[]): Promise<string> {
     const inputBase64 = Buffer.from(JSON.stringify(input)).toString("base64");
+    // Build the body outside request(), which retries internally, so every
+    // retry resends the same idempotency_key and created_at.
     const body: RunSubtaskRequest = {
       task_name: taskName,
       input: inputBase64,
+      idempotency_key: randomUUID(),
+      created_at: new Date().toISOString(),
     };
     const response = await this.request<RunSubtaskResponse>("/run-subtask", "POST", body);
     return response.task_run_id;
