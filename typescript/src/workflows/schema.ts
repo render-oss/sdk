@@ -197,6 +197,33 @@ export interface paths {
             "application/json": components["schemas"]["RunSubtaskResponse"];
           };
         };
+        /** @description Malformed request. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["RunSubtaskError"];
+          };
+        };
+        /** @description The task or its parent does not exist. Do not retry. */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["RunSubtaskError"];
+          };
+        };
+        /** @description The parent task run is cancelled. Do not retry. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["RunSubtaskError"];
+          };
+        };
         /** @description Internal server error */
         500: {
           headers: {
@@ -279,9 +306,20 @@ export interface components {
       task_name: string;
       /** Format: byte */
       input?: string;
+      /** @description Deduplicates subtask creation across retries. The SDK generates this once per logical subtask call and resends the same value on every retry, so a retried submission resolves to the original subtask instead of creating a duplicate. */
+      idempotency_key?: string;
+      /**
+       * Format: date-time
+       * @description Caller-pinned creation time, as an RFC 3339 timestamp. Must be stable across retries: the scheduler deduplicates on (idempotency_key, created_at).
+       */
+      created_at?: string;
     };
     RunSubtaskResponse: {
       task_run_id: string;
+    };
+    RunSubtaskError: {
+      /** @description Human-readable reason the subtask was rejected. */
+      message: string;
     };
     SubtaskResultRequest: {
       task_run_id: string;

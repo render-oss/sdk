@@ -5,6 +5,8 @@ vi.mock("node:http");
 
 type RequestCallback = (res: http.IncomingMessage) => void;
 
+const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
 // UDSClient request is private, so stub the type for testing.
 interface UDSClientRequestable {
   request<T>(path: string, method: string, body?: unknown): Promise<T>;
@@ -124,6 +126,63 @@ describe("UDSClient", () => {
 
       const headers = capturedOptions?.headers as Record<string, number> | undefined;
       expect(headers?.["Content-Length"]).toBe(0);
+    });
+  });
+
+  describe("runSubtask", () => {
+    /** Mocks http.request to always succeed, collecting each request body. */
+    function mockHttpRequestCapturingBodies(): string[] {
+      const capturedBodies: string[] = [];
+      vi.mocked(http.request).mockImplementation(((
+        _options: http.RequestOptions,
+        callback?: RequestCallback,
+      ) => {
+        const req = {
+          on: vi.fn(),
+          end: vi.fn((arg?: string) => {
+            if (arg !== undefined) capturedBodies.push(arg);
+          }),
+        } as unknown as http.ClientRequest;
+        setImmediate(() => {
+          const res = {
+            statusCode: 200,
+            [Symbol.asyncIterator]: async function* () {
+              yield Buffer.from('{"task_run_id":"trn-1"}');
+            },
+          } as unknown as http.IncomingMessage;
+          callback?.(res);
+        });
+        return req;
+      }) as typeof http.request);
+      return capturedBodies;
+    }
+
+    it("sets idempotency_key and created_at on the request body", async () => {
+      const capturedBodies = mockHttpRequestCapturingBodies();
+
+      const client = new UDSClient("/tmp/test.sock");
+      const taskRunId = await client.runSubtask("my-task", ["arg"]);
+      expect(taskRunId).toBe("trn-1");
+
+      const body = JSON.parse(capturedBodies[0] ?? "{}");
+      expect(body.idempotency_key).toMatch(UUID_V4);
+      expect(typeof body.created_at).toBe("string");
+      // created_at must be a valid timestamp.
+      expect(Number.isNaN(Date.parse(body.created_at))).toBe(false);
+    });
+
+    it("generates a distinct idempotency_key per call", async () => {
+      const capturedBodies = mockHttpRequestCapturingBodies();
+
+      const client = new UDSClient("/tmp/test.sock");
+      await client.runSubtask("my-task", ["arg"]);
+      await client.runSubtask("my-task", ["arg"]);
+
+      const keys = capturedBodies.map((body) => JSON.parse(body).idempotency_key);
+      expect(keys).toHaveLength(2);
+      expect(keys[0]).toMatch(UUID_V4);
+      expect(keys[1]).toMatch(UUID_V4);
+      expect(keys[0]).not.toBe(keys[1]);
     });
   });
 

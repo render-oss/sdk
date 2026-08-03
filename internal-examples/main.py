@@ -2,11 +2,19 @@
 
 import logging
 
+from not_registered import not_registered_task
+
 from render_sdk.workflows import start, task
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+@task
+async def call_not_registered_task(n: int) -> int:
+    """Call a not registered task."""
+    return await not_registered_task(n)
 
 
 @task

@@ -19,8 +19,10 @@ import http.client
 import json
 import logging
 import time
+import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
@@ -265,9 +267,13 @@ class UDSClient:
         """
         # Encode input data as base64 JSON
         input_json = json.dumps(input_data if input_data is not None else []).encode()
+        # Build the request outside _start_subtask, which retries internally, so
+        # every retry resends the same idempotency_key and created_at.
         subtask_request = RunSubtaskRequest(
             task_name=task_name,
             input_=base64.b64encode(input_json).decode(),
+            idempotency_key=str(uuid.uuid4()),
+            created_at=datetime.now(timezone.utc).isoformat(),
         )
 
         response = await self._start_subtask(subtask_request)
