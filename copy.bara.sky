@@ -19,6 +19,7 @@ DESTINATION_FILES_EXCLUDE = [
   ".github/renovate.json",
   ".github/workflows/copybara-push.yaml",
   ".github/workflows/typescript-canary.yml",
+  ".github/workflows/pr-test-instructions.yml",
 ]
 
 DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"
