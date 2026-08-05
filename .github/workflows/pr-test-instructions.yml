@@ -1,0 +1,132 @@
+name: PR Test Instructions
+
+# Posts a sticky comment telling reviewers how to install the SDK from this PR
+# without merging it. The comment is rewritten on every push so the pinned
+# versions always match the current head commit.
+
+on:
+  pull_request:
+    paths:
+      - "python/**"
+      - "typescript/**"
+      - ".github/workflows/pr-test-instructions.yml"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  comment:
+    name: Comment install instructions
+    # Fork PRs get a read-only token, so the comment would fail to post.
+    if: >-
+      github.repository == 'renderinc/sdk' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - id: filter
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706  # v4.0.2
+        with:
+          filters: |
+            python:
+              - 'python/**'
+            typescript:
+              - 'typescript/**'
+
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9.0.0
+        env:
+          HAS_PYTHON: ${{ steps.filter.outputs.python }}
+          HAS_TYPESCRIPT: ${{ steps.filter.outputs.typescript }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        with:
+          script: |
+            const MARKER = '<!-- pr-test-instructions -->'
+            const { HAS_PYTHON, HAS_TYPESCRIPT, HEAD_REF, HEAD_SHA } = process.env
+            const repo = `${context.repo.owner}/${context.repo.repo}`
+            const pr = context.issue.number
+            const shortSha = HEAD_SHA.slice(0, 7)
+
+            const sections = []
+
+            if (HAS_PYTHON === 'true') {
+              sections.push([
+                '### Python',
+                '',
+                'Installs straight from this branch — no publish step. Requires read access to this repo (SSH key or a `contents: read` token).',
+                '',
+                '```bash',
+                `uv pip install "render-sdk @ git+ssh://git@github.com/${repo}@${HEAD_SHA}#subdirectory=python"`,
+                '```',
+                '',
+                `To follow the branch instead of pinning to \`${shortSha}\`, swap the SHA for \`${HEAD_REF}\`.`,
+                '',
+                'In a consumer repo, override the source without renaming the dependency:',
+                '',
+                '```toml',
+                '[tool.uv.sources]',
+                `render-sdk = { git = "https://github.com/${repo}", subdirectory = "python", rev = "${HEAD_SHA}" }`,
+                '```',
+              ].join('\n'))
+            }
+
+            if (HAS_TYPESCRIPT === 'true') {
+              sections.push([
+                '### TypeScript',
+                '',
+                'A private canary is published to GitHub Packages on every push, once the **TypeScript Canary Publish** check is green.',
+                '',
+                'Add to the consumer repo `.npmrc`:',
+                '',
+                '```',
+                '@renderinc:registry=https://npm.pkg.github.com',
+                '```',
+                '',
+                'Then install (needs a `read:packages` token in `~/.npmrc`):',
+                '',
+                '```bash',
+                `npm i @renderinc/sdk@pr-${pr}`,
+                '```',
+                '',
+                `The \`pr-${pr}\` tag moves with every push. Pin the exact version from the publish log if you need it stable across a debugging session.`,
+              ].join('\n'))
+            }
+
+            if (sections.length === 0) return
+
+            const body = [
+              MARKER,
+              '## Testing this PR without merging',
+              '',
+              `Head commit: \`${shortSha}\``,
+              '',
+              sections.join('\n\n'),
+            ].join('\n')
+
+            const comments = await github.paginate(
+              github.rest.issues.listComments,
+              { ...context.repo, issue_number: pr },
+            )
+            const existing = comments.find(
+              (c) => c.user?.type === 'Bot' && (c.body ?? '').includes(MARKER),
+            )
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: pr,
+                body,
+              })
+            }
