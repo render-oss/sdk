@@ -25,6 +25,14 @@ FILE_PAIRS = [
         SDK_ROOT / "render_sdk" / "experimental" / "object" / "client.py",
         SDK_ROOT / "render_sdk" / "experimental" / "object" / "client_sync.py",
     ),
+    (
+        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "api.py",
+        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "api_sync.py",
+    ),
+    (
+        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "client.py",
+        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "client_sync.py",
+    ),
 ]
 
 # Simple string replacements applied line-by-line
@@ -38,6 +46,13 @@ SYNTAX_REPLACEMENTS = [
     ("httpx.AsyncClient", "httpx.Client"),
     ("aiter_bytes", "iter_bytes"),
     ("_file_to_async_iterable", "_file_to_iterable"),
+    ("get_async_httpx_client", "get_httpx_client"),
+    ("aiter_lines", "iter_lines"),
+    ("aread", "read"),
+    (
+        "from render_sdk.experimental.sandbox.api import",
+        "from render_sdk.experimental.sandbox.api_sync import",
+    ),
     # Import path renames
     (
         "from render_sdk.experimental.object.api import",
@@ -59,6 +74,8 @@ CLASS_RENAMES = [
     ("ScopedObjectClient", "SyncScopedObjectClient"),
     ("ObjectClient", "SyncObjectClient"),
     ("ObjectApi", "SyncObjectApi"),
+    ("SandboxClient", "SyncSandboxClient"),
+    ("SandboxApi", "SyncSandboxApi"),
 ]
 
 HEADER = (

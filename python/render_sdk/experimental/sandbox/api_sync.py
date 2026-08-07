@@ -1,9 +1,11 @@
+# Auto-generated sync version. Do not edit — run scripts/unasync.py instead.
+
 """Typed wrapper over the generated public_api sandbox endpoints."""
 
 from __future__ import annotations
 
 import json
-from collections.abc import AsyncIterator
+from collections.abc import Iterator
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, NoReturn
 
@@ -15,7 +17,7 @@ from render_sdk.client.errors import (
     RenderError,
     ServerError,
 )
-from render_sdk.client.util import (
+from render_sdk.client.util_sync import (
     handle_api_error,
     handle_http_errors,
     handle_httpx_exception,
@@ -55,7 +57,7 @@ if TYPE_CHECKING:
 
 
 # Aliased at module scope so the annotation on _list_api_call resolves the
-# builtin list, not the SandboxApi.list method that shadows it in the class body.
+# builtin list, not the SyncSandboxApi.list method that shadows it in the class body.
 _SandboxWithCursorList = list[SandboxWithCursor]
 
 
@@ -73,13 +75,13 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
     )
 
 
-class SandboxApi:
+class SyncSandboxApi:
     """Typed wrapper over the generated sandbox endpoints."""
 
     def __init__(self, client: AuthenticatedClient | Client):
         self.client = client
 
-    async def create(
+    def create(
         self,
         owner_id: str,
         plan: str | None,
@@ -99,14 +101,14 @@ class SandboxApi:
                 default=SandboxNetworkPolicyDefault(network_policy)
             )
 
-        response = await self._create_api_call(body)
+        response = self._create_api_call(body)
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to create sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
 
-    async def get(self, sandbox_id: str, owner_id: str) -> Sandbox:
+    def get(self, sandbox_id: str, owner_id: str) -> Sandbox:
         try:
-            response = await retrieve_sandbox.asyncio_detailed(
+            response = retrieve_sandbox.sync_detailed(
                 sandbox_id, client=self.client, owner_id=owner_id
             )
         except httpx.RequestError as exc:
@@ -123,14 +125,14 @@ class SandboxApi:
             raise RenderError("Failed to retrieve sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
 
-    async def list(
+    def list(
         self,
         owner_id: str,
         status: str | None,
         cursor: str | None,
         limit: int | None,
     ) -> SandboxList:
-        response = await self._list_api_call(owner_id, status, cursor, limit)
+        response = self._list_api_call(owner_id, status, cursor, limit)
         parsed = response.parsed
         if not isinstance(parsed, list):
             raise RenderError("Failed to list sandboxes: unexpected response type")
@@ -139,14 +141,14 @@ class SandboxApi:
         return SandboxList(sandboxes=sandboxes, next_cursor=next_cursor)
 
     @handle_http_errors("list sandboxes")
-    async def _list_api_call(
+    def _list_api_call(
         self,
         owner_id: str,
         status: str | None,
         cursor: str | None,
         limit: int | None,
     ) -> Response[Error | _SandboxWithCursorList]:
-        return await list_sandboxes.asyncio_detailed(
+        return list_sandboxes.sync_detailed(
             client=self.client,
             owner_id=[owner_id],
             status=[SandboxStatus(status)] if status is not None else UNSET,
@@ -154,9 +156,9 @@ class SandboxApi:
             limit=limit if limit is not None else UNSET,
         )
 
-    async def terminate(self, sandbox_id: str, owner_id: str) -> None:
+    def terminate(self, sandbox_id: str, owner_id: str) -> None:
         try:
-            response = await terminate_sandbox.asyncio_detailed(
+            response = terminate_sandbox.sync_detailed(
                 sandbox_id, client=self.client, owner_id=owner_id
             )
         except httpx.RequestError as exc:
@@ -170,12 +172,12 @@ class SandboxApi:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
         handle_api_error(response, "terminate sandbox")
 
-    async def _mint_run_token(
+    def _mint_run_token(
         self, sandbox_id: str, owner_id: str, operation: str
     ) -> dict[str, Any]:
-        api_client = self.client.get_async_httpx_client()
+        api_client = self.client.get_httpx_client()
         try:
-            response = await api_client.post(
+            response = api_client.post(
                 f"/sandboxes/{sandbox_id}/runs/{operation}/token",
                 params={"ownerId": owner_id},
             )
@@ -185,10 +187,10 @@ class SandboxApi:
             _raise_exec_http_error(sandbox_id, response.status_code, response.text)
         return response.json()
 
-    async def exec_stream(
+    def exec_stream(
         self, sandbox_id: str, command: str, owner_id: str, operation: str = "stream"
-    ) -> AsyncIterator[SandboxExecEvent]:
-        connection = await self._mint_run_token(sandbox_id, owner_id, operation)
+    ) -> Iterator[SandboxExecEvent]:
+        connection = self._mint_run_token(sandbox_id, owner_id, operation)
         token = connection["token"]
         uri = connection["uri"]
         method = connection["method"]
@@ -201,16 +203,16 @@ class SandboxApi:
         # connection is detected without cutting off a live but idle stream.
         timeout = httpx.Timeout(5.0, read=45.0, write=None)
         try:
-            async with (
-                httpx.AsyncClient(timeout=timeout) as proxy_client,
+            with (
+                httpx.Client(timeout=timeout) as proxy_client,
                 proxy_client.stream(
                     method, uri, headers=headers, json={"command": command}
                 ) as response,
             ):
                 if response.status_code >= 400:
-                    body = (await response.aread()).decode("utf-8", errors="replace")
+                    body = (response.read()).decode("utf-8", errors="replace")
                     _raise_exec_http_error(sandbox_id, response.status_code, body)
-                async for name, data in _iter_sse_events(response.aiter_lines()):
+                for name, data in _iter_sse_events(response.iter_lines()):
                     if name == "output":
                         payload = _load_event(data)
                         yield SandboxExecOutput(
@@ -234,10 +236,8 @@ class SandboxApi:
             handle_httpx_exception(exc, "exec sandbox")
 
     @handle_http_errors("create sandbox")
-    async def _create_api_call(
-        self, body: SandboxPOST
-    ) -> Response[Error | GeneratedSandbox]:
-        return await create_sandbox.asyncio_detailed(client=self.client, body=body)
+    def _create_api_call(self, body: SandboxPOST) -> Response[Error | GeneratedSandbox]:
+        return create_sandbox.sync_detailed(client=self.client, body=body)
 
 
 def _load_event(data: str) -> dict[str, Any]:
@@ -262,12 +262,12 @@ def _raise_exec_http_error(sandbox_id: str, status_code: int, body: str) -> NoRe
     raise ServerError(message)
 
 
-async def _iter_sse_events(
-    lines: AsyncIterator[str],
-) -> AsyncIterator[tuple[str, str]]:
+def _iter_sse_events(
+    lines: Iterator[str],
+) -> Iterator[tuple[str, str]]:
     event_name = ""
     data_parts: list[str] = []
-    async for raw in lines:
+    for raw in lines:
         line = raw.rstrip("\r")
         if line == "":
             if event_name or data_parts:

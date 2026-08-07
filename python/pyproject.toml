@@ -69,7 +69,10 @@ check_untyped_defs = false
 [tool.pytest.ini_options]
 testpaths = ["**/tests"]
 python_files = ["test_*.py"]
-markers = ["e2e: end-to-end tests requiring RENDER_API_KEY and RENDER_E2E_OWNER_ID"]
+markers = [
+    "e2e: end-to-end tests requiring RENDER_API_KEY and RENDER_E2E_OWNER_ID",
+    "sandbox_e2e: e2e tests needing a sandbox runner (renderd) fleet; routed to their own CI job so they report separately",
+]
 addopts = "-m 'not e2e'"
 
 [tool.ruff]

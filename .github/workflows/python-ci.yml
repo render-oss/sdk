@@ -99,22 +99,20 @@ jobs:
   e2e:
     name: Python E2E Tests
     needs: [changes, lint-and-format, test]
-    runs-on: ubuntu-latest
+    # Internal runner: api.staging.render.com is only reachable from inside the network.
+    runs-on: arc-runner-2cpu
     timeout-minutes: 10
-    if: >-
-      needs.changes.outputs.python == 'true' &&
-      (github.event_name == 'push' ||
-       contains(github.event.pull_request.labels.*.name, 'run-e2e'))
+    environment:
+      name: Staging
+      deployment: false
+    if: needs.changes.outputs.python == 'true'
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
 
-    - name: Set up Python 3.13
-      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
-      with:
-        python-version: '3.13'
-
     - name: Install uv
       uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+      with:
+        python-version: '3.13'
 
     - name: Load cached venv
       id: cached-uv-dependencies
@@ -126,14 +124,73 @@ jobs:
     - name: Install dependencies
       run: uv sync
 
-    - name: Run E2E tests
-      run: uv run pytest -m e2e -v
+    - name: Verify e2e credentials are present
       env:
         RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
-        RENDER_BASE_URL: ${{ secrets.RENDER_E2E_BASE_URL }}
-        RENDER_E2E_OWNER_ID: ${{ secrets.RENDER_E2E_OWNER_ID }}
-        RENDER_E2E_PAGINATION_OWNER_ID: ${{ secrets.RENDER_E2E_PAGINATION_OWNER_ID }}
-        RENDER_E2E_REGION: ${{ secrets.RENDER_E2E_REGION }}
+        RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+      run: |
+        if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_E2E_OWNER_ID" ]; then
+          echo "::error::e2e credentials are empty. The job is not wired to the Staging environment, or the secrets are missing. See SAN-374."
+          exit 1
+        fi
+
+    - name: Run E2E tests
+      run: uv run pytest -m "e2e and not sandbox_e2e" -v
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
+        RENDER_BASE_URL: ${{ vars.RENDER_E2E_BASE_URL }}
+        RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+        RENDER_E2E_PAGINATION_OWNER_ID: ${{ vars.RENDER_E2E_PAGINATION_OWNER_ID }}
+        RENDER_E2E_REGION: ${{ vars.RENDER_E2E_REGION }}
+
+  # Split out so a missing renderd fleet reports on its own check instead of
+  # gating everything else. Deliberately absent from the required checks
+  # aggregate below, so it is visible without blocking merges.
+  sandbox-e2e:
+    name: Python Sandbox E2E Tests
+    needs: [changes, lint-and-format, test]
+    # Internal runner: api.staging.render.com is only reachable from inside the network.
+    runs-on: arc-runner-2cpu
+    timeout-minutes: 10
+    environment:
+      name: Staging
+      deployment: false
+    if: needs.changes.outputs.python == 'true'
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
+      with:
+        python-version: '3.13'
+
+    - name: Load cached venv
+      id: cached-uv-dependencies
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae  # v5.0.5
+      with:
+        path: ./python/.venv
+        key: venv-${{ github.repository }}-${{ runner.os }}-3.13-${{ hashFiles('**/uv.lock') }}
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Verify e2e credentials are present
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
+        RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+      run: |
+        if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_E2E_OWNER_ID" ]; then
+          echo "::error::e2e credentials are empty. The job is not wired to the Staging environment, or the secrets are missing. See SAN-374."
+          exit 1
+        fi
+
+    - name: Run sandbox E2E tests
+      run: uv run pytest -m "e2e and sandbox_e2e" -v
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
+        RENDER_BASE_URL: ${{ vars.RENDER_E2E_BASE_URL }}
+        RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+        RENDER_E2E_REGION: ${{ vars.RENDER_E2E_REGION }}
 
   # Fixed name so branch rules can require one check that survives matrix expansion and skips.
   required:

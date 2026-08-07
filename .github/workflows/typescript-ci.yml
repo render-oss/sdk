@@ -101,12 +101,13 @@ jobs:
   e2e:
     name: TypeScript E2E Tests
     needs: [changes, lint-and-format, test]
-    runs-on: ubuntu-latest
+    # Internal runner: api.staging.render.com is only reachable from inside the network.
+    runs-on: arc-runner-2cpu
     timeout-minutes: 10
-    if: >-
-      needs.changes.outputs.typescript == 'true' &&
-      (github.event_name == 'push' ||
-       contains(github.event.pull_request.labels.*.name, 'run-e2e'))
+    environment:
+      name: Staging
+      deployment: false
+    if: needs.changes.outputs.typescript == 'true'
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
 
@@ -120,14 +121,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify e2e credentials are present
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
+          RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_E2E_OWNER_ID" ]; then
+            echo "::error::e2e credentials are empty. The job is not wired to the Staging environment, or the secrets are missing. See SAN-374."
+            exit 1
+          fi
+
       - name: Run E2E tests
         run: npm run test:e2e
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_E2E_API_KEY }}
-          RENDER_BASE_URL: ${{ secrets.RENDER_E2E_BASE_URL }}
-          RENDER_E2E_OWNER_ID: ${{ secrets.RENDER_E2E_OWNER_ID }}
-          RENDER_E2E_PAGINATION_OWNER_ID: ${{ secrets.RENDER_E2E_PAGINATION_OWNER_ID }}
-          RENDER_E2E_REGION: ${{ secrets.RENDER_E2E_REGION }}
+          RENDER_BASE_URL: ${{ vars.RENDER_E2E_BASE_URL }}
+          RENDER_E2E_OWNER_ID: ${{ vars.RENDER_E2E_OWNER_ID }}
+          RENDER_E2E_PAGINATION_OWNER_ID: ${{ vars.RENDER_E2E_PAGINATION_OWNER_ID }}
+          RENDER_E2E_REGION: ${{ vars.RENDER_E2E_REGION }}
 
   # Fixed name so branch rules can require one check that survives matrix expansion and skips.
   required:
