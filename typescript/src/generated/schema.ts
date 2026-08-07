@@ -6984,7 +6984,7 @@ export interface components {
             timeoutSeconds: number;
             /** @description Render region. Defaults to the workspace default. */
             region?: string;
-            /** @description Inline environment variables injected into the sandbox at creation. Treated as secrets; not returned by the API. */
+            /** @description Inline environment variables injected into the sandbox at creation. */
             env?: {
                 [key: string]: string;
             };

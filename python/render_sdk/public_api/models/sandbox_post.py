@@ -26,8 +26,7 @@ class SandboxPOST:
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
             Default: 7200.
         region (Union[Unset, str]): Render region. Defaults to the workspace default.
-        env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation. Treated
-            as secrets; not returned by the API.
+        env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
     """
 
     owner_id: str

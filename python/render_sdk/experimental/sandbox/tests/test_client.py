@@ -53,10 +53,25 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
     assert captured["body"]["ownerId"] == "tea-test"
     assert captured["body"]["plan"] == "standard"
     assert captured["body"]["timeoutSeconds"] == 300
+    assert "env" not in captured["body"]
     assert sandbox.id == "sbx-abc"
     assert sandbox.status == "running"
     assert sandbox.network_policy == "deny-all"
     assert sandbox.terminated_at is None
+
+
+@pytest.mark.asyncio
+async def test_create_sends_env_in_post_body():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=SANDBOX_JSON)
+
+    client = _sandbox_client(handler)
+    await client.create(env={"FOO": "bar", "BAZ": "qux"})
+
+    assert captured["body"]["env"] == {"FOO": "bar", "BAZ": "qux"}
 
 
 @pytest.mark.asyncio
