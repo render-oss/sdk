@@ -1,4 +1,12 @@
-"""End-to-end tests for object storage."""
+"""End-to-end tests for object storage.
+
+CI runs these against staging as `test+sdk-e2e@test.render.com`. The API key is
+in shared 1Password; the workspace id and base URL are readable GitHub
+environment variables on the `Staging` environment.
+
+The pagination test needs more than one page at limit=2, so that workspace holds
+5 permanent objects under `e2e-pagination-seed/`. Do not delete them.
+"""
 
 import contextlib
 import os
@@ -30,7 +38,7 @@ pytestmark = [
 def render():
     """Construct client inside fixture to avoid constructor throw before skip."""
     return RenderAsync(
-        base_url=os.environ.get("RENDER_BASE_URL", "https://api.render.com")
+        base_url=os.environ.get("RENDER_BASE_URL") or "https://api.render.com"
     )
 
 

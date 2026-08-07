@@ -6,6 +6,7 @@ This module provides the sync versions of ExperimentalService and StorageService
 from typing import TYPE_CHECKING
 
 from render_sdk.experimental.object.client_sync import SyncObjectClient
+from render_sdk.experimental.sandbox.client_sync import SyncSandboxClient
 
 if TYPE_CHECKING:
     from render_sdk.client.client import Client
@@ -70,3 +71,8 @@ class SyncExperimentalService:
             client: The Render client instance
         """
         self.storage = SyncStorageService(client)
+        self.sandboxes = SyncSandboxClient(
+            client.internal,
+            default_owner_id=client.owner_id,
+            default_region=client.region,
+        )
