@@ -1,0 +1,21 @@
+[project]
+name = "internal-examples"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Mark Benjamin",email = "mark@render.com"}
+]
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "render-sdk",
+]
+
+[tool.uv]
+# The example is a pair of scripts, not a distributable package, so there is
+# nothing to build for the project itself.
+package = false
+
+# Resolve render-sdk from the SDK source in this repo rather than from PyPI, so
+# the example always exercises the checked-out code.
+[tool.uv.sources]
+render-sdk = { path = "../../python", editable = true }
