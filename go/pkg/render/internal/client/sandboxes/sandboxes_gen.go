@@ -314,7 +314,7 @@ type SandboxNetworkPolicyDefault string
 
 // SandboxPOST defines model for sandboxPOST.
 type SandboxPOST struct {
-	// Env Inline environment variables injected into the sandbox at creation. Treated as secrets; not returned by the API.
+	// Env Inline environment variables injected into the sandbox at creation.
 	Env           *map[string]string    `json:"env,omitempty"`
 	NetworkPolicy *SandboxNetworkPolicy `json:"networkPolicy,omitempty"`
 

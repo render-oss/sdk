@@ -45,6 +45,7 @@ class SyncSandboxClient:
         timeout_seconds: int | None = None,
         network_policy: str | None = None,
         region: str | None = None,
+        env: dict[str, str] | None = None,
     ) -> Sandbox:
         """Create a sandbox and return its initial snapshot.
 
@@ -60,6 +61,7 @@ class SyncSandboxClient:
             timeout_seconds=timeout_seconds,
             network_policy=network_policy,
             region=resolved_region,
+            env=env,
         )
 
     def from_id(self, sandbox_id: str, *, owner_id: str | None = None) -> Sandbox:

@@ -46,6 +46,7 @@ from render_sdk.public_api.models.sandbox_network_policy_default import (
 )
 from render_sdk.public_api.models.sandbox_plan import SandboxPlan
 from render_sdk.public_api.models.sandbox_post import SandboxPOST
+from render_sdk.public_api.models.sandbox_post_env import SandboxPOSTEnv
 from render_sdk.public_api.models.sandbox_status import SandboxStatus
 from render_sdk.public_api.models.sandbox_with_cursor import SandboxWithCursor
 from render_sdk.public_api.types import UNSET, Response
@@ -86,6 +87,7 @@ class SandboxApi:
         timeout_seconds: int | None,
         network_policy: str | None,
         region: str | None,
+        env: dict[str, str] | None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if plan is not None:
@@ -98,6 +100,8 @@ class SandboxApi:
             body.network_policy = SandboxNetworkPolicy(
                 default=SandboxNetworkPolicyDefault(network_policy)
             )
+        if env is not None:
+            body.env = SandboxPOSTEnv.from_dict(env)
 
         response = await self._create_api_call(body)
         if not isinstance(response.parsed, GeneratedSandbox):
