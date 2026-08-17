@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
@@ -96,6 +97,30 @@ class SandboxClient:
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         await self.api.terminate(sandbox_id, resolved_owner_id)
+
+    async def copy_to(
+        self,
+        sandbox_id: str,
+        local_path: str | os.PathLike[str],
+        remote_path: str,
+        *,
+        owner_id: str | None = None,
+    ) -> None:
+        """Copy a local file or directory into the sandbox at remote_path.
+
+        A relative remote_path resolves under the sandbox's home directory and
+        an absolute one addresses the filesystem, as scp does. The path is
+        normalized before it is sent, so a trailing slash or a redundant
+        separator is accepted rather than rejected by the sandbox.
+
+        A file is uploaded as raw bytes. A directory is streamed as an archive
+        that the sandbox extracts at remote_path: names are relative to
+        local_path, symlinks are stored rather than followed, and sockets,
+        fifos and other special files are skipped. Passing one of those special
+        files as local_path raises ValueError.
+        """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        await self.api.upload(sandbox_id, local_path, remote_path, resolved_owner_id)
 
     def exec(
         self,
