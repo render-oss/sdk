@@ -1,4 +1,9 @@
+import gzip
+import io
 import json
+import os
+import tarfile
+from typing import cast
 
 import httpx
 import pytest
@@ -383,3 +388,283 @@ def test_render_async_exposes_sandboxes():
 
     render = RenderAsync(token="test")
     assert isinstance(render.experimental.sandboxes, SandboxClient)
+
+
+FILES_CONNECT_JSON = {
+    "token": "file-token-xyz",
+    "uri": "https://proxy.test/files/upload",
+    "method": "PUT",
+    "expiresAt": "2026-07-21T00:05:00Z",
+}
+
+
+def _capture_upload(captured):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        # The body is a stream; it has to be read before .content is available.
+        captured["body"] = await request.aread()
+        captured["method"] = request.method
+        captured["url"] = str(request.url)
+        captured["headers"] = dict(request.headers)
+        return httpx.Response(204)
+
+    return handler
+
+
+@pytest.mark.asyncio
+async def test_mint_file_token_requests_the_files_token_endpoint():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        captured["query"] = dict(request.url.params)
+        return httpx.Response(201, json=FILES_CONNECT_JSON)
+
+    client = _sandbox_client(handler)
+    connection = await client.api._mint_file_token(
+        "sbx-123", "tea-test", "upload", "/app/data"
+    )
+
+    assert captured["method"] == "POST"
+    assert captured["path"] == "/v1/sandboxes/sbx-123/files/upload/token"
+    assert captured["query"]["ownerId"] == "tea-test"
+    assert captured["query"]["path"] == "/app/data"
+    assert connection["token"] == "file-token-xyz"  # noqa: S105
+
+
+@pytest.mark.asyncio
+async def test_copy_to_file_puts_raw_bytes_with_a_length(mocker, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_bytes(b"hello sandbox\n")
+    captured = {}
+
+    client = _sandbox_client(_noop_handler)
+    mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, _capture_upload(captured))
+
+    await client.copy_to("sbx-123", source, "/app/hello.txt")
+
+    assert captured["method"] == "PUT"
+    assert captured["url"] == "https://proxy.test/files/upload"
+    assert captured["headers"]["authorization"] == "Bearer file-token-xyz"
+    assert captured["headers"]["content-type"] == "application/octet-stream"
+    assert captured["headers"]["content-length"] == "14"
+    assert "content-encoding" not in captured["headers"]
+    # An explicit length has to win over httpx's chunked default for an
+    # iterator body, or the sandbox gets a body it cannot size.
+    assert "transfer-encoding" not in captured["headers"]
+    assert captured["body"] == b"hello sandbox\n"
+
+
+@pytest.mark.asyncio
+async def test_copy_to_directory_puts_a_gzipped_tar(mocker, tmp_path):
+    (tmp_path / "a.txt").write_text("a\n")
+    (tmp_path / "sub").mkdir()
+    (tmp_path / "sub" / "b.txt").write_text("b\n")
+    (tmp_path / "link.txt").symlink_to("sub/b.txt")
+    captured = {}
+
+    client = _sandbox_client(_noop_handler)
+    mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, _capture_upload(captured))
+
+    await client.copy_to("sbx-123", tmp_path, "/app/tree")
+
+    assert captured["headers"]["content-type"] == "application/x-tar"
+    assert captured["headers"]["content-encoding"] == "gzip"
+    # The archive's size is not known until it is produced.
+    assert "content-length" not in captured["headers"]
+
+    raw = gzip.decompress(captured["body"])
+    with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
+        members = {member.name: member for member in tar.getmembers()}
+    assert set(members) == {"a.txt", "sub", "sub/b.txt", "link.txt"}
+    assert members["link.txt"].issym()
+
+
+@pytest.mark.asyncio
+async def test_copy_to_accepts_any_2xx(mocker, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+
+    async def proxy_handler(request: httpx.Request) -> httpx.Response:
+        await request.aread()
+        return httpx.Response(200)
+
+    client = _sandbox_client(_noop_handler)
+    mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, proxy_handler)
+
+    await client.copy_to("sbx-123", source, "/app/hello.txt")
+
+
+@pytest.mark.asyncio
+async def test_copy_to_proxy_non_2xx_raises_client_error(mocker, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+
+    async def proxy_handler(request: httpx.Request) -> httpx.Response:
+        await request.aread()
+        return httpx.Response(409, text="path is a directory")
+
+    client = _sandbox_client(_noop_handler)
+    mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, proxy_handler)
+
+    with pytest.raises(ClientError):
+        await client.copy_to("sbx-123", source, "/app/hello.txt")
+
+
+@pytest.mark.asyncio
+async def test_copy_to_mint_404_raises_not_found(tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, json={"message": "not found"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(SandboxNotFoundError):
+        await client.copy_to("sbx-missing", source, "/app/hello.txt")
+
+
+@pytest.mark.asyncio
+async def test_copy_to_missing_local_path_never_mints_a_token(mocker, tmp_path):
+    client = _sandbox_client(_noop_handler)
+    mint = mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+
+    with pytest.raises(FileNotFoundError):
+        await client.copy_to("sbx-123", tmp_path / "absent.txt", "/app/absent.txt")
+    mint.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_copy_to_requires_owner_id(tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+
+    client = _sandbox_client(_noop_handler, default_owner_id=None)
+    with pytest.raises(RenderError):
+        await client.copy_to("sbx-123", source, "/app/hello.txt")
+
+
+@pytest.mark.asyncio
+async def test_copy_to_rejects_a_fifo_before_minting(mocker, tmp_path):
+    fifo = tmp_path / "pipe"
+    os.mkfifo(fifo)
+
+    client = _sandbox_client(_noop_handler)
+    mint = mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+
+    # Opening a fifo with no writer would block the event loop forever.
+    with pytest.raises(ValueError, match="not a file or directory"):
+        await client.copy_to("sbx-123", fifo, "pipe")
+    mint.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_copy_to_normalizes_the_remote_path(mocker, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+    captured = {}
+
+    client = _sandbox_client(_noop_handler)
+    mint = mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, _capture_upload(captured))
+
+    # The sandbox rejects any path it would have to clean, so a trailing slash
+    # or a redundant separator must not reach it.
+    await client.copy_to("sbx-123", source, "workspace//data/")
+
+    assert mint.await_args.args[3] == "workspace/data"
+
+
+@pytest.mark.asyncio
+async def test_copy_to_closes_the_body_when_the_request_fails(mocker, tmp_path):
+    (tmp_path / "a.txt").write_text("a\n")
+    closed = []
+    # Held so the generator cannot be finalized by garbage collection during
+    # the test: `closed` then records only a close upload made itself.
+    bodies = []
+
+    async def _body():
+        try:
+            yield b"tar bytes"
+        finally:
+            closed.append(True)
+
+    def tracked_archive(root):
+        body = _body()
+        bodies.append(body)
+        return body
+
+    mocker.patch("render_sdk.experimental.sandbox.api.aiter_tar_gzip", tracked_archive)
+
+    async def proxy_handler(request: httpx.Request) -> httpx.Response:
+        # Take a chunk so the body is genuinely in flight, then fail the way a
+        # dropped connection does mid-upload.
+        stream = cast(httpx.AsyncByteStream, request.stream)
+        await stream.__aiter__().__anext__()
+        raise httpx.ConnectError("connection reset")
+
+    client = _sandbox_client(_noop_handler)
+    mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, proxy_handler)
+
+    with pytest.raises(RenderError):
+        await client.copy_to("sbx-123", tmp_path, "tree")
+
+    # A failed upload must not leave the archive producer parked on its body.
+    # httpx happens to close it here too, so this guards the property rather
+    # than upload's own close; it would catch httpx changing that.
+    assert closed == [True]
+
+
+@pytest.mark.asyncio
+async def test_copy_to_rejects_an_empty_remote_path(mocker, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+
+    client = _sandbox_client(_noop_handler)
+    mint = mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+
+    # Normalizing "" would give ".", quietly targeting the home directory.
+    with pytest.raises(ValueError, match="remote_path is required"):
+        await client.copy_to("sbx-123", source, "")
+    mint.assert_not_called()

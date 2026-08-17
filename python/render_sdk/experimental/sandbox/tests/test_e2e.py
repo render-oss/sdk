@@ -9,8 +9,8 @@ Run with:
 
 CI runs this against staging as `test+sdk-e2e@test.render.com`, in its own
 `Python Sandbox E2E Tests` job so it reports separately from the rest of the e2e
-set. The API key is in shared 1Password. It is expected to fail until a sandbox
-runner (renderd) fleet is available, since the sandbox never leaves `creating`.
+set. The API key is in shared 1Password. Staging sandboxes now reach `running`,
+so these cases exercise the real token mint, proxy stream and file transfer.
 """
 
 from __future__ import annotations
@@ -67,6 +67,21 @@ async def _wait_until_running(sandboxes, sandbox_id, owner_id, timeout_s=180.0):
         await asyncio.sleep(3.0)
 
 
+async def _exec_output(sandboxes, sandbox_id, owner_id, command):
+    """Run command and return its stdout, asserting a zero exit."""
+    outputs = []
+    exit_event = None
+    async for event in sandboxes.exec(sandbox_id, command, owner_id=owner_id):
+        if isinstance(event, SandboxExecOutput):
+            if event.stream == "stdout":
+                outputs.append(event.data)
+        elif isinstance(event, SandboxExecExit):
+            exit_event = event
+    assert exit_event is not None
+    assert exit_event.exit_code == 0, f"{command!r} exited {exit_event.exit_code}"
+    return "".join(outputs)
+
+
 @pytest.mark.asyncio
 async def test_create_exec_terminate(sandboxes):
     owner_id = _OWNER_ID
@@ -105,5 +120,56 @@ async def test_create_exec_terminate(sandboxes):
                 exit_event = event
         assert exit_event is not None
         assert exit_event.exit_code == 3
+    finally:
+        await sandboxes.terminate(sandbox.id, owner_id=owner_id)
+
+
+@pytest.mark.asyncio
+async def test_copy_to_file_and_directory(sandboxes, tmp_path):
+    owner_id = _OWNER_ID
+
+    (tmp_path / "greeting.txt").write_text("hello from copy_to\n")
+    tree = tmp_path / "tree"
+    (tree / "nested").mkdir(parents=True)
+    (tree / "nested" / "data.txt").write_text("nested file\n")
+    (tree / "link.txt").symlink_to("nested/data.txt")
+
+    sandbox = await sandboxes.create(owner_id=owner_id)
+    try:
+        await _wait_until_running(sandboxes, sandbox.id, owner_id)
+
+        # a single file arrives as raw bytes. A relative remote path resolves
+        # under the sandbox's home directory, scp style.
+        await sandboxes.copy_to(
+            sandbox.id,
+            tmp_path / "greeting.txt",
+            "copy-to-greeting.txt",
+            owner_id=owner_id,
+        )
+        contents = await _exec_output(
+            sandboxes, sandbox.id, owner_id, 'cat "$HOME/copy-to-greeting.txt"'
+        )
+        assert contents == "hello from copy_to\n"
+
+        # a directory arrives as an archive the sandbox extracts, with entry
+        # names relative to the local root
+        await sandboxes.copy_to(sandbox.id, tree, "copy-to-tree", owner_id=owner_id)
+        listing = await _exec_output(
+            sandboxes,
+            sandbox.id,
+            owner_id,
+            'cd "$HOME" && find copy-to-tree -mindepth 1 | sort',
+        )
+        assert listing.split() == [
+            "copy-to-tree/link.txt",
+            "copy-to-tree/nested",
+            "copy-to-tree/nested/data.txt",
+        ]
+
+        # the symlink was stored, not followed into a second copy of the file
+        target = await _exec_output(
+            sandboxes, sandbox.id, owner_id, 'readlink "$HOME/copy-to-tree/link.txt"'
+        )
+        assert target.strip() == "nested/data.txt"
     finally:
         await sandboxes.terminate(sandbox.id, owner_id=owner_id)

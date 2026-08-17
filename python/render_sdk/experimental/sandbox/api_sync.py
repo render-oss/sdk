@@ -5,8 +5,12 @@
 from __future__ import annotations
 
 import json
+import os
+import posixpath
+import stat
 from collections.abc import Iterator
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
@@ -21,6 +25,12 @@ from render_sdk.client.util_sync import (
     handle_api_error,
     handle_http_errors,
     handle_httpx_exception,
+)
+from render_sdk.experimental.sandbox._tar import (
+    close_content,
+    iter_file,
+    iter_tar_gzip,
+    stat_path,
 )
 from render_sdk.experimental.sandbox.errors import (
     SandboxExecError,
@@ -60,6 +70,12 @@ if TYPE_CHECKING:
 # Aliased at module scope so the annotation on _list_api_call resolves the
 # builtin list, not the SyncSandboxApi.list method that shadows it in the class body.
 _SandboxWithCursorList = list[SandboxWithCursor]
+
+# File transfer content types. The content type states intent and nothing else:
+# a single file travels as octet-stream and a directory as an x-tar archive the
+# server extracts, with Content-Encoding carrying wire compression separately.
+_CONTENT_TYPE_OCTET_STREAM = "application/octet-stream"
+_CONTENT_TYPE_TAR = "application/x-tar"
 
 
 def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
@@ -188,8 +204,99 @@ class SyncSandboxApi:
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox run")
         if response.status_code >= 400:
-            _raise_exec_http_error(sandbox_id, response.status_code, response.text)
+            _raise_sandbox_http_error(
+                sandbox_id, response.status_code, response.text, "exec"
+            )
         return response.json()
+
+    def _mint_file_token(
+        self, sandbox_id: str, owner_id: str, operation: str, path: str
+    ) -> dict[str, Any]:
+        api_client = self.client.get_httpx_client()
+        try:
+            response = api_client.post(
+                f"/sandboxes/{sandbox_id}/files/{operation}/token",
+                params={"ownerId": owner_id, "path": path},
+            )
+        except httpx.RequestError as exc:
+            handle_httpx_exception(exc, "connect sandbox files")
+        if response.status_code >= 400:
+            _raise_sandbox_http_error(
+                sandbox_id, response.status_code, response.text, operation
+            )
+        return response.json()
+
+    def upload(
+        self,
+        sandbox_id: str,
+        local_path: str | os.PathLike[str],
+        remote_path: str,
+        owner_id: str,
+    ) -> None:
+        source = Path(local_path)
+        # The server rejects any path it would have to clean, so clean it here
+        # instead of turning a trailing slash into a 400. The CLI does the same
+        # before minting, which keeps the two clients in step. Guard the empty
+        # path first: normpath turns it into ".", which would quietly copy to
+        # the home directory instead of failing.
+        if not remote_path:
+            raise ValueError("remote_path is required")
+        remote_path = posixpath.normpath(remote_path)
+        # stat, not lstat: a symlinked directory uploads as the directory it
+        # points at. Statting before the mint also keeps a missing local path
+        # from spending a token.
+        info = stat_path(source)
+        if not (stat.S_ISDIR(info.st_mode) or stat.S_ISREG(info.st_mode)):
+            # Opening a fifo blocks until a writer appears, which may be never,
+            # and that open would block the event loop rather than time out.
+            # Refuse before the mint so a bad path does not spend a token.
+            raise ValueError(
+                f"{source} is not a file or directory; "
+                "sockets, fifos and devices cannot be copied to a sandbox"
+            )
+        connection = self._mint_file_token(sandbox_id, owner_id, "upload", remote_path)
+
+        headers = {"Authorization": f"Bearer {connection['token']}"}
+        content: Iterator[bytes]
+        if stat.S_ISDIR(info.st_mode):
+            headers["Content-Type"] = _CONTENT_TYPE_TAR
+            # The archive's length is not known until it has been produced, so
+            # the body goes out chunked. gzip is the wire encoding only: the
+            # server gunzips it and extracts the tar underneath.
+            headers["Content-Encoding"] = "gzip"
+            content = iter_tar_gzip(source)
+        else:
+            headers["Content-Type"] = _CONTENT_TYPE_OCTET_STREAM
+            # An explicit length keeps httpx from sending an iterator body
+            # chunked, and lets the sandbox size the write up front.
+            headers["Content-Length"] = str(info.st_size)
+            content = iter_file(source)
+
+        # Keep the connect timeout, but let a large upload take as long as it
+        # takes, as the object client does.
+        timeout = httpx.Timeout(5.0, read=None, write=None)
+        try:
+            with httpx.Client(timeout=timeout) as proxy_client:
+                response = proxy_client.request(
+                    connection["method"],
+                    connection["uri"],
+                    headers=headers,
+                    content=content,
+                )
+        except httpx.RequestError as exc:
+            handle_httpx_exception(exc, "upload to sandbox")
+        finally:
+            # httpx closes the body on today's failure paths, but that is its
+            # internals, not a contract. Closing here is what actually
+            # guarantees the archive producer stops when a request dies early.
+            close_content(content)
+        # Any 2xx, not just the 204 the sandbox sends today: the API deploys
+        # ahead of the SDK, so pinning the exact code would break on a benign
+        # change.
+        if not 200 <= response.status_code < 300:
+            _raise_sandbox_http_error(
+                sandbox_id, response.status_code, response.text, "upload"
+            )
 
     def exec_stream(
         self, sandbox_id: str, command: str, owner_id: str, operation: str = "stream"
@@ -215,7 +322,9 @@ class SyncSandboxApi:
             ):
                 if response.status_code >= 400:
                     body = (response.read()).decode("utf-8", errors="replace")
-                    _raise_exec_http_error(sandbox_id, response.status_code, body)
+                    _raise_sandbox_http_error(
+                        sandbox_id, response.status_code, body, "exec"
+                    )
                 for name, data in _iter_sse_events(response.iter_lines()):
                     if name == "output":
                         payload = _load_event(data)
@@ -253,8 +362,10 @@ def _load_event(data: str) -> dict[str, Any]:
         ) from exc
 
 
-def _raise_exec_http_error(sandbox_id: str, status_code: int, body: str) -> NoReturn:
-    message = f"exec failed with status {status_code}"
+def _raise_sandbox_http_error(
+    sandbox_id: str, status_code: int, body: str, action: str
+) -> NoReturn:
+    message = f"{action} failed with status {status_code}"
     if body:
         message = f"{message}: {body}"
     if status_code == 404:
