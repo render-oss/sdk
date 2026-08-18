@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 from render_sdk.client.errors import RenderError
 from render_sdk.experimental.sandbox.api_sync import SyncSandboxApi
+from render_sdk.experimental.sandbox.files import normalize_remote_path
 from render_sdk.experimental.sandbox.types import Sandbox, SandboxExecEvent, SandboxList
 
 if TYPE_CHECKING:
@@ -140,3 +141,30 @@ class SyncSandboxClient:
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return self.api.exec_stream(sandbox_id, command, resolved_owner_id)
+
+    def copy_from(
+        self,
+        sandbox_id: str,
+        remote_path: str,
+        local_path: str | os.PathLike[str],
+        *,
+        owner_id: str | None = None,
+    ) -> str:
+        """Copy a file or directory out of a sandbox, returning the path written.
+
+        A directory is extracted under local_path. A file is written to
+        local_path, or into it under the name the sandbox suggests when
+        local_path is an existing directory. remote_path is cleaned before it
+        is sent, since the API rejects a path carrying "." , ".." or redundant
+        separators. Raises SandboxFileNotFoundError if the sandbox has no such
+        path. Raises SandboxDownloadError if the response is unsafe or the download
+        cannot be written or extracted locally. Directory extraction is not atomic
+        and may leave partial contents after a failure.
+        """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        return self.api.download_file(
+            sandbox_id,
+            normalize_remote_path(remote_path),
+            os.fspath(local_path),
+            resolved_owner_id,
+        )

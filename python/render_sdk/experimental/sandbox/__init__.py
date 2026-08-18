@@ -2,8 +2,10 @@
 
 from render_sdk.experimental.sandbox.client import SandboxClient
 from render_sdk.experimental.sandbox.errors import (
+    SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
+    SandboxFileNotFoundError,
     SandboxNotFoundError,
 )
 from render_sdk.experimental.sandbox.types import (
@@ -17,11 +19,13 @@ from render_sdk.experimental.sandbox.types import (
 __all__ = [
     "Sandbox",
     "SandboxClient",
+    "SandboxDownloadError",
     "SandboxExecError",
     "SandboxExecEvent",
     "SandboxExecExit",
     "SandboxExecOutput",
     "SandboxExecStreamError",
+    "SandboxFileNotFoundError",
     "SandboxList",
     "SandboxNotFoundError",
 ]
