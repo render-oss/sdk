@@ -6,7 +6,7 @@ import json
 import os
 import posixpath
 import stat
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn
@@ -80,9 +80,10 @@ if TYPE_CHECKING:
 # The code the sandbox agent sends in a 404 body when the remote path is missing.
 _FILE_NOT_FOUND_CODE = "file_not_found"
 
-# Aliased at module scope so the annotation on _list_api_call resolves the
+# Aliased at module scope so the annotations on _list_api_call resolve the
 # builtin list, not the SandboxApi.list method that shadows it in the class body.
 _SandboxWithCursorList = list[SandboxWithCursor]
+_SandboxStatusList = list[SandboxStatus]
 
 # File transfer content types. The content type states intent and nothing else:
 # a single file travels as octet-stream and a directory as an x-tar archive the
@@ -103,6 +104,13 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
         created_at=model.created_at,
         terminated_at=terminated if isinstance(terminated, datetime) else None,
     )
+
+
+def _normalize_statuses(status: str | Sequence[str] | None) -> list[SandboxStatus]:
+    if status is None:
+        return []
+    values = [status] if isinstance(status, str) else list(status)
+    return [SandboxStatus(value) for value in values]
 
 
 class SandboxApi:
@@ -161,11 +169,12 @@ class SandboxApi:
     async def list(
         self,
         owner_id: str,
-        status: str | None,
+        status: str | Sequence[str] | None,
         cursor: str | None,
         limit: int | None,
     ) -> SandboxList:
-        response = await self._list_api_call(owner_id, status, cursor, limit)
+        statuses = _normalize_statuses(status)
+        response = await self._list_api_call(owner_id, statuses, cursor, limit)
         parsed = response.parsed
         if not isinstance(parsed, list):
             raise RenderError("Failed to list sandboxes: unexpected response type")
@@ -177,14 +186,14 @@ class SandboxApi:
     async def _list_api_call(
         self,
         owner_id: str,
-        status: str | None,
+        statuses: _SandboxStatusList,
         cursor: str | None,
         limit: int | None,
     ) -> Response[Error | _SandboxWithCursorList]:
         return await list_sandboxes.asyncio_detailed(
             client=self.client,
             owner_id=[owner_id],
-            status=[SandboxStatus(status)] if status is not None else UNSET,
+            status=statuses or UNSET,
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
         )

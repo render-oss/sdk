@@ -123,6 +123,7 @@ async def test_list_returns_sandboxes_and_cursor():
     async def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
+        captured["status_values"] = request.url.params.get_list("status")
         body = [
             {"sandbox": SANDBOX_JSON, "cursor": "cur-1"},
             {"sandbox": {**SANDBOX_JSON, "id": "sbx-def"}, "cursor": "cur-2"},
@@ -134,7 +135,7 @@ async def test_list_returns_sandboxes_and_cursor():
 
     assert captured["path"] == "/v1/sandboxes"
     assert captured["query"]["ownerId"] == "tea-test"
-    assert captured["query"]["status"] == "running"
+    assert captured["status_values"] == ["running"]
     assert captured["query"]["limit"] == "50"
     assert [s.id for s in page.sandboxes] == ["sbx-abc", "sbx-def"]
     assert page.next_cursor == "cur-2"
@@ -149,6 +150,133 @@ async def test_list_empty_has_no_cursor():
     page = await client.list()
     assert page.sandboxes == []
     assert page.next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_list_sends_one_status_query_param_per_value():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["status"] = request.url.params.get_list("status")
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+    await client.list(status=["running", "creating"])
+
+    assert captured["status"] == ["running", "creating"]
+
+
+@pytest.mark.asyncio
+async def test_list_sends_a_single_status_string_as_one_value():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["status"] = request.url.params.get_list("status")
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+    await client.list(status="running")
+
+    assert captured["status"] == ["running"]
+
+
+@pytest.mark.asyncio
+async def test_list_omits_status_when_no_filter_is_given():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["query"] = dict(request.url.params)
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+
+    await client.list()
+    assert "status" not in captured["query"]
+
+    await client.list(status=[])
+    assert "status" not in captured["query"]
+
+
+@pytest.mark.asyncio
+async def test_list_rejects_an_unknown_status():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("handler should not be reached")
+
+    client = _sandbox_client(handler)
+
+    with pytest.raises(ValueError, match="bogus"):
+        await client.list(status=["running", "bogus"])
+
+    with pytest.raises(ValueError, match="bogus"):
+        await client.list(status="bogus")
+
+
+def _sync_sandbox_client(handler, *, default_owner_id="tea-test"):
+    from render_sdk.experimental.sandbox.client_sync import SyncSandboxClient
+
+    internal = AuthenticatedClient(
+        base_url="https://api.test/v1",
+        token="test-token",
+        httpx_args={"transport": httpx.MockTransport(handler)},
+    )
+    return SyncSandboxClient(internal, default_owner_id=default_owner_id)
+
+
+def test_sync_list_sends_one_status_query_param_per_value():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["status"] = request.url.params.get_list("status")
+        return httpx.Response(200, json=[{"sandbox": SANDBOX_JSON, "cursor": "cur-1"}])
+
+    client = _sync_sandbox_client(handler)
+    page = client.list(status=["running", "suspended"])
+
+    assert captured["status"] == ["running", "suspended"]
+    assert [s.id for s in page.sandboxes] == ["sbx-abc"]
+    assert page.next_cursor == "cur-1"
+
+
+def test_sync_list_sends_a_single_status_string_as_one_value():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["status"] = request.url.params.get_list("status")
+        return httpx.Response(200, json=[])
+
+    client = _sync_sandbox_client(handler)
+    client.list(status="running")
+
+    assert captured["status"] == ["running"]
+
+
+def test_sync_list_omits_status_when_no_filter_is_given():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["query"] = dict(request.url.params)
+        return httpx.Response(200, json=[])
+
+    client = _sync_sandbox_client(handler)
+
+    client.list()
+    assert "status" not in captured["query"]
+
+    client.list(status=[])
+    assert "status" not in captured["query"]
+
+
+def test_sync_list_rejects_an_unknown_status():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("handler should not be reached")
+
+    client = _sync_sandbox_client(handler)
+
+    with pytest.raises(ValueError, match="bogus"):
+        client.list(status=["running", "bogus"])
+
+    with pytest.raises(ValueError, match="bogus"):
+        client.list(status="bogus")
 
 
 @pytest.mark.asyncio
