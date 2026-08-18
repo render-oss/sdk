@@ -103,6 +103,18 @@ async def test_create_exec_terminate(sandboxes):
         page = await sandboxes.list(owner_id=owner_id)
         assert any(s.id == sandbox.id for s in page.sandboxes)
 
+        filtered = await sandboxes.list(
+            owner_id=owner_id, status=["running", "creating"], limit=100
+        )
+        assert any(s.id == sandbox.id for s in filtered.sandboxes)
+        assert all(s.status in {"running", "creating"} for s in filtered.sandboxes)
+
+        excluded = await sandboxes.list(
+            owner_id=owner_id, status=["suspended"], limit=100
+        )
+        assert all(s.id != sandbox.id for s in excluded.sandboxes)
+        assert all(s.status == "suspended" for s in excluded.sandboxes)
+
         # exec streams stdout and reports a zero exit
         outputs = []
         exit_event = None

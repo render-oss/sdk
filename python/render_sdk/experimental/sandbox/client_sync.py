@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING
 
 from render_sdk.client.errors import RenderError
@@ -79,15 +79,15 @@ class SyncSandboxClient:
         self,
         *,
         owner_id: str | None = None,
-        status: str | None = None,
+        status: str | Sequence[str] | None = None,
         cursor: str | None = None,
         limit: int | None = None,
     ) -> SandboxList:
         """List sandboxes for a workspace.
 
-        status filters by a single sandbox status (one of creating, running,
-        suspended, resuming, errored, terminated). limit is capped at 100 by
-        the API.
+        status filters by sandbox status, one or a sequence of them (each one
+        of creating, running, suspended, resuming, errored, terminated). limit
+        is capped at 100 by the API.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return self.api.list(resolved_owner_id, status, cursor, limit)
