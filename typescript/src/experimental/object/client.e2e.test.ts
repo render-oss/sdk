@@ -1,7 +1,9 @@
 import { Render } from "../../render.js";
 import { objectStorageCrudCheck } from "./e2e-helpers.js";
 
-const canRunE2E = Boolean(process.env.RENDER_API_KEY && process.env.RENDER_E2E_OWNER_ID);
+const canRunE2E =
+  process.env.CI === "true" ||
+  Boolean(process.env.RENDER_API_KEY && process.env.RENDER_E2E_OWNER_ID);
 const canRunPagination = canRunE2E && Boolean(process.env.RENDER_E2E_PAGINATION_OWNER_ID);
 
 // ---------------------------------------------------------------------------
@@ -23,7 +25,11 @@ describe.skipIf(!canRunE2E)("ObjectClient E2E", () => {
   afterAll(async () => {
     for (const key of keysToCleanup) {
       try {
-        await render.experimental.storage.objects.delete({ ownerId, region, key });
+        await render.experimental.storage.objects.delete({
+          ownerId,
+          region,
+          key,
+        });
       } catch {
         // swallow — best-effort cleanup
       }
@@ -36,7 +42,10 @@ describe.skipIf(!canRunE2E)("ObjectClient E2E", () => {
   });
 
   it("should work via scoped() accessor", async () => {
-    const scoped = render.experimental.storage.objects.scoped({ ownerId, region });
+    const scoped = render.experimental.storage.objects.scoped({
+      ownerId,
+      region,
+    });
     const key = `e2e-test/${crypto.randomUUID()}/scoped-test.txt`;
     keysToCleanup.push(key);
 
