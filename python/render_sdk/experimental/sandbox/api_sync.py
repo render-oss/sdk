@@ -33,9 +33,21 @@ from render_sdk.experimental.sandbox._tar import (
     stat_path,
 )
 from render_sdk.experimental.sandbox.errors import (
+    SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
+    SandboxFileNotFoundError,
     SandboxNotFoundError,
+)
+from render_sdk.experimental.sandbox.files import (
+    PartialDownload,
+    check_content_encoding,
+    disposition_filename,
+    media_type,
+    parent_dir,
+    prepare_extract_dir,
+    resolve_file_dest,
+    run_blocking,
 )
 from render_sdk.experimental.sandbox.types import (
     Sandbox,
@@ -66,6 +78,9 @@ from render_sdk.public_api.types import UNSET, Response
 if TYPE_CHECKING:
     from render_sdk.public_api.client import AuthenticatedClient, Client
 
+
+# The code the sandbox agent sends in a 404 body when the remote path is missing.
+_FILE_NOT_FOUND_CODE = "file_not_found"
 
 # Aliased at module scope so the annotation on _list_api_call resolves the
 # builtin list, not the SyncSandboxApi.list method that shadows it in the class body.
@@ -298,6 +313,76 @@ class SyncSandboxApi:
                 sandbox_id, response.status_code, response.text, "upload"
             )
 
+    def download_file(
+        self, sandbox_id: str, remote_path: str, local_path: str, owner_id: str
+    ) -> str:
+        """Copy remote_path out of the sandbox and return the local path written.
+
+        A directory arrives as an x-tar archive and is extracted under
+        local_path; anything else is written as a single file.
+        """
+        connection = self._mint_file_token(
+            sandbox_id, owner_id, "download", remote_path
+        )
+        headers = {
+            "Authorization": f"Bearer {connection['token']}",
+            # Ask only for the coding httpx undoes for us. Left to itself it
+            # also advertises deflate, and br/zstd when those are installed,
+            # any of which would arrive as a body we refuse to write.
+            "Accept-Encoding": "gzip",
+        }
+        # read bounds the wait for the next chunk, not the transfer, so a large
+        # download still has as long as it needs while a body that stops
+        # arriving fails instead of hanging. Same budget as exec_stream.
+        timeout = httpx.Timeout(5.0, read=45.0, write=None)
+        try:
+            with (
+                httpx.Client(timeout=timeout) as proxy_client,
+                proxy_client.stream(
+                    connection["method"], connection["uri"], headers=headers
+                ) as response,
+            ):
+                if response.status_code >= 400:
+                    body = (response.read()).decode("utf-8", errors="replace")
+                    _raise_sandbox_http_error(
+                        sandbox_id, response.status_code, body, "download"
+                    )
+                check_content_encoding(response.headers.get("content-encoding", ""))
+
+                if media_type(response.headers.get("content-type", "")) == (
+                    _CONTENT_TYPE_TAR
+                ):
+                    # The archive is spooled next to the destination rather than
+                    # extracted as it arrives: feeding tarfile from an async
+                    # stream would take a thread to bridge, and the memory
+                    # footprint is the same either way.
+                    with PartialDownload(prepare_extract_dir(local_path)) as partial:
+                        for chunk in response.iter_bytes():
+                            partial.write(chunk)
+                        run_blocking(partial.extract, local_path)
+                    return local_path
+
+                dest = resolve_file_dest(
+                    local_path,
+                    disposition_filename(
+                        response.headers.get("content-disposition", "")
+                    ),
+                    remote_path,
+                )
+                with PartialDownload(parent_dir(dest)) as partial:
+                    for chunk in response.iter_bytes():
+                        partial.write(chunk)
+                    return run_blocking(partial.commit, dest)
+        except httpx.RequestError as exc:
+            handle_httpx_exception(exc, "download sandbox file")
+        except OSError as exc:
+            # Spooling, extracting and renaming all touch the local disk, and a
+            # bare OSError from any of them tells a caller nothing about which
+            # download failed.
+            raise SandboxDownloadError(
+                f"could not write the download to {local_path}: {exc}"
+            ) from exc
+
     def exec_stream(
         self, sandbox_id: str, command: str, owner_id: str, operation: str = "stream"
     ) -> Iterator[SandboxExecEvent]:
@@ -362,6 +447,16 @@ def _load_event(data: str) -> dict[str, Any]:
         ) from exc
 
 
+def _file_error_code(body: str) -> str:
+    """The ``code`` of a sandbox agent error body, or "" if it has none."""
+    try:
+        payload = json.loads(body)
+    except ValueError:
+        return ""
+    code = payload.get("code") if isinstance(payload, dict) else None
+    return code if isinstance(code, str) else ""
+
+
 def _raise_sandbox_http_error(
     sandbox_id: str, status_code: int, body: str, action: str
 ) -> NoReturn:
@@ -369,6 +464,11 @@ def _raise_sandbox_http_error(
     if body:
         message = f"{message}: {body}"
     if status_code == 404:
+        # The agent 404s a missing remote path with this code, and the sandbox
+        # is alive when it does. Any other 404 is the sandbox itself being gone,
+        # including the one the mint endpoint returns.
+        if _file_error_code(body) == _FILE_NOT_FOUND_CODE:
+            raise SandboxFileNotFoundError(message)
         raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
     if status_code == 429:
         raise RateLimitError(message)

@@ -21,7 +21,11 @@ import time
 
 import pytest
 
-from render_sdk.experimental.sandbox import SandboxExecExit, SandboxExecOutput
+from render_sdk.experimental.sandbox import (
+    SandboxExecExit,
+    SandboxExecOutput,
+    SandboxFileNotFoundError,
+)
 from render_sdk.render_async import RenderAsync
 
 _OWNER_ID = os.environ.get("RENDER_E2E_OWNER_ID") or os.environ.get(
@@ -120,6 +124,67 @@ async def test_create_exec_terminate(sandboxes):
                 exit_event = event
         assert exit_event is not None
         assert exit_event.exit_code == 3
+    finally:
+        await sandboxes.terminate(sandbox.id, owner_id=owner_id)
+
+
+@pytest.mark.asyncio
+async def test_copy_from_file_and_directory(sandboxes, tmp_path):
+    owner_id = _OWNER_ID
+
+    sandbox = await sandboxes.create(owner_id=owner_id)
+    try:
+        await _wait_until_running(sandboxes, sandbox.id, owner_id)
+
+        # build a tree inside the sandbox to pull back out
+        await _exec_output(
+            sandboxes,
+            sandbox.id,
+            owner_id,
+            'cd "$HOME" && mkdir -p copy-from-tree/nested '
+            '&& printf "hello from copy_from\\n" > copy-from-greeting.txt '
+            '&& printf "nested file\\n" > copy-from-tree/nested/data.txt '
+            "&& ln -sf nested/data.txt copy-from-tree/link.txt",
+        )
+
+        # a single file lands at exactly the path asked for
+        target = tmp_path / "greeting.txt"
+        written = await sandboxes.copy_from(
+            sandbox.id, "copy-from-greeting.txt", target, owner_id=owner_id
+        )
+        assert written == str(target)
+        assert target.read_text() == "hello from copy_from\n"
+
+        # into an existing directory, the name comes from the sandbox
+        inbox = tmp_path / "inbox"
+        inbox.mkdir()
+        written = await sandboxes.copy_from(
+            sandbox.id, "copy-from-greeting.txt", inbox, owner_id=owner_id
+        )
+        assert written == str(inbox / "copy-from-greeting.txt")
+        assert (
+            inbox / "copy-from-greeting.txt"
+        ).read_text() == "hello from copy_from\n"
+
+        # a directory arrives as an x-tar archive under Content-Encoding: gzip
+        # and is extracted under local_path, symlink stored rather than followed
+        tree = tmp_path / "tree"
+        written = await sandboxes.copy_from(
+            sandbox.id, "copy-from-tree", tree, owner_id=owner_id
+        )
+        assert written == str(tree)
+        assert (tree / "nested" / "data.txt").read_text() == "nested file\n"
+        assert os.readlink(tree / "link.txt") == "nested/data.txt"
+
+        # a path the sandbox does not have is a missing file, not a missing
+        # sandbox: the agent says so with a file_not_found code in the body
+        with pytest.raises(SandboxFileNotFoundError):
+            await sandboxes.copy_from(
+                sandbox.id,
+                "no-such-file.txt",
+                tmp_path / "nope.txt",
+                owner_id=owner_id,
+            )
     finally:
         await sandboxes.terminate(sandbox.id, owner_id=owner_id)
 

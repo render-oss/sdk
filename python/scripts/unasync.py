@@ -50,6 +50,7 @@ SYNTAX_REPLACEMENTS = [
     ("aiter_file", "iter_file"),
     ("aclose_content", "close_content"),
     ("astat_path", "stat_path"),
+    ("arun_blocking", "run_blocking"),
     ("get_async_httpx_client", "get_httpx_client"),
     ("aiter_lines", "iter_lines"),
     ("aread", "read"),
