@@ -22,3 +22,14 @@ export {
   ScopedObjectClient,
   type ScopedPutObjectInput,
 } from "./object/index.js";
+// Sandbox exports
+export {
+  type SandboxCreateInput,
+  type SandboxDownload,
+  type SandboxExecEvent,
+  SandboxExecStreamError,
+  SandboxesClient,
+  type SandboxUploadContentType,
+  type SandboxUploadData,
+  type SandboxUploadOptions,
+} from "./sandboxes/index.js";

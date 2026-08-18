@@ -2,6 +2,7 @@ import type { Client } from "openapi-fetch";
 import type { paths } from "../generated/schema.js";
 import { KeyValueApi, KeyValueProvider } from "./keyValue";
 import { ObjectClient } from "./object/client.js";
+import { SandboxesClient } from "./sandboxes/index.js";
 
 /**
  * StorageClient provides access to experimental storage features
@@ -54,8 +55,11 @@ export class ExperimentalClient {
   /** Key Value provider for connecting with Valkey / Redis instances */
   public readonly keyValue: KeyValueProvider;
 
+  public readonly sandboxes: SandboxesClient;
+
   constructor(apiClient: Client<paths>, defaultOwnerId?: string, defaultRegion?: string) {
     this.storage = new StorageClient(apiClient, defaultOwnerId, defaultRegion);
     this.keyValue = new KeyValueProvider(new KeyValueApi(apiClient), defaultOwnerId);
+    this.sandboxes = new SandboxesClient(apiClient, defaultOwnerId, defaultRegion);
   }
 }
