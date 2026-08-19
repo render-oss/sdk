@@ -291,6 +291,7 @@ describe("SandboxesClient", () => {
             path: { sandboxId: "sbx-123", operation: "stream" },
             query: { ownerId: "tea-test" },
           },
+          body: { command: "echo hi" },
         }),
       );
       expect(fetchMock).toHaveBeenCalledWith(
@@ -305,6 +306,23 @@ describe("SandboxesClient", () => {
           }),
         }),
       );
+    });
+
+    it("omits the connect token body when the command is empty", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(sseStream(['event: exit\ndata: {"exit_code":0}\n\n']), { status: 200 }),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      await collectOpenExec(client, "sbx-123", "", "tea-test");
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/runs/{operation}/token", {
+        params: {
+          path: { sandboxId: "sbx-123", operation: "stream" },
+          query: { ownerId: "tea-test" },
+        },
+      });
     });
 
     it("joins multi-line data fields", async () => {
