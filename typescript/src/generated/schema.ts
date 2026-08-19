@@ -40,7 +40,7 @@ export interface paths {
          * Validate Blueprint
          * @description Validate a `render.yaml` Blueprint file without creating or modifying any resources. This endpoint checks the syntax and structure of the Blueprint, validates that all required fields are present, and returns a plan indicating the resources that would be created.
          *
-         *     Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file cannot exceed 10MB in size.
+         *     Requests to this endpoint use `Content-Type: multipart/form-data`. The request body (including the Blueprint file) cannot exceed 10MB in size.
          */
         post: operations["validate-blueprint"];
         delete?: never;
@@ -1388,6 +1388,31 @@ export interface paths {
          * @description List instances for the provided service.
          */
         get: operations["list-instances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/services/{serviceId}/outbound-ips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the service */
+                serviceId: components["parameters"]["serviceIdParam"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve service outbound IPs
+         * @description Retrieve the IP addresses the service's outbound traffic originates from.
+         *
+         *     A service uses either a dedicated IP set that applies to it, or the shared Render IPs for its region.
+         */
+        get: operations["retrieve-service-outbound-ips"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4046,6 +4071,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandboxes/{sandboxId}/execs/{execId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+                /** @description The ID of the execution */
+                execId: components["parameters"]["execId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve execution
+         * @description Retrieve one execution record for the sandbox.
+         */
+        get: operations["retrieve-sandbox-execution"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandboxes/{sandboxId}/terminate": {
         parameters: {
             query?: never;
@@ -4098,6 +4148,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandboxes/{sandboxId}/execs/{execId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+                /** @description The execution ID returned when minting the connect token. */
+                execId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update sandbox execution
+         * @description Record the client-observed exit code for a previously minted sandbox
+         *     execution. Call after the proxy run completes (sync response or closing
+         *     SSE frame). Command text is recorded at token mint time, not here.
+         */
+        post: operations["update-sandbox-exec"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandboxes/{sandboxId}/logs": {
         parameters: {
             query?: never;
@@ -4144,9 +4221,10 @@ export interface paths {
          *     single file upload or download against the sandbox, and return the
          *     sandbox-proxy endpoint to invoke with it. The caller streams the file
          *     bytes directly to (or from) that endpoint with the token as a bearer
-         *     credential. `application/octet-stream` carries a single file; uploads
-         *     accept a directory archive as `application/x-tar` or `application/gzip`
-         *     (gzipped tar), and directory downloads return `application/gzip`. The
+         *     credential. `application/octet-stream` carries a single file and
+         *     `application/x-tar` a directory archive, with compression carried
+         *     separately by `Content-Encoding: gzip` in either direction; directory
+         *     downloads return `application/x-tar` with `Content-Encoding: gzip`. The
          *     token is bound to this sandbox, operation, and path, and expires
          *     shortly after issuance.
          */
@@ -4216,7 +4294,7 @@ export interface components {
              * @example CreateServerEvent
              * @enum {string}
              */
-            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateArtifactSourceEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
+            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateArtifactSourceEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateSavedSearchEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteSavedSearchEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
             /**
              * @description The status of the event
              * @example success
@@ -4953,7 +5031,14 @@ export interface components {
         error: {
             id?: string;
             message?: string;
+            /** @description A stable, machine-readable identifier present on specific errors that clients can handle specially. Each endpoint documents the codes it can return. The errorCode schema lists the full vocabulary of codes. */
+            code?: string;
         };
+        /**
+         * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
+         * @enum {string}
+         */
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.
@@ -5592,6 +5677,20 @@ export interface components {
             id: string;
             /** Format: date-time */
             createdAt: string;
+        };
+        outboundIps: {
+            /**
+             * @description `dedicated` if a dedicated IP set applies to the resource, `shared` if its traffic originates from the shared Render IPs for its region.
+             * @enum {string}
+             */
+            type: "shared" | "dedicated";
+            /**
+             * @description The dedicated IP set the traffic originates from. Only present when `type` is `dedicated`.
+             * @example egs-abc123
+             */
+            dedicatedIpId?: string;
+            /** @description The IP addresses the resource's outbound traffic originates from. */
+            ips: string[];
         };
         taskRunWithCursor: {
             taskRun: components["schemas"]["TaskRun"];
@@ -6667,6 +6766,8 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+            /** Format: date-time */
+            assetsDeletedAt?: string;
         };
         /** @example whk-d04m9b1r0fns73ckp94f */
         webhookId: string;
@@ -6793,6 +6894,10 @@ export interface components {
         /** @enum {string} */
         TaskRunStatus: "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused";
         TaskAttempt: {
+            /** @description The ID of the task run this attempt belongs to. */
+            taskRunId?: string;
+            /** @description The 0-indexed attempt number. */
+            attempt: number;
             status: components["schemas"]["TaskRunStatus"];
             /** Format: date-time */
             enqueuedAt?: string;
@@ -6810,6 +6915,8 @@ export interface components {
             /** Format: date-time */
             completedAt?: string;
             parentTaskRunId: string;
+            /** @description The 0-indexed attempt of the parent task run that spawned this task run. Omitted for root task runs and for task runs created before this field was introduced. */
+            parentTaskAttempt?: number;
             rootTaskRunId: string;
             retries: number;
             attempts: components["schemas"]["TaskAttempt"][];
@@ -6829,6 +6936,10 @@ export interface components {
         };
         TaskRunResult: unknown[];
         TaskAttemptDetails: {
+            /** @description The ID of the task run this attempt belongs to. */
+            taskRunId?: string;
+            /** @description The 0-indexed attempt number. */
+            attempt: number;
             status: components["schemas"]["TaskRunStatus"];
             /** Format: date-time */
             enqueuedAt?: string;
@@ -6853,6 +6964,8 @@ export interface components {
             completedAt?: string;
             input: components["schemas"]["TaskData"];
             parentTaskRunId: string;
+            /** @description The 0-indexed attempt of the parent task run that spawned this task run. Omitted for root task runs and for task runs created before this field was introduced. */
+            parentTaskAttempt?: number;
             rootTaskRunId: string;
             retries: number;
             attempts: components["schemas"]["TaskAttemptDetails"][];
@@ -6931,7 +7044,7 @@ export interface components {
         };
         /** @enum {string} */
         sandboxStatus: "creating" | "running" | "suspended" | "resuming" | "errored" | "terminated";
-        /** @example sbx-cph1rs3idesc73a2b2mg */
+        /** @example sbx-1cd4gcph1rs3idesc73a2b2mg */
         sandboxId: string;
         /**
          * @description Compute plan. Sizing matches Workflow plans of the same name.
@@ -7012,6 +7125,8 @@ export interface components {
             isDefault: boolean;
             /** @description Environment this group is bound to. */
             environmentId?: string | null;
+            /** @description Effective maximum number of concurrently active (non-terminated) sandboxes allowed in this group. */
+            concurrencyLimit: number;
             /**
              * Format: date-time
              * @example 2026-07-02T18:30:00Z
@@ -7023,6 +7138,50 @@ export interface components {
              */
             updatedAt: string;
         };
+        /** @example exe-cph1rs3idesc73a2b2mg */
+        executionId: string;
+        /**
+         * @description One recorded sandbox execution (a command run or file transfer).
+         *     `startedAt` is the token provisioning time. `command` may be present
+         *     while the execution is in flight (recorded at token mint). `stoppedAt`
+         *     and `exitCode` are absent until a status report or sandbox finalization.
+         */
+        execution: {
+            id: components["schemas"]["executionId"];
+            sandboxId: components["schemas"]["sandboxId"];
+            /** @enum {string} */
+            type: "runs" | "files";
+            /** @enum {string} */
+            operation: "sync" | "stream" | "upload" | "download";
+            /** @description The execution target. For runs, the truncated command; for file transfers, the target file path. */
+            command?: string;
+            /**
+             * @description The ID of the user the execution token was minted for.
+             * @example usr-cph1rs3idesc73a2b2mg
+             */
+            userId: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-01T10:00:00Z
+             */
+            startedAt: string;
+            /**
+             * Format: date-time
+             * @example 2026-08-01T10:05:00Z
+             */
+            stoppedAt?: string;
+            /** @example 0 */
+            exitCode?: number;
+        };
+        /**
+         * @description Optional body when minting a run connect token. `command` is stored on
+         *     the exec timeline (truncated to 4KB); the full command is still sent
+         *     to the sandbox proxy when executing.
+         */
+        sandboxConnectRequest: {
+            /** @description Command text for the sandbox event timeline. */
+            command?: string;
+        };
         /**
          * @description A minted connect token and the sandbox-proxy endpoint to invoke with it.
          *     Send the request (and body, where the operation takes one) to `uri`
@@ -7031,7 +7190,7 @@ export interface components {
         sandboxConnectResponse: {
             /**
              * @description Identifier for this execution.
-             * @example exe-abc123
+             * @example exe-cph1rs3idesc73a2b2mg
              */
             executionId: string;
             /** @description Short-lived bearer token authorizing exactly this operation against the sandbox. */
@@ -7053,6 +7212,24 @@ export interface components {
              * @example 2026-07-10T12:00:00Z
              */
             expiresAt: string;
+        };
+        /** @description Client-reported completion of a sandbox execution. */
+        sandboxExecUpdateRequest: {
+            /** @description Process exit code observed by the client. */
+            exitCode?: number;
+        };
+        /** @description Updated sandbox execution after a client update. */
+        sandboxExecUpdateResponse: {
+            execId: string;
+            sandboxId: string;
+            type: string;
+            operation: string;
+            command?: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            stoppedAt?: string;
+            exitCode?: number;
         };
         /** @description A file or directory entry in a sandbox filesystem listing. */
         sandboxFileEntry: {
@@ -7162,12 +7339,39 @@ export interface components {
                 "application/json": components["schemas"]["error"];
             };
         };
-        /** @description Rate limit has been surpassed. */
-        "429RateLimit": {
+        /** @description The request body exceeded the maximum allowed size. */
+        "413RequestEntityTooLarge": {
             headers: {
                 [name: string]: unknown;
             };
             content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description Rate limit has been surpassed.
+         *
+         *     Rate-limited endpoints also return `RateLimit-Limit`, `RateLimit-Remaining`, and
+         *     `RateLimit-Reset` on successful responses so clients can track their remaining quota.
+         */
+        "429RateLimit": {
+            headers: {
+                /** @description Seconds to wait before retrying the request. */
+                "Retry-After"?: number;
+                /** @description Maximum number of requests allowed in the current window. */
+                "RateLimit-Limit"?: number;
+                /** @description Number of requests remaining in the current window. Always `0` for this response. */
+                "RateLimit-Remaining"?: number;
+                /** @description Seconds until the current rate limit window resets. */
+                "RateLimit-Reset"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "message": "rate limit exceeded"
+                 *     }
+                 */
                 "application/json": components["schemas"]["error"];
             };
         };
@@ -7505,6 +7709,8 @@ export interface components {
         objectKeyPathParam: string;
         /** @description The ID of the sandbox */
         sandboxId: components["schemas"]["sandboxId"];
+        /** @description The ID of the execution */
+        execId: components["schemas"]["executionId"];
     };
     requestBodies: never;
     headers: never;
@@ -7572,6 +7778,7 @@ export interface operations {
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
+            413: components["responses"]["413RequestEntityTooLarge"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
         };
@@ -7796,6 +8003,12 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace to list dedicated IP sets for. */
                 ownerId: string;
+                /**
+                 * @description Filter dedicated IP sets limited to this environment. Excludes workspace-scoped dedicated IP sets.
+                 *
+                 *     The environment must belong to the workspace named by `ownerId`.
+                 */
+                environmentId?: string;
             };
             header?: never;
             path?: never;
@@ -10631,6 +10844,36 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
+    "retrieve-service-outbound-ips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the service */
+                serviceId: components["parameters"]["serviceIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["outboundIps"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
     "run-cron-job": {
         parameters: {
             query?: never;
@@ -11557,16 +11800,27 @@ export interface operations {
                     };
                 };
             };
-            /** @description Bad request - invalid date range */
+            /**
+             * @description Bad request, such as a time range that predates traffic source
+             *     data availability. The error body's optional `code` field
+             *     identifies specific failures that clients can handle
+             *     machine-readably.
+             *
+             *     Error codes:
+             *     - `too_many_resources`: the query requests more resources than
+             *       the breakdown supports (maximum 30)
+             */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        /** @example bandwidth sources data is only available after 2025-03-09 */
-                        error?: string;
-                    };
+                    /**
+                     * @example {
+                     *       "message": "bandwidth sources data is only available after 2025-03-09"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["error"];
                 };
             };
             500: components["responses"]["500InternalServerError"];
@@ -15622,7 +15876,7 @@ export interface operations {
                 content: {
                     /**
                      * @example {
-                     *       "id": "sbx-cph1rs3idesc73a2b2mg",
+                     *       "id": "sbx-1cd4gcph1rs3idesc73a2b2mg",
                      *       "status": "creating",
                      *       "plan": "standard",
                      *       "networkPolicy": {
@@ -15707,6 +15961,40 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
+    "retrieve-sandbox-execution": {
+        parameters: {
+            query: {
+                /** @description The ID of the workspace the sandbox belongs to. */
+                ownerId: string;
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+                /** @description The ID of the execution */
+                execId: components["parameters"]["execId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["execution"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
     "terminate-sandbox": {
         parameters: {
             query: {
@@ -15752,7 +16040,11 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["sandboxConnectRequest"];
+            };
+        };
         responses: {
             /** @description Connect token minted. */
             201: {
@@ -15761,6 +16053,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["sandboxConnectResponse"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "update-sandbox-exec": {
+        parameters: {
+            query: {
+                /** @description The ID of sandbox workspace. */
+                ownerId: string;
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+                /** @description The execution ID returned when minting the connect token. */
+                execId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sandboxExecUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Execution updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxExecUpdateResponse"];
                 };
             };
             400: components["responses"]["400BadRequest"];
