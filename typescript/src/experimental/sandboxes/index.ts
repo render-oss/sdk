@@ -247,6 +247,7 @@ export class SandboxesClient {
     sandboxId: string,
     operation: SandboxConnectOperation,
     ownerId?: `tea-${string}`,
+    command?: string,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
     const { data, error, response } = await this.apiClient.POST(
       `/sandboxes/{sandboxId}/runs/{operation}/token`,
@@ -260,6 +261,7 @@ export class SandboxesClient {
             ownerId: this.resolveOwnerId(ownerId),
           },
         },
+        ...(command ? { body: { command } } : {}),
       },
     );
     if (error) {
@@ -302,7 +304,7 @@ export class SandboxesClient {
       throw new AbortError();
     }
 
-    const tokenResponse = await this.getRunConnectToken(sandboxId, "stream", ownerId);
+    const tokenResponse = await this.getRunConnectToken(sandboxId, "stream", ownerId, command);
 
     let response: Response;
     try {
