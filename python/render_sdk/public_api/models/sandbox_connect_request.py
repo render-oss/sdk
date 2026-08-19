@@ -6,61 +6,44 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="Error")
+T = TypeVar("T", bound="SandboxConnectRequest")
 
 
 @_attrs_define
-class Error:
-    """
-    Attributes:
-        id (Union[Unset, str]):
-        message (Union[Unset, str]):
-        code (Union[Unset, str]): A stable, machine-readable identifier present on specific errors that clients can
-            handle specially. Each endpoint documents the codes it can return. The errorCode schema lists the full
-            vocabulary of codes.
+class SandboxConnectRequest:
+    """Optional body when minting a run connect token. `command` is stored on
+    the exec timeline (truncated to 4KB); the full command is still sent
+    to the sandbox proxy when executing.
+
+        Attributes:
+            command (Union[Unset, str]): Command text for the sandbox event timeline.
     """
 
-    id: Union[Unset, str] = UNSET
-    message: Union[Unset, str] = UNSET
-    code: Union[Unset, str] = UNSET
+    command: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        id = self.id
-
-        message = self.message
-
-        code = self.code
+        command = self.command
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if id is not UNSET:
-            field_dict["id"] = id
-        if message is not UNSET:
-            field_dict["message"] = message
-        if code is not UNSET:
-            field_dict["code"] = code
+        if command is not UNSET:
+            field_dict["command"] = command
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        id = d.pop("id", UNSET)
+        command = d.pop("command", UNSET)
 
-        message = d.pop("message", UNSET)
-
-        code = d.pop("code", UNSET)
-
-        error = cls(
-            id=id,
-            message=message,
-            code=code,
+        sandbox_connect_request = cls(
+            command=command,
         )
 
-        error.additional_properties = d
-        return error
+        sandbox_connect_request.additional_properties = d
+        return sandbox_connect_request
 
     @property
     def additional_keys(self) -> list[str]:

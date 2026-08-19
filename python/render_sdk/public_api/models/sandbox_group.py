@@ -21,6 +21,8 @@ class SandboxGroup:
         region (str): Render region the group operates in. Example: oregon.
         is_default (bool): Whether this is the workspace's default group. Exactly one group per workspace is the
             default.
+        concurrency_limit (int): Effective maximum number of concurrently active (non-terminated) sandboxes allowed in
+            this group.
         created_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
         updated_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
         environment_id (Union[None, Unset, str]): Environment this group is bound to.
@@ -31,6 +33,7 @@ class SandboxGroup:
     name: str
     region: str
     is_default: bool
+    concurrency_limit: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
     environment_id: Union[None, Unset, str] = UNSET
@@ -46,6 +49,8 @@ class SandboxGroup:
         region = self.region
 
         is_default = self.is_default
+
+        concurrency_limit = self.concurrency_limit
 
         created_at = self.created_at.isoformat()
 
@@ -66,6 +71,7 @@ class SandboxGroup:
                 "name": name,
                 "region": region,
                 "isDefault": is_default,
+                "concurrencyLimit": concurrency_limit,
                 "createdAt": created_at,
                 "updatedAt": updated_at,
             }
@@ -88,6 +94,8 @@ class SandboxGroup:
 
         is_default = d.pop("isDefault")
 
+        concurrency_limit = d.pop("concurrencyLimit")
+
         created_at = isoparse(d.pop("createdAt"))
 
         updated_at = isoparse(d.pop("updatedAt"))
@@ -107,6 +115,7 @@ class SandboxGroup:
             name=name,
             region=region,
             is_default=is_default,
+            concurrency_limit=concurrency_limit,
             created_at=created_at,
             updated_at=updated_at,
             environment_id=environment_id,

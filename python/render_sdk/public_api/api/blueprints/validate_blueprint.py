@@ -51,6 +51,11 @@ def _parse_response(
 
         return response_403
 
+    if response.status_code == 413:
+        response_413 = Error.from_dict(response.json())
+
+        return response_413
+
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
 
@@ -89,8 +94,8 @@ def sync_detailed(
     checks the syntax and structure of the Blueprint, validates that all required fields are present,
     and returns a plan indicating the resources that would be created.
 
-    Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file
-    cannot exceed 10MB in size.
+    Requests to this endpoint use `Content-Type: multipart/form-data`. The request body (including the
+    Blueprint file) cannot exceed 10MB in size.
 
     Args:
         body (ValidateBlueprintRequest):
@@ -125,8 +130,8 @@ def sync(
     checks the syntax and structure of the Blueprint, validates that all required fields are present,
     and returns a plan indicating the resources that would be created.
 
-    Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file
-    cannot exceed 10MB in size.
+    Requests to this endpoint use `Content-Type: multipart/form-data`. The request body (including the
+    Blueprint file) cannot exceed 10MB in size.
 
     Args:
         body (ValidateBlueprintRequest):
@@ -156,8 +161,8 @@ async def asyncio_detailed(
     checks the syntax and structure of the Blueprint, validates that all required fields are present,
     and returns a plan indicating the resources that would be created.
 
-    Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file
-    cannot exceed 10MB in size.
+    Requests to this endpoint use `Content-Type: multipart/form-data`. The request body (including the
+    Blueprint file) cannot exceed 10MB in size.
 
     Args:
         body (ValidateBlueprintRequest):
@@ -190,8 +195,8 @@ async def asyncio(
     checks the syntax and structure of the Blueprint, validates that all required fields are present,
     and returns a plan indicating the resources that would be created.
 
-    Requests to this endpoint use `Content-Type: multipart/form-data`. The provided Blueprint file
-    cannot exceed 10MB in size.
+    Requests to this endpoint use `Content-Type: multipart/form-data`. The request body (including the
+    Blueprint file) cannot exceed 10MB in size.
 
     Args:
         body (ValidateBlueprintRequest):

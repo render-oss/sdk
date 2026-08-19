@@ -6,41 +6,42 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="GetBandwidthSourcesResponse400")
+T = TypeVar("T", bound="SandboxExecUpdateRequest")
 
 
 @_attrs_define
-class GetBandwidthSourcesResponse400:
-    """
+class SandboxExecUpdateRequest:
+    """Client-reported completion of a sandbox execution.
+
     Attributes:
-        error (Union[Unset, str]):  Example: bandwidth sources data is only available after 2025-03-09.
+        exit_code (Union[Unset, int]): Process exit code observed by the client.
     """
 
-    error: Union[Unset, str] = UNSET
+    exit_code: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        error = self.error
+        exit_code = self.exit_code
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if error is not UNSET:
-            field_dict["error"] = error
+        if exit_code is not UNSET:
+            field_dict["exitCode"] = exit_code
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        error = d.pop("error", UNSET)
+        exit_code = d.pop("exitCode", UNSET)
 
-        get_bandwidth_sources_response_400 = cls(
-            error=error,
+        sandbox_exec_update_request = cls(
+            exit_code=exit_code,
         )
 
-        get_bandwidth_sources_response_400.additional_properties = d
-        return get_bandwidth_sources_response_400
+        sandbox_exec_update_request.additional_properties = d
+        return sandbox_exec_update_request
 
     @property
     def additional_keys(self) -> list[str]:

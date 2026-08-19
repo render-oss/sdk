@@ -28,6 +28,7 @@ class Artifact:
             `image`.
         image (Union[Unset, SchemasImage]): Present when the artifact source is currently image-based. Mutually
             exclusive with `build`.
+        assets_deleted_at (Union[Unset, datetime.datetime]):
     """
 
     id: str
@@ -36,6 +37,7 @@ class Artifact:
     updated_at: datetime.datetime
     build: Union[Unset, "Build"] = UNSET
     image: Union[Unset, "SchemasImage"] = UNSET
+    assets_deleted_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,6 +57,10 @@ class Artifact:
         if not isinstance(self.image, Unset):
             image = self.image.to_dict()
 
+        assets_deleted_at: Union[Unset, str] = UNSET
+        if not isinstance(self.assets_deleted_at, Unset):
+            assets_deleted_at = self.assets_deleted_at.isoformat()
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -69,6 +75,8 @@ class Artifact:
             field_dict["build"] = build
         if image is not UNSET:
             field_dict["image"] = image
+        if assets_deleted_at is not UNSET:
+            field_dict["assetsDeletedAt"] = assets_deleted_at
 
         return field_dict
 
@@ -100,6 +108,13 @@ class Artifact:
         else:
             image = SchemasImage.from_dict(_image)
 
+        _assets_deleted_at = d.pop("assetsDeletedAt", UNSET)
+        assets_deleted_at: Union[Unset, datetime.datetime]
+        if isinstance(_assets_deleted_at, Unset):
+            assets_deleted_at = UNSET
+        else:
+            assets_deleted_at = isoparse(_assets_deleted_at)
+
         artifact = cls(
             id=id,
             artifact_source_id=artifact_source_id,
@@ -107,6 +122,7 @@ class Artifact:
             updated_at=updated_at,
             build=build,
             image=image,
+            assets_deleted_at=assets_deleted_at,
         )
 
         artifact.additional_properties = d

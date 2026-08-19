@@ -96,7 +96,7 @@ def sync_detailed(
     boot/setup immediately.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -132,7 +132,7 @@ def sync(
     boot/setup immediately.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -163,7 +163,7 @@ async def asyncio_detailed(
     boot/setup immediately.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -197,7 +197,7 @@ async def asyncio(
     boot/setup immediately.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:

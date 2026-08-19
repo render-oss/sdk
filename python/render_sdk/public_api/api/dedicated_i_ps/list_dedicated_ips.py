@@ -7,16 +7,19 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.dedicated_ip import DedicatedIP
 from ...models.error import Error
-from ...types import UNSET, Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     *,
     owner_id: str,
+    environment_id: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
     params["ownerId"] = owner_id
+
+    params["environmentId"] = environment_id
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -98,6 +101,7 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    environment_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, list["DedicatedIP"]]]:
     """List dedicated IPs
 
@@ -105,6 +109,7 @@ def sync_detailed(
 
     Args:
         owner_id (str):
+        environment_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -116,6 +121,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         owner_id=owner_id,
+        environment_id=environment_id,
     )
 
     response = client.get_httpx_client().request(
@@ -129,6 +135,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    environment_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, list["DedicatedIP"]]]:
     """List dedicated IPs
 
@@ -136,6 +143,7 @@ def sync(
 
     Args:
         owner_id (str):
+        environment_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -148,6 +156,7 @@ def sync(
     return sync_detailed(
         client=client,
         owner_id=owner_id,
+        environment_id=environment_id,
     ).parsed
 
 
@@ -155,6 +164,7 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    environment_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, list["DedicatedIP"]]]:
     """List dedicated IPs
 
@@ -162,6 +172,7 @@ async def asyncio_detailed(
 
     Args:
         owner_id (str):
+        environment_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -173,6 +184,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         owner_id=owner_id,
+        environment_id=environment_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -184,6 +196,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    environment_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, list["DedicatedIP"]]]:
     """List dedicated IPs
 
@@ -191,6 +204,7 @@ async def asyncio(
 
     Args:
         owner_id (str):
+        environment_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -204,5 +218,6 @@ async def asyncio(
         await asyncio_detailed(
             client=client,
             owner_id=owner_id,
+            environment_id=environment_id,
         )
     ).parsed

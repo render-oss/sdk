@@ -7,6 +7,7 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.connect_sandbox_run_operation import ConnectSandboxRunOperation
 from ...models.error import Error
+from ...models.sandbox_connect_request import SandboxConnectRequest
 from ...models.sandbox_connect_response import SandboxConnectResponse
 from ...types import UNSET, Response
 
@@ -15,8 +16,11 @@ def _get_kwargs(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
+    body: SandboxConnectRequest,
     owner_id: str,
 ) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
+
     params: dict[str, Any] = {}
 
     params["ownerId"] = owner_id
@@ -29,6 +33,11 @@ def _get_kwargs(
         "params": params,
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
@@ -97,6 +106,7 @@ def sync_detailed(
     operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: SandboxConnectRequest,
     owner_id: str,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
@@ -106,9 +116,13 @@ def sync_detailed(
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (str):
+        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
+            stored on
+            the exec timeline (truncated to 4KB); the full command is still sent
+            to the sandbox proxy when executing.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -121,6 +135,7 @@ def sync_detailed(
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
         operation=operation,
+        body=body,
         owner_id=owner_id,
     )
 
@@ -136,6 +151,7 @@ def sync(
     operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: SandboxConnectRequest,
     owner_id: str,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
@@ -145,9 +161,13 @@ def sync(
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (str):
+        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
+            stored on
+            the exec timeline (truncated to 4KB); the full command is still sent
+            to the sandbox proxy when executing.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -161,6 +181,7 @@ def sync(
         sandbox_id=sandbox_id,
         operation=operation,
         client=client,
+        body=body,
         owner_id=owner_id,
     ).parsed
 
@@ -170,6 +191,7 @@ async def asyncio_detailed(
     operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: SandboxConnectRequest,
     owner_id: str,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
@@ -179,9 +201,13 @@ async def asyncio_detailed(
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (str):
+        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
+            stored on
+            the exec timeline (truncated to 4KB); the full command is still sent
+            to the sandbox proxy when executing.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -194,6 +220,7 @@ async def asyncio_detailed(
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
         operation=operation,
+        body=body,
         owner_id=owner_id,
     )
 
@@ -207,6 +234,7 @@ async def asyncio(
     operation: ConnectSandboxRunOperation,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: SandboxConnectRequest,
     owner_id: str,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
@@ -216,9 +244,13 @@ async def asyncio(
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (str):
+        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
+            stored on
+            the exec timeline (truncated to 4KB); the full command is still sent
+            to the sandbox proxy when executing.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -233,6 +265,7 @@ async def asyncio(
             sandbox_id=sandbox_id,
             operation=operation,
             client=client,
+            body=body,
             owner_id=owner_id,
         )
     ).parsed

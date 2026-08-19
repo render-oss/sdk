@@ -21,7 +21,7 @@ T = TypeVar("T", bound="Sandbox")
 class Sandbox:
     """
     Attributes:
-        id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         status (SandboxStatus):
         plan (SandboxPlan): Compute plan. Sizing matches Workflow plans of the same name.
         network_policy (SandboxNetworkPolicy):

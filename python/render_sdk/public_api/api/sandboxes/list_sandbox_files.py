@@ -112,7 +112,7 @@ def sync_detailed(
     be `running`.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         path (str):
         depth (Union[Unset, int]):  Default: 1.
 
@@ -151,7 +151,7 @@ def sync(
     be `running`.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         path (str):
         depth (Union[Unset, int]):  Default: 1.
 
@@ -185,7 +185,7 @@ async def asyncio_detailed(
     be `running`.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         path (str):
         depth (Union[Unset, int]):  Default: 1.
 
@@ -222,7 +222,7 @@ async def asyncio(
     be `running`.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         path (str):
         depth (Union[Unset, int]):  Default: 1.
 

@@ -117,7 +117,7 @@ def sync_detailed(
     lifecycle event.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         since (Union[Unset, datetime.datetime]):
         follow (Union[Unset, bool]):  Default: True.
         exec_id (Union[Unset, str]):
@@ -163,7 +163,7 @@ def sync(
     lifecycle event.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         since (Union[Unset, datetime.datetime]):
         follow (Union[Unset, bool]):  Default: True.
         exec_id (Union[Unset, str]):
@@ -204,7 +204,7 @@ async def asyncio_detailed(
     lifecycle event.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         since (Union[Unset, datetime.datetime]):
         follow (Union[Unset, bool]):  Default: True.
         exec_id (Union[Unset, str]):
@@ -248,7 +248,7 @@ async def asyncio(
     lifecycle event.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         since (Union[Unset, datetime.datetime]):
         follow (Union[Unset, bool]):  Default: True.
         exec_id (Union[Unset, str]):

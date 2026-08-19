@@ -130,9 +130,13 @@ from .environment_post_input import EnvironmentPOSTInput
 from .environment_resources_post_input import EnvironmentResourcesPOSTInput
 from .environment_with_cursor import EnvironmentWithCursor
 from .error import Error
+from .error_code import ErrorCode
 from .event import Event
 from .event_status import EventStatus
 from .event_type import EventType
+from .execution import Execution
+from .execution_operation import ExecutionOperation
+from .execution_type import ExecutionType
 from .failure_reason import FailureReason
 from .filter_application_values_collection_item import FilterApplicationValuesCollectionItem
 from .filter_application_values_collection_item_filter import FilterApplicationValuesCollectionItemFilter
@@ -145,7 +149,6 @@ from .get_bandwidth_sources_response_200_data_item_labels_traffic_source import 
     GetBandwidthSourcesResponse200DataItemLabelsTrafficSource,
 )
 from .get_bandwidth_sources_response_200_data_item_values_item import GetBandwidthSourcesResponse200DataItemValuesItem
-from .get_bandwidth_sources_response_400 import GetBandwidthSourcesResponse400
 from .get_cpu_aggregation_method import GetCpuAggregationMethod
 from .get_http_requests_aggregate_by import GetHttpRequestsAggregateBy
 from .get_object_output import GetObjectOutput
@@ -224,6 +227,8 @@ from .object_metadata import ObjectMetadata
 from .object_with_cursor import ObjectWithCursor
 from .oom_killed import OomKilled
 from .otel_provider_type import OtelProviderType
+from .outbound_ips import OutboundIps
+from .outbound_ips_type import OutboundIpsType
 from .owner import Owner
 from .owner_log_stream_setting import OwnerLogStreamSetting
 from .owner_type import OwnerType
@@ -328,8 +333,11 @@ from .route_with_cursor import RouteWithCursor
 from .run_task import RunTask
 from .runtime import Runtime
 from .sandbox import Sandbox
+from .sandbox_connect_request import SandboxConnectRequest
 from .sandbox_connect_response import SandboxConnectResponse
 from .sandbox_directory_listing import SandboxDirectoryListing
+from .sandbox_exec_update_request import SandboxExecUpdateRequest
+from .sandbox_exec_update_response import SandboxExecUpdateResponse
 from .sandbox_file_entry import SandboxFileEntry
 from .sandbox_file_entry_type import SandboxFileEntryType
 from .sandbox_group import SandboxGroup
@@ -553,9 +561,13 @@ __all__ = (
     "EnvVarValue",
     "EnvVarWithCursor",
     "Error",
+    "ErrorCode",
     "Event",
     "EventStatus",
     "EventType",
+    "Execution",
+    "ExecutionOperation",
+    "ExecutionType",
     "FailureReason",
     "FilterApplicationValuesCollectionItem",
     "FilterApplicationValuesCollectionItemFilter",
@@ -566,7 +578,6 @@ __all__ = (
     "GetBandwidthSourcesResponse200DataItemLabels",
     "GetBandwidthSourcesResponse200DataItemLabelsTrafficSource",
     "GetBandwidthSourcesResponse200DataItemValuesItem",
-    "GetBandwidthSourcesResponse400",
     "GetCpuAggregationMethod",
     "GetHttpRequestsAggregateBy",
     "GetObjectOutput",
@@ -645,6 +656,8 @@ __all__ = (
     "ObjectWithCursor",
     "OomKilled",
     "OtelProviderType",
+    "OutboundIps",
+    "OutboundIpsType",
     "Owner",
     "OwnerLogStreamSetting",
     "OwnerType",
@@ -749,8 +762,11 @@ __all__ = (
     "RunTask",
     "Runtime",
     "Sandbox",
+    "SandboxConnectRequest",
     "SandboxConnectResponse",
     "SandboxDirectoryListing",
+    "SandboxExecUpdateRequest",
+    "SandboxExecUpdateResponse",
     "SandboxFileEntry",
     "SandboxFileEntryType",
     "SandboxGroup",

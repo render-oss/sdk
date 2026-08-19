@@ -8,7 +8,6 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.get_bandwidth_sources_response_200 import GetBandwidthSourcesResponse200
-from ...models.get_bandwidth_sources_response_400 import GetBandwidthSourcesResponse400
 from ...types import UNSET, Response, Unset
 
 
@@ -48,14 +47,14 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
     if response.status_code == 200:
         response_200 = GetBandwidthSourcesResponse200.from_dict(response.json())
 
         return response_200
 
     if response.status_code == 400:
-        response_400 = GetBandwidthSourcesResponse400.from_dict(response.json())
+        response_400 = Error.from_dict(response.json())
 
         return response_400
 
@@ -72,7 +71,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -88,7 +87,7 @@ def sync_detailed(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -109,7 +108,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]
+        Response[Union[Error, GetBandwidthSourcesResponse200]]
     """
 
     kwargs = _get_kwargs(
@@ -133,7 +132,7 @@ def sync(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -154,7 +153,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
+        Union[Error, GetBandwidthSourcesResponse200]
     """
 
     return sync_detailed(
@@ -173,7 +172,7 @@ async def asyncio_detailed(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -194,7 +193,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]
+        Response[Union[Error, GetBandwidthSourcesResponse200]]
     """
 
     kwargs = _get_kwargs(
@@ -216,7 +215,7 @@ async def asyncio(
     end_time: Union[Unset, datetime.datetime] = UNSET,
     resource: Union[Unset, str] = UNSET,
     service: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]]:
+) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -237,7 +236,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetBandwidthSourcesResponse200, GetBandwidthSourcesResponse400]
+        Union[Error, GetBandwidthSourcesResponse200]
     """
 
     return (
