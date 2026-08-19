@@ -4,6 +4,26 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-08-19
+
+### Added
+
+- Experimental Sandbox client
+- Sandbox life cycle through `create`, `get`, `list` and `terminate`, filtering a list by one status or several
+- Environment variable support in `create()`
+- Execution in a Sandbox via streaming `exec`, recording the run command for the execution audit trail
+- File transfer to and from a Sandbox with `upload` and `download`
+
+### Changed
+
+- Idempotent subtask submission
+
+### Fixed
+
+- Workflows errors are no longer stringified by the SDK
+- Retry the SSE stream on error in `taskRunEvents`
+- Void-returning task functions no longer fail
+
 ## [0.6.0] - 2026-06-01
 
 ### Added
