@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0] - 2026-08-19
+
+### Added
+
+- Experimental Sandbox client, async and sync
+- Sandbox life cycle through `create`, `from_id`, `list` and `terminate`, filtering a list by one status or several
+- Environment variable support in `create()`
+- Execution in a Sandbox via streaming `exec`, recording the run command for the execution audit trail
+- File transfer to and from a Sandbox with `copy_to` and `copy_from`, for files and directories
+
+### Changed
+
+- Idempotent subtask submission
+- Moved `openapi-python-client` to dev dependencies
+
 ## [0.7.0] - 2026-06-01
 
 ### Added
