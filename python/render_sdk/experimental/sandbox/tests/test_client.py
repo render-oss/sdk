@@ -341,14 +341,18 @@ async def test_mint_run_token_requests_the_token_endpoint():
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
+        captured["body"] = json.loads(request.content)
         return httpx.Response(201, json=CONNECT_JSON)
 
     client = _sandbox_client(handler)
-    connection = await client.api._mint_run_token("sbx-123", "tea-test", "stream")
+    connection = await client.api._mint_run_token(
+        "sbx-123", "tea-test", "stream", "ls -la"
+    )
 
     assert captured["method"] == "POST"
     assert captured["path"] == "/v1/sandboxes/sbx-123/runs/stream/token"
     assert captured["query"]["ownerId"] == "tea-test"
+    assert captured["body"] == {"command": "ls -la"}
     assert connection["token"] == "run-token-xyz"  # noqa: S105
     assert connection["uri"] == "https://proxy.test/runs/stream"
 
