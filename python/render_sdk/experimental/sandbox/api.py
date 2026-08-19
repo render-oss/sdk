@@ -215,13 +215,15 @@ class SandboxApi:
         handle_api_error(response, "terminate sandbox")
 
     async def _mint_run_token(
-        self, sandbox_id: str, owner_id: str, operation: str
+        self, sandbox_id: str, owner_id: str, operation: str, command: str
     ) -> dict[str, Any]:
+        # Command rides along so the API keeps a sanitized copy for the audit trail.
         api_client = self.client.get_async_httpx_client()
         try:
             response = await api_client.post(
                 f"/sandboxes/{sandbox_id}/runs/{operation}/token",
                 params={"ownerId": owner_id},
+                json={"command": command},
             )
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox run")
@@ -395,7 +397,9 @@ class SandboxApi:
     async def exec_stream(
         self, sandbox_id: str, command: str, owner_id: str, operation: str = "stream"
     ) -> AsyncIterator[SandboxExecEvent]:
-        connection = await self._mint_run_token(sandbox_id, owner_id, operation)
+        connection = await self._mint_run_token(
+            sandbox_id, owner_id, operation, command
+        )
         token = connection["token"]
         uri = connection["uri"]
         method = connection["method"]
