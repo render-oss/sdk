@@ -16,7 +16,7 @@ class SandboxConnectResponse:
     using `method`, with `token` as a bearer credential.
 
         Attributes:
-            execution_id (str): Identifier for this execution. Example: exe-abc123.
+            execution_id (str): Identifier for this execution. Example: exe-cph1rs3idesc73a2b2mg.
             token (str): Short-lived bearer token authorizing exactly this operation against the sandbox.
             uri (str): The sandbox-proxy endpoint to invoke. Example: https://sbx-
                 abc123.oregon.sandbox.onrender.com/runs/stream.

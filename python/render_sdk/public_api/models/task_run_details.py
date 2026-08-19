@@ -34,6 +34,8 @@ class TaskRunDetails:
         error (Union[Unset, str]): Error message if the task run failed.
         started_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
+        parent_task_attempt (Union[Unset, int]): The 0-indexed attempt of the parent task run that spawned this task
+            run. Omitted for root task runs and for task runs created before this field was introduced.
     """
 
     id: str
@@ -48,6 +50,7 @@ class TaskRunDetails:
     error: Union[Unset, str] = UNSET
     started_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
+    parent_task_attempt: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -87,6 +90,8 @@ class TaskRunDetails:
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
+        parent_task_attempt = self.parent_task_attempt
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -108,6 +113,8 @@ class TaskRunDetails:
             field_dict["startedAt"] = started_at
         if completed_at is not UNSET:
             field_dict["completedAt"] = completed_at
+        if parent_task_attempt is not UNSET:
+            field_dict["parentTaskAttempt"] = parent_task_attempt
 
         return field_dict
 
@@ -171,6 +178,8 @@ class TaskRunDetails:
         else:
             completed_at = isoparse(_completed_at)
 
+        parent_task_attempt = d.pop("parentTaskAttempt", UNSET)
+
         task_run_details = cls(
             id=id,
             task_id=task_id,
@@ -184,6 +193,7 @@ class TaskRunDetails:
             error=error,
             started_at=started_at,
             completed_at=completed_at,
+            parent_task_attempt=parent_task_attempt,
         )
 
         task_run_details.additional_properties = d

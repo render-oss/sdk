@@ -6,25 +6,16 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.sandbox import Sandbox
-from ...types import UNSET, Response
+from ...models.outbound_ips import OutboundIps
+from ...types import Response
 
 
 def _get_kwargs(
-    sandbox_id: str,
-    *,
-    owner_id: str,
+    service_id: str,
 ) -> dict[str, Any]:
-    params: dict[str, Any] = {}
-
-    params["ownerId"] = owner_id
-
-    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
-
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/sandboxes/{sandbox_id}",
-        "params": params,
+        "url": f"/services/{service_id}/outbound-ips",
     }
 
     return _kwargs
@@ -32,9 +23,9 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Sandbox]]:
+) -> Optional[Union[Error, OutboundIps]]:
     if response.status_code == 200:
-        response_200 = Sandbox.from_dict(response.json())
+        response_200 = OutboundIps.from_dict(response.json())
 
         return response_200
 
@@ -52,6 +43,11 @@ def _parse_response(
         response_404 = Error.from_dict(response.json())
 
         return response_404
+
+    if response.status_code == 406:
+        response_406 = Error.from_dict(response.json())
+
+        return response_406
 
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
@@ -76,7 +72,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Sandbox]]:
+) -> Response[Union[Error, OutboundIps]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -86,30 +82,30 @@ def _build_response(
 
 
 def sync_detailed(
-    sandbox_id: str,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
-) -> Response[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Response[Union[Error, OutboundIps]]:
+    """Retrieve service outbound IPs
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve the IP addresses the service's outbound traffic originates from.
+
+    A service uses either a dedicated IP set that applies to it, or the shared Render IPs for its
+    region.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Union[Error, OutboundIps]]
     """
 
     kwargs = _get_kwargs(
-        sandbox_id=sandbox_id,
-        owner_id=owner_id,
+        service_id=service_id,
     )
 
     response = client.get_httpx_client().request(
@@ -120,59 +116,59 @@ def sync_detailed(
 
 
 def sync(
-    sandbox_id: str,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
-) -> Optional[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Optional[Union[Error, OutboundIps]]:
+    """Retrieve service outbound IPs
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve the IP addresses the service's outbound traffic originates from.
+
+    A service uses either a dedicated IP set that applies to it, or the shared Render IPs for its
+    region.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Union[Error, OutboundIps]
     """
 
     return sync_detailed(
-        sandbox_id=sandbox_id,
+        service_id=service_id,
         client=client,
-        owner_id=owner_id,
     ).parsed
 
 
 async def asyncio_detailed(
-    sandbox_id: str,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
-) -> Response[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Response[Union[Error, OutboundIps]]:
+    """Retrieve service outbound IPs
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve the IP addresses the service's outbound traffic originates from.
+
+    A service uses either a dedicated IP set that applies to it, or the shared Render IPs for its
+    region.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Union[Error, OutboundIps]]
     """
 
     kwargs = _get_kwargs(
-        sandbox_id=sandbox_id,
-        owner_id=owner_id,
+        service_id=service_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -181,31 +177,31 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    sandbox_id: str,
+    service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
-) -> Optional[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Optional[Union[Error, OutboundIps]]:
+    """Retrieve service outbound IPs
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve the IP addresses the service's outbound traffic originates from.
+
+    A service uses either a dedicated IP set that applies to it, or the shared Render IPs for its
+    region.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        service_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Union[Error, OutboundIps]
     """
 
     return (
         await asyncio_detailed(
-            sandbox_id=sandbox_id,
+            service_id=service_id,
             client=client,
-            owner_id=owner_id,
         )
     ).parsed

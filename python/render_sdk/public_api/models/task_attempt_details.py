@@ -16,16 +16,20 @@ T = TypeVar("T", bound="TaskAttemptDetails")
 class TaskAttemptDetails:
     """
     Attributes:
+        attempt (int): The 0-indexed attempt number.
         status (TaskRunStatus):
         started_at (datetime.datetime):
+        task_run_id (Union[Unset, str]): The ID of the task run this attempt belongs to.
         enqueued_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
         error (Union[Unset, str]): Error message if the task attempt failed.
         results (Union[Unset, list[Any]]):
     """
 
+    attempt: int
     status: TaskRunStatus
     started_at: datetime.datetime
+    task_run_id: Union[Unset, str] = UNSET
     enqueued_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     error: Union[Unset, str] = UNSET
@@ -33,9 +37,13 @@ class TaskAttemptDetails:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        attempt = self.attempt
+
         status = self.status.value
 
         started_at = self.started_at.isoformat()
+
+        task_run_id = self.task_run_id
 
         enqueued_at: Union[Unset, str] = UNSET
         if not isinstance(self.enqueued_at, Unset):
@@ -55,10 +63,13 @@ class TaskAttemptDetails:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "attempt": attempt,
                 "status": status,
                 "startedAt": started_at,
             }
         )
+        if task_run_id is not UNSET:
+            field_dict["taskRunId"] = task_run_id
         if enqueued_at is not UNSET:
             field_dict["enqueuedAt"] = enqueued_at
         if completed_at is not UNSET:
@@ -73,9 +84,13 @@ class TaskAttemptDetails:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        attempt = d.pop("attempt")
+
         status = TaskRunStatus(d.pop("status"))
 
         started_at = isoparse(d.pop("startedAt"))
+
+        task_run_id = d.pop("taskRunId", UNSET)
 
         _enqueued_at = d.pop("enqueuedAt", UNSET)
         enqueued_at: Union[Unset, datetime.datetime]
@@ -96,8 +111,10 @@ class TaskAttemptDetails:
         results = cast(list[Any], d.pop("results", UNSET))
 
         task_attempt_details = cls(
+            attempt=attempt,
             status=status,
             started_at=started_at,
+            task_run_id=task_run_id,
             enqueued_at=enqueued_at,
             completed_at=completed_at,
             error=error,

@@ -6,12 +6,13 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.sandbox import Sandbox
+from ...models.execution import Execution
 from ...types import UNSET, Response
 
 
 def _get_kwargs(
     sandbox_id: str,
+    exec_id: str,
     *,
     owner_id: str,
 ) -> dict[str, Any]:
@@ -23,7 +24,7 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/sandboxes/{sandbox_id}",
+        "url": f"/sandboxes/{sandbox_id}/execs/{exec_id}",
         "params": params,
     }
 
@@ -32,9 +33,9 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Sandbox]]:
+) -> Optional[Union[Error, Execution]]:
     if response.status_code == 200:
-        response_200 = Sandbox.from_dict(response.json())
+        response_200 = Execution.from_dict(response.json())
 
         return response_200
 
@@ -76,7 +77,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Sandbox]]:
+) -> Response[Union[Error, Execution]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -87,16 +88,18 @@ def _build_response(
 
 def sync_detailed(
     sandbox_id: str,
+    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
-) -> Response[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Response[Union[Error, Execution]]:
+    """Retrieve execution
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve one execution record for the sandbox.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -104,11 +107,12 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Union[Error, Execution]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
+        exec_id=exec_id,
         owner_id=owner_id,
     )
 
@@ -121,16 +125,18 @@ def sync_detailed(
 
 def sync(
     sandbox_id: str,
+    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
-) -> Optional[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Optional[Union[Error, Execution]]:
+    """Retrieve execution
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve one execution record for the sandbox.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -138,11 +144,12 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Union[Error, Execution]
     """
 
     return sync_detailed(
         sandbox_id=sandbox_id,
+        exec_id=exec_id,
         client=client,
         owner_id=owner_id,
     ).parsed
@@ -150,16 +157,18 @@ def sync(
 
 async def asyncio_detailed(
     sandbox_id: str,
+    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
-) -> Response[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Response[Union[Error, Execution]]:
+    """Retrieve execution
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve one execution record for the sandbox.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -167,11 +176,12 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Union[Error, Execution]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
+        exec_id=exec_id,
         owner_id=owner_id,
     )
 
@@ -182,16 +192,18 @@ async def asyncio_detailed(
 
 async def asyncio(
     sandbox_id: str,
+    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
-) -> Optional[Union[Error, Sandbox]]:
-    """Retrieve sandbox
+) -> Optional[Union[Error, Execution]]:
+    """Retrieve execution
 
-     Retrieve the sandbox with the provided ID.
+     Retrieve one execution record for the sandbox.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (str):
 
     Raises:
@@ -199,12 +211,13 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Union[Error, Execution]
     """
 
     return (
         await asyncio_detailed(
             sandbox_id=sandbox_id,
+            exec_id=exec_id,
             client=client,
             owner_id=owner_id,
         )

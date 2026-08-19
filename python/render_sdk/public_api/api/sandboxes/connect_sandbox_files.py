@@ -109,14 +109,15 @@ def sync_detailed(
     single file upload or download against the sandbox, and return the
     sandbox-proxy endpoint to invoke with it. The caller streams the file
     bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file; uploads
-    accept a directory archive as `application/x-tar` or `application/gzip`
-    (gzipped tar), and directory downloads return `application/gzip`. The
+    credential. `application/octet-stream` carries a single file and
+    `application/x-tar` a directory archive, with compression carried
+    separately by `Content-Encoding: gzip` in either direction; directory
+    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (str):
         path (str):
@@ -157,14 +158,15 @@ def sync(
     single file upload or download against the sandbox, and return the
     sandbox-proxy endpoint to invoke with it. The caller streams the file
     bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file; uploads
-    accept a directory archive as `application/x-tar` or `application/gzip`
-    (gzipped tar), and directory downloads return `application/gzip`. The
+    credential. `application/octet-stream` carries a single file and
+    `application/x-tar` a directory archive, with compression carried
+    separately by `Content-Encoding: gzip` in either direction; directory
+    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (str):
         path (str):
@@ -200,14 +202,15 @@ async def asyncio_detailed(
     single file upload or download against the sandbox, and return the
     sandbox-proxy endpoint to invoke with it. The caller streams the file
     bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file; uploads
-    accept a directory archive as `application/x-tar` or `application/gzip`
-    (gzipped tar), and directory downloads return `application/gzip`. The
+    credential. `application/octet-stream` carries a single file and
+    `application/x-tar` a directory archive, with compression carried
+    separately by `Content-Encoding: gzip` in either direction; directory
+    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (str):
         path (str):
@@ -246,14 +249,15 @@ async def asyncio(
     single file upload or download against the sandbox, and return the
     sandbox-proxy endpoint to invoke with it. The caller streams the file
     bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file; uploads
-    accept a directory archive as `application/x-tar` or `application/gzip`
-    (gzipped tar), and directory downloads return `application/gzip`. The
+    credential. `application/octet-stream` carries a single file and
+    `application/x-tar` a directory archive, with compression carried
+    separately by `Content-Encoding: gzip` in either direction; directory
+    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
     Args:
-        sandbox_id (str):  Example: sbx-cph1rs3idesc73a2b2mg.
+        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (str):
         path (str):
