@@ -36,7 +36,7 @@ async function main() {
     // List recent task runs
     const taskRuns = await render.workflows.listTaskRuns({ limit: 5 });
     console.log(`\nFound ${taskRuns.length} task runs:`);
-    for (const taskRun of taskRuns) {
+    for (const { taskRun } of taskRuns) {
       console.log(`  - ${taskRun.id}: ${taskRun.status} (${taskRun.taskId})`);
     }
 

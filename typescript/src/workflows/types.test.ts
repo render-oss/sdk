@@ -39,7 +39,6 @@ import {
   type GetInputResponse,
   type GetSubtaskResultRequest,
   type GetSubtaskResultResponse,
-  getCurrentContext,
   type ListTaskRunsParams,
   type RegisterTaskOptions,
   type RegisterTasksRequest,
@@ -48,10 +47,10 @@ import {
   type RunSubtaskResponse,
   type RunTaskRequest,
   run,
-  setCurrentContext,
   startTaskServer,
   type TaskContext,
   type TaskData,
+  type TaskDefinition,
   TaskEventType,
   TaskExecutor,
   type TaskFunction,
@@ -59,7 +58,6 @@ import {
   type TaskMetadata,
   type TaskOptions,
   TaskRegistry,
-  type TaskResult,
   type TaskRun,
   type TaskRunDetails,
   TaskRunResult,
@@ -68,6 +66,7 @@ import {
   type TaskSlug,
   task,
   type WorkflowsClient,
+  WorkflowTaskContext,
 } from "./index.js";
 
 describe("Exported symbols", () => {
@@ -118,53 +117,51 @@ describe("Exported symbols", () => {
 });
 
 describe("TaskFunction type", () => {
-  it("accepts typed args and returns typed result", () => {
+  it("takes a context first, then typed args", () => {
     expectTypeOf<TaskFunction<[string, number], boolean>>().toExtend<
-      (a: string, b: number) => boolean | Promise<boolean>
+      (ctx: TaskContext, a: string, b: number) => boolean | Promise<boolean>
     >();
   });
 
-  it("defaults to any[] args and any result", () => {
-    expectTypeOf<TaskFunction>().toExtend<(...args: any[]) => any>();
-  });
-
   it("allows async return type", () => {
-    const asyncFn: TaskFunction<[string], number> = async (s) => s.length;
+    const asyncFn: TaskFunction<[string], number> = async (_ctx, s) => s.length;
     expectTypeOf(asyncFn).returns.toExtend<number | Promise<number>>();
   });
 
   it("allows sync return type", () => {
-    const syncFn: TaskFunction<[string], number> = (s) => s.length;
+    const syncFn: TaskFunction<[string], number> = (_ctx, s) => s.length;
     expectTypeOf(syncFn).returns.toExtend<number | Promise<number>>();
   });
 });
 
-describe("TaskResult type", () => {
-  it("get() returns Promise<T>", () => {
-    expectTypeOf<TaskResult<string>>().toHaveProperty("get");
-    expectTypeOf<TaskResult<string>["get"]>().returns.toEqualTypeOf<Promise<string>>();
+describe("TaskDefinition type", () => {
+  it("exposes the registered name and function", () => {
+    expectTypeOf<TaskDefinition<[string], number>>().toHaveProperty("name");
+    expectTypeOf<TaskDefinition<[string], number>["name"]>().toEqualTypeOf<string>();
+    expectTypeOf<TaskDefinition<[string], number>["func"]>().toEqualTypeOf<
+      TaskFunction<[string], number>
+    >();
   });
 
-  it("preserves generic parameter", () => {
-    type NumberResult = TaskResult<number>;
-    type StringResult = TaskResult<string>;
-    expectTypeOf<NumberResult["get"]>().returns.toEqualTypeOf<Promise<number>>();
-    expectTypeOf<StringResult["get"]>().returns.toEqualTypeOf<Promise<string>>();
+  it("is not itself callable", () => {
+    expectTypeOf<TaskDefinition<[string], number>>().not.toExtend<(...args: never[]) => unknown>();
   });
 });
 
 describe("TaskContext type", () => {
-  it("has executeTask method", () => {
-    expectTypeOf<TaskContext>().toHaveProperty("executeTask");
+  it("has a run method", () => {
+    expectTypeOf<TaskContext>().toHaveProperty("run");
   });
 
-  it("executeTask is callable", () => {
-    type ExecuteTask = TaskContext["executeTask"];
-    expectTypeOf<ExecuteTask>().toBeCallableWith(
-      {} as TaskFunction<[string], number>,
-      "taskName",
-      "arg",
-    );
+  it("run is generic over the task definition", () => {
+    // The precise argument and return types are checked in testTaskContext below,
+    // which type checks without executing.
+    expectTypeOf<TaskContext["run"]>().toBeFunction();
+  });
+
+  it("WorkflowTaskContext implements TaskContext", () => {
+    expect(typeof WorkflowTaskContext).toBe("function");
+    expectTypeOf<InstanceType<typeof WorkflowTaskContext>>().toExtend<TaskContext>();
   });
 });
 
@@ -251,13 +248,13 @@ function testTaskRunStatus() {
 }
 
 function testTaskRegistration() {
-  const greet = task({ name: "greet" }, (name: string): string => `Hello, ${name}!`);
+  const greet = task({ name: "greet" }, (_ctx, name: string): string => `Hello, ${name}!`);
 
-  const greeting = greet("World");
+  const greetName: string = greet.name;
 
   const asyncGreet = task(
     { name: "asyncGreet" },
-    async (name: string): Promise<string> => `Hello, ${name}!`,
+    async (_ctx, name: string): Promise<string> => `Hello, ${name}!`,
   );
 
   const retryTask = task(
@@ -269,7 +266,7 @@ function testTaskRegistration() {
         backoffScaling: 2.0,
       },
     },
-    async (data: number[]): Promise<number> => data.reduce((a, b) => a + b, 0),
+    async (_ctx, data: number[]): Promise<number> => data.reduce((a, b) => a + b, 0),
   );
 
   const timeoutTask = task(
@@ -277,7 +274,7 @@ function testTaskRegistration() {
       name: "timeoutTask",
       timeoutSeconds: 60,
     },
-    async (): Promise<void> => {},
+    async (_ctx): Promise<void> => {},
   );
 
   const proTask = task(
@@ -285,7 +282,7 @@ function testTaskRegistration() {
       name: "proTask",
       plan: "pro",
     },
-    async (input: { x: number; y: number }): Promise<number> => input.x + input.y,
+    async (_ctx, input: { x: number; y: number }): Promise<number> => input.x + input.y,
   );
 
   const fullOptionsTask = task(
@@ -299,40 +296,72 @@ function testTaskRegistration() {
       timeoutSeconds: 120,
       plan: "standard",
     },
-    async <T>(items: T[]): Promise<T[]> => items.reverse(),
+    async <T>(_ctx: TaskContext, items: T[]): Promise<T[]> => items.reverse(),
   );
 }
 
+// run() infers its result from the registered task, for sync and async
+// task bodies alike. These use real task() results rather than hand-cast
+// definitions, so they cover inference end to end.
+async function testRunInference(ctx: TaskContext) {
+  const greet = task({ name: "greetInference" }, (_ctx, name: string): string => `Hi ${name}`);
+  const count = task({ name: "countInference" }, async (_ctx, n: number): Promise<number> => n);
+
+  const greeting: string = await ctx.run(greet, "a");
+  const total: number = await ctx.run(count, 1);
+
+  // @ts-expect-error the result is a string, not a number
+  const wrongResult: number = await ctx.run(greet, "a");
+  // @ts-expect-error input types come from the task's signature
+  await ctx.run(greet, 1);
+  // @ts-expect-error input count comes from the task's signature
+  await ctx.run(greet, "a", "b");
+}
+
+// Variadic tasks are supported; their arguments keep their element type.
+const variadicTask = task({ name: "variadicTask" }, (_ctx: TaskContext, ...values: number[]) =>
+  values.reduce((a, b) => a + b, 0),
+);
+
+async function testVariadicTask(ctx: TaskContext) {
+  const run: number = await ctx.run(variadicTask, 1, 2, 3);
+  const noArgs: number = await ctx.run(variadicTask);
+  const handled: number = await variadicTask.func(ctx, 1, 2);
+
+  // @ts-expect-error argument element types are still checked
+  await ctx.run(variadicTask, "not a number");
+}
+
 async function testTaskContext() {
-  const context: TaskContext | undefined = getCurrentContext();
-
-  if (context) {
-    const mockTask = async (x: number, y: number): Promise<number> => x + y;
-    const result: TaskResult<number> = context.executeTask(mockTask, "add", 1, 2);
-
-    const value: number = await result.get();
-  }
+  const definition = {} as TaskDefinition<[number, number], number>;
 
   const mockContext: TaskContext = {
-    executeTask: <TArgs extends any[], TResult>(
-      taskFn: TaskFunction<TArgs, TResult>,
-      _taskName: string,
+    run: async <TArgs extends unknown[], TResult>(
+      taskDef: TaskDefinition<TArgs, TResult>,
       ...args: TArgs
-    ): TaskResult<TResult> => ({
-      get: async () => taskFn(...args),
-    }),
+    ): Promise<TResult> => taskDef.func(mockContext, ...args),
   };
 
-  const contextResult: string = await setCurrentContext(mockContext, async () => {
-    return "result from context";
-  });
+  const run: number = await mockContext.run(definition, 1, 2);
+  const handled: number = await definition.func(mockContext, 1, 2);
+
+  // @ts-expect-error a definition is not callable; scheduling goes through the context
+  await definition(mockContext, 1, 2);
+
+  const typed = {} as TaskDefinition<[string, number], boolean>;
+  const typedRun: boolean = await mockContext.run(typed, "arg", 1);
+
+  // @ts-expect-error argument types are checked against the definition
+  await mockContext.run(typed, 1, "arg");
+  // @ts-expect-error argument count is checked against the definition
+  await mockContext.run(typed, "arg");
 }
 
 function testTaskRegistry() {
   const registry = TaskRegistry.getInstance();
 
-  const myTask: TaskFunction<[string], string> = (name: string) => `Hello, ${name}`;
-  registry.register(myTask, { name: "myTask" });
+  const myTask: TaskFunction<[string], string> = (_ctx, name: string) => `Hello, ${name}`;
+  registry.register(myTask as TaskFunction, { name: "myTask" });
 
   const metadata: TaskMetadata | undefined = registry.get("myTask");
   if (metadata) {
@@ -348,8 +377,8 @@ function testTaskRegistry() {
 }
 
 function testTaskTypes() {
-  const syncTask: TaskFunction<[number, number], number> = (a, b) => a + b;
-  const asyncTask: TaskFunction<[string], Promise<string>> = async (s) => s.toUpperCase();
+  const syncTask: TaskFunction<[number, number], number> = (_ctx, a, b) => a + b;
+  const asyncTask: TaskFunction<[string], Promise<string>> = async (_ctx, s) => s.toUpperCase();
 
   const taskInput: TaskInput = {
     task_name: "myTask",
@@ -399,12 +428,16 @@ function testErrorTypes() {
   const taskRunErrorId: string | undefined = taskRunError.taskRunId;
   const taskRunErrorDetail: string | undefined = taskRunError.taskError;
 
-  const clientError = new ClientError("Not found", 404, { detail: "Resource not found" });
+  const clientError = new ClientError("Not found", 404, {
+    detail: "Resource not found",
+  });
   const clientErrorMsg: string = clientError.message;
   const clientErrorCode: number = clientError.statusCode;
   const clientErrorResponse: any = clientError.response;
 
-  const serverError = new ServerError("Internal error", 500, { detail: "Database unavailable" });
+  const serverError = new ServerError("Internal error", 500, {
+    detail: "Database unavailable",
+  });
   const serverErrorMsg: string = serverError.message;
   const serverErrorCode: number = serverError.statusCode;
   const serverErrorResponse: any = serverError.response;
@@ -633,15 +666,15 @@ function testListTaskRunsParams() {
 function testGenericTaskFunctions() {
   const processArray = task(
     { name: "processArray" },
-    <T>(items: T[], transform: (item: T) => T): T[] => items.map(transform),
+    <T>(_ctx: TaskContext, items: T[], transform: (item: T) => T): T[] => items.map(transform),
   );
 
-  const numbers = processArray([1, 2, 3], (n) => n * 2);
-  const strings = processArray(["a", "b", "c"], (s) => s.toUpperCase());
-
-  const fetchItems = task({ name: "fetchItems" }, async <T>(_ids: string[]): Promise<T[]> => {
-    return [] as T[];
-  });
+  const fetchItems = task(
+    { name: "fetchItems" },
+    async <T>(_ctx: TaskContext, _ids: string[]): Promise<T[]> => {
+      return [] as T[];
+    },
+  );
 
   interface HasId {
     id: string;
@@ -649,7 +682,7 @@ function testGenericTaskFunctions() {
 
   const findById = task(
     { name: "findById" },
-    <T extends HasId>(items: T[], id: string): T | undefined => {
+    <T extends HasId>(_ctx: TaskContext, items: T[], id: string): T | undefined => {
       return items.find((item) => item.id === id);
     },
   );

@@ -1,4 +1,4 @@
-import type { RegisterTaskOptions, TaskFunction, TaskMetadata, TaskOptions } from "./types.js";
+import type { AnyTaskFunction, RegisterTaskOptions, TaskMetadata, TaskOptions } from "./types.js";
 
 /**
  * Global task registry
@@ -19,7 +19,7 @@ export class TaskRegistry {
   /**
    * Register a task with optional name and options
    */
-  register(func: TaskFunction, options: RegisterTaskOptions): void {
+  register(func: AnyTaskFunction, options: RegisterTaskOptions): void {
     const taskName = options.name;
     if (!taskName) {
       throw new Error("Task function must have a name or name must be provided");
