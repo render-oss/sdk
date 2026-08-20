@@ -45,19 +45,25 @@ bun add @renderinc/sdk
 Use the Render SDK to run tasks and monitor their execution:
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
 // Create a Render SDK instance (uses RENDER_API_KEY from environment)
 const render = new Render();
 
 // Run a task and wait for completion
-const result = await render.workflows.runTask('my-workflow/my-task', [42, 'hello']);
-console.log('Status:', result.status);
-console.log('Results:', result.results);
+const result = await render.workflows.runTask("my-workflow/my-task", [
+  42,
+  "hello",
+]);
+console.log("Status:", result.status);
+console.log("Results:", result.results);
 
 // Or start a task and decide when to await the result
-const run = await render.workflows.startTask('my-workflow/my-task', [42, 'hello']);
-console.log('Task run ID:', run.taskRunId);
+const run = await render.workflows.startTask("my-workflow/my-task", [
+  42,
+  "hello",
+]);
+console.log("Task run ID:", run.taskRunId);
 const details = await run.get();
 
 // List recent task runs
@@ -67,53 +73,62 @@ const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 Alternatively, you can create a workflows client directly:
 
 ```typescript
-import { createWorkflowsClient } from '@renderinc/sdk/workflows';
+import { createWorkflowsClient } from "@renderinc/sdk/workflows";
 
 const client = createWorkflowsClient();
-const result = await client.runTask('my-workflow/my-task', [42, 'hello']);
+const result = await client.runTask("my-workflow/my-task", [42, "hello"]);
 ```
 
 ### Task Definition
 
-Define tasks that can be executed by the workflow system:
+Define tasks that can be executed by the workflow system. Every task takes a
+`TaskContext` as its first parameter, followed by its inputs:
 
 ```typescript
-import { task, startTaskServer } from '@renderinc/sdk/workflows';
+import { task, type TaskContext } from "@renderinc/sdk/workflows";
 
 // Simple task
 const square = task(
-  { name: 'square' },
-  function square(a: number): number {
+  { name: "square" },
+  function square(ctx: TaskContext, a: number): number {
     return a * a;
-  }
+  },
 );
 
-// Async task with subtask execution
+// Async task that reaches other tasks through its context
 task(
-  { name: 'addSquares' },
-  async function addSquares(a: number, b: number): Promise<number> {
-    const result1 = await square(a);
-    const result2 = await square(b);
+  { name: "addSquares" },
+  async function addSquares(
+    ctx: TaskContext,
+    a: number,
+    b: number,
+  ): Promise<number> {
+    // .run runs the task on its own compute
+    const result1 = await ctx.run(square, a);
+    const result2 = await ctx.run(square, b);
     return result1 + result2;
-  }
+  },
 );
 
 // Task with custom options
 task(
   {
-    name: 'retryableTask',
+    name: "retryableTask",
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
       backoffScaling: 1.5,
     },
     timeoutSeconds: 86400, // 24h
-    plan: 'starter',
+    plan: "starter",
   },
-  async function retryableTask(input: string): Promise<string> {
+  async function retryableTask(
+    ctx: TaskContext,
+    input: string,
+  ): Promise<string> {
     // Task implementation
     return input.toUpperCase();
-  }
+  },
 );
 
 // The task server starts automatically when running in a workflow environment
@@ -121,6 +136,23 @@ task(
 //
 // To disable auto-start, set RENDER_SDK_AUTO_START=false in your environment.
 ```
+
+Run several tasks at once by awaiting them together:
+
+```typescript
+task({ name: "sumSquares" }, async (ctx: TaskContext, values: number[]) => {
+  const squares = await Promise.all(values.map((v) => ctx.run(square, v)));
+  return squares.reduce((a, b) => a + b, 0);
+});
+```
+
+#### The task context
+
+| Method                   | Description                                                 |
+| ------------------------ | ----------------------------------------------------------- |
+| `ctx.run(task, ...args)` | Runs `task` on its own compute and resolves with its result |
+
+In the future we will add more methods on context to interact with workflows.
 
 ### Run the Local Task Server
 
@@ -151,6 +183,7 @@ render workflows tasks start <task name> --local
 Creates a new Render SDK instance with access to all Render products.
 
 **Options:**
+
 - `token?: string` - API token (defaults to `RENDER_API_KEY` env var)
 - `baseUrl?: string` - Base URL (defaults to `https://api.render.com`)
 - `useLocalDev?: boolean` - Use local development mode
@@ -159,20 +192,22 @@ Creates a new Render SDK instance with access to all Render products.
 - `region?: string` - Default region for object storage (falls back to `RENDER_REGION` env var)
 
 **Properties:**
+
 - `workflows` - WorkflowsClient instance for managing workflow tasks
 - `experimental` - ExperimentalClient instance for object storage and other experimental APIs
 
 **Example:**
+
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
 const render = new Render({
-  token: 'your-api-token',
-  baseUrl: 'https://api.render.com',
+  token: "your-api-token",
+  baseUrl: "https://api.render.com",
 });
 
 // Access workflows client
-const result = await render.workflows.runTask('my-workflow/task', [42]);
+const result = await render.workflows.runTask("my-workflow/task", [42]);
 ```
 
 ### Workflows Client API
@@ -180,11 +215,11 @@ const result = await render.workflows.runTask('my-workflow/task', [42]);
 The workflows client is accessible via `render.workflows` or can be created directly using `createWorkflowsClient`:
 
 ```typescript
-import { createWorkflowsClient } from '@renderinc/sdk/workflows';
+import { createWorkflowsClient } from "@renderinc/sdk/workflows";
 
 const client = createWorkflowsClient({
-  token: 'your-api-token',
-  baseUrl: 'https://api.render.com',
+  token: "your-api-token",
+  baseUrl: "https://api.render.com",
 });
 ```
 
@@ -195,6 +230,7 @@ const client = createWorkflowsClient({
 Runs a task and waits for completion.
 
 **Parameters:**
+
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signal?: AbortSignal` - Optional abort signal for cancellation
@@ -202,10 +238,11 @@ Runs a task and waits for completion.
 **Returns:** `Promise<TaskRunDetails>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
-const result = await render.workflows.runTask('my-workflow/square', [5]);
-console.log('Results:', result.results);
+const result = await render.workflows.runTask("my-workflow/square", [5]);
+console.log("Results:", result.results);
 ```
 
 #### `render.workflows.startTask(taskSlug, inputData, signal?)`
@@ -213,6 +250,7 @@ console.log('Results:', result.results);
 Starts a task run and returns a `TaskRunResult`. Results are not streamed until you call `.get()` on the returned result. Use this when you need the task run ID, want to defer awaiting, or want fire-and-forget.
 
 **Parameters:**
+
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signal?: AbortSignal` - Optional abort signal for cancellation
@@ -220,16 +258,17 @@ Starts a task run and returns a `TaskRunResult`. Results are not streamed until 
 **Returns:** `Promise<TaskRunResult>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
 
 // Start a task and grab its ID
-const run = await render.workflows.startTask('my-workflow/square', [5]);
-console.log('Task run ID:', run.taskRunId);
+const run = await render.workflows.startTask("my-workflow/square", [5]);
+console.log("Task run ID:", run.taskRunId);
 
 // Await the result when you're ready
 const result = await run.get();
-console.log('Results:', result.results);
+console.log("Results:", result.results);
 ```
 
 #### `render.workflows.taskRunEvents(taskRunIds, signal?)`
@@ -237,22 +276,24 @@ console.log('Results:', result.results);
 Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed, failed, or canceled) received on the stream.
 
 **Parameters:**
+
 - `taskRunIds: string[]` - One or more task run IDs to subscribe to
 - `signal?: AbortSignal` - Optional abort signal for cancellation
 
 **Returns:** `AsyncGenerator<TaskRunDetails>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
 
-const run1 = await render.workflows.startTask('my-workflow/square', [3]);
-const run2 = await render.workflows.startTask('my-workflow/square', [6]);
+const run1 = await render.workflows.startTask("my-workflow/square", [3]);
+const run2 = await render.workflows.startTask("my-workflow/square", [6]);
 
 // The stream stays open until you break or abort.
 const pending = new Set([run1.taskRunId, run2.taskRunId]);
 for await (const event of render.workflows.taskRunEvents([...pending])) {
-  console.log('Event:', event.status, event.id, event.results);
+  console.log("Event:", event.status, event.id, event.results);
   pending.delete(event.id);
   if (pending.size === 0) break;
 }
@@ -263,14 +304,16 @@ for await (const event of render.workflows.taskRunEvents([...pending])) {
 Gets task run details by ID.
 
 **Parameters:**
+
 - `taskRunId: string` - Task run ID
 
 **Returns:** `Promise<TaskRunDetails>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
-const details = await render.workflows.getTaskRun('task-run-id');
+const details = await render.workflows.getTaskRun("task-run-id");
 ```
 
 #### `render.workflows.cancelTaskRun(taskRunId)`
@@ -278,14 +321,16 @@ const details = await render.workflows.getTaskRun('task-run-id');
 Cancels a running task.
 
 **Parameters:**
+
 - `taskRunId: string` - Task run ID to cancel
 
 **Returns:** `Promise<void>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
-const run = await render.workflows.startTask('my-workflow/square', [5]);
+const run = await render.workflows.startTask("my-workflow/square", [5]);
 await render.workflows.cancelTaskRun(run.taskRunId);
 ```
 
@@ -294,6 +339,7 @@ await render.workflows.cancelTaskRun(run.taskRunId);
 Lists task runs with optional filters.
 
 **Parameters:**
+
 - `params.limit?: number` - Maximum number of results
 - `params.cursor?: string` - Pagination cursor
 - `params.ownerId?: string[]` - Filter by owner IDs
@@ -301,6 +347,7 @@ Lists task runs with optional filters.
 **Returns:** `Promise<TaskRun[]>`
 
 **Example:**
+
 ```typescript
 const render = new Render();
 const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
@@ -313,6 +360,7 @@ const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 Registers a function as a task.
 
 **Parameters:**
+
 - `options: RegisterTaskOptions` - Task configuration
   - `name: string` - Task name (required)
   - `retry?: RetryOptions` - Optional retry configuration
@@ -321,54 +369,74 @@ Registers a function as a task.
     - `backoffScaling?: number` - Backoff multiplier (default: 1.5)
   - `timeoutSeconds?: number` - Maximum execution time in seconds
   - `plan?: string` - Resource plan for task execution (e.g., `"starter"`, `"standard"`, `"pro"`)
-- `func: TaskFunction` - The task function to register
+- `func: TaskFunction` - The task function, taking a `TaskContext` as its first parameter
 
-**Returns:** The registered function with the same signature
+**Returns:** A `TaskDefinition` — pass it to `ctx.run` to invoke the task in its own compute.
 
 **Usage:**
+
 ```typescript
 // Basic usage
 const myTask = task(
-  { name: 'myTask' },
-  function myTask(arg: string): string {
+  { name: "myTask" },
+  function myTask(ctx: TaskContext, arg: string): string {
     return arg.toUpperCase();
-  }
+  },
 );
 
 // With retry, timeout, and plan options
 task(
   {
-    name: 'retryableTask',
+    name: "retryableTask",
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
       backoffScaling: 1.5,
     },
     timeoutSeconds: 300,
-    plan: 'starter',
+    plan: "starter",
   },
-  function retryableTask(arg: string): string {
+  function retryableTask(ctx: TaskContext, arg: string): string {
     return arg.toUpperCase();
-  }
+  },
 );
 
 // Async task with subtasks
 const square = task(
-  { name: 'square' },
-  function square(a: number): number {
+  { name: "square" },
+  function square(ctx: TaskContext, a: number): number {
     return a * a;
-  }
+  },
 );
 
 task(
-  { name: 'addSquares' },
-  async function addSquares(a: number, b: number): Promise<number> {
-    const result1 = await square(a);
-    const result2 = await square(b);
+  { name: "addSquares" },
+  async function addSquares(
+    ctx: TaskContext,
+    a: number,
+    b: number,
+  ): Promise<number> {
+    const result1 = await ctx.run(square, a);
+    const result2 = await ctx.run(square, b);
     return result1 + result2;
-  }
+  },
 );
 ```
+
+#### `TaskContext`
+
+Passed to every task as its first argument.
+
+##### `ctx.run(task, ...args)`
+
+Runs `task` on its own compute and resolves with its result.
+
+**Parameters:**
+
+- `task: TaskDefinition` - The task to run
+- `...args` - The task's inputs, matching its signature
+
+**Returns:** `Promise<TResult>` - Rejects with a `RenderError` if the subtask fails
 
 #### `startTaskServer()`
 
@@ -377,6 +445,7 @@ Starts the task server and listens for task execution requests.
 **Returns:** `Promise<void>`
 
 **Example:**
+
 ```typescript
 await startTaskServer();
 ```
@@ -387,11 +456,11 @@ await startTaskServer();
 
 ```typescript
 enum TaskRunStatus {
-  PENDING = 'pending',
-  RUNNING = 'running',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-  CANCELED = 'canceled',
+  PENDING = "pending",
+  RUNNING = "running",
+  COMPLETED = "completed",
+  FAILED = "failed",
+  CANCELED = "canceled",
 }
 ```
 
@@ -453,30 +522,30 @@ interface RegisterTaskOptions {
 The SDK provides several error classes:
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 import {
   RenderError,
   TaskRunError,
   ClientError,
   ServerError,
   AbortError,
-} from '@renderinc/sdk';
+} from "@renderinc/sdk";
 
 const render = new Render();
 
 try {
-  const result = await render.workflows.runTask('my-workflow/task', [42]);
+  const result = await render.workflows.runTask("my-workflow/task", [42]);
 } catch (error) {
   if (error instanceof TaskRunError) {
-    console.error('Task failed:', error.taskRunId, error.message);
+    console.error("Task failed:", error.taskRunId, error.message);
   } else if (error instanceof ClientError) {
-    console.error('Client error:', error.statusCode, error.cause);
+    console.error("Client error:", error.statusCode, error.cause);
   } else if (error instanceof ServerError) {
-    console.error('Server error:', error.statusCode, error.cause);
+    console.error("Server error:", error.statusCode, error.cause);
   } else if (error instanceof AbortError) {
-    console.error('Request was aborted');
+    console.error("Request was aborted");
   } else if (error instanceof RenderError) {
-    console.error('General SDK error:', error.message);
+    console.error("General SDK error:", error.message);
   }
 }
 ```
@@ -498,19 +567,21 @@ try {
 When running on Render, `RENDER_WORKSPACE_ID` and `RENDER_REGION` are set automatically. You can also pass them as constructor options:
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
-const render = new Render();  // Uses env vars for auth + object storage defaults
+const render = new Render(); // Uses env vars for auth + object storage defaults
 
 // Upload (no need to pass ownerId/region when env vars are set)
 await render.experimental.storage.objects.put({
-  key: 'path/to/file.png',
-  data: Buffer.from('binary content'),
-  contentType: 'image/png',
+  key: "path/to/file.png",
+  data: Buffer.from("binary content"),
+  contentType: "image/png",
 });
 
 // Download
-const obj = await render.experimental.storage.objects.get({ key: 'path/to/file.png' });
+const obj = await render.experimental.storage.objects.get({
+  key: "path/to/file.png",
+});
 
 // List
 const response = await render.experimental.storage.objects.list();
@@ -527,19 +598,19 @@ Under the hood, it uses the [`redis`](https://www.npmjs.com/package/redis) packa
 You can look up an instance by name and the SDK will create it if it doesn't exist. Note that the workspace ID needs to be set, either through the `RENDER_WORKSPACE_ID` environment variable or by passing the `ownerId` explicitly when calling the SDK:
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
 const render = new Render();
 
 // Returns a configured (not yet connected) node-redis client
 const client = await render.experimental.keyValue.newClient({
-  name: 'my-cache',
-  ownerId: 'tea-abcdefghijklmnopqrst',
+  name: "my-cache",
+  ownerId: "tea-abcdefghijklmnopqrst",
 });
 const conn = await client.connect();
 
-await conn.set('key', 'value');
-const value = await conn.get('key');
+await conn.set("key", "value");
+const value = await conn.get("key");
 
 conn.destroy();
 ```
@@ -550,7 +621,7 @@ If you already have a Render Key Value service ID, pass it directly to skip the 
 
 ```typescript
 const client = await render.experimental.keyValue.newClient({
-  serviceId: 'redis-xxxxxxxxxxxx',
+  serviceId: "redis-xxxxxxxxxxxx",
 });
 ```
 
@@ -560,10 +631,10 @@ Pass an `autoProvision` configuration to control the plan and eviction policy. I
 
 ```typescript
 const client = await render.experimental.keyValue.newClient({
-  name: 'my-cache',
+  name: "my-cache",
   autoProvision: {
-    plan: 'starter',
-    maxmemoryPolicy: 'allkeys-lru',
+    plan: "starter",
+    maxmemoryPolicy: "allkeys-lru",
   },
 });
 ```
@@ -572,7 +643,7 @@ Set `autoProvision: false` to disable all automatic changes and throw if the ins
 
 ```typescript
 const client = await render.experimental.keyValue.newClient({
-  name: 'my-cache',
+  name: "my-cache",
   autoProvision: false,
 });
 ```
@@ -583,7 +654,7 @@ Use `connectionInfo` when you need the host and port rather than a ready-made cl
 
 ```typescript
 const info = await render.experimental.keyValue.connectionInfo({
-  name: 'my-cache',
+  name: "my-cache",
 }); // { host: 'my.redis.url', port: 1234, username: '...', password: '...' }
 ```
 
@@ -602,74 +673,86 @@ When using the SDK in local development mode, the host and port default to `loca
 ### Example 1: Running a Task
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
 const render = new Render();
 
-const result = await render.workflows.runTask('my-workflow/square', [5]);
-console.log('Square of 5 is:', result.results[0]); // 25
+const result = await render.workflows.runTask("my-workflow/square", [5]);
+console.log("Square of 5 is:", result.results[0]); // 25
 ```
 
 ### Example 2: Defining Tasks with Subtasks
 
 ```typescript
-import { task } from '@renderinc/sdk/workflows';
+import { task, type TaskContext } from "@renderinc/sdk/workflows";
 
 const square = task(
-  { name: 'square' },
-  function square(a: number): number {
+  { name: "square" },
+  function square(ctx: TaskContext, a: number): number {
     return a * a;
-  }
+  },
 );
 
 task(
-  { name: 'pythagorean' },
-  async function pythagorean(a: number, b: number): Promise<number> {
-    const aSquared = await square(a);
-    const bSquared = await square(b);
+  { name: "pythagorean" },
+  async function pythagorean(
+    ctx: TaskContext,
+    a: number,
+    b: number,
+  ): Promise<number> {
+    const aSquared = await ctx.run(square, a);
+    const bSquared = await ctx.run(square, b);
     return Math.sqrt(aSquared + bSquared);
-  }
+  },
 );
 ```
 
 ### Example 3: Error Handling in Tasks
 
 ```typescript
-import { task } from '@renderinc/sdk/workflows';
+import { task, type TaskContext } from "@renderinc/sdk/workflows";
 
 const divide = task(
-  { name: 'divide' },
-  async function divide(a: number, b: number): Promise<number> {
+  { name: "divide" },
+  async function divide(
+    ctx: TaskContext,
+    a: number,
+    b: number,
+  ): Promise<number> {
     if (b === 0) {
-      throw new Error('Cannot divide by zero');
+      throw new Error("Cannot divide by zero");
     }
     return a / b;
-  }
+  },
 );
 
 task(
   {
-    name: 'safeDivide',
+    name: "safeDivide",
     retry: {
       maxRetries: 3,
       waitDurationMs: 1000,
     },
   },
-  async function safeDivide(a: number, b: number): Promise<number> {
+  async function safeDivide(
+    ctx: TaskContext,
+    a: number,
+    b: number,
+  ): Promise<number> {
     try {
-      return await divide(a, b);
+      return await ctx.run(divide, a, b);
     } catch (error) {
-      console.error('Division failed:', error);
+      console.error("Division failed:", error);
       return 0; // Return default value
     }
-  }
+  },
 );
 ```
 
 ### Example 4: Using AbortSignal for Cancellation
 
 ```typescript
-import { Render, AbortError } from '@renderinc/sdk';
+import { Render, AbortError } from "@renderinc/sdk";
 
 const render = new Render();
 
@@ -681,16 +764,16 @@ async function runTaskWithCancellation() {
 
   try {
     const result = await render.workflows.runTask(
-      'my-workflow/long-running-task',
+      "my-workflow/long-running-task",
       [42],
-      abortController.signal
+      abortController.signal,
     );
-    console.log('Task completed:', result.results);
+    console.log("Task completed:", result.results);
   } catch (error) {
     if (error instanceof AbortError) {
-      console.log('Task was cancelled');
+      console.log("Task was cancelled");
     } else {
-      console.error('Task failed:', error);
+      console.error("Task failed:", error);
     }
   }
 }
@@ -701,7 +784,7 @@ runTaskWithCancellation();
 ### Example 5: Using the Unified Render SDK
 
 ```typescript
-import { Render } from '@renderinc/sdk';
+import { Render } from "@renderinc/sdk";
 
 // Single entry point for all Render products
 const render = new Render({
@@ -711,12 +794,12 @@ const render = new Render({
 async function workflowExample() {
   try {
     // Run a workflow task
-    const result = await render.workflows.runTask('my-workflow/process-data', [
-      { userId: 123, data: 'example' },
+    const result = await render.workflows.runTask("my-workflow/process-data", [
+      { userId: 123, data: "example" },
     ]);
 
-    console.log('Workflow completed:', result.status);
-    console.log('Results:', result.results);
+    console.log("Workflow completed:", result.status);
+    console.log("Results:", result.results);
 
     // List and monitor recent task runs
     const recentRuns = await render.workflows.listTaskRuns({ limit: 5 });
@@ -726,7 +809,7 @@ async function workflowExample() {
       console.log(`- ${run.id}: ${run.status} (${run.taskId})`);
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
   }
 }
 
@@ -805,8 +888,9 @@ MIT
 ## Support
 
 For issues and questions, please visit:
-- GitHub Issues: https://github.com/render-oss/sdk/issues
-- Documentation: https://render.com/docs/workflows
+
+- GitHub Issues: <https://github.com/render-oss/sdk/issues>
+- Documentation: <https://render.com/docs/workflows>
 
 ## Contributing
 

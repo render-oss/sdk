@@ -1,11 +1,5 @@
-import { AsyncLocalStorage } from "node:async_hooks";
 import { TaskRegistry } from "./registry.js";
-import type { RegisterTaskOptions, TaskContext, TaskFunction } from "./types.js";
-
-/**
- * Storage for the current task execution context
- */
-const taskContextStorage = new AsyncLocalStorage<TaskContext>();
+import type { RegisterTaskOptions, TaskContext, TaskDefinition, TaskFunction } from "./types.js";
 
 /**
  * Flag to track if auto-start has been scheduled
@@ -43,34 +37,24 @@ function shouldAutoStart(): boolean {
 }
 
 /**
- * Get the current task context (only available during task execution)
- */
-export function getCurrentContext(): TaskContext | undefined {
-  return taskContextStorage.getStore();
-}
-
-/**
- * Set the current task context (used internally by executor)
- */
-export function setCurrentContext<T>(context: TaskContext, fn: () => Promise<T>): Promise<T> {
-  return taskContextStorage.run(context, fn);
-}
-
-/**
  * Register a task with the workflow system.
+ *
+ * A task takes a {@link TaskContext} as its first parameter, followed by its
+ * inputs. Use the context to reach other tasks: `ctx.run(other, input)`
+ * runs one on its own compute and waits for its result.
  *
  * When running in a workflow environment (RENDER_SDK_SOCKET_PATH is set),
  * the task server will automatically start after all synchronously-defined
  * tasks are registered. This can be disabled by setting RENDER_SDK_AUTO_START=false.
  *
- * @param func Task function
- * @param options Optional task options
- * @returns The registered function with the same signature
+ * @param options Task options, including the name it registers under
+ * @param func Task function, taking a TaskContext as its first parameter
+ * @returns A task definition to pass to `ctx.run`
  */
-export function task<TArgs extends any[], TResult>(
+export function task<TArgs extends unknown[], TResult>(
   options: RegisterTaskOptions,
   func: TaskFunction<TArgs, TResult>,
-): TaskFunction<TArgs, TResult> {
+): TaskDefinition<TArgs, TResult> {
   // Warn if task is registered after server has started. This is possible if
   // the task is loaded via dynamic import.
   if (serverStarted) {
@@ -98,20 +82,8 @@ export function task<TArgs extends any[], TResult>(
     });
   }
 
-  // Return a wrapper function that executes the task as a subtask
-  return ((...args: TArgs): TResult | Promise<TResult> => {
-    const context = getCurrentContext();
-
-    if (!context) {
-      // If we're not in a task execution context, just run the function directly
-      // This allows for testing and direct invocation
-      return func(...args);
-    }
-
-    // Execute as a subtask through the context
-    const result = context.executeTask(func, options.name, ...args);
-
-    // Return the result wrapped in a promise that awaits the subtask
-    return result.get();
-  }) as TaskFunction<TArgs, TResult>;
+  return Object.freeze({
+    name: options.name,
+    func,
+  });
 }
