@@ -15,11 +15,11 @@ class TestFromWorkflows:
         app_b = Workflows()
 
         @app_a.task
-        def task_a(x: int) -> int:
+        def task_a(ctx, x: int) -> int:
             return x + 1
 
         @app_b.task
-        def task_b(x: int) -> int:
+        def task_b(ctx, x: int) -> int:
             return x + 2
 
         combined = Workflows.from_workflows(app_a, app_b)
@@ -36,11 +36,11 @@ class TestFromWorkflows:
         app_b = Workflows()
 
         @app_a.task
-        def duplicate_task(x: int) -> int:
+        def duplicate_task(ctx, x: int) -> int:
             return x + 1
 
         @app_b.task
-        def duplicate_task(x: int) -> int:  # noqa: F811
+        def duplicate_task(ctx, x: int) -> int:  # noqa: F811
             return x + 2
 
         with pytest.raises(
@@ -54,7 +54,7 @@ class TestFromWorkflows:
         app_a = Workflows(default_retry=source_retry, default_timeout=100)
 
         @app_a.task
-        def task_a(x: int) -> int:
+        def task_a(ctx, x: int) -> int:
             return x
 
         # Combined app has different defaults
@@ -78,13 +78,13 @@ class TestFromWorkflows:
         app_a = Workflows()
 
         @app_a.task
-        def task_a(x: int) -> int:
+        def task_a(ctx, x: int) -> int:
             return x
 
         combined = Workflows.from_workflows(app_a)
 
         @combined.task
-        def task_b(x: int) -> int:
+        def task_b(ctx, x: int) -> int:
             return x * 2
 
         task_names = combined._registry.get_task_names()
@@ -103,7 +103,7 @@ class TestFromWorkflows:
         app = Workflows()
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         combined = Workflows.from_workflows(app)
@@ -117,7 +117,7 @@ class TestFromWorkflows:
         app = Workflows()
 
         @app.task(retry=retry, timeout_seconds=60, plan="starter")
-        def configured_task(x: int) -> int:
+        def configured_task(ctx, x: int) -> int:
             return x
 
         combined = Workflows.from_workflows(app)
@@ -135,15 +135,15 @@ class TestFromWorkflows:
         app3 = Workflows()
 
         @app1.task
-        def task_1(x: int) -> int:
+        def task_1(ctx, x: int) -> int:
             return x + 1
 
         @app2.task
-        def task_2(x: int) -> int:
+        def task_2(ctx, x: int) -> int:
             return x + 2
 
         @app3.task
-        def task_3(x: int) -> int:
+        def task_3(ctx, x: int) -> int:
             return x + 3
 
         combined = Workflows.from_workflows(app1, app2, app3)
@@ -191,7 +191,7 @@ class TestWorkflowsTaskDecorator:
         )
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         task_info = app._registry.get_task("my_task")
@@ -211,7 +211,7 @@ class TestWorkflowsTaskDecorator:
         )
 
         @app.task(retry=task_retry, timeout_seconds=60, plan="starter")
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         task_info = app._registry.get_task("my_task")
@@ -231,7 +231,7 @@ class TestWorkflowsTaskDecorator:
 
         # Only override timeout_seconds, keep retry and plan from defaults
         @app.task(timeout_seconds=60)
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         task_info = app._registry.get_task("my_task")
@@ -244,7 +244,7 @@ class TestWorkflowsTaskDecorator:
         app = Workflows()
 
         @app.task(name="custom_task_name")
-        def my_function(x: int) -> int:
+        def my_function(ctx, x: int) -> int:
             return x
 
         task_names = app._registry.get_task_names()
@@ -256,7 +256,7 @@ class TestWorkflowsTaskDecorator:
         app = Workflows()
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         assert "my_task" in app._registry.get_task_names()
@@ -266,7 +266,7 @@ class TestWorkflowsTaskDecorator:
         app = Workflows()
 
         @app.task()
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         assert "my_task" in app._registry.get_task_names()
@@ -324,7 +324,7 @@ class TestWorkflowsStart:
         app = Workflows()
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx, x: int) -> int:
             return x
 
         # Mock the register function to avoid actual socket operations

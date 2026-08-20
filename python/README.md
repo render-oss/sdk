@@ -14,31 +14,44 @@ pip install render_sdk
 
 ### Defining Tasks
 
-Use the `Workflows` class to define and register tasks:
+Use the `Workflows` class to define and register tasks. Every task takes a
+`TaskContext` as its first parameter, followed by its inputs:
 
 ```python
-from render_sdk import Workflows
+from render_sdk import TaskContext, Workflows
 
 app = Workflows()
 
 @app.task
-def square(a: int) -> int:
+def square(ctx: TaskContext, a: int) -> int:
     """Square a number."""
     return a * a
 
 
 @app.task
-async def add_squares(a: int, b: int) -> int:
+async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     """Add the squares of two numbers."""
-    result1 = await square(a)
-    result2 = await square(b)
+    # .run runs the task on its own compute
+    result1 = await ctx.run(square, a)
+    result2 = await ctx.run(square, b)
     return result1 + result2
+```
+
+Run several tasks at once with `asyncio.gather`:
+
+```python
+import asyncio
+
+@app.task
+async def sum_squares(ctx: TaskContext, values: list[int]) -> int:
+    squares = await asyncio.gather(*(ctx.run(square, v) for v in values))
+    return sum(squares)
 ```
 
 You can also specify task parameters like `retry`, `timeout`, and `plan`:
 
 ```python
-from render_sdk import Retry, Workflows
+from render_sdk import Retry, TaskContext, Workflows
 
 app = Workflows(
     default_retry=Retry(max_retries=3, wait_duration_ms=1000),
@@ -47,11 +60,11 @@ app = Workflows(
 )
 
 @app.task(timeout=60, plan="starter")
-def quick_task(x: int) -> int:
+def quick_task(ctx: TaskContext, x: int) -> int:
     return x + 1
 
 @app.task(retry=Retry(max_retries=5, wait_duration_ms=2000, backoff_scaling=2.0))
-def retryable_task(x: int) -> int:
+def retryable_task(ctx: TaskContext, x: int) -> int:
     return x * 2
 ```
 

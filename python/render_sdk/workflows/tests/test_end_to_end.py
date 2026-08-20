@@ -62,11 +62,11 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
 
     # Define tasks with various configurations
     @task_decorator
-    def simple_task(x: int) -> int:
+    def simple_task(ctx, x: int) -> int:
         return x * 2
 
     @task_decorator(name="custom_name")
-    def renamed_task(msg: str) -> str:
+    def renamed_task(ctx, msg: str) -> str:
         return f"Hello {msg}"
 
     @task_decorator(
@@ -74,7 +74,7 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
             retry=Retry(max_retries=3, wait_duration_ms=1000, backoff_scaling=1.5)
         ),
     )
-    def retry_task(data: str) -> str:
+    def retry_task(ctx, data: str) -> str:
         return data.upper()
 
     # Mock get_task_registry to return our test registry
@@ -103,6 +103,9 @@ def test_task_registration_network_payload(task_registry, task_decorator, mocker
     simple_task_payload = task_by_name["simple_task"]
     assert simple_task_payload.name == "simple_task"
     assert isinstance(simple_task_payload.options, TaskOptions)
+
+    # The context is supplied by the runtime, so it is not a declared input
+    assert [p.name for p in simple_task_payload.parameters] == ["x"]
 
     # Verify renamed task
     assert "custom_name" in task_by_name
@@ -142,12 +145,12 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
 
     # Define a task with timeout_seconds
     @task_decorator(options=Options(timeout_seconds=120))
-    def timeout_task(x: int) -> int:
+    def timeout_task(ctx, x: int) -> int:
         return x * 2
 
     # Define a task without timeout_seconds
     @task_decorator
-    def no_timeout_task(x: int) -> int:
+    def no_timeout_task(ctx, x: int) -> int:
         return x * 3
 
     # Define a task with both timeout_seconds and retry
@@ -157,7 +160,7 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
             retry=Retry(max_retries=2, wait_duration_ms=500, backoff_scaling=1.5),
         )
     )
-    def timeout_and_retry_task(x: int) -> int:
+    def timeout_and_retry_task(ctx, x: int) -> int:
         return x * 4
 
     # Mock get_task_registry to return our test registry
@@ -215,7 +218,7 @@ def test_task_registration_with_dict_retry_config(
     options = Options(retry=dict_retry)
 
     @task_decorator(options=options)
-    def my_task(x: int) -> int:
+    def my_task(ctx, x: int) -> int:
         return x
 
     mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
@@ -247,7 +250,7 @@ def test_task_registration_without_retry_config(task_registry, task_decorator, m
     mock_client_instance.disconnect = mocker.AsyncMock()
 
     @task_decorator
-    def my_task(x: int) -> int:
+    def my_task(ctx, x: int) -> int:
         return x
 
     mock_get_registry = mocker.patch("render_sdk.workflows.runner.get_task_registry")
@@ -270,11 +273,11 @@ async def test_callback_payloads_with_mocked_client(
     """Test that callback payloads are correctly formatted and sent."""
 
     @task_decorator
-    def test_task(value: int) -> int:
+    def test_task(ctx, value: int) -> int:
         return value * 10
 
     @task_decorator
-    def failing_task(should_fail: bool) -> str:
+    def failing_task(ctx, should_fail: bool) -> str:
         if should_fail:
             raise ValueError("Test failure")
         return "success"

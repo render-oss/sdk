@@ -24,7 +24,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
+from typing import Any, ParamSpec, TypeVar
 
 from render_sdk.client.errors import (
     ClientError,
@@ -50,6 +50,9 @@ from render_sdk.workflows._callback_models import (
 from render_sdk.workflows._uds_http import HttpStatusError, request_json
 
 logger = logging.getLogger(__name__)
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class Status(Enum):
@@ -85,7 +88,9 @@ _UDS_BACKOFF_FACTOR = 2.0
 _UDS_MAX_DELAY_S = 16.0
 
 
-def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
+def _retry_transient_errors(
+    func: Callable[P, Awaitable[R]],
+) -> Callable[P, Awaitable[R]]:
     """Retry async functions on transient UDS errors.
 
     Retries on ``ServerError`` (5xx, connection errors), our
@@ -96,28 +101,26 @@ def _retry_transient_errors(func: Callable[..., Awaitable[Any]]):
     """
 
     @functools.wraps(func)
-    async def wrapper(*args, **kwargs):
-        last_error: Exception | None = None
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         for attempt in range(_UDS_MAX_RETRIES):
             try:
                 return await func(*args, **kwargs)
             except (ServerError, SdkTimeoutError, RateLimitError) as e:
-                last_error = e
-                if attempt < _UDS_MAX_RETRIES - 1:
-                    delay = min(
-                        _UDS_INITIAL_DELAY_S * (_UDS_BACKOFF_FACTOR**attempt),
-                        _UDS_MAX_DELAY_S,
-                    )
-                    logger.warning(
-                        "Request to Render failed (%d/%d), retry in %.1fs: %s",
-                        attempt + 1,
-                        _UDS_MAX_RETRIES,
-                        delay,
-                        e,
-                    )
-                    await asyncio.sleep(delay)
-        if last_error is not None:
-            raise last_error
+                if attempt >= _UDS_MAX_RETRIES - 1:
+                    raise
+                delay = min(
+                    _UDS_INITIAL_DELAY_S * (_UDS_BACKOFF_FACTOR**attempt),
+                    _UDS_MAX_DELAY_S,
+                )
+                logger.warning(
+                    "Request to Render failed (%d/%d), retry in %.1fs: %s",
+                    attempt + 1,
+                    _UDS_MAX_RETRIES,
+                    delay,
+                    e,
+                )
+                await asyncio.sleep(delay)
+        raise AssertionError("unreachable")  # pragma: no cover
 
     return wrapper
 
@@ -145,7 +148,9 @@ def _extract_status_message(body: bytes) -> str | None:
         return None
 
 
-def _translate_errors(operation: str) -> Callable[[Callable], Callable]:
+def _translate_errors(
+    operation: str,
+) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[R]]]:
     """Translate raw transport exceptions into render_sdk.client.errors types.
 
     The transport in ``_uds_http`` raises stdlib exceptions plus
@@ -155,9 +160,9 @@ def _translate_errors(operation: str) -> Callable[[Callable], Callable]:
     which transport-level failure occurred.
     """
 
-    def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+    def decorator(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
         @functools.wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             try:
                 return await func(*args, **kwargs)
             # `socket.timeout` is an alias for the built-in ``TimeoutError``;

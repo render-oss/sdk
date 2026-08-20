@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any, TypeVar
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar, overload
 
 from render_sdk.workflows.runner import register, run
 from render_sdk.workflows.task import (
+    BoundTaskDecorator,
     Options,
     Retry,
-    TaskCallable,
+    TaskDefinition,
     TaskRegistry,
     create_task_decorator,
 )
 
-F = TypeVar("F", bound=Callable[..., Any])
+if TYPE_CHECKING:
+    from render_sdk.workflows.context import TaskContext
+
+# P is the task's own inputs, i.e. everything after the leading TaskContext.
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class Workflows:
@@ -24,12 +30,22 @@ class Workflows:
     This is the primary entry point for defining tasks that run on Render.
     For calling tasks via REST API, use the Render class instead.
 
+    Every task takes a TaskContext as its first parameter, followed by its
+    inputs. The context is how a task reaches other tasks: ``ctx.run``
+    runs one on its own compute and waits for its result.
+
     Example:
         app = Workflows()
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx: TaskContext, x: int) -> int:
             return x * 2
+
+        @app.task
+        async def double_twice(ctx: TaskContext, x: int) -> int:
+            # .run runs the task on its own compute
+            once = await ctx.run(my_task, x)
+            return await ctx.run(my_task, once)
 
     With configuration:
         app = Workflows(
@@ -38,7 +54,7 @@ class Workflows:
         )
 
         @app.task
-        def my_task(x: int) -> int:
+        def my_task(ctx: TaskContext, x: int) -> int:
             return x * 2
 
     Combining multiple modules:
@@ -77,17 +93,44 @@ class Workflows:
         task_count = len(self._registry.get_task_names())
         return f"Workflows(tasks={task_count})"
 
+    # The async overload comes first: a coroutine function also matches the
+    # sync signature with R bound to the coroutine itself.
+    @overload
+    def task(
+        self, func: Callable[Concatenate[TaskContext, P], Awaitable[R]], /
+    ) -> TaskDefinition[P, R]: ...
+
+    @overload
+    def task(
+        self, func: Callable[Concatenate[TaskContext, P], R], /
+    ) -> TaskDefinition[P, R]: ...
+
+    @overload
     def task(
         self,
-        func: F | None = None,
+        *,
+        name: str | None = ...,
+        retry: Retry | None = ...,
+        timeout_seconds: int | None = ...,
+        plan: str | None = ...,
+    ) -> BoundTaskDecorator: ...
+
+    # The overloads above carry the precise types. The implementation is
+    # deliberately loose so it stays compatible with both of them.
+    def task(
+        self,
+        func: Callable[..., Any] | None = None,
         *,
         name: str | None = None,
         retry: Retry | None = None,
         timeout_seconds: int | None = None,
         plan: str | None = None,
-    ) -> F | Callable[[F], TaskCallable]:
+    ) -> Any:
         """
         Decorator to register a function as a task.
+
+        The decorated function takes a TaskContext as its first parameter,
+        followed by its inputs.
 
         Args:
             func: The function to decorate (when used without parentheses).
@@ -97,15 +140,15 @@ class Workflows:
             plan: Resource plan (overrides default_plan).
 
         Returns:
-            The decorated function as a TaskCallable.
+            The decorated function as a TaskDefinition.
 
         Example:
             @app.task
-            def simple_task(x: int) -> int:
+            def simple_task(ctx: TaskContext, x: int) -> int:
                 return x * 2
 
             @app.task(timeout_seconds=60, plan="starter")
-            def quick_task(x: int) -> int:
+            def quick_task(ctx: TaskContext, x: int) -> int:
                 return x + 1
         """
         # Build options from defaults and overrides
@@ -124,7 +167,7 @@ class Workflows:
         # Create the task decorator bound to this app's registry
         task_decorator = create_task_decorator(self._registry)
 
-        def decorator(f: F) -> TaskCallable:
+        def decorator(f: Callable[..., Any]) -> TaskDefinition:
             return task_decorator(f, name=name, options=options)
 
         if func is None:

@@ -2,12 +2,12 @@
 
 Task definition (for workers):
 
-    from render_sdk import Workflows, Retry
+    from render_sdk import TaskContext, Workflows
 
     app = Workflows()
 
     @app.task
-    def my_task(x: int) -> int:
+    def my_task(ctx: TaskContext, x: int) -> int:
         return x * 2
 
 Synchronous REST API access (default):
@@ -38,7 +38,14 @@ __version__ = "0.8.0"
 # Render/RenderAsync are lazy-loaded so the workflow worker path stays fast.
 from typing import TYPE_CHECKING
 
-from render_sdk.workflows import Options, Retry, Workflows, start, task
+from render_sdk.workflows import (
+    Options,
+    Retry,
+    TaskContext,
+    Workflows,
+    start,
+    task,
+)
 
 if TYPE_CHECKING:
     from render_sdk.render import Render
@@ -50,6 +57,7 @@ __all__ = [
     "Render",  # Sync REST API client (default)
     "RenderAsync",  # Async REST API client
     "Workflows",  # Task definition
+    "TaskContext",  # First parameter of every task
     # Configuration
     "Options",
     "Retry",

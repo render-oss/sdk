@@ -44,7 +44,7 @@ async def test_simple_task_execution(task_decorator, task_executor, mock_client)
     """Test executing a simple task without subtasks."""
 
     @task_decorator
-    def add_numbers(a: int, b: int) -> int:
+    def add_numbers(ctx, a: int, b: int) -> int:
         return a + b
 
     result = await task_executor.execute("add_numbers", [5, 3])
@@ -61,7 +61,7 @@ async def test_task_with_string_result(task_decorator, task_executor, mock_clien
     """Test task that returns a string."""
 
     @task_decorator
-    def greet(name: str) -> str:
+    def greet(ctx, name: str) -> str:
         return f"Hello, {name}!"
 
     result = await task_executor.execute("greet", ["World"])
@@ -75,7 +75,7 @@ async def test_task_execution_error(task_decorator, task_executor, mock_client):
     """Test task execution that raises an error."""
 
     @task_decorator
-    def failing_task(x: int) -> int:
+    def failing_task(ctx, x: int) -> int:
         if x < 0:
             raise ValueError("Negative numbers not allowed")
         return x * 2
@@ -106,19 +106,19 @@ async def test_complex_task_chain(task_registry, task_decorator, mock_client, mo
     """Test a complex chain of task executions."""
 
     @task_decorator
-    def increment(x: int) -> int:
+    def increment(ctx, x: int) -> int:
         return x + 1
 
     @task_decorator
-    def double(x: int) -> int:
+    def double(ctx, x: int) -> int:
         return x * 2
 
     @task_decorator
-    async def complex_calculation(start: int) -> int:
-        # Use await for subtask calls
-        step1 = await increment(start)
-        step2 = await double(step1)
-        step3 = await increment(step2)
+    async def complex_calculation(ctx, start: int) -> int:
+        # Reach subtasks through the context
+        step1 = await ctx.run(increment, start)
+        step2 = await ctx.run(double, step1)
+        step3 = await ctx.run(increment, step2)
         return step3
 
     # Configure mock to simulate subtask execution
@@ -144,7 +144,7 @@ async def test_callback_format(task_registry, task_decorator, mock_client):
     """Test that callbacks are formatted correctly."""
 
     @task_decorator
-    def simple_task(value: str) -> str:
+    def simple_task(ctx, value: str) -> str:
         return f"processed: {value}"
 
     executor = TaskExecutor(task_registry, mock_client)

@@ -4,50 +4,48 @@ build-backend = "hatchling.build"
 
 [project]
 name = "render_sdk"
-version = "0.8.0"
+version = "1.0.0"
 description = "Python SDK for Render Workflows"
 authors = [{ name = "Render", email = "support@render.com" }]
 readme = "README.md"
 requires-python = ">=3.10,<4.0"
 classifiers = [
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-    "aiohttp>=3.12.14,<4",
-    "httpx>=0.28.1,<0.29",
-    # Runtime deps of the generated public_api client.
-    "attrs>=23.2.0",
-    "python-dateutil>=2.8.2,<3",
+  "aiohttp>=3.12.14,<4",
+  "httpx>=0.28.1,<0.29",
+  # Runtime deps of the generated public_api client.
+  "attrs>=23.2.0",
+  "python-dateutil>=2.8.2,<3",
 ]
 
 [project.optional-dependencies]
-key_value = [
-    "redis>=4.2.0",
-]
+key_value = ["redis>=4.2.0"]
 
 [project.scripts]
 render-workflows = "render_sdk.workflows.cli:main"
 
 [dependency-groups]
 dev = [
-    "pytest>=9,<10",
-    "pytest-cov>=4.0,<5",
-    "pytest-asyncio>=0.21.0,<0.22",
-    "pytest-mock>=3.10.0,<4",
-    "mypy>=1.18.2,<2",
-    "tox>=4.0,<5",
-    "redis>=4.2.0",
-    "ruff>=0.13,<0.14",
-    "openapi-python-client>=0.26.1,<0.27",
+  "pytest>=9,<10",
+  "pytest-cov>=4.0,<5",
+  "pytest-asyncio>=0.21.0,<0.22",
+  "pytest-mock>=3.10.0,<4",
+  "mypy>=1.18.2,<2",
+  "tox>=4.0,<5",
+  "redis>=4.2.0",
+  "ruff>=0.13,<0.14",
+  "openapi-python-client>=0.26.1,<0.27",
 ]
 
 [tool.uv]
@@ -63,15 +61,22 @@ warn_unused_configs = true
 disallow_untyped_defs = false
 explicit_package_bases = true
 namespace_packages = true
-exclude = ["tests/", "example/", "render_sdk/public_api/"]
+exclude = ["/tests/", "render_sdk/public_api/"]
 check_untyped_defs = false
+
+# typing_tests/ is checked, never executed: mypy failing is the test failing.
+# warn_unused_ignores turns each `# type: ignore` there into an assertion that
+# the call it marks is genuinely rejected.
+[[tool.mypy.overrides]]
+module = "typing_tests.*"
+warn_unused_ignores = true
 
 [tool.pytest.ini_options]
 testpaths = ["**/tests"]
 python_files = ["test_*.py"]
 markers = [
-    "e2e: end-to-end tests requiring RENDER_API_KEY and RENDER_E2E_OWNER_ID",
-    "sandbox_e2e: e2e tests needing a sandbox runner (renderd) fleet; routed to their own CI job so they report separately",
+  "e2e: end-to-end tests requiring RENDER_API_KEY and RENDER_E2E_OWNER_ID",
+  "sandbox_e2e: e2e tests needing a sandbox runner (renderd) fleet; routed to their own CI job so they report separately",
 ]
 addopts = "-m 'not e2e'"
 

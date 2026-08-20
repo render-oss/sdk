@@ -5,7 +5,8 @@ import logging
 from typing import Any
 
 from render_sdk.workflows.client import CallbackRequest, Status, UDSClient
-from render_sdk.workflows.task import TaskRegistry, TaskResult, _current_client
+from render_sdk.workflows.context import WorkflowTaskContext
+from render_sdk.workflows.task import TaskRegistry, TaskResult
 
 logger = logging.getLogger(__name__)
 
@@ -25,29 +26,22 @@ class TaskExecutor:
         if not func:
             return TaskResult(error=ValueError(f"Task '{task_name}' not found"))
 
+        # The context is always the first argument; the wire input holds the rest.
+        ctx = WorkflowTaskContext(self.client)
+
         try:
-            # Set the client context for subtask execution
-            context = _current_client.set(self.client)
+            # Determine how to call the function based on input type
+            if isinstance(input_data, dict):
+                # Named parameters: pass as keyword arguments
+                result = func(ctx, **input_data)
+            else:
+                # Positional parameters: unpack list
+                result = func(ctx, *input_data)
 
-            try:
-                # Determine how to call the function based on input type
-                if isinstance(input_data, dict):
-                    # Named parameters: pass as keyword arguments
-                    if inspect.iscoroutinefunction(func):
-                        result = await func(**input_data)
-                    else:
-                        result = func(**input_data)
-                else:
-                    # Positional parameters: unpack list
-                    if inspect.iscoroutinefunction(func):
-                        result = await func(*input_data)
-                    else:
-                        result = func(*input_data)
+            if inspect.isawaitable(result):
+                result = await result
 
-                return TaskResult(result=result)
-            finally:
-                # Clean up the context
-                _current_client.reset(context)
+            return TaskResult(result=result)
 
         except Exception as e:
             return TaskResult(error=e)
