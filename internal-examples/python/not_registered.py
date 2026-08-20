@@ -5,7 +5,7 @@ This demonstrates the Workflows class pattern for defining durable tasks.
 
 import logging
 
-from render_sdk import Retry, Workflows
+from render_sdk import Retry, TaskContext, Workflows
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,7 +19,7 @@ app = Workflows(
 
 
 @app.task
-def not_registered_task(a: int) -> int:
+def not_registered_task(ctx: TaskContext, a: int) -> int:
     """Square a number."""
     logger.info(f"Computing square of {a}")
     return a * a

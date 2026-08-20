@@ -63,4 +63,4 @@ params = ListTaskRunsParams(limit=5)
 task_runs = render.workflows.list_task_runs(params)
 print(f"Found {len(task_runs)} recent task runs")
 for i, tr in enumerate(task_runs, 1):
-    print(f"  {i}. {tr.id} {tr.status}")
+    print(f"  {i}. {tr.task_run.id} {tr.task_run.status}")

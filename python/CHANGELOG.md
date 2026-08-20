@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0] - 2026-08-20
+
+### Changed
+
+- **Breaking** (Workflows) Tasks now take a `TaskContext` as their first parameter, followed by their inputs
+- **Breaking** (Workflows) Subtasks are reached through the context instead of by awaiting a task directly: `await ctx.run(task, input)` runs it on its own compute and returns its result
+- **Breaking** (Workflows) `@app.task` returns a `TaskDefinition` rather than a `TaskCallable`. A definition is not callable; use `ctx.run` to schedule it, or its `func` attribute to invoke it in-process
+- **Breaking** (Workflows) Registering a task whose first parameter cannot receive a context now raises `ValueError`
+- (Workflows) The context parameter is excluded from the parameter schema sent at registration
+- (Workflows) `ctx.run` is fully typed: a task's inputs and result are inferred from its function signature, for sync and async bodies alike
+- (Workflows) `TaskContext` is a `Protocol`, so a test can supply its own stand-in without subclassing. The runtime implementation is exported as `WorkflowTaskContext`
+
 ## [0.8.0] - 2026-08-19
 
 ### Added

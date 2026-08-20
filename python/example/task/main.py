@@ -6,7 +6,7 @@ This demonstrates the Workflows class pattern for defining durable tasks.
 import asyncio
 import logging
 
-from render_sdk import Retry, Workflows
+from render_sdk import Retry, TaskContext, Workflows
 
 # Configure logging
 logging.basicConfig(level=logging.WARNING)
@@ -21,44 +21,43 @@ app = Workflows(
 
 
 @app.task
-def square(a: int) -> int:
+def square(ctx: TaskContext, a: int) -> int:
     """Square a number."""
     logger.info(f"Computing square of {a}")
     return a * a
 
 
 @app.task
-async def add_squares(a: int, b: int) -> int:
+async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     """Add the squares of two numbers."""
     logger.info(f"Computing add_squares: {a}, {b}")
 
-    # Execute subtasks
-    result1 = await square(a)
+    result1 = await ctx.run(square, a)
     logger.info(f"Square result: {result1}")
-    result2 = await square(b)
+    result2 = await ctx.run(square, b)
     logger.info(f"Square result: {result2}")
 
     return result1 + result2
 
 
 @app.task(name="custom_add", retry=Retry(max_retries=3, wait_duration_ms=1000))
-def add_numbers(a: int, b: int) -> int:
+def add_numbers(ctx: TaskContext, a: int, b: int) -> int:
     """Add two numbers with custom retry configuration."""
     logger.info(f"Adding {a} + {b}")
     return a + b
 
 
 @app.task
-def greet(name: str) -> str:
+def greet(ctx: TaskContext, name: str) -> str:
     """Greet someone."""
     logger.info(f"Greeting {name}")
     return f"Hello, {name}!"
 
 
 @app.task
-async def fan_out(n: int) -> list[int]:
+async def fan_out(ctx: TaskContext, n: int) -> list[int]:
     """Fan out a number into a list of squares."""
-    squares = [square(i) for i in range(n)]
+    squares = [ctx.run(square, i) for i in range(n)]
     results = await asyncio.gather(*squares)
     return list(results)
 

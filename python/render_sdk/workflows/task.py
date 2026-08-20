@@ -1,18 +1,30 @@
 """Task decorator and related functionality."""
 
-import asyncio
-import contextvars
+from __future__ import annotations
+
 import functools
 import inspect
-from abc import ABC, abstractmethod
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, TypeVar
+from itertools import islice
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Concatenate,
+    Generic,
+    ParamSpec,
+    Protocol,
+    TypeVar,
+    overload,
+)
 
-F = TypeVar("F", bound=Callable[..., Any])
+if TYPE_CHECKING:
+    from render_sdk.workflows.context import TaskContext
 
-# Context variable to hold the current client for subtask execution
-_current_client: contextvars.ContextVar = contextvars.ContextVar("current_client")
+# P is the task's own inputs, i.e. everything after the leading TaskContext.
+# Task bodies are therefore Callable[Concatenate[TaskContext, P], R | Awaitable[R]].
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 @dataclass
@@ -24,7 +36,7 @@ class Retry:
     backoff_scaling: float = 1.5
 
     @classmethod
-    def from_dict(cls, d: dict) -> "Retry":
+    def from_dict(cls, d: dict) -> Retry:
         return cls(
             max_retries=d["max_retries"],
             wait_duration_ms=d["wait_duration_ms"],
@@ -83,12 +95,26 @@ class TaskResult:
         return self._error
 
 
-class TaskContext(ABC):
-    """Abstract base class for task context."""
+def _verify_signature(func: Callable, task_name: str) -> None:
+    """Reject tasks that cannot accept a context as their first argument."""
+    sig = inspect.signature(func)
+    parameters = list(sig.parameters.values())
 
-    @abstractmethod
-    def execute_task(self, task_func: Callable, *args, **kwargs) -> TaskResult:
-        """Execute a task and return the result."""
+    if not parameters:
+        raise ValueError(
+            f"Task '{task_name}' must accept a TaskContext as its first "
+            f"parameter, e.g. def {task_name}(ctx, ...)."
+        )
+
+    first = parameters[0]
+    if first.kind in (
+        inspect.Parameter.KEYWORD_ONLY,
+        inspect.Parameter.VAR_KEYWORD,
+    ):
+        raise ValueError(
+            f"Task '{task_name}' must accept a TaskContext as its first "
+            f"positional parameter, but '{first.name}' is keyword-only."
+        )
 
 
 class TaskInfo:
@@ -114,11 +140,16 @@ class TaskRegistry:
         self._tasks: dict[str, TaskInfo] = {}
 
     def _extract_parameters(self, func: Callable) -> list[ParameterInfo]:
-        """Extract parameter information from a function signature."""
+        """
+        Extract the task's input parameters from its function signature.
+
+        The leading context parameter is supplied by the runtime rather than by
+        the caller, so it is not part of the task's declared inputs.
+        """
         sig = inspect.signature(func)
         parameters: list[ParameterInfo] = []
 
-        for param_name, param in sig.parameters.items():
+        for param_name, param in islice(sig.parameters.items(), 1, None):
             # Get type hint as string if available
             type_hint: str | None = None
             if param.annotation is not inspect.Parameter.empty:
@@ -151,6 +182,7 @@ class TaskRegistry:
         """Register a task function."""
         task_name = name or func.__name__
 
+        _verify_signature(func, task_name)
         parameters = self._extract_parameters(func)
 
         task_info = TaskInfo(func, task_name, options, parameters)
@@ -178,64 +210,82 @@ class TaskRegistry:
         return task_info.func
 
 
-class TaskInstance:
-    """Represents a single task execution that can be awaited."""
+class TaskDefinition(Generic[P, R]):
+    """A registered task."""
 
-    def __init__(self, name: str, future: asyncio.Task):
-        self._name = name
-        self._future = future
+    def __init__(
+        self,
+        func: Callable[Concatenate[TaskContext, P], R | Awaitable[R]],
+        name: str,
+    ) -> None:
+        # Copy function attributes for introspection. This runs before the
+        # assignments below because update_wrapper ends by copying func.__dict__
+        # over this object, which would otherwise overwrite them.
+        #
+        # The ignore is because update_wrapper is typed for callable wrappers,
+        # and a definition is deliberately not callable.
+        functools.update_wrapper(self, func)  # type: ignore[arg-type]
+        self.func = func
+        self.name = name
 
-    def __await__(self):
-        """Await the task execution."""
-
-        async def run_subtask():
-            try:
-                return await self._future
-            except LookupError as e:
-                raise RuntimeError(
-                    f"Cannot run {self._name} as subtask \
-                      outside of task execution context"
-                ) from e
-
-        return run_subtask().__await__()
-
-
-class TaskCallable:
-    """A callable that can be awaited to run as a subtask."""
-
-    def __init__(self, func, name):
-        self._func = func
-        self._name = name
-        # Copy function attributes for introspection
-        functools.update_wrapper(self, func)
-
-    def __call__(self, *args, **kwargs):
-        # Create a new TaskInstance for each call
-        client = _current_client.get()
-
-        # Error on mixed positional and kw args
-        if args and kwargs:
-            raise ValueError(
-                "Cannot mix positional and keyword arguments when calling a task. "
-                "Use either positional arguments (e.g., task(arg1, arg2)) or "
-                "keyword arguments (e.g., task(param1=value1, param2=value2)), "
-                "but not both."
-            )
-
-        # Determine input data type based on how the task was called
-        if kwargs:
-            # Named parameters: pass as dict
-            input_data: dict[str, Any] = kwargs
-        else:
-            # Positional parameters: pass as list
-            input_data = list(args)
-
-        # Start execution immediately
-        future = asyncio.create_task(client.run_subtask(self._name, input_data))
-        return TaskInstance(self._name, future)
+    def __repr__(self) -> str:
+        return f"TaskDefinition(name={self.name!r})"
 
 
-def create_task_decorator(registry: TaskRegistry) -> Callable:
+class BoundTaskDecorator(Protocol):
+    """The decorator produced by calling ``task(...)`` with options."""
+
+    # The async overload must stay first: a coroutine function also matches the
+    # sync signature, with R bound to the coroutine rather than its result.
+    @overload
+    def __call__(
+        self, func: Callable[Concatenate[TaskContext, P], Awaitable[R]], /
+    ) -> TaskDefinition[P, R]: ...
+
+    @overload
+    def __call__(
+        self, func: Callable[Concatenate[TaskContext, P], R], /
+    ) -> TaskDefinition[P, R]: ...
+
+
+class TaskDecorator(Protocol):
+    """
+    The decorator returned by :func:`create_task_decorator`.
+
+    A Protocol rather than a Callable so that the ``@task`` and ``@task(...)``
+    forms keep their distinct return types.
+    """
+
+    @overload
+    def __call__(
+        self,
+        func: Callable[Concatenate[TaskContext, P], Awaitable[R]],
+        /,
+        *,
+        name: str | None = ...,
+        options: Options | None = ...,
+    ) -> TaskDefinition[P, R]: ...
+
+    @overload
+    def __call__(
+        self,
+        func: Callable[Concatenate[TaskContext, P], R],
+        /,
+        *,
+        name: str | None = ...,
+        options: Options | None = ...,
+    ) -> TaskDefinition[P, R]: ...
+
+    @overload
+    def __call__(
+        self,
+        *,
+        name: str | None = ...,
+        options: Options | None = ...,
+    ) -> BoundTaskDecorator: ...
+
+
+def create_task_decorator(registry: TaskRegistry) -> TaskDecorator:
     """
     Create a task decorator bound to a specific registry.
 
@@ -250,18 +300,21 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
         task = create_task_decorator(registry)
 
         @task
-        def my_task(value: int) -> int:
+        def my_task(ctx: TaskContext, value: int) -> int:
             return value * 2
     """
 
     def task(
-        func: F | None = None,
+        func: Callable[..., Any] | None = None,
         *,
         name: str | None = None,
         options: Options | None = None,
-    ) -> F | Callable[[F], TaskCallable]:
+    ) -> Any:
         """
         Decorator to register a function as a task in the bound registry.
+
+        The decorated function takes a TaskContext as its first parameter,
+        followed by its inputs.
 
         Args:
             func: The function to decorate
@@ -269,13 +322,13 @@ def create_task_decorator(registry: TaskRegistry) -> Callable:
             options: Optional configuration options
 
         Returns:
-            The decorated function
+            A TaskDefinition wrapping the decorated function
         """
 
-        def decorator(f: F) -> TaskCallable:
+        def decorator(f: Callable[..., Any]) -> TaskDefinition:
             task_name = registry.register(f, name, options)
 
-            return TaskCallable(f, task_name)
+            return TaskDefinition(f, task_name)
 
         if func is None:
             # Called with arguments: @task(name="...", options=...)

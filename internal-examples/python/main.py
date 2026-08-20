@@ -4,7 +4,7 @@ import logging
 
 from not_registered import not_registered_task
 
-from render_sdk.workflows import start, task
+from render_sdk.workflows import TaskContext, start, task
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -12,13 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 @task
-async def call_not_registered_task(n: int) -> int:
+async def call_not_registered_task(ctx: TaskContext, n: int) -> int:
     """Call a not registered task."""
-    return await not_registered_task(n)
+    return await ctx.run(not_registered_task, n)
 
 
 @task
-async def deadlock_test(n: int) -> int:
+async def deadlock_test(ctx: TaskContext, n: int) -> int:
     """
     Deadlock test example.
 
@@ -29,7 +29,7 @@ async def deadlock_test(n: int) -> int:
     """
 
     if n > 0:
-        await deadlock_test(n - 1)
+        await ctx.run(deadlock_test, n - 1)
 
     logger.info(f"Deadlock test {n} complete")
 
@@ -37,13 +37,13 @@ async def deadlock_test(n: int) -> int:
 
 
 @task
-async def print_hello_world():
+async def print_hello_world(ctx: TaskContext) -> None:
     """Prints a simple string."""
     print("Hello, world!")
 
 
 @task
-async def emit_logs():
+async def emit_logs(ctx: TaskContext) -> None:
     """Emits a series of log messages at different log levels."""
     logger.info("Logging to INFO")
     logger.warning("Logging to WARNING")
@@ -52,20 +52,20 @@ async def emit_logs():
 
 
 @task
-async def calculate_square(n: int) -> int:
+async def calculate_square(ctx: TaskContext, n: int) -> int:
     """Calculate the square of a number."""
     return n * n
 
 
 @task
-async def add_squares(a: int, b: int) -> int:
+async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     """Add the squares of two numbers."""
     logger.info(f"Computing add_squares: {a}, {b}")
 
     # Execute subtasks
-    result1 = await calculate_square(a)
+    result1 = await ctx.run(calculate_square, a)
     logger.info(f"Square result 1: {result1}")
-    result2 = await calculate_square(b)
+    result2 = await ctx.run(calculate_square, b)
     logger.info(f"Square result 2: {result2}")
 
     return result1 + result2
