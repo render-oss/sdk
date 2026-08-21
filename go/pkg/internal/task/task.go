@@ -113,7 +113,7 @@ func CallTask(t Task, args ...interface{}) ([]interface{}, error) {
 
 		if arg == nil {
 			// Accept nil only for interface or pointer types
-			if expectedType.Kind() != reflect.Interface && expectedType.Kind() != reflect.Ptr {
+			if expectedType.Kind() != reflect.Interface && expectedType.Kind() != reflect.Pointer {
 				return nil, fmt.Errorf("argument %d is nil, but expected non-nil type %s", i, expectedType)
 			}
 			in[i] = reflect.Zero(expectedType)
@@ -194,7 +194,7 @@ func (t *TaskResult) Get(output ...interface{}) error {
 		}
 
 		argVal := reflect.ValueOf(arg)
-		if argVal.Kind() != reflect.Ptr || argVal.IsNil() {
+		if argVal.Kind() != reflect.Pointer || argVal.IsNil() {
 			return fmt.Errorf("output argument %d must be a non-nil pointer", i)
 		}
 
