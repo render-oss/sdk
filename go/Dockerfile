@@ -10,7 +10,7 @@ RUN wget --no-check-certificate https://man7.org/tlpi/code/download/tlpi-230522-
 RUN tar xfz tlpi-230522-dist.tar.gz
 RUN cd tlpi-dist && make
 
-FROM golang:1.24-alpine AS go-sdk-build
+FROM golang:1.27-alpine AS go-sdk-build
 
 WORKDIR /app
 
