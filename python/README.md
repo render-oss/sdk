@@ -7,7 +7,7 @@ The official Python SDK for Render. Define Workflow tasks, manage task runs, and
 ## Installation
 
 ```bash
-pip install render_sdk
+pip install render
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ Use the `Workflows` class to define and register tasks. Every task takes a
 `TaskContext` as its first parameter, followed by its inputs:
 
 ```python
-from render_sdk import TaskContext, Workflows
+from render import TaskContext, Workflows
 
 app = Workflows()
 
@@ -51,7 +51,7 @@ async def sum_squares(ctx: TaskContext, values: list[int]) -> int:
 You can also specify task parameters like `retry`, `timeout`, and `plan`:
 
 ```python
-from render_sdk import Retry, TaskContext, Workflows
+from render import Retry, TaskContext, Workflows
 
 app = Workflows(
     default_retry=Retry(max_retries=3, wait_duration_ms=1000),
@@ -102,9 +102,9 @@ render workflows tasks start <task name> --local
 Use the `Render` client to run tasks and monitor their status:
 
 ```python
-from render_sdk import Render
-from render_sdk.client import ListTaskRunsParams
-from render_sdk.client.errors import TaskRunError
+from render import Render
+from render.client import ListTaskRunsParams
+from render.client.errors import TaskRunError
 
 render = Render()  # Uses RENDER_API_KEY from the environment
 
@@ -140,7 +140,7 @@ For async contexts (e.g. FastAPI), use `RenderAsync`:
 
 ```python
 import asyncio
-from render_sdk import RenderAsync
+from render import RenderAsync
 
 async def main():
     render = RenderAsync()
@@ -162,7 +162,7 @@ asyncio.run(main())
 ### Object Storage
 
 ```python
-from render_sdk import Render
+from render import Render
 
 render = Render()  # Uses RENDER_API_KEY, RENDER_WORKSPACE_ID, RENDER_REGION from environment
 
@@ -198,8 +198,8 @@ You can look up an instance by name and the SDK will create it if it doesn't exi
 
 ```python
 import asyncio
-from render_sdk import RenderAsync
-from render_sdk.experimental.key_value import NameOwnerIdOptions
+from render import RenderAsync
+from render.experimental.key_value import NameOwnerIdOptions
 
 async def main():
     render = RenderAsync()
@@ -225,7 +225,7 @@ asyncio.run(main())
 If you already have a Render Key Value service ID, pass it directly to skip the name lookup:
 
 ```python
-from render_sdk.experimental.key_value import ServiceIdOptions
+from render.experimental.key_value import ServiceIdOptions
 
 redis = await render.experimental.key_value.new_client(
     ServiceIdOptions(service_id="redis-xxxxxxxxxxxx")
@@ -237,7 +237,7 @@ redis = await render.experimental.key_value.new_client(
 Pass an `auto_provision` configuration to control the plan and eviction policy. If the instance doesn't exist it will be created; if it exists but its settings differ they will be updated:
 
 ```python
-from render_sdk.experimental.key_value import InstanceConfiguration, NameOwnerIdOptions
+from render.experimental.key_value import InstanceConfiguration, NameOwnerIdOptions
 
 redis = await render.experimental.key_value.new_client(
     NameOwnerIdOptions(

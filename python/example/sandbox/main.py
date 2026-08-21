@@ -8,8 +8,8 @@ import asyncio
 import tempfile
 from pathlib import Path
 
-from render_sdk import RenderAsync
-from render_sdk.experimental.sandbox import SandboxClient, SandboxExecOutput
+from render import RenderAsync
+from render.experimental.sandbox import SandboxClient, SandboxExecOutput
 
 
 async def run(sandboxes: SandboxClient, sandbox_id: str, command: str) -> None:

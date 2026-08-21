@@ -14,9 +14,9 @@ Setup:
 
 from typing import Any
 
-from render_sdk import Render
-from render_sdk.client import ListTaskRunsParams
-from render_sdk.client.errors import RenderError, TaskRunError
+from render import Render
+from render.client import ListTaskRunsParams
+from render.client.errors import RenderError, TaskRunError
 
 # Create client (uses RENDER_API_KEY from environment)
 render = Render()

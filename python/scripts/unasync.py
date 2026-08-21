@@ -18,20 +18,20 @@ SDK_ROOT = Path(__file__).resolve().parent.parent
 # (async source, generated sync target)
 FILE_PAIRS = [
     (
-        SDK_ROOT / "render_sdk" / "experimental" / "object" / "api.py",
-        SDK_ROOT / "render_sdk" / "experimental" / "object" / "api_sync.py",
+        SDK_ROOT / "render" / "experimental" / "object" / "api.py",
+        SDK_ROOT / "render" / "experimental" / "object" / "api_sync.py",
     ),
     (
-        SDK_ROOT / "render_sdk" / "experimental" / "object" / "client.py",
-        SDK_ROOT / "render_sdk" / "experimental" / "object" / "client_sync.py",
+        SDK_ROOT / "render" / "experimental" / "object" / "client.py",
+        SDK_ROOT / "render" / "experimental" / "object" / "client_sync.py",
     ),
     (
-        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "api.py",
-        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "api_sync.py",
+        SDK_ROOT / "render" / "experimental" / "sandbox" / "api.py",
+        SDK_ROOT / "render" / "experimental" / "sandbox" / "api_sync.py",
     ),
     (
-        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "client.py",
-        SDK_ROOT / "render_sdk" / "experimental" / "sandbox" / "client_sync.py",
+        SDK_ROOT / "render" / "experimental" / "sandbox" / "client.py",
+        SDK_ROOT / "render" / "experimental" / "sandbox" / "client_sync.py",
     ),
 ]
 
@@ -55,17 +55,17 @@ SYNTAX_REPLACEMENTS = [
     ("aiter_lines", "iter_lines"),
     ("aread", "read"),
     (
-        "from render_sdk.experimental.sandbox.api import",
-        "from render_sdk.experimental.sandbox.api_sync import",
+        "from render.experimental.sandbox.api import",
+        "from render.experimental.sandbox.api_sync import",
     ),
     # Import path renames
     (
-        "from render_sdk.experimental.object.api import",
-        "from render_sdk.experimental.object.api_sync import",
+        "from render.experimental.object.api import",
+        "from render.experimental.object.api_sync import",
     ),
     (
-        "from render_sdk.client.util import",
-        "from render_sdk.client.util_sync import",
+        "from render.client.util import",
+        "from render.client.util_sync import",
     ),
     # Docstring fixups (artifacts of mechanical transformation)
     ("to an async byte iterator", "to a byte iterator"),

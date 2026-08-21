@@ -6,6 +6,7 @@ DESTINATION_BRANCH = "main"
 DESTINATION_FILES = [
   "go/**",
   "python/**",
+  "python-metapackage/**",
   "typescript/**",
   ".github/**",
   ".pre-commit-config.yaml",

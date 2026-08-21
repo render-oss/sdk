@@ -7,8 +7,8 @@ from typing import ParamSpec, TypeVar
 
 from typing_extensions import assert_type
 
-from render_sdk import Retry, Workflows
-from render_sdk.workflows import TaskContext, TaskDefinition, task
+from render import Retry, Workflows
+from render.workflows import TaskContext, TaskDefinition, task
 
 P = ParamSpec("P")
 R = TypeVar("R")
