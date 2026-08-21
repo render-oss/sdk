@@ -62,7 +62,7 @@ jobs:
                 'Installs straight from this branch — no publish step. Requires read access to this repo (SSH key or a `contents: read` token).',
                 '',
                 '```bash',
-                `uv pip install "render-sdk @ git+ssh://git@github.com/${repo}@${HEAD_SHA}#subdirectory=python"`,
+                `uv pip install "render @ git+ssh://git@github.com/${repo}@${HEAD_SHA}#subdirectory=python"`,
                 '```',
                 '',
                 `To follow the branch instead of pinning to \`${shortSha}\`, swap the SHA for \`${HEAD_REF}\`.`,
@@ -71,7 +71,7 @@ jobs:
                 '',
                 '```toml',
                 '[tool.uv.sources]',
-                `render-sdk = { git = "https://github.com/${repo}", subdirectory = "python", rev = "${HEAD_SHA}" }`,
+                `render = { git = "https://github.com/${repo}", subdirectory = "python", rev = "${HEAD_SHA}" }`,
                 '```',
               ].join('\n'))
             }

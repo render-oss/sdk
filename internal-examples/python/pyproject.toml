@@ -7,7 +7,7 @@ authors = [
 ]
 requires-python = ">=3.13,<4.0"
 dependencies = [
-    "render-sdk",
+    "render",
 ]
 
 [tool.uv]
@@ -15,7 +15,7 @@ dependencies = [
 # nothing to build for the project itself.
 package = false
 
-# Resolve render-sdk from the SDK source in this repo rather than from PyPI, so
+# Resolve render from the SDK source in this repo rather than from PyPI, so
 # the example always exercises the checked-out code.
 [tool.uv.sources]
-render-sdk = { path = "../../python", editable = true }
+render = { path = "../../python", editable = true }

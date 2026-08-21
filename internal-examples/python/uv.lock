@@ -258,11 +258,11 @@ name = "internal-examples"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "render-sdk" },
+    { name = "render" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "render-sdk", editable = "../../python" }]
+requires-dist = [{ name = "render", editable = "../../python" }]
 
 [[package]]
 name = "multidict"
@@ -435,8 +435,8 @@ wheels = [
 ]
 
 [[package]]
-name = "render-sdk"
-version = "0.7.0"
+name = "render"
+version = "1.0.1"
 source = { editable = "../../python" }
 dependencies = [
     { name = "aiohttp" },

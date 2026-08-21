@@ -4,7 +4,7 @@ import logging
 
 from not_registered import not_registered_task
 
-from render_sdk.workflows import TaskContext, start, task
+from render.workflows import TaskContext, start, task
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

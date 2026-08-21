@@ -123,7 +123,7 @@
 
 ### Added
 
-- `Workflows` class for defining and registering tasks (`from render_sdk import Workflows`)
+- `Workflows` class for defining and registering tasks (`from render import Workflows`)
 - `Render` class as primary entry point for REST API access
 - `timeout_seconds` parameter for specifying timeout during task definition
 - `plan` parameter for specifying resource plan during task definition

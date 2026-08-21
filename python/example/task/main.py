@@ -6,7 +6,7 @@ This demonstrates the Workflows class pattern for defining durable tasks.
 import asyncio
 import logging
 
-from render_sdk import Retry, TaskContext, Workflows
+from render import Retry, TaskContext, Workflows
 
 # Configure logging
 logging.basicConfig(level=logging.WARNING)

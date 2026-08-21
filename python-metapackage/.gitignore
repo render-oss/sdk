@@ -1,0 +1,8 @@
+__pycache__/
+*.py[codz]
+.venv
+dist/
+.tox/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

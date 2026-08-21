@@ -15,9 +15,9 @@ Setup:
 import asyncio
 from typing import Any
 
-from render_sdk import RenderAsync
-from render_sdk.client import ListTaskRunsParams
-from render_sdk.client.errors import RenderError, TaskRunError
+from render import RenderAsync
+from render.client import ListTaskRunsParams
+from render.client.errors import RenderError, TaskRunError
 
 
 async def main():
