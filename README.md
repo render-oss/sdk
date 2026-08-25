@@ -14,11 +14,11 @@ SDK support is provided for the following languages
 
 With the following features
 
-| Feature        | Python                                                                  | TypeScript                                                               |
-| -------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| REST API       | ✔️                                                                      | ✔️                                                                       |
-| Workflows      | [⚠️ Early Access client](./python/render/client/workflows.py)           | [⚠️ Early Access client](./typescript/src/workflows/client/client.ts)    |
-| Object Storage | [⚠️ Early Access client](./python/render/experimental/object/client.py) | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts) |
+| Feature        | REST API                                                        | Python                                                                   | TypeScript                                                                 |
+| -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
+| Workflows      | [REST API](https://api-docs.render.com/reference/listworkflows) | [Released](./python/render/client/workflows.py)                          | [Released](./typescript/src/workflows/client/client.ts)                    |
+| Object Storage | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/object/client.py)  | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts)   |
+| Sandboxes      | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/sandbox/client.py) | [⚠️ Early Access client](./typescript/src/experimental/sandboxes/index.ts) |
 
 # Quickstart
 
