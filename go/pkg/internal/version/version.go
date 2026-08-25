@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"runtime"
 	"runtime/debug"
+	"strings"
 	"sync"
 )
 
@@ -21,6 +22,11 @@ var Version = sync.OnceValue(func() string {
 })
 
 // UserAgent returns the User-Agent string for the SDK.
+//
+// Returns a string like:
+//
+//	render-sdk-go/0.1.3 (go/1.21.4; darwin/arm64)
 var UserAgent = sync.OnceValue(func() string {
-	return fmt.Sprintf("render-sdk-go/%s (%s; %s/%s)", Version(), runtime.Version(), runtime.GOOS, runtime.GOARCH)
+	goVersion := strings.TrimPrefix(runtime.Version(), "go")
+	return fmt.Sprintf("render-sdk-go/%s (go/%s; %s/%s)", Version(), goVersion, runtime.GOOS, runtime.GOARCH)
 })
