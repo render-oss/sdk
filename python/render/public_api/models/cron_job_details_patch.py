@@ -21,7 +21,7 @@ class CronJobDetailsPATCH:
     """
     Attributes:
         env_specific_details (Union['DockerDetailsPATCH', 'NativeEnvironmentDetailsPATCH', Unset]):
-        plan (Union[Unset, PaidPlan]): Defaults to `starter` when creating a new database.
+        plan (Union[Unset, PaidPlan]): Defaults to `0.5c-512mb` when creating a new service.
         schedule (Union[Unset, str]):
         runtime (Union[Unset, ServiceRuntime]): Runtime
     """

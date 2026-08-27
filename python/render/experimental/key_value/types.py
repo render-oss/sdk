@@ -23,13 +23,20 @@ __all__ = [
     "ServiceIdOptions",
 ]
 
-# Excludes "custom", which is a managed plan not available for provisioning
+# Excludes "custom", which is a managed plan not available for provisioning.
+# tests/test_types.py asserts this stays in sync with the generated KeyValuePlan.
 Plan = Literal[
     "free",
     "starter",
     "standard",
     "pro",
     "pro_plus",
+    "256mb",
+    "1g",
+    "5g",
+    "10g",
+    "20g",
+    "40g",
 ]
 
 # Owner ID (format: "tea-xxx" for workspace teams, "own-xxx" for individuals)

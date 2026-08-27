@@ -34,9 +34,9 @@ class PrivateServiceDetails:
         num_instances (int): For a *manually* scaled service, this is the number of instances the service is scaled to.
             DOES NOT indicate the number of running instances for an *autoscaled* service.
         open_ports (list['ServerPort']):
-        plan (Plan): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
-            offered for new services. Note that base services on any paid instance type can't create preview instances with
-            the `free` instance type. Example: starter.
+        plan (Plan): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
+            offered for new services. Note that base services on any paid compute plan can't create preview instances with
+            the `free` plan. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         url (str):
