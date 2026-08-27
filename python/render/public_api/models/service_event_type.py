@@ -37,6 +37,8 @@ class ServiceEventType(str, Enum):
     SERVER_FAILED = "server_failed"
     SERVER_HARDWARE_FAILURE = "server_hardware_failure"
     SERVER_RESTARTED = "server_restarted"
+    SERVICE_DISK_USAGE_HIGH = "service_disk_usage_high"
+    SERVICE_DISK_USAGE_RECOVERED = "service_disk_usage_recovered"
     SERVICE_RESUMED = "service_resumed"
     SERVICE_SUSPENDED = "service_suspended"
     SUSPENDER_ADDED = "suspender_added"

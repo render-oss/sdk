@@ -76,6 +76,7 @@ const (
 	CreateProjectEvent                 AuditLogEvent = "CreateProjectEvent"
 	CreateRedisEvent                   AuditLogEvent = "CreateRedisEvent"
 	CreateSSOConnectionEvent           AuditLogEvent = "CreateSSOConnectionEvent"
+	CreateSavedSearchEvent             AuditLogEvent = "CreateSavedSearchEvent"
 	CreateServerDiskEvent              AuditLogEvent = "CreateServerDiskEvent"
 	CreateServerEvent                  AuditLogEvent = "CreateServerEvent"
 	CreateWebhookEvent                 AuditLogEvent = "CreateWebhookEvent"
@@ -91,6 +92,7 @@ const (
 	DeleteProjectEvent                 AuditLogEvent = "DeleteProjectEvent"
 	DeleteRedisEvent                   AuditLogEvent = "DeleteRedisEvent"
 	DeleteSSOConnectionEvent           AuditLogEvent = "DeleteSSOConnectionEvent"
+	DeleteSavedSearchEvent             AuditLogEvent = "DeleteSavedSearchEvent"
 	DeleteServerDiskEvent              AuditLogEvent = "DeleteServerDiskEvent"
 	DeleteServerEvent                  AuditLogEvent = "DeleteServerEvent"
 	DeleteWebhookEvent                 AuditLogEvent = "DeleteWebhookEvent"
@@ -184,6 +186,8 @@ func (e AuditLogEvent) Valid() bool {
 		return true
 	case CreateSSOConnectionEvent:
 		return true
+	case CreateSavedSearchEvent:
+		return true
 	case CreateServerDiskEvent:
 		return true
 	case CreateServerEvent:
@@ -213,6 +217,8 @@ func (e AuditLogEvent) Valid() bool {
 	case DeleteRedisEvent:
 		return true
 	case DeleteSSOConnectionEvent:
+		return true
+	case DeleteSavedSearchEvent:
 		return true
 	case DeleteServerDiskEvent:
 		return true
@@ -730,6 +736,24 @@ func (e NotifySetting) Valid() bool {
 	case Ignore:
 		return true
 	case Notify:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OutboundIpsType.
+const (
+	OutboundIpsTypeDedicated OutboundIpsType = "dedicated"
+	OutboundIpsTypeShared    OutboundIpsType = "shared"
+)
+
+// Valid indicates whether the value is a known member of the OutboundIpsType enum.
+func (e OutboundIpsType) Valid() bool {
+	switch e {
+	case OutboundIpsTypeDedicated:
+		return true
+	case OutboundIpsTypeShared:
 		return true
 	default:
 		return false
@@ -2157,8 +2181,21 @@ type EnvironmentWithCursor struct {
 
 // Error defines model for error.
 type Error struct {
+	// Code A stable, machine-readable identifier present on specific errors that clients can handle specially. Each endpoint documents the codes it can return. The errorCode schema lists the full vocabulary of codes.
+	Code    *string `json:"code,omitempty"`
 	Id      *string `json:"id,omitempty"`
 	Message *string `json:"message,omitempty"`
+}
+
+// ExecutionWithCursor A sandbox execution with a cursor
+type ExecutionWithCursor struct {
+	Cursor Cursor `json:"cursor"`
+
+	// Execution One recorded sandbox execution (a command run or file transfer).
+	// `startedAt` is the token provisioning time. `command` may be present
+	// while the execution is in flight (recorded at token mint). `stoppedAt`
+	// and `exitCode` are absent until a status report or sandbox finalization.
+	Execution externalRef15.Execution `json:"execution"`
 }
 
 // Header defines model for header.
@@ -2399,6 +2436,23 @@ type NotificationOverrideWithCursor struct {
 
 // NotifySetting defines model for notifySetting.
 type NotifySetting string
+
+// OutboundIps defines model for outboundIps.
+type OutboundIps struct {
+	// DedicatedIpId The dedicated IP set the traffic originates from. Only present when `type` is `dedicated`.
+	//
+	// Example: egs-abc123
+	DedicatedIpId *string `json:"dedicatedIpId,omitempty"`
+
+	// Ips The IP addresses the resource's outbound traffic originates from.
+	Ips []string `json:"ips"`
+
+	// Type `dedicated` if a dedicated IP set applies to the resource, `shared` if its traffic originates from the shared Render IPs for its region.
+	Type OutboundIpsType `json:"type"`
+}
+
+// OutboundIpsType `dedicated` if a dedicated IP set applies to the resource, `shared` if its traffic originates from the shared Render IPs for its region.
+type OutboundIpsType string
 
 // Owner defines model for owner.
 type Owner struct {
@@ -3614,6 +3668,9 @@ type N409Conflict = Error
 // N410Gone defines model for 410Gone.
 type N410Gone = Error
 
+// N413RequestEntityTooLarge defines model for 413RequestEntityTooLarge.
+type N413RequestEntityTooLarge = Error
+
 // N429RateLimit defines model for 429RateLimit.
 type N429RateLimit = Error
 
@@ -3731,6 +3788,11 @@ type ListBlueprintSyncsParams struct {
 type ListDedicatedIpsParams struct {
 	// OwnerId The ID of the workspace to list dedicated IP sets for.
 	OwnerId string `form:"ownerId" json:"ownerId"`
+
+	// EnvironmentId Filter dedicated IP sets limited to this environment. Excludes workspace-scoped dedicated IP sets.
+	//
+	// The environment must belong to the workspace named by `ownerId`.
+	EnvironmentId *string `form:"environmentId,omitempty" json:"environmentId,omitempty"`
 }
 
 // ListDisksParams defines parameters for ListDisks.
@@ -4737,14 +4799,14 @@ type UpdateRegistryCredentialJSONBody struct {
 
 // ListSandboxGroupsParams defines parameters for ListSandboxGroups.
 type ListSandboxGroupsParams struct {
-	// OwnerId The ID of the workspaces to return resources for
-	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+	// OwnerId The ID of the workspace whose sandbox groups to return.
+	OwnerId string `form:"ownerId" json:"ownerId"`
 }
 
 // ListSandboxesParams defines parameters for ListSandboxes.
 type ListSandboxesParams struct {
-	// OwnerId The ID of the workspaces to return resources for
-	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+	// OwnerId The ID of the workspace whose sandboxes to return.
+	OwnerId string `form:"ownerId" json:"ownerId"`
 
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
 	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -4758,8 +4820,36 @@ type ListSandboxesParams struct {
 
 // RetrieveSandboxParams defines parameters for RetrieveSandbox.
 type RetrieveSandboxParams struct {
-	// OwnerId The ID of the workspace the sandbox belongs to.
-	OwnerId string `form:"ownerId" json:"ownerId"`
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
+// ListSandboxExecutionsParams defines parameters for ListSandboxExecutions.
+type ListSandboxExecutionsParams struct {
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// RetrieveSandboxExecutionParams defines parameters for RetrieveSandboxExecution.
+type RetrieveSandboxExecutionParams struct {
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
+// UpdateSandboxExecParams defines parameters for UpdateSandboxExec.
+type UpdateSandboxExecParams struct {
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 }
 
 // ListSandboxFilesParams defines parameters for ListSandboxFiles.
@@ -4773,8 +4863,9 @@ type ListSandboxFilesParams struct {
 
 // ConnectSandboxFilesParams defines parameters for ConnectSandboxFiles.
 type ConnectSandboxFilesParams struct {
-	// OwnerId The ID of the workspace the sandbox belongs to.
-	OwnerId string `form:"ownerId" json:"ownerId"`
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 
 	// Path Path in the sandbox this token authorizes. A relative path resolves within the sandbox's home directory ("." is the home directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch.
 	Path string `form:"path" json:"path"`
@@ -4800,14 +4891,16 @@ type StreamSandboxLogsParamsAccept string
 
 // ConnectSandboxRunParams defines parameters for ConnectSandboxRun.
 type ConnectSandboxRunParams struct {
-	// OwnerId The ID of sandbox workspace.
-	OwnerId string `form:"ownerId" json:"ownerId"`
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 }
 
 // TerminateSandboxParams defines parameters for TerminateSandbox.
 type TerminateSandboxParams struct {
-	// OwnerId The ID of the workspace the sandbox belongs to.
-	OwnerId string `form:"ownerId" json:"ownerId"`
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 }
 
 // ListServicesParams defines parameters for ListServices.
@@ -5362,6 +5455,12 @@ type UpdateRegistryCredentialJSONRequestBody UpdateRegistryCredentialJSONBody
 
 // CreateSandboxJSONRequestBody defines body for CreateSandbox for application/json ContentType.
 type CreateSandboxJSONRequestBody = externalRef15.SandboxPOST
+
+// UpdateSandboxExecJSONRequestBody defines body for UpdateSandboxExec for application/json ContentType.
+type UpdateSandboxExecJSONRequestBody = externalRef15.SandboxExecUpdateRequest
+
+// ConnectSandboxRunJSONRequestBody defines body for ConnectSandboxRun for application/json ContentType.
+type ConnectSandboxRunJSONRequestBody = externalRef15.SandboxConnectRequest
 
 // CreateServiceJSONRequestBody defines body for CreateService for application/json ContentType.
 type CreateServiceJSONRequestBody = ServicePOST

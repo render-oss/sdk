@@ -1,22 +1,21 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.env_group import EnvGroup
 from ...models.error import Error
 from ...types import Response
 
 
 def _get_kwargs(
-    env_group_id: str,
     artifact_source_id: str,
+    env_group_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": f"/env-groups/{env_group_id}/artifact-sources/{artifact_source_id}",
+        "method": "delete",
+        "url": f"/artifact-sources/{artifact_source_id}/env-groups/{env_group_id}",
     }
 
     return _kwargs
@@ -24,11 +23,10 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[EnvGroup, Error]]:
-    if response.status_code == 200:
-        response_200 = EnvGroup.from_dict(response.json())
-
-        return response_200
+) -> Optional[Union[Any, Error]]:
+    if response.status_code == 204:
+        response_204 = cast(Any, None)
+        return response_204
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -68,7 +66,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[EnvGroup, Error]]:
+) -> Response[Union[Any, Error]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -78,33 +76,32 @@ def _build_response(
 
 
 def sync_detailed(
-    env_group_id: str,
     artifact_source_id: str,
+    env_group_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[EnvGroup, Error]]:
-    """Link artifact source
+) -> Response[Union[Any, Error]]:
+    """Unlink environment group
 
-     Link a particular artifact source to a particular environment group.
+     Unlink a particular environment group from a particular artifact source.
 
-    The linked artifact source will have access to the environment variables and secret files in the
-    group at build time.
+    The artifact source will lose access to the environment variables and secret files in the group.
 
     Args:
-        env_group_id (str):
         artifact_source_id (str):
+        env_group_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvGroup, Error]]
+        Response[Union[Any, Error]]
     """
 
     kwargs = _get_kwargs(
-        env_group_id=env_group_id,
         artifact_source_id=artifact_source_id,
+        env_group_id=env_group_id,
     )
 
     response = client.get_httpx_client().request(
@@ -115,65 +112,63 @@ def sync_detailed(
 
 
 def sync(
-    env_group_id: str,
     artifact_source_id: str,
+    env_group_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[EnvGroup, Error]]:
-    """Link artifact source
+) -> Optional[Union[Any, Error]]:
+    """Unlink environment group
 
-     Link a particular artifact source to a particular environment group.
+     Unlink a particular environment group from a particular artifact source.
 
-    The linked artifact source will have access to the environment variables and secret files in the
-    group at build time.
+    The artifact source will lose access to the environment variables and secret files in the group.
 
     Args:
-        env_group_id (str):
         artifact_source_id (str):
+        env_group_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvGroup, Error]
+        Union[Any, Error]
     """
 
     return sync_detailed(
-        env_group_id=env_group_id,
         artifact_source_id=artifact_source_id,
+        env_group_id=env_group_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    env_group_id: str,
     artifact_source_id: str,
+    env_group_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[EnvGroup, Error]]:
-    """Link artifact source
+) -> Response[Union[Any, Error]]:
+    """Unlink environment group
 
-     Link a particular artifact source to a particular environment group.
+     Unlink a particular environment group from a particular artifact source.
 
-    The linked artifact source will have access to the environment variables and secret files in the
-    group at build time.
+    The artifact source will lose access to the environment variables and secret files in the group.
 
     Args:
-        env_group_id (str):
         artifact_source_id (str):
+        env_group_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvGroup, Error]]
+        Response[Union[Any, Error]]
     """
 
     kwargs = _get_kwargs(
-        env_group_id=env_group_id,
         artifact_source_id=artifact_source_id,
+        env_group_id=env_group_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -182,34 +177,33 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    env_group_id: str,
     artifact_source_id: str,
+    env_group_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[EnvGroup, Error]]:
-    """Link artifact source
+) -> Optional[Union[Any, Error]]:
+    """Unlink environment group
 
-     Link a particular artifact source to a particular environment group.
+     Unlink a particular environment group from a particular artifact source.
 
-    The linked artifact source will have access to the environment variables and secret files in the
-    group at build time.
+    The artifact source will lose access to the environment variables and secret files in the group.
 
     Args:
-        env_group_id (str):
         artifact_source_id (str):
+        env_group_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvGroup, Error]
+        Union[Any, Error]
     """
 
     return (
         await asyncio_detailed(
-            env_group_id=env_group_id,
             artifact_source_id=artifact_source_id,
+            env_group_id=env_group_id,
             client=client,
         )
     ).parsed

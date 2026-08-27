@@ -10,6 +10,48 @@ import (
 	"time"
 )
 
+// Defines values for ExecutionOperation.
+const (
+	Download ExecutionOperation = "download"
+	Stream   ExecutionOperation = "stream"
+	Sync     ExecutionOperation = "sync"
+	Upload   ExecutionOperation = "upload"
+)
+
+// Valid indicates whether the value is a known member of the ExecutionOperation enum.
+func (e ExecutionOperation) Valid() bool {
+	switch e {
+	case Download:
+		return true
+	case Stream:
+		return true
+	case Sync:
+		return true
+	case Upload:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ExecutionType.
+const (
+	Files ExecutionType = "files"
+	Runs  ExecutionType = "runs"
+)
+
+// Valid indicates whether the value is a known member of the ExecutionType enum.
+func (e ExecutionType) Valid() bool {
+	switch e {
+	case Files:
+		return true
+	case Runs:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxFileEntryType.
 const (
 	Directory SandboxFileEntryType = "directory"
@@ -148,12 +190,52 @@ func (e SandboxStatus) Valid() bool {
 	}
 }
 
+// Execution One recorded sandbox execution (a command run or file transfer).
+// `startedAt` is the token provisioning time. `command` may be present
+// while the execution is in flight (recorded at token mint). `stoppedAt`
+// and `exitCode` are absent until a status report or sandbox finalization.
+type Execution struct {
+	// Command The execution target. For runs, the truncated command; for file transfers, the target file path.
+	Command *string `json:"command,omitempty"`
+
+	// ExitCode Example: 0
+	ExitCode *int `json:"exitCode,omitempty"`
+
+	// Id Example: exe-cph1rs3idesc73a2b2mg
+	Id        ExecutionId        `json:"id"`
+	Operation ExecutionOperation `json:"operation"`
+
+	// SandboxId Example: sbx-1cd4gcph1rs3idesc73a2b2mg
+	SandboxId SandboxId `json:"sandboxId"`
+
+	// StartedAt Example: 2026-08-01T10:00:00Z
+	StartedAt time.Time `json:"startedAt"`
+
+	// StoppedAt Example: 2026-08-01T10:05:00Z
+	StoppedAt *time.Time    `json:"stoppedAt,omitempty"`
+	Type      ExecutionType `json:"type"`
+
+	// UserId The ID of the user the execution token was minted for.
+	//
+	// Example: usr-cph1rs3idesc73a2b2mg
+	UserId string `json:"userId"`
+}
+
+// ExecutionOperation defines model for Execution.Operation.
+type ExecutionOperation string
+
+// ExecutionType defines model for Execution.Type.
+type ExecutionType string
+
+// ExecutionId Example: exe-cph1rs3idesc73a2b2mg
+type ExecutionId = string
+
 // Sandbox defines model for sandbox.
 type Sandbox struct {
 	// CreatedAt Example: 2026-04-01T18:30:00Z
 	CreatedAt time.Time `json:"createdAt"`
 
-	// Id Example: sbx-cph1rs3idesc73a2b2mg
+	// Id Example: sbx-1cd4gcph1rs3idesc73a2b2mg
 	Id            SandboxId            `json:"id"`
 	NetworkPolicy SandboxNetworkPolicy `json:"networkPolicy"`
 
@@ -175,13 +257,21 @@ type Sandbox struct {
 	TimeoutSeconds int `json:"timeoutSeconds"`
 }
 
+// SandboxConnectRequest Optional body when minting a run connect token. `command` is stored on
+// the exec timeline (truncated to 4KB); the full command is still sent
+// to the sandbox proxy when executing.
+type SandboxConnectRequest struct {
+	// Command Command text for the sandbox event timeline.
+	Command *string `json:"command,omitempty"`
+}
+
 // SandboxConnectResponse A minted connect token and the sandbox-proxy endpoint to invoke with it.
 // Send the request (and body, where the operation takes one) to `uri`
 // using `method`, with `token` as a bearer credential.
 type SandboxConnectResponse struct {
 	// ExecutionId Identifier for this execution.
 	//
-	// Example: exe-abc123
+	// Example: exe-cph1rs3idesc73a2b2mg
 	ExecutionId string `json:"executionId"`
 
 	// ExpiresAt When `token` stops being valid. Start the run before this time.
@@ -213,6 +303,24 @@ type SandboxDirectoryListing struct {
 	Path string `json:"path"`
 }
 
+// SandboxExecUpdateRequest Client-reported completion of a sandbox execution.
+type SandboxExecUpdateRequest struct {
+	// ExitCode Process exit code observed by the client.
+	ExitCode *int `json:"exitCode,omitempty"`
+}
+
+// SandboxExecUpdateResponse Updated sandbox execution after a client update.
+type SandboxExecUpdateResponse struct {
+	Command   *string    `json:"command,omitempty"`
+	ExecId    string     `json:"execId"`
+	ExitCode  *int       `json:"exitCode,omitempty"`
+	Operation string     `json:"operation"`
+	SandboxId string     `json:"sandboxId"`
+	StartedAt time.Time  `json:"startedAt"`
+	StoppedAt *time.Time `json:"stoppedAt,omitempty"`
+	Type      string     `json:"type"`
+}
+
 // SandboxFileEntry A file or directory entry in a sandbox filesystem listing.
 type SandboxFileEntry struct {
 	// ModifiedAt Last-modified timestamp.
@@ -240,6 +348,9 @@ type SandboxFileEntryType string
 
 // SandboxGroup defines model for sandboxGroup.
 type SandboxGroup struct {
+	// ConcurrencyLimit Effective maximum number of concurrently active (non-terminated) sandboxes allowed in this group.
+	ConcurrencyLimit int `json:"concurrencyLimit"`
+
 	// CreatedAt Example: 2026-07-02T18:30:00Z
 	CreatedAt time.Time `json:"createdAt"`
 
@@ -274,7 +385,7 @@ type SandboxGroup struct {
 // SandboxGroupId Example: sbg-cph1rs3idesc73a2b2mg
 type SandboxGroupId = string
 
-// SandboxId Example: sbx-cph1rs3idesc73a2b2mg
+// SandboxId Example: sbx-1cd4gcph1rs3idesc73a2b2mg
 type SandboxId = string
 
 // SandboxLifecycleEvent A lifecycle event from the sandbox logs stream.
@@ -295,7 +406,7 @@ type SandboxLogEvent struct {
 
 	// ExecId Groups output by command for the event timeline. Absent for system-level output (container startup, OOM, etc.).
 	//
-	// Example: exec-abc123
+	// Example: exe-cph1rs3idesc73a2b2mg
 	ExecId *string               `json:"execId,omitempty"`
 	Stream SandboxLogEventStream `json:"stream"`
 }
@@ -334,3 +445,9 @@ type SandboxPlan string
 
 // SandboxStatus defines model for sandboxStatus.
 type SandboxStatus string
+
+// ExecId Example: exe-cph1rs3idesc73a2b2mg
+type ExecId = ExecutionId
+
+// OwnerId defines model for ownerId.
+type OwnerId = string

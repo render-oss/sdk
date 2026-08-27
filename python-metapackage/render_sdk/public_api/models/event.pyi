@@ -65,6 +65,8 @@ from render.public_api.models.event import (
     ServerFailed as ServerFailed,
     ServerHardwareFailure as ServerHardwareFailure,
     ServerRestarted as ServerRestarted,
+    ServiceDiskUsageHigh as ServiceDiskUsageHigh,
+    ServiceDiskUsageRecovered as ServiceDiskUsageRecovered,
     ServiceResumed as ServiceResumed,
     ServiceSuspended as ServiceSuspended,
     SuspenderAdded as SuspenderAdded,

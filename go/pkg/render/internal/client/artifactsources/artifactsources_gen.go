@@ -198,6 +198,7 @@ func (e BuildStatus) Valid() bool {
 // Artifact defines model for artifact.
 type Artifact struct {
 	ArtifactSourceId ArtifactSourceId `json:"artifactSourceId"`
+	AssetsDeletedAt  *time.Time       `json:"assetsDeletedAt,omitempty"`
 
 	// Build Present when the artifact source is currently build-based. Mutually exclusive with `image`.
 	Build     *Build     `json:"build,omitempty"`

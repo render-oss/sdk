@@ -9,7 +9,7 @@ from ...models.connect_sandbox_run_operation import ConnectSandboxRunOperation
 from ...models.error import Error
 from ...models.sandbox_connect_request import SandboxConnectRequest
 from ...models.sandbox_connect_response import SandboxConnectResponse
-from ...types import UNSET, Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
@@ -17,7 +17,7 @@ def _get_kwargs(
     operation: ConnectSandboxRunOperation,
     *,
     body: SandboxConnectRequest,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
@@ -107,7 +107,7 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxConnectRequest,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
@@ -118,7 +118,7 @@ def sync_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
             stored on
             the exec timeline (truncated to 4KB); the full command is still sent
@@ -152,7 +152,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxConnectRequest,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
@@ -163,7 +163,7 @@ def sync(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
             stored on
             the exec timeline (truncated to 4KB); the full command is still sent
@@ -192,7 +192,7 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxConnectRequest,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
@@ -203,7 +203,7 @@ async def asyncio_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
             stored on
             the exec timeline (truncated to 4KB); the full command is still sent
@@ -235,7 +235,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     body: SandboxConnectRequest,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
@@ -246,7 +246,7 @@ async def asyncio(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
             stored on
             the exec timeline (truncated to 4KB); the full command is still sent

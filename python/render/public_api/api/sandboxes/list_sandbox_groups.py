@@ -7,20 +7,16 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.sandbox_group_with_cursor import SandboxGroupWithCursor
-from ...types import UNSET, Response, Unset
+from ...types import UNSET, Response
 
 
 def _get_kwargs(
     *,
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
-    if not isinstance(owner_id, Unset):
-        json_owner_id = owner_id
-
-    params["ownerId"] = json_owner_id
+    params["ownerId"] = owner_id
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -101,15 +97,15 @@ def _build_response(
 def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for the specified workspaces. Alpha guarantees at most one
+     List sandbox groups for a single workspace. Alpha guarantees at most one
     group per owner, so the response is either empty or a single-item list.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -133,15 +129,15 @@ def sync_detailed(
 def sync(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for the specified workspaces. Alpha guarantees at most one
+     List sandbox groups for a single workspace. Alpha guarantees at most one
     group per owner, so the response is either empty or a single-item list.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -160,15 +156,15 @@ def sync(
 async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for the specified workspaces. Alpha guarantees at most one
+     List sandbox groups for a single workspace. Alpha guarantees at most one
     group per owner, so the response is either empty or a single-item list.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -190,15 +186,15 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for the specified workspaces. Alpha guarantees at most one
+     List sandbox groups for a single workspace. Alpha guarantees at most one
     group per owner, so the response is either empty or a single-item list.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

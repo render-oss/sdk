@@ -85,7 +85,7 @@ describe("SandboxesClient", () => {
       expect(apiClient.GET).toHaveBeenCalledWith("/sandboxes", {
         params: {
           query: {
-            ownerId: ["tea-test"],
+            ownerId: "tea-test",
             cursor: "cursor-before",
             limit: 25,
             status: ["running"],
@@ -104,7 +104,7 @@ describe("SandboxesClient", () => {
       expect(apiClient.GET).toHaveBeenCalledWith("/sandboxes", {
         params: {
           query: {
-            ownerId: ["tea-default"],
+            ownerId: "tea-default",
             cursor: undefined,
             limit: undefined,
             status: undefined,

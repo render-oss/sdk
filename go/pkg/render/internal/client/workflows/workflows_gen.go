@@ -228,14 +228,21 @@ type Task struct {
 
 // TaskAttempt defines model for TaskAttempt.
 type TaskAttempt struct {
+	// Attempt The 0-indexed attempt number.
+	Attempt     int           `json:"attempt"`
 	CompletedAt *time.Time    `json:"completedAt,omitempty"`
 	EnqueuedAt  *time.Time    `json:"enqueuedAt,omitempty"`
 	StartedAt   time.Time     `json:"startedAt"`
 	Status      TaskRunStatus `json:"status"`
+
+	// TaskRunId The ID of the task run this attempt belongs to.
+	TaskRunId *string `json:"taskRunId,omitempty"`
 }
 
 // TaskAttemptDetails defines model for TaskAttemptDetails.
 type TaskAttemptDetails struct {
+	// Attempt The 0-indexed attempt number.
+	Attempt     int        `json:"attempt"`
 	CompletedAt *time.Time `json:"completedAt,omitempty"`
 	EnqueuedAt  *time.Time `json:"enqueuedAt,omitempty"`
 
@@ -244,6 +251,9 @@ type TaskAttemptDetails struct {
 	Results   *TaskRunResult `json:"results,omitempty"`
 	StartedAt time.Time      `json:"startedAt"`
 	Status    TaskRunStatus  `json:"status"`
+
+	// TaskRunId The ID of the task run this attempt belongs to.
+	TaskRunId *string `json:"taskRunId,omitempty"`
 }
 
 // TaskData Input data for a task. Can be either an array (for positional arguments) or an object (for named parameters).
@@ -259,15 +269,18 @@ type TaskData1 map[string]interface{}
 
 // TaskRun defines model for TaskRun.
 type TaskRun struct {
-	Attempts        []TaskAttempt `json:"attempts"`
-	CompletedAt     *time.Time    `json:"completedAt,omitempty"`
-	Id              string        `json:"id"`
-	ParentTaskRunId string        `json:"parentTaskRunId"`
-	Retries         int           `json:"retries"`
-	RootTaskRunId   string        `json:"rootTaskRunId"`
-	StartedAt       *time.Time    `json:"startedAt,omitempty"`
-	Status          TaskRunStatus `json:"status"`
-	TaskId          string        `json:"taskId"`
+	Attempts    []TaskAttempt `json:"attempts"`
+	CompletedAt *time.Time    `json:"completedAt,omitempty"`
+	Id          string        `json:"id"`
+
+	// ParentTaskAttempt The 0-indexed attempt of the parent task run that spawned this task run. Omitted for root task runs and for task runs created before this field was introduced.
+	ParentTaskAttempt *int          `json:"parentTaskAttempt,omitempty"`
+	ParentTaskRunId   string        `json:"parentTaskRunId"`
+	Retries           int           `json:"retries"`
+	RootTaskRunId     string        `json:"rootTaskRunId"`
+	StartedAt         *time.Time    `json:"startedAt,omitempty"`
+	Status            TaskRunStatus `json:"status"`
+	TaskId            string        `json:"taskId"`
 }
 
 // TaskRunDetails defines model for TaskRunDetails.
@@ -280,14 +293,17 @@ type TaskRunDetails struct {
 	Id    string  `json:"id"`
 
 	// Input Input data for a task. Can be either an array (for positional arguments) or an object (for named parameters).
-	Input           TaskData      `json:"input"`
-	ParentTaskRunId string        `json:"parentTaskRunId"`
-	Results         TaskRunResult `json:"results"`
-	Retries         int           `json:"retries"`
-	RootTaskRunId   string        `json:"rootTaskRunId"`
-	StartedAt       *time.Time    `json:"startedAt,omitempty"`
-	Status          TaskRunStatus `json:"status"`
-	TaskId          string        `json:"taskId"`
+	Input TaskData `json:"input"`
+
+	// ParentTaskAttempt The 0-indexed attempt of the parent task run that spawned this task run. Omitted for root task runs and for task runs created before this field was introduced.
+	ParentTaskAttempt *int          `json:"parentTaskAttempt,omitempty"`
+	ParentTaskRunId   string        `json:"parentTaskRunId"`
+	Results           TaskRunResult `json:"results"`
+	Retries           int           `json:"retries"`
+	RootTaskRunId     string        `json:"rootTaskRunId"`
+	StartedAt         *time.Time    `json:"startedAt,omitempty"`
+	Status            TaskRunStatus `json:"status"`
+	TaskId            string        `json:"taskId"`
 }
 
 // TaskRunResult defines model for TaskRunResult.

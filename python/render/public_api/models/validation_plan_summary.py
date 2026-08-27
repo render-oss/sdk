@@ -20,6 +20,7 @@ class ValidationPlanSummary:
             the Blueprint.
         env_groups (Union[Unset, list[str]]): The names of environment groups that would be created as part of the
             Blueprint.
+        workflows (Union[Unset, list[str]]): The names of workflows that would be created as part of the Blueprint.
         total_actions (Union[Unset, int]): The total number of actions that would be performed by the Blueprint. In
             addition to created resources, this includes modifications to individual configuration fields.
     """
@@ -28,6 +29,7 @@ class ValidationPlanSummary:
     databases: Union[Unset, list[str]] = UNSET
     key_value: Union[Unset, list[str]] = UNSET
     env_groups: Union[Unset, list[str]] = UNSET
+    workflows: Union[Unset, list[str]] = UNSET
     total_actions: Union[Unset, int] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -48,6 +50,10 @@ class ValidationPlanSummary:
         if not isinstance(self.env_groups, Unset):
             env_groups = self.env_groups
 
+        workflows: Union[Unset, list[str]] = UNSET
+        if not isinstance(self.workflows, Unset):
+            workflows = self.workflows
+
         total_actions = self.total_actions
 
         field_dict: dict[str, Any] = {}
@@ -61,6 +67,8 @@ class ValidationPlanSummary:
             field_dict["keyValue"] = key_value
         if env_groups is not UNSET:
             field_dict["envGroups"] = env_groups
+        if workflows is not UNSET:
+            field_dict["workflows"] = workflows
         if total_actions is not UNSET:
             field_dict["totalActions"] = total_actions
 
@@ -77,6 +85,8 @@ class ValidationPlanSummary:
 
         env_groups = cast(list[str], d.pop("envGroups", UNSET))
 
+        workflows = cast(list[str], d.pop("workflows", UNSET))
+
         total_actions = d.pop("totalActions", UNSET)
 
         validation_plan_summary = cls(
@@ -84,6 +94,7 @@ class ValidationPlanSummary:
             databases=databases,
             key_value=key_value,
             env_groups=env_groups,
+            workflows=workflows,
             total_actions=total_actions,
         )
 
