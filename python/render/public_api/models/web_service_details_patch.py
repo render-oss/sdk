@@ -29,9 +29,9 @@ class WebServiceDetailsPATCH:
         env_specific_details (Union['DockerDetailsPATCH', 'NativeEnvironmentDetailsPATCH', Unset]):
         health_check_path (Union[Unset, str]):
         maintenance_mode (Union[Unset, MaintenanceMode]):
-        plan (Union[Unset, Plan]): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans
-            no longer offered for new services. Note that base services on any paid instance type can't create preview
-            instances with the `free` instance type. Example: starter.
+        plan (Union[Unset, Plan]): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no
+            longer offered for new services. Note that base services on any paid compute plan can't create preview instances
+            with the `free` plan. Example: starter.
         pre_deploy_command (Union[Unset, str]):
         pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
             previews.generation should be used in its place.

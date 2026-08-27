@@ -27,9 +27,9 @@ class CronJobDetails:
     Attributes:
         env (ServiceEnv): This field has been deprecated, runtime should be used in its place.
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails']):
-        plan (Plan): The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
-            offered for new services. Note that base services on any paid instance type can't create preview instances with
-            the `free` instance type. Example: starter.
+        plan (Plan): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
+            offered for new services. Note that base services on any paid compute plan can't create preview instances with
+            the `free` plan. Example: starter.
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         schedule (str):

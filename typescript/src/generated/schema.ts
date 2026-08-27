@@ -4709,8 +4709,8 @@ export interface components {
             numInstances?: number;
             internalRouting?: components["schemas"]["internalRouting"];
             /**
-             * @description The instance type to use. If omitted, defaults to `starter` when creating a new service.
-             * @default starter
+             * @description The compute plan to use. If omitted, defaults to `0.5c-512mb` when creating a new service.
+             * @default 0.5c-512mb
              */
             plan: components["schemas"]["plan"];
             preDeployCommand?: string;
@@ -4862,11 +4862,11 @@ export interface components {
             plan?: components["schemas"]["plan"];
         };
         /**
-         * @description The instance type to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer offered for new services. Note that base services on any paid instance type can't create preview instances with the `free` instance type.
+         * @description The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer offered for new services. Note that base services on any paid compute plan can't create preview instances with the `free` plan.
          * @example starter
          * @enum {string}
          */
-        plan: "starter" | "starter_plus" | "standard" | "standard_plus" | "pro" | "pro_plus" | "pro_max" | "pro_ultra" | "free" | "custom" | "starter_legacy" | "standard_legacy" | "standard_plus_legacy" | "pro_legacy" | "pro_plus_legacy";
+        plan: "starter" | "starter_plus" | "standard" | "standard_plus" | "pro" | "pro_plus" | "pro_max" | "pro_ultra" | "free" | "custom" | "starter_legacy" | "standard_legacy" | "standard_plus_legacy" | "pro_legacy" | "pro_plus_legacy" | "0.5c-512mb" | "1c-2g" | "2c-4g" | "2c-8g" | "2c-16g" | "4c-8g" | "4c-16g" | "4c-32g" | "8c-16g" | "8c-32g" | "8c-64g" | "12c-24g" | "12c-48g" | "12c-96g";
         header: {
             id: string;
             path: string;
@@ -5212,7 +5212,7 @@ export interface components {
             description: string;
         };
         /** @enum {string} */
-        keyValuePlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom";
+        keyValuePlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom" | "256mb" | "1g" | "5g" | "10g" | "20g" | "40g";
         /** @description Input type for creating a Redis instance */
         redisPOSTInput: {
             /** @description The name of the Redis instance */
@@ -5319,7 +5319,7 @@ export interface components {
             persistenceMode?: components["schemas"]["persistenceMode"];
         };
         /** @enum {string} */
-        redisPlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom";
+        redisPlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom" | "256mb" | "1g" | "5g" | "10g" | "20g" | "40g";
         /** @enum {string} */
         databaseStatus: "creating" | "available" | "unavailable" | "config_restart" | "suspended" | "maintenance_scheduled" | "maintenance_in_progress" | "recovery_failed" | "recovery_in_progress" | "unknown" | "updating_instance";
         /**
@@ -5634,11 +5634,11 @@ export interface components {
         /** @enum {string} */
         databaseRole: "primary" | "replica";
         /**
-         * @description Defaults to `starter` when creating a new database.
-         * @default starter
+         * @description Defaults to `0.5c-512mb` when creating a new service.
+         * @default 0.5c-512mb
          * @enum {string}
          */
-        paidPlan: "starter" | "standard" | "pro" | "pro_plus" | "pro_max" | "pro_ultra";
+        paidPlan: "starter" | "standard" | "pro" | "pro_plus" | "pro_max" | "pro_ultra" | "0.5c-512mb" | "1c-2g" | "2c-4g" | "2c-8g" | "2c-16g" | "4c-8g" | "4c-16g" | "4c-32g" | "8c-16g" | "8c-32g" | "8c-64g" | "12c-24g" | "12c-48g" | "12c-96g";
         /** @description A run of a cron job */
         cronJobRun: {
             /** @description The ID of the run */
@@ -6533,7 +6533,7 @@ export interface components {
             state: components["schemas"]["maintenanceState"];
         };
         /** @enum {string} */
-        postgresPlans: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom" | "basic_256mb" | "basic_1gb" | "basic_4gb" | "pro_4gb" | "pro_8gb" | "pro_16gb" | "pro_32gb" | "pro_64gb" | "pro_128gb" | "pro_192gb" | "pro_256gb" | "pro_384gb" | "pro_512gb" | "accelerated_16gb" | "accelerated_32gb" | "accelerated_64gb" | "accelerated_128gb" | "accelerated_256gb" | "accelerated_384gb" | "accelerated_512gb" | "accelerated_768gb" | "accelerated_1024gb";
+        postgresPlans: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom" | "basic_256mb" | "basic_1gb" | "basic_4gb" | "pro_4gb" | "pro_8gb" | "pro_16gb" | "pro_32gb" | "pro_64gb" | "pro_128gb" | "pro_192gb" | "pro_256gb" | "pro_384gb" | "pro_512gb" | "accelerated_16gb" | "accelerated_32gb" | "accelerated_64gb" | "accelerated_128gb" | "accelerated_256gb" | "accelerated_384gb" | "accelerated_512gb" | "accelerated_768gb" | "accelerated_1024gb" | "0.1c-256mb" | "0.5c-1g" | "1c-2g" | "1c-4g" | "2c-4g" | "2c-8g" | "2c-16g" | "4c-16g" | "4c-32g" | "8c-32g" | "8c-64g" | "16c-64g" | "16c-128g" | "32c-128g" | "32c-256g" | "48c-192g" | "48c-384g" | "64c-256g" | "64c-512g" | "96c-384g" | "96c-768g" | "128c-512g" | "128c-1024g";
         recoveryInfo: {
             /**
              * @description Availability of point-in-time recovery.
