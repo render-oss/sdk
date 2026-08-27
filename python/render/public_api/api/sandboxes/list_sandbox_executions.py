@@ -6,45 +6,46 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.sandbox_exec_update_request import SandboxExecUpdateRequest
-from ...models.sandbox_exec_update_response import SandboxExecUpdateResponse
+from ...models.execution_with_cursor import ExecutionWithCursor
 from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     sandbox_id: str,
-    exec_id: str,
     *,
-    body: SandboxExecUpdateRequest,
     owner_id: Union[Unset, str] = UNSET,
+    cursor: Union[Unset, str] = UNSET,
+    limit: Union[Unset, int] = 20,
 ) -> dict[str, Any]:
-    headers: dict[str, Any] = {}
-
     params: dict[str, Any] = {}
 
     params["ownerId"] = owner_id
 
+    params["cursor"] = cursor
+
+    params["limit"] = limit
+
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
     _kwargs: dict[str, Any] = {
-        "method": "post",
-        "url": f"/sandboxes/{sandbox_id}/execs/{exec_id}/status",
+        "method": "get",
+        "url": f"/sandboxes/{sandbox_id}/execs",
         "params": params,
     }
 
-    _kwargs["json"] = body.to_dict()
-
-    headers["Content-Type"] = "application/json"
-
-    _kwargs["headers"] = headers
     return _kwargs
 
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, SandboxExecUpdateResponse]]:
+) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
     if response.status_code == 200:
-        response_200 = SandboxExecUpdateResponse.from_dict(response.json())
+        response_200 = []
+        _response_200 = response.json()
+        for response_200_item_data in _response_200:
+            response_200_item = ExecutionWithCursor.from_dict(response_200_item_data)
+
+            response_200.append(response_200_item)
 
         return response_200
 
@@ -91,7 +92,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, SandboxExecUpdateResponse]]:
+) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -102,37 +103,35 @@ def _build_response(
 
 def sync_detailed(
     sandbox_id: str,
-    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecUpdateRequest,
     owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, SandboxExecUpdateResponse]]:
-    """Update sandbox execution
+    cursor: Union[Unset, str] = UNSET,
+    limit: Union[Unset, int] = 20,
+) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
+    """List executions
 
-     Record the client-observed exit code for a previously minted sandbox
-    execution. Call after the proxy run completes (sync response or closing
-    SSE frame). Command text is recorded at token mint time, not here.
+     List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):
         owner_id (Union[Unset, str]):
-        body (SandboxExecUpdateRequest): Client-reported completion of a sandbox execution.
+        cursor (Union[Unset, str]):
+        limit (Union[Unset, int]): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxExecUpdateResponse]]
+        Response[Union[Error, list['ExecutionWithCursor']]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        exec_id=exec_id,
-        body=body,
         owner_id=owner_id,
+        cursor=cursor,
+        limit=limit,
     )
 
     response = client.get_httpx_client().request(
@@ -144,74 +143,70 @@ def sync_detailed(
 
 def sync(
     sandbox_id: str,
-    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecUpdateRequest,
     owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, SandboxExecUpdateResponse]]:
-    """Update sandbox execution
+    cursor: Union[Unset, str] = UNSET,
+    limit: Union[Unset, int] = 20,
+) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
+    """List executions
 
-     Record the client-observed exit code for a previously minted sandbox
-    execution. Call after the proxy run completes (sync response or closing
-    SSE frame). Command text is recorded at token mint time, not here.
+     List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):
         owner_id (Union[Unset, str]):
-        body (SandboxExecUpdateRequest): Client-reported completion of a sandbox execution.
+        cursor (Union[Unset, str]):
+        limit (Union[Unset, int]): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxExecUpdateResponse]
+        Union[Error, list['ExecutionWithCursor']]
     """
 
     return sync_detailed(
         sandbox_id=sandbox_id,
-        exec_id=exec_id,
         client=client,
-        body=body,
         owner_id=owner_id,
+        cursor=cursor,
+        limit=limit,
     ).parsed
 
 
 async def asyncio_detailed(
     sandbox_id: str,
-    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecUpdateRequest,
     owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, SandboxExecUpdateResponse]]:
-    """Update sandbox execution
+    cursor: Union[Unset, str] = UNSET,
+    limit: Union[Unset, int] = 20,
+) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
+    """List executions
 
-     Record the client-observed exit code for a previously minted sandbox
-    execution. Call after the proxy run completes (sync response or closing
-    SSE frame). Command text is recorded at token mint time, not here.
+     List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):
         owner_id (Union[Unset, str]):
-        body (SandboxExecUpdateRequest): Client-reported completion of a sandbox execution.
+        cursor (Union[Unset, str]):
+        limit (Union[Unset, int]): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxExecUpdateResponse]]
+        Response[Union[Error, list['ExecutionWithCursor']]]
     """
 
     kwargs = _get_kwargs(
         sandbox_id=sandbox_id,
-        exec_id=exec_id,
-        body=body,
         owner_id=owner_id,
+        cursor=cursor,
+        limit=limit,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -221,38 +216,36 @@ async def asyncio_detailed(
 
 async def asyncio(
     sandbox_id: str,
-    exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    body: SandboxExecUpdateRequest,
     owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, SandboxExecUpdateResponse]]:
-    """Update sandbox execution
+    cursor: Union[Unset, str] = UNSET,
+    limit: Union[Unset, int] = 20,
+) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
+    """List executions
 
-     Record the client-observed exit code for a previously minted sandbox
-    execution. Call after the proxy run completes (sync response or closing
-    SSE frame). Command text is recorded at token mint time, not here.
+     List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):
         owner_id (Union[Unset, str]):
-        body (SandboxExecUpdateRequest): Client-reported completion of a sandbox execution.
+        cursor (Union[Unset, str]):
+        limit (Union[Unset, int]): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxExecUpdateResponse]
+        Union[Error, list['ExecutionWithCursor']]
     """
 
     return (
         await asyncio_detailed(
             sandbox_id=sandbox_id,
-            exec_id=exec_id,
             client=client,
-            body=body,
             owner_id=owner_id,
+            cursor=cursor,
+            limit=limit,
         )
     ).parsed

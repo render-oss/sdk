@@ -13,18 +13,14 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
-    if not isinstance(owner_id, Unset):
-        json_owner_id = owner_id
-
-    params["ownerId"] = json_owner_id
+    params["ownerId"] = owner_id
 
     params["cursor"] = cursor
 
@@ -118,18 +114,18 @@ def _build_response(
 def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
 ) -> Response[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for the specified workspaces. If no workspaces are provided, returns
-    all sandboxes the API key has access to.
+     List sandboxes for a single workspace. Sandboxes are scoped to the region of
+    their workspace's sandbox group, so one workspace must be named per request.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -159,18 +155,18 @@ def sync_detailed(
 def sync(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
 ) -> Optional[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for the specified workspaces. If no workspaces are provided, returns
-    all sandboxes the API key has access to.
+     List sandboxes for a single workspace. Sandboxes are scoped to the region of
+    their workspace's sandbox group, so one workspace must be named per request.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -195,18 +191,18 @@ def sync(
 async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
 ) -> Response[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for the specified workspaces. If no workspaces are provided, returns
-    all sandboxes the API key has access to.
+     List sandboxes for a single workspace. Sandboxes are scoped to the region of
+    their workspace's sandbox group, so one workspace must be named per request.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -234,18 +230,18 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
+    owner_id: str,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
 ) -> Optional[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for the specified workspaces. If no workspaces are provided, returns
-    all sandboxes the API key has access to.
+     List sandboxes for a single workspace. Sandboxes are scoped to the region of
+    their workspace's sandbox group, so one workspace must be named per request.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
+        owner_id (str):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):

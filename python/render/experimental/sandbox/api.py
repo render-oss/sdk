@@ -192,7 +192,7 @@ class SandboxApi:
     ) -> Response[Error | _SandboxWithCursorList]:
         return await list_sandboxes.asyncio_detailed(
             client=self.client,
-            owner_id=[owner_id],
+            owner_id=owner_id,
             status=statuses or UNSET,
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,

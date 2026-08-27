@@ -6,13 +6,13 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...types import UNSET, Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     sandbox_id: str,
     *,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -87,7 +87,7 @@ def sync_detailed(
     sandbox_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Any, Error]]:
     """Terminate sandbox
 
@@ -97,7 +97,7 @@ def sync_detailed(
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -123,7 +123,7 @@ def sync(
     sandbox_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Any, Error]]:
     """Terminate sandbox
 
@@ -133,7 +133,7 @@ def sync(
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -154,7 +154,7 @@ async def asyncio_detailed(
     sandbox_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Any, Error]]:
     """Terminate sandbox
 
@@ -164,7 +164,7 @@ async def asyncio_detailed(
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -188,7 +188,7 @@ async def asyncio(
     sandbox_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Any, Error]]:
     """Terminate sandbox
 
@@ -198,7 +198,7 @@ async def asyncio(
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -3601,29 +3601,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/env-groups/{envGroupId}/artifact-sources/{artifactSourceId}": {
+    "/artifact-sources/{artifactSourceId}/env-groups/{envGroupId}": {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                /** @description Filter for resources that belong to an environment group */
+                envGroupId: components["parameters"]["envGroupIdParam"];
+            };
             cookie?: never;
         };
         get?: never;
         put?: never;
         /**
-         * Link artifact source
-         * @description Link a particular artifact source to a particular environment group.
+         * Link environment group
+         * @description Link a particular environment group to a particular artifact source.
          *
-         *     The linked artifact source will have access to the environment variables and secret files in the group at build time.
+         *     The artifact source will have access to the environment variables and secret files in the group at build time.
          */
-        post: operations["link-artifact-source-to-env-group"];
+        post: operations["link-env-group-to-artifact-source"];
         /**
-         * Unlink artifact source
-         * @description Unlink a particular artifact source from a particular environment group.
+         * Unlink environment group
+         * @description Unlink a particular environment group from a particular artifact source.
          *
          *     The artifact source will lose access to the environment variables and secret files in the group.
          */
-        delete: operations["unlink-artifact-source-from-env-group"];
+        delete: operations["unlink-env-group-from-artifact-source"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4011,8 +4015,8 @@ export interface paths {
         };
         /**
          * List sandboxes
-         * @description List sandboxes for the specified workspaces. If no workspaces are provided, returns
-         *     all sandboxes the API key has access to.
+         * @description List sandboxes for a single workspace. Sandboxes are scoped to the region of
+         *     their workspace's sandbox group, so one workspace must be named per request.
          */
         get: operations["list-sandboxes"];
         put?: never;
@@ -4036,7 +4040,7 @@ export interface paths {
         };
         /**
          * List sandbox groups
-         * @description List sandbox groups for the specified workspaces. Alpha guarantees at most one
+         * @description List sandbox groups for a single workspace. Alpha guarantees at most one
          *     group per owner, so the response is either empty or a single-item list.
          */
         get: operations["list-sandbox-groups"];
@@ -4063,6 +4067,29 @@ export interface paths {
          * @description Retrieve the sandbox with the provided ID.
          */
         get: operations["retrieve-sandbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandboxes/{sandboxId}/execs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List executions
+         * @description List execution records for the sandbox, ordered by start time, newest first.
+         */
+        get: operations["list-sandbox-executions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5038,7 +5065,7 @@ export interface components {
          * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
          * @enum {string}
          */
-        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources";
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.
@@ -5638,6 +5665,11 @@ export interface components {
             sandbox: components["schemas"]["sandbox"];
             cursor: components["schemas"]["cursor"];
         };
+        /** @description A sandbox execution with a cursor */
+        executionWithCursor: {
+            execution: components["schemas"]["execution"];
+            cursor: components["schemas"]["cursor"];
+        };
         /** @description A sandbox group with a cursor */
         sandboxGroupWithCursor: {
             sandboxGroup: components["schemas"]["sandboxGroup"];
@@ -5749,6 +5781,8 @@ export interface components {
             keyValue?: string[];
             /** @description The names of environment groups that would be created as part of the Blueprint. */
             envGroups?: string[];
+            /** @description The names of workflows that would be created as part of the Blueprint. */
+            workflows?: string[];
             /** @description The total number of actions that would be performed by the Blueprint. In addition to created resources, this includes modifications to individual configuration fields. */
             totalActions?: number;
         };
@@ -5907,7 +5941,7 @@ export interface components {
             content: string;
         };
         /** @enum {string} */
-        serviceEventType: "artifact_fetch_failed" | "artifact_source_changed" | "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "image_pull_failed" | "initial_deploy_hook_ended" | "initial_deploy_hook_started" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "suspender_added" | "suspender_removed" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "auto_deploy_disabled" | "auto_deploy_enabled";
+        serviceEventType: "artifact_fetch_failed" | "artifact_source_changed" | "autoscaling_config_changed" | "autoscaling_ended" | "autoscaling_started" | "branch_deleted" | "build_ended" | "build_started" | "commit_ignored" | "cron_job_run_ended" | "cron_job_run_started" | "deploy_ended" | "deploy_started" | "disk_created" | "disk_updated" | "disk_deleted" | "service_disk_usage_high" | "service_disk_usage_recovered" | "image_pull_failed" | "initial_deploy_hook_ended" | "initial_deploy_hook_started" | "instance_count_changed" | "job_run_ended" | "maintenance_mode_enabled" | "maintenance_mode_uri_updated" | "maintenance_ended" | "maintenance_started" | "pipeline_minutes_exhausted" | "plan_changed" | "pre_deploy_ended" | "pre_deploy_started" | "server_available" | "server_failed" | "server_hardware_failure" | "server_restarted" | "service_resumed" | "service_suspended" | "suspender_added" | "suspender_removed" | "zero_downtime_redeploy_ended" | "zero_downtime_redeploy_started" | "auto_deploy_disabled" | "auto_deploy_enabled";
         /** @example evt-cph1rs3idesc73a2b2mg */
         eventId: string;
         /** Artifact Fetch Failed */
@@ -6065,6 +6099,26 @@ export interface components {
         diskDeletedEvent: {
             diskId: components["schemas"]["diskId"];
         };
+        /** Service Disk Usage High */
+        serviceDiskUsageHighEvent: {
+            diskId: components["schemas"]["diskId"];
+            diskName: string;
+            mountPath: string;
+            /** Format: double */
+            usagePercent: number;
+            /** Format: double */
+            thresholdPercent: number;
+        };
+        /** Service Disk Usage Recovered */
+        serviceDiskUsageRecoveredEvent: {
+            diskId: components["schemas"]["diskId"];
+            diskName: string;
+            mountPath: string;
+            /** Format: double */
+            usagePercent: number;
+            /** Format: double */
+            thresholdPercent: number;
+        };
         /** Image Pull Failed */
         imagePullFailedEvent: {
             message: string;
@@ -6206,7 +6260,7 @@ export interface components {
             newTrigger?: components["schemas"]["autoDeployTrigger"];
         };
         /** Service Event Details */
-        serviceEventDetails: components["schemas"]["artifactFetchFailedEvent"] | components["schemas"]["artifactSourceChangedEvent"] | components["schemas"]["autoscalingConfigChangedEvent"] | components["schemas"]["autoscalingEndedEvent"] | components["schemas"]["autoscalingStartedEvent"] | components["schemas"]["branchDeletedEvent"] | components["schemas"]["buildEndedEvent"] | components["schemas"]["buildStartedEvent"] | components["schemas"]["commitIgnoredEvent"] | components["schemas"]["cronJobRunEndedEvent"] | components["schemas"]["cronJobRunStartedEvent"] | components["schemas"]["deployEndedEvent"] | components["schemas"]["deployStartedEvent"] | components["schemas"]["diskCreatedEvent"] | components["schemas"]["diskUpdatedEvent"] | components["schemas"]["diskDeletedEvent"] | components["schemas"]["imagePullFailedEvent"] | components["schemas"]["initialDeployHookStartedEvent"] | components["schemas"]["initialDeployHookEndedEvent"] | components["schemas"]["instanceCountChangedEvent"] | components["schemas"]["jobRunEndedEvent"] | components["schemas"]["maintenanceModeEnabledEvent"] | components["schemas"]["maintenanceModeURIUpdatedEvent"] | components["schemas"]["maintenanceEndedEvent"] | components["schemas"]["maintenanceStartedEvent"] | components["schemas"]["pipelineMinutesExhaustedEvent"] | components["schemas"]["planChangedEvent"] | components["schemas"]["preDeployEndedEvent"] | components["schemas"]["preDeployStartedEvent"] | components["schemas"]["serverAvailableEvent"] | components["schemas"]["serverFailedEvent"] | components["schemas"]["serverHardwareFailureEvent"] | components["schemas"]["serverRestartedEvent"] | components["schemas"]["serviceResumedEvent"] | components["schemas"]["serviceSuspendedEvent"] | components["schemas"]["suspenderAddedEvent"] | components["schemas"]["suspenderRemovedEvent"] | components["schemas"]["zeroDowntimeRedeployEndedEvent"] | components["schemas"]["zeroDowntimeRedeployStartedEvent"] | components["schemas"]["edgeCacheDisabledEvent"] | components["schemas"]["edgeCacheEnabledEvent"] | components["schemas"]["edgeCachePurgedEvent"] | components["schemas"]["autoDeployDisabledEvent"] | components["schemas"]["autoDeployEnabledEvent"];
+        serviceEventDetails: components["schemas"]["artifactFetchFailedEvent"] | components["schemas"]["artifactSourceChangedEvent"] | components["schemas"]["autoscalingConfigChangedEvent"] | components["schemas"]["autoscalingEndedEvent"] | components["schemas"]["autoscalingStartedEvent"] | components["schemas"]["branchDeletedEvent"] | components["schemas"]["buildEndedEvent"] | components["schemas"]["buildStartedEvent"] | components["schemas"]["commitIgnoredEvent"] | components["schemas"]["cronJobRunEndedEvent"] | components["schemas"]["cronJobRunStartedEvent"] | components["schemas"]["deployEndedEvent"] | components["schemas"]["deployStartedEvent"] | components["schemas"]["diskCreatedEvent"] | components["schemas"]["diskUpdatedEvent"] | components["schemas"]["diskDeletedEvent"] | components["schemas"]["serviceDiskUsageHighEvent"] | components["schemas"]["serviceDiskUsageRecoveredEvent"] | components["schemas"]["imagePullFailedEvent"] | components["schemas"]["initialDeployHookStartedEvent"] | components["schemas"]["initialDeployHookEndedEvent"] | components["schemas"]["instanceCountChangedEvent"] | components["schemas"]["jobRunEndedEvent"] | components["schemas"]["maintenanceModeEnabledEvent"] | components["schemas"]["maintenanceModeURIUpdatedEvent"] | components["schemas"]["maintenanceEndedEvent"] | components["schemas"]["maintenanceStartedEvent"] | components["schemas"]["pipelineMinutesExhaustedEvent"] | components["schemas"]["planChangedEvent"] | components["schemas"]["preDeployEndedEvent"] | components["schemas"]["preDeployStartedEvent"] | components["schemas"]["serverAvailableEvent"] | components["schemas"]["serverFailedEvent"] | components["schemas"]["serverHardwareFailureEvent"] | components["schemas"]["serverRestartedEvent"] | components["schemas"]["serviceResumedEvent"] | components["schemas"]["serviceSuspendedEvent"] | components["schemas"]["suspenderAddedEvent"] | components["schemas"]["suspenderRemovedEvent"] | components["schemas"]["zeroDowntimeRedeployEndedEvent"] | components["schemas"]["zeroDowntimeRedeployStartedEvent"] | components["schemas"]["edgeCacheDisabledEvent"] | components["schemas"]["edgeCacheEnabledEvent"] | components["schemas"]["edgeCachePurgedEvent"] | components["schemas"]["autoDeployDisabledEvent"] | components["schemas"]["autoDeployEnabledEvent"];
         serviceEvent: {
             id: components["schemas"]["eventId"];
             /** Format: date-time */
@@ -7709,6 +7763,11 @@ export interface components {
         objectKeyPathParam: string;
         /** @description The ID of the sandbox */
         sandboxId: components["schemas"]["sandboxId"];
+        /**
+         * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+         *     determined from the sandbox ID, and this parameter is ignored when supplied.
+         */
+        ownerId: string;
         /** @description The ID of the execution */
         execId: components["schemas"]["executionId"];
     };
@@ -14915,14 +14974,14 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "link-artifact-source-to-env-group": {
+    "link-env-group-to-artifact-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14945,20 +15004,20 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "unlink-artifact-source-from-env-group": {
+    "unlink-env-group-from-artifact-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description artifact source unlinked from environment group */
+            /** @description environment group unlinked from artifact source */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -15811,9 +15870,9 @@ export interface operations {
     };
     "list-sandboxes": {
         parameters: {
-            query?: {
-                /** @description The ID of the workspaces to return resources for */
-                ownerId?: components["parameters"]["ownerIdParam"];
+            query: {
+                /** @description The ID of the workspace whose sandboxes to return. */
+                ownerId: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -15901,9 +15960,9 @@ export interface operations {
     };
     "list-sandbox-groups": {
         parameters: {
-            query?: {
-                /** @description The ID of the workspaces to return resources for */
-                ownerId?: components["parameters"]["ownerIdParam"];
+            query: {
+                /** @description The ID of the workspace whose sandbox groups to return. */
+                ownerId: string;
             };
             header?: never;
             path?: never;
@@ -15931,9 +15990,12 @@ export interface operations {
     };
     "retrieve-sandbox": {
         parameters: {
-            query: {
-                /** @description The ID of the workspace the sandbox belongs to. */
-                ownerId: string;
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
@@ -15961,11 +16023,54 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
+    "list-sandbox-executions": {
+        parameters: {
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["executionWithCursor"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
     "retrieve-sandbox-execution": {
         parameters: {
-            query: {
-                /** @description The ID of the workspace the sandbox belongs to. */
-                ownerId: string;
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
@@ -15997,9 +16102,12 @@ export interface operations {
     };
     "terminate-sandbox": {
         parameters: {
-            query: {
-                /** @description The ID of the workspace the sandbox belongs to. */
-                ownerId: string;
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
@@ -16027,9 +16135,12 @@ export interface operations {
     };
     "connect-sandbox-run": {
         parameters: {
-            query: {
-                /** @description The ID of sandbox workspace. */
-                ownerId: string;
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
@@ -16066,9 +16177,12 @@ export interface operations {
     };
     "update-sandbox-exec": {
         parameters: {
-            query: {
-                /** @description The ID of sandbox workspace. */
-                ownerId: string;
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
@@ -16148,8 +16262,11 @@ export interface operations {
     "connect-sandbox-files": {
         parameters: {
             query: {
-                /** @description The ID of the workspace the sandbox belongs to. */
-                ownerId: string;
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
                 /** @description Path in the sandbox this token authorizes. A relative path resolves within the sandbox's home directory ("." is the home directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch. */
                 path: string;
             };

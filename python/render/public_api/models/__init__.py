@@ -137,6 +137,7 @@ from .event_type import EventType
 from .execution import Execution
 from .execution_operation import ExecutionOperation
 from .execution_type import ExecutionType
+from .execution_with_cursor import ExecutionWithCursor
 from .failure_reason import FailureReason
 from .filter_application_values_collection_item import FilterApplicationValuesCollectionItem
 from .filter_application_values_collection_item_filter import FilterApplicationValuesCollectionItemFilter
@@ -363,6 +364,8 @@ from .server_port import ServerPort
 from .server_port_protocol import ServerPortProtocol
 from .server_restarted import ServerRestarted
 from .service_disk import ServiceDisk
+from .service_disk_usage_high import ServiceDiskUsageHigh
+from .service_disk_usage_recovered import ServiceDiskUsageRecovered
 from .service_env import ServiceEnv
 from .service_event import ServiceEvent
 from .service_event_type import ServiceEventType
@@ -568,6 +571,7 @@ __all__ = (
     "Execution",
     "ExecutionOperation",
     "ExecutionType",
+    "ExecutionWithCursor",
     "FailureReason",
     "FilterApplicationValuesCollectionItem",
     "FilterApplicationValuesCollectionItemFilter",
@@ -792,6 +796,8 @@ __all__ = (
     "ServerPortProtocol",
     "ServerRestarted",
     "ServiceDisk",
+    "ServiceDiskUsageHigh",
+    "ServiceDiskUsageRecovered",
     "ServiceEnv",
     "ServiceEvent",
     "ServiceEventType",

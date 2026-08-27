@@ -7,14 +7,14 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.execution import Execution
-from ...types import UNSET, Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     sandbox_id: str,
     exec_id: str,
     *,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -91,7 +91,7 @@ def sync_detailed(
     exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, Execution]]:
     """Retrieve execution
 
@@ -100,7 +100,7 @@ def sync_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -128,7 +128,7 @@ def sync(
     exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, Execution]]:
     """Retrieve execution
 
@@ -137,7 +137,7 @@ def sync(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -160,7 +160,7 @@ async def asyncio_detailed(
     exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, Execution]]:
     """Retrieve execution
 
@@ -169,7 +169,7 @@ async def asyncio_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -195,7 +195,7 @@ async def asyncio(
     exec_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, Execution]]:
     """Retrieve execution
 
@@ -204,7 +204,7 @@ async def asyncio(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (str):
+        owner_id (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

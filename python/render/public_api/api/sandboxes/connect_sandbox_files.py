@@ -8,14 +8,14 @@ from ...client import AuthenticatedClient, Client
 from ...models.connect_sandbox_files_operation import ConnectSandboxFilesOperation
 from ...models.error import Error
 from ...models.sandbox_connect_response import SandboxConnectResponse
-from ...types import UNSET, Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     sandbox_id: str,
     operation: ConnectSandboxFilesOperation,
     *,
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
     path: str,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
@@ -100,7 +100,7 @@ def sync_detailed(
     operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
     path: str,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
@@ -119,7 +119,7 @@ def sync_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         path (str):
 
     Raises:
@@ -149,7 +149,7 @@ def sync(
     operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
     path: str,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
@@ -168,7 +168,7 @@ def sync(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         path (str):
 
     Raises:
@@ -193,7 +193,7 @@ async def asyncio_detailed(
     operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
     path: str,
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
@@ -212,7 +212,7 @@ async def asyncio_detailed(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         path (str):
 
     Raises:
@@ -240,7 +240,7 @@ async def asyncio(
     operation: ConnectSandboxFilesOperation,
     *,
     client: Union[AuthenticatedClient, Client],
-    owner_id: str,
+    owner_id: Union[Unset, str] = UNSET,
     path: str,
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
@@ -259,7 +259,7 @@ async def asyncio(
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
-        owner_id (str):
+        owner_id (Union[Unset, str]):
         path (str):
 
     Raises:

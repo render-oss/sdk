@@ -40,6 +40,8 @@ from render.public_api.models.service_event import (
     ServerFailed as ServerFailed,
     ServerHardwareFailure as ServerHardwareFailure,
     ServerRestarted as ServerRestarted,
+    ServiceDiskUsageHigh as ServiceDiskUsageHigh,
+    ServiceDiskUsageRecovered as ServiceDiskUsageRecovered,
     ServiceEvent as ServiceEvent,
     ServiceEventType as ServiceEventType,
     ServiceResumed as ServiceResumed,
