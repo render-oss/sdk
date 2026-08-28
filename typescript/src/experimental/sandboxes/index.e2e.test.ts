@@ -4,6 +4,7 @@ import { Render } from "../../render.js";
 import type { SandboxExecEvent } from "./index.js";
 
 const sbxIdRegex = /^sbx-/;
+const sbgIdRegex = /^sbg-/;
 
 const EXEC_RETRY_ATTEMPTS = 50;
 const EXEC_RETRY_DELAY_MS = 3000;
@@ -43,6 +44,20 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
     render = new Render({
       baseUrl: process.env.RENDER_BASE_URL || undefined,
     });
+  });
+
+  it("lists the workspace's sandbox groups", async () => {
+    const groups = await render.experimental.sandboxes.listGroups({ ownerId });
+
+    expect(groups.length).toBeGreaterThan(0);
+    for (const { sandboxGroup, cursor } of groups) {
+      expect(sandboxGroup.id).toMatch(sbgIdRegex);
+      expect(sandboxGroup.ownerId).toBe(ownerId);
+      expect(sandboxGroup.region).toBeTruthy();
+      expect(typeof sandboxGroup.concurrencyLimit).toBe("number");
+      expect(cursor).toBeTruthy();
+    }
+    expect(groups.some(({ sandboxGroup }) => sandboxGroup.isDefault)).toBe(true);
   });
 
   it("creates, lists, uses, and terminates a sandbox", async () => {

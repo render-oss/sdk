@@ -65,6 +65,18 @@ export type SandboxCreateInput = {
   env?: Record<string, string>;
 };
 
+/** A sandbox group as returned by the API. */
+export type SandboxGroup = components["schemas"]["sandboxGroup"];
+
+/** A sandbox group paired with its pagination cursor. */
+export type SandboxGroupWithCursor = components["schemas"]["sandboxGroupWithCursor"];
+
+/** Options for listing sandbox groups. */
+export type SandboxGroupListInput = {
+  /** Defaults to the client's owner ID. */
+  ownerId?: `tea-${string}`;
+};
+
 export class SandboxExecStreamError extends RenderError {
   constructor(
     public status: number,
@@ -152,6 +164,20 @@ export class SandboxesClient {
     });
     if (error) {
       throw getTypedApiError(error, response, "Failed to list sandboxes");
+    }
+    return data;
+  }
+
+  async listGroups({ ownerId }: SandboxGroupListInput = {}): Promise<SandboxGroupWithCursor[]> {
+    const { data, error, response } = await this.apiClient.GET("/sandbox-groups", {
+      params: {
+        query: {
+          ownerId: [this.resolveOwnerId(ownerId)],
+        },
+      },
+    });
+    if (error) {
+      throw getTypedApiError(error, response, "Failed to list sandbox groups");
     }
     return data;
   }

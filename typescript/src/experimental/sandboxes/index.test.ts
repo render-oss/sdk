@@ -114,6 +114,73 @@ describe("SandboxesClient", () => {
     });
   });
 
+  describe("listGroups", () => {
+    const GROUP = {
+      sandboxGroup: {
+        id: "sbg-123",
+        ownerId: "tea-test",
+        name: "Default",
+        region: "oregon",
+        isDefault: true,
+        environmentId: null,
+        concurrencyLimit: 10,
+        createdAt: "2026-07-02T18:30:00Z",
+        updatedAt: "2026-07-02T18:30:00Z",
+      },
+      cursor: "cursor-123",
+    };
+
+    it("lists sandbox groups for the requested owner", async () => {
+      const apiClient = {
+        GET: vi.fn().mockResolvedValue({ data: [GROUP], error: undefined }),
+      } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      await expect(client.listGroups({ ownerId: "tea-test" })).resolves.toEqual([GROUP]);
+      expect(apiClient.GET).toHaveBeenCalledWith("/sandbox-groups", {
+        params: { query: { ownerId: ["tea-test"] } },
+      });
+    });
+
+    it("uses the client default owner when called without options", async () => {
+      const apiClient = {
+        GET: vi.fn().mockResolvedValue({ data: [], error: undefined }),
+      } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      await expect(client.listGroups()).resolves.toEqual([]);
+      expect(apiClient.GET).toHaveBeenCalledWith("/sandbox-groups", {
+        params: { query: { ownerId: ["tea-default"] } },
+      });
+    });
+
+    it("requires an owner ID", async () => {
+      const apiClient = { GET: vi.fn() } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient);
+
+      await expect(client.listGroups()).rejects.toBeInstanceOf(RenderError);
+      expect(apiClient.GET).not.toHaveBeenCalled();
+    });
+
+    it("throws ClientError when the API rejects the request", async () => {
+      const apiClient = {
+        GET: vi.fn().mockResolvedValue({
+          data: undefined,
+          error: { message: "workspace not found" },
+          response: new Response(null, { status: 404 }),
+        }),
+      } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      const error = await client.listGroups().catch((err) => err);
+      expect(error).toBeInstanceOf(ClientError);
+      expect(error).toMatchObject({
+        statusCode: 404,
+        message: "Failed to list sandbox groups: workspace not found",
+      });
+    });
+  });
+
   describe("create", () => {
     it("passes caller-supplied options and falls back to the client region", async () => {
       const sandbox = { id: "sbx-123" };
