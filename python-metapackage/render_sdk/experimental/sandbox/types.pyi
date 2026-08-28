@@ -4,6 +4,8 @@ from render.experimental.sandbox.types import (
     SandboxExecEvent as SandboxExecEvent,
     SandboxExecExit as SandboxExecExit,
     SandboxExecOutput as SandboxExecOutput,
+    SandboxGroup as SandboxGroup,
+    SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     dataclass as dataclass,
     datetime as datetime,

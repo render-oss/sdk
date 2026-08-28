@@ -6,6 +6,7 @@ from render.experimental.sandbox.client_sync import (
     RenderError as RenderError,
     Sandbox as Sandbox,
     SandboxExecEvent as SandboxExecEvent,
+    SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     Sequence as Sequence,
     SyncSandboxApi as SyncSandboxApi,

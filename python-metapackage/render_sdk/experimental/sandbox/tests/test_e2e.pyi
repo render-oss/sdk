@@ -12,4 +12,5 @@ from render.experimental.sandbox.tests.test_e2e import (
     test_copy_from_file_and_directory as test_copy_from_file_and_directory,
     test_copy_to_file_and_directory as test_copy_to_file_and_directory,
     test_create_exec_terminate as test_create_exec_terminate,
+    test_list_groups_returns_the_workspace_default as test_list_groups_returns_the_workspace_default,
 )

@@ -8,6 +8,7 @@ from render.experimental.sandbox.client import (
     SandboxApi as SandboxApi,
     SandboxClient as SandboxClient,
     SandboxExecEvent as SandboxExecEvent,
+    SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     Sequence as Sequence,
     TYPE_CHECKING as TYPE_CHECKING,

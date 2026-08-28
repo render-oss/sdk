@@ -29,6 +29,18 @@ SANDBOX_JSON = {
     "terminatedAt": None,
 }
 
+SANDBOX_GROUP_JSON = {
+    "id": "sbg-abc",
+    "ownerId": "tea-test",
+    "name": "Default",
+    "region": "oregon",
+    "isDefault": True,
+    "concurrencyLimit": 10,
+    "environmentId": None,
+    "createdAt": "2026-07-02T18:30:00Z",
+    "updatedAt": "2026-07-02T18:30:00Z",
+}
+
 
 def _sandbox_client(handler, *, default_owner_id="tea-test"):
     transport = httpx.MockTransport(handler)
@@ -211,6 +223,107 @@ async def test_list_rejects_an_unknown_status():
         await client.list(status="bogus")
 
 
+@pytest.mark.asyncio
+async def test_list_groups_returns_groups_and_cursor():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        captured["owner_id"] = request.url.params.get_list("ownerId")
+        body = [{"sandboxGroup": SANDBOX_GROUP_JSON, "cursor": "cur-1"}]
+        return httpx.Response(200, json=body)
+
+    client = _sandbox_client(handler)
+    page = await client.list_groups()
+
+    assert captured["method"] == "GET"
+    assert captured["path"] == "/v1/sandbox-groups"
+    assert captured["owner_id"] == ["tea-test"]
+
+    group = page.groups[0]
+    assert group.id == "sbg-abc"
+    assert group.owner_id == "tea-test"
+    assert group.name == "Default"
+    assert group.region == "oregon"
+    assert group.is_default is True
+    assert group.concurrency_limit == 10
+    assert group.environment_id is None
+    assert group.created_at.isoformat() == "2026-07-02T18:30:00+00:00"
+    assert group.updated_at.isoformat() == "2026-07-02T18:30:00+00:00"
+    assert page.next_cursor == "cur-1"
+
+
+@pytest.mark.asyncio
+async def test_list_groups_uses_an_explicit_owner_id():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["owner_id"] = request.url.params.get_list("ownerId")
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+    await client.list_groups(owner_id="tea-other")
+
+    assert captured["owner_id"] == ["tea-other"]
+
+
+@pytest.mark.asyncio
+async def test_list_groups_empty_has_no_cursor():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+    page = await client.list_groups()
+
+    assert page.groups == []
+    assert page.next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_list_groups_requires_owner_id():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("handler should not be reached")
+
+    client = _sandbox_client(handler, default_owner_id=None)
+    with pytest.raises(RenderError):
+        await client.list_groups()
+
+
+@pytest.mark.asyncio
+async def test_list_groups_raises_client_error_on_404():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404, json={"message": "workspace not found"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError, match="workspace not found"):
+        await client.list_groups()
+
+
+@pytest.mark.asyncio
+async def test_list_groups_reads_a_set_environment_id():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        group = {**SANDBOX_GROUP_JSON, "environmentId": "evm-1"}
+        return httpx.Response(200, json=[{"sandboxGroup": group, "cursor": "cur-1"}])
+
+    client = _sandbox_client(handler)
+    page = await client.list_groups()
+
+    assert page.groups[0].environment_id == "evm-1"
+
+
+@pytest.mark.asyncio
+async def test_list_groups_treats_an_omitted_environment_id_as_none():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        group = {k: v for k, v in SANDBOX_GROUP_JSON.items() if k != "environmentId"}
+        return httpx.Response(200, json=[{"sandboxGroup": group, "cursor": "cur-1"}])
+
+    client = _sandbox_client(handler)
+    page = await client.list_groups()
+
+    assert page.groups[0].environment_id is None
+
+
 def _sync_sandbox_client(handler, *, default_owner_id="tea-test"):
     from render.experimental.sandbox.client_sync import SyncSandboxClient
 
@@ -277,6 +390,44 @@ def test_sync_list_rejects_an_unknown_status():
 
     with pytest.raises(ValueError, match="bogus"):
         client.list(status="bogus")
+
+
+def test_sync_list_groups_returns_groups_and_cursor():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.path
+        captured["owner_id"] = request.url.params.get_list("ownerId")
+        body = [{"sandboxGroup": SANDBOX_GROUP_JSON, "cursor": "cur-1"}]
+        return httpx.Response(200, json=body)
+
+    client = _sync_sandbox_client(handler)
+    page = client.list_groups()
+
+    assert captured["path"] == "/v1/sandbox-groups"
+    assert captured["owner_id"] == ["tea-test"]
+    assert [g.id for g in page.groups] == ["sbg-abc"]
+    assert page.next_cursor == "cur-1"
+
+
+def test_sync_list_groups_empty_has_no_cursor():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=[])
+
+    client = _sync_sandbox_client(handler)
+    page = client.list_groups()
+
+    assert page.groups == []
+    assert page.next_cursor is None
+
+
+def test_sync_list_groups_requires_owner_id():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise AssertionError("handler should not be reached")
+
+    client = _sync_sandbox_client(handler, default_owner_id=None)
+    with pytest.raises(RenderError):
+        client.list_groups()
 
 
 @pytest.mark.asyncio

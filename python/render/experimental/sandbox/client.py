@@ -9,7 +9,12 @@ from typing import TYPE_CHECKING
 from render.client.errors import RenderError
 from render.experimental.sandbox.api import SandboxApi
 from render.experimental.sandbox.files import normalize_remote_path
-from render.experimental.sandbox.types import Sandbox, SandboxExecEvent, SandboxList
+from render.experimental.sandbox.types import (
+    Sandbox,
+    SandboxExecEvent,
+    SandboxGroupList,
+    SandboxList,
+)
 
 if TYPE_CHECKING:
     from render.public_api.client import AuthenticatedClient, Client
@@ -89,6 +94,16 @@ class SandboxClient:
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return await self.api.list(resolved_owner_id, status, cursor, limit)
+
+    async def list_groups(self, *, owner_id: str | None = None) -> SandboxGroupList:
+        """List the sandbox groups a workspace owns.
+
+        Alpha guarantees at most one group per workspace, so the page holds
+        zero or one group. next_cursor carries the cursor of the last entry,
+        or None when the page is empty.
+        """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        return await self.api.list_groups(resolved_owner_id)
 
     async def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
         """Terminate a sandbox.

@@ -22,6 +22,8 @@ __all__ = [
     "SandboxExecOutput",
     "SandboxExecStreamError",
     "SandboxFileNotFoundError",
+    "SandboxGroup",
+    "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
 ]
