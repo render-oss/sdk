@@ -52,16 +52,21 @@ from render.experimental.sandbox.types import (
     SandboxExecEvent,
     SandboxExecExit,
     SandboxExecOutput,
+    SandboxGroup,
+    SandboxGroupList,
     SandboxList,
 )
 from render.public_api.api.sandboxes import (
     create_sandbox,
+    list_sandbox_groups,
     list_sandboxes,
     retrieve_sandbox,
     terminate_sandbox,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
+from render.public_api.models.sandbox_group import SandboxGroup as GeneratedSandboxGroup
+from render.public_api.models.sandbox_group_with_cursor import SandboxGroupWithCursor
 from render.public_api.models.sandbox_network_policy import SandboxNetworkPolicy
 from render.public_api.models.sandbox_network_policy_default import (
     SandboxNetworkPolicyDefault,
@@ -84,6 +89,7 @@ _FILE_NOT_FOUND_CODE = "file_not_found"
 # builtin list, not the SandboxApi.list method that shadows it in the class body.
 _SandboxWithCursorList = list[SandboxWithCursor]
 _SandboxStatusList = list[SandboxStatus]
+_SandboxGroupWithCursorList = list[SandboxGroupWithCursor]
 
 # File transfer content types. The content type states intent and nothing else:
 # a single file travels as octet-stream and a directory as an x-tar archive the
@@ -103,6 +109,22 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
         timeout_seconds=model.timeout_seconds,
         created_at=model.created_at,
         terminated_at=terminated if isinstance(terminated, datetime) else None,
+    )
+
+
+def _to_sandbox_group(model: GeneratedSandboxGroup) -> SandboxGroup:
+    # environment_id is Union[None, Unset, str]; both non-str cases mean None.
+    environment_id = model.environment_id
+    return SandboxGroup(
+        id=model.id,
+        owner_id=model.owner_id,
+        name=model.name,
+        region=model.region,
+        is_default=model.is_default,
+        concurrency_limit=model.concurrency_limit,
+        created_at=model.created_at,
+        updated_at=model.updated_at,
+        environment_id=environment_id if isinstance(environment_id, str) else None,
     )
 
 
@@ -196,6 +218,24 @@ class SandboxApi:
             status=statuses or UNSET,
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
+        )
+
+    async def list_groups(self, owner_id: str) -> SandboxGroupList:
+        response = await self._list_groups_api_call(owner_id)
+        parsed = response.parsed
+        if not isinstance(parsed, list):
+            raise RenderError("Failed to list sandbox groups: unexpected response type")
+        groups = [_to_sandbox_group(item.sandbox_group) for item in parsed]
+        next_cursor = parsed[-1].cursor if parsed else None
+        return SandboxGroupList(groups=groups, next_cursor=next_cursor)
+
+    @handle_http_errors("list sandbox groups")
+    async def _list_groups_api_call(
+        self, owner_id: str
+    ) -> Response[Error | _SandboxGroupWithCursorList]:
+        return await list_sandbox_groups.asyncio_detailed(
+            client=self.client,
+            owner_id=[owner_id],
         )
 
     async def terminate(self, sandbox_id: str, owner_id: str) -> None:

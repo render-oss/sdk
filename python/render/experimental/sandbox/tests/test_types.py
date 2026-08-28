@@ -10,6 +10,8 @@ from render.experimental.sandbox.types import (
     Sandbox,
     SandboxExecExit,
     SandboxExecOutput,
+    SandboxGroup,
+    SandboxGroupList,
     SandboxList,
 )
 
@@ -32,6 +34,30 @@ def test_sandbox_has_expected_fields():
 def test_sandbox_list_defaults_are_empty():
     page = SandboxList()
     assert page.sandboxes == []
+    assert page.next_cursor is None
+
+
+def test_sandbox_group_has_expected_fields():
+    group = SandboxGroup(
+        id="sbg-1",
+        owner_id="tea-1",
+        name="Default",
+        region="oregon",
+        is_default=True,
+        concurrency_limit=10,
+        created_at=datetime(2026, 7, 2),
+        updated_at=datetime(2026, 7, 2),
+    )
+    assert group.id == "sbg-1"
+    assert group.name == "Default"
+    assert group.is_default is True
+    assert group.concurrency_limit == 10
+    assert group.environment_id is None
+
+
+def test_sandbox_group_list_defaults_are_empty():
+    page = SandboxGroupList()
+    assert page.groups == []
     assert page.next_cursor is None
 
 

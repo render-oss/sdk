@@ -13,6 +13,8 @@ from render.experimental.sandbox.types import (
     SandboxExecEvent,
     SandboxExecExit,
     SandboxExecOutput,
+    SandboxGroup,
+    SandboxGroupList,
     SandboxList,
 )
 
@@ -26,6 +28,8 @@ __all__ = [
     "SandboxExecOutput",
     "SandboxExecStreamError",
     "SandboxFileNotFoundError",
+    "SandboxGroup",
+    "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
 ]

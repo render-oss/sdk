@@ -9,6 +9,8 @@ from render.experimental.sandbox import (
     SandboxExecOutput as SandboxExecOutput,
     SandboxExecStreamError as SandboxExecStreamError,
     SandboxFileNotFoundError as SandboxFileNotFoundError,
+    SandboxGroup as SandboxGroup,
+    SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     SandboxNotFoundError as SandboxNotFoundError,
 )
@@ -23,6 +25,8 @@ __all__ = [
     "SandboxExecOutput",
     "SandboxExecStreamError",
     "SandboxFileNotFoundError",
+    "SandboxGroup",
+    "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
 ]

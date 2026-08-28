@@ -29,6 +29,29 @@ class SandboxList:
 
 
 @dataclass
+class SandboxGroup:
+    """A sandbox group snapshot returned by list_groups."""
+
+    id: str
+    owner_id: str
+    name: str
+    region: str
+    is_default: bool
+    concurrency_limit: int
+    created_at: datetime
+    updated_at: datetime
+    environment_id: str | None = None
+
+
+@dataclass
+class SandboxGroupList:
+    """A page of sandbox groups with an optional pagination cursor."""
+
+    groups: list[SandboxGroup] = field(default_factory=list)
+    next_cursor: str | None = None
+
+
+@dataclass
 class SandboxExecOutput:
     """A chunk of stdout or stderr from an exec stream."""
 

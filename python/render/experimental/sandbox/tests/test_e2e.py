@@ -87,6 +87,19 @@ async def _exec_output(sandboxes, sandbox_id, owner_id, command):
 
 
 @pytest.mark.asyncio
+async def test_list_groups_returns_the_workspace_default(sandboxes):
+    # Needs no runner, only the sandboxes rollout this file already requires.
+    page = await sandboxes.list_groups(owner_id=_OWNER_ID)
+
+    assert page.groups, "expected at least one sandbox group for the e2e workspace"
+    assert all(group.id.startswith("sbg-") for group in page.groups)
+    assert all(group.owner_id == _OWNER_ID for group in page.groups)
+    assert all(group.region for group in page.groups)
+    assert any(group.is_default for group in page.groups)
+    assert page.next_cursor is not None
+
+
+@pytest.mark.asyncio
 async def test_create_exec_terminate(sandboxes):
     owner_id = _OWNER_ID
 
