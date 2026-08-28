@@ -1,63 +1,87 @@
-# sdk
+# Render SDK
 
-The official SDK for Render
+Build on Render with official SDKs for Python and TypeScript.
 
-> [!WARNING]
-> **Early Access:** This SDK is in early access and subject to breaking changes without notice.
+[Python](#python) · [TypeScript](#typescript) · [Documentation](https://render.com/docs) · [Examples](#examples) · [Support](#documentation-and-support)
 
-SDK support is provided for the following languages
+## Choose your SDK
 
-| Language   | README                                 | Package          |
-| ---------- | -------------------------------------- | ---------------- |
-| TypeScript | [./typescript](./typescript/README.md) | `@renderinc/sdk` |
-| Python     | [./python](./python/README.md)         | `render`         |
+| Language | Package | Requirements | Language guide |
+| --- | --- | --- | --- |
+| Python | [`render`](https://pypi.org/project/render/) | Python 3.10+ | [Python SDK](./python/README.md) |
+| TypeScript | [`@renderinc/sdk`](https://www.npmjs.com/package/@renderinc/sdk) | Node.js 18+ | [TypeScript SDK](./typescript/README.md) |
 
-With the following features
+## Supported products
 
-| Feature        | REST API                                                        | Python                                                                   | TypeScript                                                                 |
-| -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
-| Workflows      | [REST API](https://api-docs.render.com/reference/listworkflows) | [Released](./python/render/client/workflows.py)                          | [Released](./typescript/src/workflows/client/client.ts)                    |
-| Object Storage | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/object/client.py)  | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts)   |
-| Sandboxes      | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/sandbox/client.py) | [⚠️ Early Access client](./typescript/src/experimental/sandboxes/index.ts) |
+| Product | What it enables | Status | Python | TypeScript |
+| --- | --- | --- | :---: | :---: |
+| [Workflows](https://render.com/docs/workflows) | Define tasks and manage durable, distributed task runs | Released | [✓](./python/render/client/workflows.py) | [✓](./typescript/src/workflows/client/client.ts) |
+| Sandboxes | Run code in isolated environments | Early Access | [✓](./python/render/experimental/sandbox/client.py) | [✓](./typescript/src/experimental/sandboxes/index.ts) |
+| Object Storage | Upload, retrieve, and list objects | Early Access | [✓](./python/render/experimental/object/client.py) | [✓](./typescript/src/experimental/object/client.ts) |
 
-# Quickstart
+## Install and authenticate
 
-To get started you'll need a couple things:
+Create a [Render API key](https://render.com/docs/api#1-create-an-api-key), then set it in your environment:
 
-- [A Render API Key](https://render.com/docs/api#1-create-an-api-key)
-- The SDK for your language
+```bash
+export RENDER_API_KEY=rnd_...
+```
 
-## Python
+The SDK automatically reads `RENDER_API_KEY`. You can also pass a token directly when constructing a client.
 
-To start, get the latest SDK from pypi
+### Python
+
+Install the SDK from PyPI:
 
 ```bash
 pip install render
-# or
+```
+
+Initialize a client:
+
+```python
+from render import Render
+
+render = Render()
+```
+
+Using uv or Poetry?
+
+<details>
+<summary>Alternative installation commands</summary>
+
+```bash
 uv add render
 # or
 poetry add render
 ```
 
-Then initialize a SDK client with your API key
+</details>
 
-```python
-from render import Render
+Continue to the [Python SDK guide](./python/README.md).
 
-render = Render(token="rnd_...")
-```
+### TypeScript
 
-You may also provide a `RENDER_API_KEY` environment variable instead of providing the key to the constructor.
-
-For more detail see the [Python SDK README](./python/README.md)
-
-## TypeScript
-
-To start get the latest SDK from npm
+Install the SDK from npm:
 
 ```bash
-npm i @renderinc/sdk
-# or
+npm install @renderinc/sdk
+```
+
+Initialize a client:
+
+```typescript
+import { Render } from "@renderinc/sdk";
+
+const render = new Render();
+```
+
+Using pnpm, Yarn, or Bun?
+
+<details>
+<summary>Alternative installation commands</summary>
+
+```bash
 pnpm add @renderinc/sdk
 # or
 yarn add @renderinc/sdk
@@ -65,56 +89,59 @@ yarn add @renderinc/sdk
 bun add @renderinc/sdk
 ```
 
-Then initialize a SDK client with your API key
+</details>
 
-```typescript
-import { Render } from "@renderinc/sdk";
+Continue to the [TypeScript SDK guide](./typescript/README.md).
 
-const render = new Render({ token: "rnd_..." });
-```
+## Explore SDK features
 
-You may also provide a `RENDER_API_KEY` environment variable instead of providing the key to the constructor.
+### Workflows
 
-For more detail see the [TypeScript SDK README](./typescript/README.md)
+Render Workflows orchestrates long-running, distributed tasks. Define tasks as Python or TypeScript functions, configure retries and compute resources, and trigger task runs from your applications.
 
-# Contributing
-
-## Development
-
-### Folder structure
-
-```
-.
-├── python/
-│   ├── example
-│   └── render
-├── typescript/
-│   ├── examples
-│   └── src
-├── openapi/
-│   └── openapi.yaml # Local API Schema for Workflows
-└── go/
-    ├── example
-    └── pkg
-```
-
-### Setup
-
-For Python we support a minimum of `3.10`, and use [uv](https://docs.astral.sh/uv/) to manage our dependencies - [see more in our pyproject.toml](https://github.com/renderinc/sdk/blob/main/python/pyproject.toml)
-
-For TypeScript we support a minimum node version of `18.0.0` and use `npm` to manage our dependecies - [see more in our package.json](https://github.com/renderinc/sdk/blob/main/typescript/package.json)
-
-To install pre-commit hooks, run:
+The fastest way to create a starter project is with the Render CLI:
 
 ```bash
-pre-commit install
-pre-commit autoupdate
+render workflows init
 ```
 
-### API Documentation
+- [Create your first Workflow](https://render.com/docs/workflows-tutorial)
+- [Python SDK reference](https://render.com/docs/workflows-sdk-python)
+- [TypeScript SDK reference](https://render.com/docs/workflows-sdk-typescript)
+- [Local development](https://render.com/docs/workflows-local-development)
 
-To view workflow API documentation from the OpenAPI spec:
+### Sandboxes (Early Access)
 
-```bash
-npx @redocly/cli preview-docs openapi/openapi.yaml
-```
+Use the experimental SDK clients to create and interact with isolated execution environments:
+
+- [Python Sandbox client](./python/render/experimental/sandbox/client.py)
+- [TypeScript Sandbox client](./typescript/src/experimental/sandboxes/index.ts)
+
+### Object Storage (Early Access)
+
+Use the experimental SDK clients to upload, retrieve, and list objects:
+
+- [Python Object Storage client](./python/render/experimental/object/client.py)
+- [TypeScript Object Storage client](./typescript/src/experimental/object/client.ts)
+
+## Examples
+
+- [Python examples](./python/example)
+- [TypeScript examples](./typescript/examples)
+- [Your first Workflow](https://render.com/docs/workflows-tutorial)
+
+## Documentation and support
+
+- [Render documentation](https://render.com/docs)
+- [Render API reference](https://api-docs.render.com)
+- [GitHub issues](https://github.com/render-oss/sdk/issues)
+- [SDK releases](https://github.com/render-oss/sdk/releases)
+
+## Contributing
+
+Contributions are welcome. For language-specific development commands, see:
+
+- [Python development setup](./python/README.md#development)
+- [TypeScript development setup](./typescript/README.md#development)
+
+Please open an issue before proposing a substantial API or architectural change.
