@@ -138,7 +138,7 @@ describe("SandboxesClient", () => {
 
       await expect(client.listGroups({ ownerId: "tea-test" })).resolves.toEqual([GROUP]);
       expect(apiClient.GET).toHaveBeenCalledWith("/sandbox-groups", {
-        params: { query: { ownerId: ["tea-test"] } },
+        params: { query: { ownerId: "tea-test" } },
       });
     });
 
@@ -150,7 +150,7 @@ describe("SandboxesClient", () => {
 
       await expect(client.listGroups()).resolves.toEqual([]);
       expect(apiClient.GET).toHaveBeenCalledWith("/sandbox-groups", {
-        params: { query: { ownerId: ["tea-default"] } },
+        params: { query: { ownerId: "tea-default" } },
       });
     });
 
