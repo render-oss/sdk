@@ -235,7 +235,7 @@ class SandboxApi:
     ) -> Response[Error | _SandboxGroupWithCursorList]:
         return await list_sandbox_groups.asyncio_detailed(
             client=self.client,
-            owner_id=[owner_id],
+            owner_id=owner_id,
         )
 
     async def terminate(self, sandbox_id: str, owner_id: str) -> None:

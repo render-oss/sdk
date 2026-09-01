@@ -237,7 +237,7 @@ class SyncSandboxApi:
     ) -> Response[Error | _SandboxGroupWithCursorList]:
         return list_sandbox_groups.sync_detailed(
             client=self.client,
-            owner_id=[owner_id],
+            owner_id=owner_id,
         )
 
     def terminate(self, sandbox_id: str, owner_id: str) -> None:

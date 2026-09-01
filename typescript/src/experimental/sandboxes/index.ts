@@ -172,7 +172,7 @@ export class SandboxesClient {
     const { data, error, response } = await this.apiClient.GET("/sandbox-groups", {
       params: {
         query: {
-          ownerId: [this.resolveOwnerId(ownerId)],
+          ownerId: this.resolveOwnerId(ownerId),
         },
       },
     });
