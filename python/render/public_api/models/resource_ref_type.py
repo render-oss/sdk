@@ -12,6 +12,7 @@ class ResourceRefType(str, Enum):
     REDIS = "redis"
     STATIC_SITE = "static_site"
     WEB_SERVICE = "web_service"
+    WORKFLOW = "workflow"
 
     def __str__(self) -> str:
         return str(self.value)

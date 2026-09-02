@@ -5801,7 +5801,7 @@ export interface components {
              * @description type of the resource (ex. web_service or postgres)
              * @enum {string}
              */
-            type: "static_site" | "web_service" | "private_service" | "background_worker" | "cron_job" | "redis" | "key_value" | "postgres" | "environment_group" | "artifact_source";
+            type: "static_site" | "web_service" | "private_service" | "background_worker" | "cron_job" | "redis" | "key_value" | "postgres" | "environment_group" | "artifact_source" | "workflow";
         };
         blueprintDetail: {
             id: components["schemas"]["blueprintId"];
