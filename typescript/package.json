@@ -10,7 +10,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest",
-    "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:e2e": "vitest run --config vitest.config.e2e.mts",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
@@ -37,11 +37,12 @@
     "url": "https://github.com/render-oss/sdk/issues"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.4",
+    "@biomejs/biome": "2.5.12",
     "@types/node": "^20.0.0",
     "openapi-typescript": "^7.10.1",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.6"
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0"
   },
   "dependencies": {
     "eventsource": "^4.0.0",
