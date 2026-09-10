@@ -3373,7 +3373,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources": {
+    "/build-sources": {
         parameters: {
             query?: never;
             header?: never;
@@ -3381,113 +3381,125 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List artifact sources
-         * @description List artifact sources matching the provided filters. If `ownerId` is
-         *     omitted, returns artifact sources across every workspace you can view.
+         * List build sources
+         * @description List build sources matching the provided filters. If `ownerId` is
+         *     omitted, returns build sources across every workspace you can view.
          */
-        get: operations["list-artifact-sources"];
+        get: operations["list-build-sources"];
         put?: never;
         /**
-         * Create an artifact source
-         * @description Create an artifact source that can be linked to one or more
+         * Create a build source
+         * @description Create a build source that can be linked to one or more
          *     services in the same workspace.
          *
          *     Exactly one of `git` or `image` must be set:
-         *     - `git`: the artifact source is git-backed. The code is built in
+         *     - `git`: the build source is git-backed. The code is built in
          *        the requested `region` (defaults to `oregon`).
-         *     - `image`: the artifact source is image-backed. It points at an
+         *     - `image`: the build source is image-backed. It points at an
          *       existing image in an external registry; no build is performed.
          *
          *     `envVars`, `secretFiles`, and `envGroupIds` set the build-time
          *     environment and are only valid for `git` sources; the request fails
          *     if any are provided with `image`.
          */
-        post: operations["create-artifact-source"];
+        post: operations["create-build-source"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}": {
+    "/build-sources/{buildSourceId}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         /**
-         * Retrieve an artifact source
-         * @description Retrieve a shared artifact source by ID
+         * Retrieve a build source
+         * @description Retrieve a shared build source by ID
          */
-        get: operations["get-artifact-source"];
+        get: operations["get-build-source"];
         put?: never;
         post?: never;
         /**
-         * Delete an artifact source
-         * @description Delete the artifact source with the provided ID.
+         * Delete a build source
+         * @description Delete the build source with the provided ID.
          */
-        delete: operations["delete-artifact-source"];
+        delete: operations["delete-build-source"];
         options?: never;
         head?: never;
         /**
-         * Update an artifact source
-         * @description Update a shared artifact source. Each top-level field is a true patch,
+         * Update a build source
+         * @description Update a shared build source. Each top-level field is a true patch,
          *     unset fields are left unchanged.
          *
-         *     Supplying `git` or `image` can change the artifact source's
+         *     Supplying `git` or `image` can change the build source's
          *     underlying identity:
-         *     - `image` on a git-backed artifact source switches it to image-backed
-         *     - `git` on an image-backed artifact source switches it to git-backed
-         *     - `git` on an artifact source that's already git-backed is a pure
+         *     - `image` on a git-backed build source switches it to image-backed
+         *     - `git` on an image-backed build source switches it to git-backed
+         *     - `git` on a build source that's already git-backed is a pure
          *       patch onto the existing config
          */
-        patch: operations["update-artifact-source"];
+        patch: operations["update-build-source"];
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/artifacts": {
+    "/build-sources/{buildSourceId}/builds": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         /**
-         * List artifacts in an artifact source
-         * @description List artifacts in an artifact source.
+         * List builds in a build source
+         * @description List builds in a build source.
          */
-        get: operations["list-artifacts-in-artifact-source"];
+        get: operations["list-builds-in-build-source"];
         put?: never;
-        post?: never;
+        /**
+         * Trigger a build
+         * @description Start a new build of the build source at the current HEAD of its
+         *     branch, even if an up-to-date build already exists. Services linked to
+         *     the build source with autodeploy enabled are deployed with the result.
+         *
+         *     Updating a build source or its build-time environment (env vars,
+         *     secret files, env groups) with the REST API does not build it. Call
+         *     this endpoint after those changes to build them.
+         *
+         *     Only `git` build sources can be built.
+         */
+        post: operations["trigger-build-source-build"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/env-vars": {
+    "/build-sources/{buildSourceId}/env-vars": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         /**
          * List environment variables
-         * @description List all environment variables for the artifact source with the provided ID.
+         * @description List all environment variables for the build source with the provided ID.
          */
-        get: operations["get-env-vars-for-artifact-source"];
+        get: operations["get-env-vars-for-build-source"];
         /**
          * Update environment variables
-         * @description Replace all environment variables for an artifact source with the provided list of environment variables.
+         * @description Replace all environment variables for a build source with the provided list of environment variables.
          */
-        put: operations["update-env-vars-for-artifact-source"];
+        put: operations["update-env-vars-for-build-source"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3495,12 +3507,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/env-vars/{envVarKey}": {
+    "/build-sources/{buildSourceId}/env-vars/{envVarKey}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The name of the environment variable */
                 envVarKey: components["parameters"]["envVarKeyParam"];
             };
@@ -3508,54 +3520,54 @@ export interface paths {
         };
         /**
          * Retrieve environment variable
-         * @description Retrieve a particular environment variable for a particular artifact source.
+         * @description Retrieve a particular environment variable for a particular build source.
          *
-         *     This only applies to environment variables set directly on the artifact source, not to environment variables in a linked environment group.
+         *     This only applies to environment variables set directly on the build source, not to environment variables in a linked environment group.
          */
-        get: operations["retrieve-artifact-source-env-var"];
+        get: operations["retrieve-build-source-env-var"];
         /**
          * Add or update environment variable
-         * @description Add or update a particular environment variable for a particular artifact source.
+         * @description Add or update a particular environment variable for a particular build source.
          *
-         *     This only applies to environment variables set directly on the artifact source, not to environment variables in a linked environment group.
+         *     This only applies to environment variables set directly on the build source, not to environment variables in a linked environment group.
          */
-        put: operations["update-artifact-source-env-var"];
+        put: operations["update-build-source-env-var"];
         post?: never;
         /**
          * Delete environment variable
-         * @description Delete a particular environment variable from a particular artifact source.
+         * @description Delete a particular environment variable from a particular build source.
          *
-         *     This only applies to environment variables set directly on the artifact source, not to environment variables in a linked environment group.
+         *     This only applies to environment variables set directly on the build source, not to environment variables in a linked environment group.
          */
-        delete: operations["delete-artifact-source-env-var"];
+        delete: operations["delete-build-source-env-var"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/secret-files": {
+    "/build-sources/{buildSourceId}/secret-files": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         /**
          * List secret files
-         * @description List all secret files for the artifact source with the provided ID.
+         * @description List all secret files for the build source with the provided ID.
          */
-        get: operations["list-secret-files-for-artifact-source"];
+        get: operations["list-secret-files-for-build-source"];
         /**
          * Update secret files
-         * @description Replace all secret files for an artifact source with the provided list of secret files.
+         * @description Replace all secret files for a build source with the provided list of secret files.
          *
-         *     **Any of the artifact source's existing secret files not included in this request will be deleted.**
+         *     **Any of the build source's existing secret files not included in this request will be deleted.**
          *
-         *     This only applies to secret files set directly on the artifact source, not to secret files in a linked environment group.
+         *     This only applies to secret files set directly on the build source, not to secret files in a linked environment group.
          */
-        put: operations["update-secret-files-for-artifact-source"];
+        put: operations["update-secret-files-for-build-source"];
         post?: never;
         delete?: never;
         options?: never;
@@ -3563,12 +3575,12 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/secret-files/{envVarKey}": {
+    "/build-sources/{buildSourceId}/secret-files/{envVarKey}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The file name of the secret file */
                 envVarKey: string;
             };
@@ -3576,37 +3588,37 @@ export interface paths {
         };
         /**
          * Retrieve secret file
-         * @description Retrieve a particular secret file for a particular artifact source.
+         * @description Retrieve a particular secret file for a particular build source.
          *
-         *     This only applies to secret files set directly on the artifact source, not to secret files in a linked environment group.
+         *     This only applies to secret files set directly on the build source, not to secret files in a linked environment group.
          */
-        get: operations["retrieve-artifact-source-secret-file"];
+        get: operations["retrieve-build-source-secret-file"];
         /**
          * Add or update secret file
-         * @description Add or update a particular secret file for a particular artifact source.
+         * @description Add or update a particular secret file for a particular build source.
          *
-         *     This only applies to secret files set directly on the artifact source, not to secret files in a linked environment group.
+         *     This only applies to secret files set directly on the build source, not to secret files in a linked environment group.
          */
-        put: operations["add-or-update-artifact-source-secret-file"];
+        put: operations["add-or-update-build-source-secret-file"];
         post?: never;
         /**
          * Delete secret file
-         * @description Delete a particular secret file from a particular artifact source.
+         * @description Delete a particular secret file from a particular build source.
          *
-         *     This only applies to secret files set directly on the artifact source, not to secret files in a linked environment group.
+         *     This only applies to secret files set directly on the build source, not to secret files in a linked environment group.
          */
-        delete: operations["delete-artifact-source-secret-file"];
+        delete: operations["delete-build-source-secret-file"];
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/artifact-sources/{artifactSourceId}/env-groups/{envGroupId}": {
+    "/build-sources/{buildSourceId}/env-groups/{envGroupId}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
             };
@@ -3616,18 +3628,18 @@ export interface paths {
         put?: never;
         /**
          * Link environment group
-         * @description Link a particular environment group to a particular artifact source.
+         * @description Link a particular environment group to a particular build source.
          *
-         *     The artifact source will have access to the environment variables and secret files in the group at build time.
+         *     The build source will have access to the environment variables and secret files in the group at build time.
          */
-        post: operations["link-env-group-to-artifact-source"];
+        post: operations["link-env-group-to-build-source"];
         /**
          * Unlink environment group
-         * @description Unlink a particular environment group from a particular artifact source.
+         * @description Unlink a particular environment group from a particular build source.
          *
-         *     The artifact source will lose access to the environment variables and secret files in the group.
+         *     The build source will lose access to the environment variables and secret files in the group.
          */
-        delete: operations["unlink-env-group-from-artifact-source"];
+        delete: operations["unlink-env-group-from-build-source"];
         options?: never;
         head?: never;
         patch?: never;
@@ -3905,8 +3917,21 @@ export interface paths {
         /**
          * Stream realtime events (SSE)
          * @description Establishes a unidirectional event stream. The server sends events as lines
-         *     formatted per the SSE spec. Clients SHOULD set `Accept: text/event-stream`
+         *     formatted per the SSE spec. Clients should set `Accept: text/event-stream`
          *     and keep the connection open.
+         *
+         *     The server sends a `task.completed` event whenever a requested task run reaches
+         *     any terminal state (`completed`, `failed`, or `canceled`).
+         *     The `status` field of the payload indicates which state was reached.
+         *
+         *     The server automatically closes the stream in the following cases:
+         *
+         *     - All requested task runs have reached a terminal state.
+         *     - The stream has not sent any events for 30 minutes.
+         *
+         *     For tasks with a timeout higher than 30 minutes, waiting clients should fall back
+         *     to polling with the [Retrieve task run](https://api-docs.render.com/reference/gettaskrun)
+         *     endpoint.
          */
         get: operations["streamTaskRunsEvents"];
         put?: never;
@@ -4023,6 +4048,11 @@ export interface paths {
         /**
          * Create sandbox
          * @description Create a sandbox. Returns the initial sandbox snapshot synchronously.
+         *
+         *     With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
+         *     exist; 409 with `code: snapshot_not_available` if it is not `available`, or
+         *     `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
+         *     different `plan`.
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -4143,6 +4173,103 @@ export interface paths {
          */
         post: operations["terminate-sandbox"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandboxes/{sandboxId}/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create sandbox snapshot
+         * @description Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
+         *     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
+         *     running; a runtime capture pauses it briefly.
+         *
+         *     409 with `code: sandbox_not_running` if the sandbox is not `running`.
+         */
+        post: operations["create-sandbox-snapshot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/snapshots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List sandbox snapshots
+         * @description Snapshots in a sandbox group, newest first. Expired and deleted snapshots
+         *     are omitted.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
+         *     repeated, `code: invalid_status` for a status outside the snapshot status
+         *     vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
+         *     `code: invalid_limit` for a limit outside 1 to 100.
+         */
+        get: operations["list-sandbox-snapshots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the snapshot */
+                snapshotId: components["parameters"]["snapshotId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve sandbox snapshot
+         * @description One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
+         *     that belongs to another sandbox group returns 404.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
+         *     not a well-formed `snp-` ID.
+         */
+        get: operations["retrieve-sandbox-snapshot"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete sandbox snapshot
+         * @description Idempotent: returns 204 if the snapshot is already deleted or expired.
+         *     Sandboxes created from the snapshot are not affected. A snapshot that
+         *     belongs to another sandbox group returns 404.
+         *
+         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+         *     400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
+         *     409 with `code: snapshot_creating` while the capture is in progress.
+         */
+        delete: operations["delete-sandbox-snapshot"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4360,7 +4487,7 @@ export interface components {
         };
         service: {
             id: string;
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            buildSourceId?: components["schemas"]["buildSourceId"];
             autoDeploy: components["schemas"]["autoDeploy"];
             autoDeployTrigger?: components["schemas"]["autoDeployTrigger"];
             branch?: string;
@@ -4379,7 +4506,10 @@ export interface components {
             repo?: string;
             rootDir: string;
             slug: string;
-            /** @enum {string} */
+            /**
+             * serviceSuspendedState
+             * @enum {string}
+             */
             suspended: "suspended" | "not_suspended";
             suspenders: components["schemas"]["suspenderType"][];
             type: components["schemas"]["serviceType"];
@@ -4696,8 +4826,8 @@ export interface components {
             ipAllowList?: components["schemas"]["cidrBlockAndDescription"][];
         };
         webServiceDetailsPOST: {
-            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            /** @description The ID of the Build Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            buildSourceId?: components["schemas"]["buildSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4722,8 +4852,8 @@ export interface components {
             ipAllowList?: components["schemas"]["cidrBlockAndDescription"][];
         };
         privateServiceDetailsPOST: {
-            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            /** @description The ID of the Build Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            buildSourceId?: components["schemas"]["buildSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4742,8 +4872,8 @@ export interface components {
             maxShutdownDelaySeconds?: components["schemas"]["maxShutdownDelaySeconds"];
         };
         backgroundWorkerDetailsPOST: {
-            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            /** @description The ID of the Build Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            buildSourceId?: components["schemas"]["buildSourceId"];
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
@@ -4762,8 +4892,8 @@ export interface components {
             maxShutdownDelaySeconds?: components["schemas"]["maxShutdownDelaySeconds"];
         };
         cronJobDetailsPOST: {
-            /** @description The ID of the Artifact Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
+            /** @description The ID of the Build Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
+            buildSourceId?: components["schemas"]["buildSourceId"];
             env?: components["schemas"]["serviceEnv"];
             runtime: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetails"];
@@ -4772,9 +4902,9 @@ export interface components {
             schedule: string;
         };
         servicePATCH: {
-            /** @description The ID of the Artifact Source to attach this service to. Cannot be combined with other build-configuration changes. Attaching to an Artifact Source with no builds triggers one. */
-            artifactSourceId?: components["schemas"]["artifactSourceId"];
-            artifactId?: string;
+            /** @description The ID of the Build Source to attach this service to. Cannot be combined with other build-configuration changes. Attaching to a Build Source with no builds triggers one. */
+            buildSourceId?: components["schemas"]["buildSourceId"];
+            buildId?: string;
             autoDeploy?: components["schemas"]["autoDeploy"];
             autoDeployTrigger?: components["schemas"]["autoDeployTrigger"];
             repo?: string;
@@ -4789,6 +4919,7 @@ export interface components {
             dockerCommand?: string;
             dockerContext?: string;
             dockerfilePath?: string;
+            /** @description Optional reference to the registry credential for this build. Omit the field to leave the stored credential unchanged; send an empty string to clear it. */
             registryCredentialId?: string;
         };
         nativeEnvironmentDetailsPATCH: {
@@ -4993,7 +5124,7 @@ export interface components {
         deployStatus: "created" | "queued" | "build_in_progress" | "update_in_progress" | "live" | "deactivated" | "build_failed" | "update_failed" | "canceled" | "pre_deploy_in_progress" | "pre_deploy_failed";
         deploy: {
             id: string;
-            artifactId?: string;
+            buildId?: string;
             commit?: {
                 id?: string;
                 message?: string;
@@ -5065,7 +5196,7 @@ export interface components {
          * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
          * @enum {string}
          */
-        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid";
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.
@@ -5670,6 +5801,11 @@ export interface components {
             execution: components["schemas"]["execution"];
             cursor: components["schemas"]["cursor"];
         };
+        /** @description A sandbox snapshot with a cursor */
+        sandboxSnapshotWithCursor: {
+            snapshot: components["schemas"]["sandboxSnapshot"];
+            cursor: components["schemas"]["cursor"];
+        };
         /** @description A sandbox group with a cursor */
         sandboxGroupWithCursor: {
             sandboxGroup: components["schemas"]["sandboxGroup"];
@@ -5694,6 +5830,8 @@ export interface components {
             cursor: components["schemas"]["cursor"];
         };
         user: {
+            /** @description The authenticated user's ID. */
+            id: string;
             email: string;
             name: string;
         };
@@ -5801,7 +5939,7 @@ export interface components {
              * @description type of the resource (ex. web_service or postgres)
              * @enum {string}
              */
-            type: "static_site" | "web_service" | "private_service" | "background_worker" | "cron_job" | "redis" | "key_value" | "postgres" | "environment_group" | "artifact_source" | "workflow";
+            type: "static_site" | "web_service" | "private_service" | "background_worker" | "cron_job" | "redis" | "key_value" | "postgres" | "environment_group" | "build_source" | "workflow";
         };
         blueprintDetail: {
             id: components["schemas"]["blueprintId"];
@@ -5894,7 +6032,7 @@ export interface components {
             previewNotificationsEnabled?: components["schemas"]["notifyPreviewOverride"];
             notificationsToSend?: components["schemas"]["notifyOverride"];
         };
-        artifactSourceId: string;
+        buildSourceId: string;
         /**
          * @description Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
          * @enum {string}
@@ -5946,15 +6084,16 @@ export interface components {
         eventId: string;
         /** Artifact Fetch Failed */
         artifactFetchFailedEvent: {
-            artifactId: string;
+            /** @description The build published by the build source that could not be fetched. */
+            buildId: string;
             message: string;
         };
         /** Artifact Source Changed */
         artifactSourceChangedEvent: {
-            /** @description The previously linked artifact source. Absent when the service was newly attached. */
-            fromArtifactSourceId?: string;
-            /** @description The newly linked artifact source. Absent when the service was detached. */
-            toArtifactSourceId?: string;
+            /** @description The previously linked build source. Absent when the service was newly attached. */
+            fromBuildSourceId?: string;
+            /** @description The newly linked build source. Absent when the service was detached. */
+            toBuildSourceId?: string;
         };
         /** Autoscaling Config Changed */
         autoscalingConfigChangedEvent: {
@@ -6074,15 +6213,15 @@ export interface components {
             deployStatus: components["schemas"]["eventStatus"];
             /** @deprecated */
             status: number;
-            /** @description Set when the deploy shipped an artifact published by the service's linked artifact source. */
-            artifactId?: string;
+            /** @description Set when the deploy shipped a build published by the service's linked build source. */
+            buildId?: string;
         };
         /** Deploy Started */
         deployStartedEvent: {
             deployId: string;
             trigger: components["schemas"]["buildDeployTrigger"];
-            /** @description Set when the deploy ships an artifact published by the service's linked artifact source. */
-            artifactId?: string;
+            /** @description Set when the deploy ships a build published by the service's linked build source. */
+            buildId?: string;
         };
         /** Disk Created */
         diskCreatedEvent: {
@@ -6550,7 +6689,7 @@ export interface components {
              * Format: date-time
              * @description The point in time to restore the database to. See `/recovery-info` for restore availability
              */
-            restoreTime: string;
+            restoreTime?: string;
             /** @description Datadog API key to use for monitoring the new database. Defaults to the API key of the original database. Use an empty string to prevent copying of the API key to the new database. */
             datadogApiKey?: string;
             /** @description Datadog region code to use for monitoring the new database. Defaults to the region code of the original database. Use an empty string to prevent copying of the region code to the new database. */
@@ -6693,14 +6832,14 @@ export interface components {
             paths: string[];
             ignoredPaths: string[];
         };
-        artifactSourceGit: {
+        buildSourceGit: {
             baseDir?: string;
             branch?: string;
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
             dockerfilePath?: string;
             /**
-             * @description Build runtime for the artifact source. Static sites are not supported for artifact sources.
+             * @description Build runtime for the build source. Static sites are not supported for build sources.
              * @enum {string}
              */
             runtime: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
@@ -6714,61 +6853,62 @@ export interface components {
             repoUrl?: string;
             rootDir?: string;
         };
-        artifactSourceImage: {
+        buildSourceImage: {
             ownerId: string;
             registryCredentialId?: string;
             imageUrl: string;
         };
-        artifactSourceServiceLink: {
+        buildSourceServiceLink: {
             id: string;
             name: string;
         };
-        artifactSource: {
-            id: components["schemas"]["artifactSourceId"];
+        buildSource: {
+            id: components["schemas"]["buildSourceId"];
             name: string;
-            /** @description ID of the workspace this artifact source belongs to. */
+            /** @description ID of the workspace this build source belongs to. */
             ownerId: string;
-            /** @description ID of the project this artifact source is scoped to, if any. */
+            /** @description ID of the project this build source is scoped to, if any. */
             projectId?: string;
-            /** @description Present when the artifact source is currently build-based. Mutually exclusive with `image`. */
-            git?: components["schemas"]["artifactSourceGit"];
-            /** @description Present when the artifact source is currently image-based. Mutually exclusive with `git`. */
-            image?: components["schemas"]["artifactSourceImage"];
+            /** @description Present when the build source is currently build-based. Mutually exclusive with `image`. */
+            git?: components["schemas"]["buildSourceGit"];
+            /** @description Present when the build source is currently image-based. Mutually exclusive with `git`. */
+            image?: components["schemas"]["buildSourceImage"];
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
-            /** @description Services currently linked to this artifact source. */
-            serviceLinks: components["schemas"]["artifactSourceServiceLink"][];
+            /** @description Services currently linked to this build source. */
+            serviceLinks: components["schemas"]["buildSourceServiceLink"][];
         };
-        artifactSourceWithCursor: {
-            artifactSource: components["schemas"]["artifactSource"];
+        buildSourceWithCursor: {
+            buildSource: components["schemas"]["buildSource"];
             cursor: string;
         };
-        artifactSourcePOSTInput: {
+        buildSourcePOSTInput: {
             ownerId: string;
             name: string;
             projectId?: string;
-            git?: components["schemas"]["artifactSourceGit"];
-            image?: components["schemas"]["artifactSourceImage"];
+            git?: components["schemas"]["buildSourceGit"];
+            image?: components["schemas"]["buildSourceImage"];
             serviceIds?: string[];
             envVars?: components["schemas"]["envVarInputArray"];
-            /** @description Secret files for the artifact source's build. Only valid for `git` sources. */
+            /** @description Secret files for the build source's build. Only valid for `git` sources. */
             secretFiles?: components["schemas"]["secretFileInput"][];
-            /** @description IDs of env groups to link to the artifact source. Only valid for `git` sources; env groups must belong to the same workspace and must not be scoped to an environment. */
+            /** @description IDs of env groups to link to the build source. Only valid for `git` sources; env groups must belong to the same workspace and must not be scoped to an environment. */
             envGroupIds?: string[];
         };
-        artifactSourcePATCHGit: {
+        buildSourcePATCHGit: {
             baseDir?: string;
             branch?: string;
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
             dockerfilePath?: string;
             /**
-             * @description Build runtime for the artifact source. Static sites are not supported for artifact sources.
+             * @description Build runtime for the build source. Static sites are not supported for build sources.
              * @enum {string}
              */
             runtime?: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
+            /** @description Optional reference to the registry credential for this build. Omit the field to leave the stored credential unchanged; send an empty string to clear it. */
             registryCredentialId?: string;
             /**
              * @description Region for the build. Honored only when this PATCH performs an image→build transition; rejected on a pure build patch (the cluster is pinned for an existing build), and must match the prior build region when switching back to build after time as an external image. Defaults to "oregon" for first-time builds.
@@ -6778,19 +6918,20 @@ export interface components {
             repoUrl?: string;
             rootDir?: string;
         };
-        /** @description Patch shape for an artifact source's image identity. Unset fields are left unchanged on the underlying image reference. ownerId is intentionally omitted — an artifact source's owner is fixed at creation, and changing the image's owner would amount to a different identity. */
-        artifactSourcePATCHImage: {
+        /** @description Patch shape for a build source's image identity. Unset fields are left unchanged on the underlying image reference. ownerId is intentionally omitted — a build source's owner is fixed at creation, and changing the image's owner would amount to a different identity. */
+        buildSourcePATCHImage: {
             imageUrl?: string;
+            /** @description Optional reference to the registry credential passed to the image repository to retrieve this image. Omit the field to leave the stored credential unchanged; send an empty string to clear it. */
             registryCredentialId?: string;
         };
-        artifactSourcePATCHInput: {
+        buildSourcePATCHInput: {
             name?: string;
-            git?: components["schemas"]["artifactSourcePATCHGit"];
-            image?: components["schemas"]["artifactSourcePATCHImage"];
+            git?: components["schemas"]["buildSourcePATCHGit"];
+            image?: components["schemas"]["buildSourcePATCHImage"];
         };
-        artifactId: string;
-        /** @description Present when the artifact source is currently build-based. Mutually exclusive with `image`. */
-        build: {
+        buildId: string;
+        /** @description The Render build run that produced this build. Present when the build source is currently build-based. Mutually exclusive with `image`. */
+        buildRun: {
             id: string;
             /** @enum {string} */
             status?: "created" | "inProgress" | "succeeded" | "failed" | "canceled" | "unknown";
@@ -6803,7 +6944,7 @@ export interface components {
             commitId?: string;
             commitUrl?: string;
         };
-        /** @description Present when the artifact source is currently image-based. Mutually exclusive with `build`. */
+        /** @description Present when the build source is currently image-based. Mutually exclusive with `buildRun`. */
         "schemas-image": {
             imageVersionId?: string;
             SHA?: string;
@@ -6811,10 +6952,10 @@ export interface components {
             imageUrl?: string;
             registryCredentialId?: string;
         };
-        artifact: {
-            id: components["schemas"]["artifactId"];
-            artifactSourceId: components["schemas"]["artifactSourceId"];
-            build?: components["schemas"]["build"];
+        build: {
+            id: components["schemas"]["buildId"];
+            buildSourceId: components["schemas"]["buildSourceId"];
+            buildRun?: components["schemas"]["buildRun"];
             image?: components["schemas"]["schemas-image"];
             /** Format: date-time */
             createdAt: string;
@@ -6872,7 +7013,7 @@ export interface components {
             branch?: string;
             /** @description The command to run to build the workflow. */
             buildCommand: string;
-            /** @description The repository URL to use for the build. */
+            /** @description The repository URL to use for the build. Cannot be blank. */
             repo: string;
             /** @description The root directory of the repository to use for the build, if applicable. */
             rootDir?: string;
@@ -6910,16 +7051,28 @@ export interface components {
             name: string;
             ownerId: string;
             buildConfig: components["schemas"]["BuildConfig"];
-            /** @description The command to run the workflow */
+            /** @description The command to run the workflow. Cannot be blank. */
             runCommand: string;
             region: components["schemas"]["Region"];
             autoDeployTrigger?: components["schemas"]["AutoDeployTrigger"];
             envVars?: components["schemas"]["envVarInputArray"];
         };
+        /** @description A partial update to a workflow's build config. Every field is optional; omitted fields are left unchanged. */
+        BuildConfigUpdate: {
+            /** @description The branch to use for the build, if applicable. */
+            branch?: string;
+            /** @description The command to run to build the workflow. */
+            buildCommand?: string;
+            /** @description The repository URL to use for the build. Cannot be blank. */
+            repo?: string;
+            /** @description The root directory of the repository to use for the build, if applicable. */
+            rootDir?: string;
+            runtime?: components["schemas"]["Runtime"];
+        };
         WorkflowUpdate: {
             name?: string;
-            buildConfig?: components["schemas"]["BuildConfig"];
-            /** @description The command to run the workflow */
+            buildConfig?: components["schemas"]["BuildConfigUpdate"];
+            /** @description The command to run the workflow. Cannot be blank. */
             runCommand?: string;
             autoDeployTrigger?: components["schemas"]["AutoDeployTrigger"];
         };
@@ -6976,7 +7129,7 @@ export interface components {
             attempts: components["schemas"]["TaskAttempt"][];
         };
         /**
-         * @description A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used.
+         * @description A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-slug/task-name:version). If no version is provided, the latest version is used. Cannot be blank.
          * @example my-workflow-slug/my-task, my-workflow-slug/my-task:SHA123
          */
         TaskSlug: string;
@@ -7138,6 +7291,8 @@ export interface components {
              */
             terminatedAt?: string | null;
         };
+        /** @example snp-cph1rs3idesc73a2b2mg */
+        sandboxSnapshotId: string;
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
@@ -7155,6 +7310,12 @@ export interface components {
             env?: {
                 [key: string]: string;
             };
+            /**
+             * @description Start from this snapshot instead of the base image. Must be `available`
+             *     and in the same sandbox group. For a `runtime` snapshot, `plan` must
+             *     match the snapshot's plan.
+             */
+            snapshotId?: components["schemas"]["sandboxSnapshotId"];
         };
         /** @example sbg-cph1rs3idesc73a2b2mg */
         sandboxGroupId: string;
@@ -7226,6 +7387,55 @@ export interface components {
             stoppedAt?: string;
             /** @example 0 */
             exitCode?: number;
+        };
+        /**
+         * @description `filesystem` captures the writable filesystem and restores onto any plan.
+         *     `runtime` also captures memory and CPU state and restores only onto the
+         *     plan of the source sandbox.
+         * @enum {string}
+         */
+        sandboxSnapshotKind: "filesystem" | "runtime";
+        sandboxSnapshotPOST: {
+            /** @default filesystem */
+            kind: components["schemas"]["sandboxSnapshotKind"];
+            /**
+             * Format: date-time
+             * @description The time after which the snapshot can no longer be retrieved or restored.
+             *     Must be in the future. Omit to use Render's default snapshot lifetime.
+             */
+            expiresAt?: string;
+        };
+        /** @enum {string} */
+        sandboxSnapshotStatus: "creating" | "available" | "failed";
+        sandboxSnapshot: {
+            id: components["schemas"]["sandboxSnapshotId"];
+            sandboxGroupId: components["schemas"]["sandboxGroupId"];
+            /** @description The sandbox this snapshot was captured from. Lineage only. */
+            sourceSandboxId: components["schemas"]["sandboxId"];
+            kind: components["schemas"]["sandboxSnapshotKind"];
+            status: components["schemas"]["sandboxSnapshotStatus"];
+            /** @description Plan of the source sandbox at capture time. */
+            plan: components["schemas"]["sandboxPlan"];
+            /** Format: date-time */
+            requestedAt: string;
+            /**
+             * Format: date-time
+             * @description When the sandbox was frozen for capture. Null until `available`.
+             */
+            capturedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description The time after which the snapshot can no longer be retrieved or restored.
+             *     Set by Render when the create request did not specify one.
+             */
+            expiresAt: string;
+            /**
+             * Format: int64
+             * @description Null until `available`.
+             */
+            sizeBytes?: number | null;
+            /** @description Null unless `failed`. */
+            error?: string | null;
         };
         /**
          * @description Optional body when minting a run connect token. `command` is stored on
@@ -7724,7 +7934,7 @@ export interface components {
         maintenanceResourcesParam: components["schemas"]["maintenanceResourceId"][];
         maintenanceStateParam: components["schemas"]["maintenanceState"][];
         maintenanceRunParam: components["schemas"]["maintenanceRunId"];
-        artifactSourceIdParam: components["schemas"]["artifactSourceId"];
+        buildSourceIdParam: components["schemas"]["buildSourceId"];
         /** @description Unique identifier for the webhook */
         webhookIdParam: components["schemas"]["webhookId"];
         /**
@@ -7770,6 +7980,16 @@ export interface components {
         ownerId: string;
         /** @description The ID of the execution */
         execId: components["schemas"]["executionId"];
+        /** @description The ID of the sandbox group */
+        sandboxGroupId: components["schemas"]["sandboxGroupId"];
+        /** @description The ID of the snapshot */
+        snapshotId: components["schemas"]["sandboxSnapshotId"];
+        /**
+         * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
+         *     is determined from the sandbox group ID, and this parameter is ignored when
+         *     supplied.
+         */
+        ownerIdGroupScoped: string;
     };
     requestBodies: never;
     headers: never;
@@ -9360,8 +9580,8 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** @description The ID of the artifact to deploy. Cannot be combined with `commitId`, `imageUrl`, or `deployMode`. */
-                    artifactId?: string;
+                    /** @description The ID of the build to deploy. Cannot be combined with `commitId`, `imageUrl`, or `deployMode`. */
+                    buildId?: string;
                     /**
                      * @description If `clear`, Render clears the service's build cache before deploying. This can be useful if you're experiencing issues with your build.
                      * @default do_not_clear
@@ -14430,7 +14650,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "list-artifact-sources": {
+    "list-build-sources": {
         parameters: {
             query?: {
                 /** @description Filter by name */
@@ -14475,7 +14695,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["artifactSourceWithCursor"][];
+                    "application/json": components["schemas"]["buildSourceWithCursor"][];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -14484,7 +14704,7 @@ export interface operations {
             500: components["responses"]["500InternalServerError"];
         };
     };
-    "create-artifact-source": {
+    "create-build-source": {
         parameters: {
             query?: never;
             header?: never;
@@ -14493,7 +14713,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["artifactSourcePOSTInput"];
+                "application/json": components["schemas"]["buildSourcePOSTInput"];
             };
         };
         responses: {
@@ -14503,7 +14723,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["artifactSource"];
+                    "application/json": components["schemas"]["buildSource"];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -14514,12 +14734,12 @@ export interface operations {
             500: components["responses"]["500InternalServerError"];
         };
     };
-    "get-artifact-source": {
+    "get-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14531,7 +14751,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["artifactSource"];
+                    "application/json": components["schemas"]["buildSource"];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -14541,18 +14761,18 @@ export interface operations {
             500: components["responses"]["500InternalServerError"];
         };
     };
-    "delete-artifact-source": {
+    "delete-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Artifact source deleted */
+            /** @description Build source deleted */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -14567,18 +14787,18 @@ export interface operations {
             500: components["responses"]["500InternalServerError"];
         };
     };
-    "update-artifact-source": {
+    "update-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["artifactSourcePATCHInput"];
+                "application/json": components["schemas"]["buildSourcePATCHInput"];
             };
         };
         responses: {
@@ -14588,7 +14808,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["artifactSource"];
+                    "application/json": components["schemas"]["buildSource"];
                 };
             };
             400: components["responses"]["400BadRequest"];
@@ -14599,7 +14819,7 @@ export interface operations {
             500: components["responses"]["500InternalServerError"];
         };
     };
-    "list-artifacts-in-artifact-source": {
+    "list-builds-in-build-source": {
         parameters: {
             query?: {
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -14609,7 +14829,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14621,7 +14841,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["artifact"][];
+                    "application/json": components["schemas"]["build"][];
                 };
             };
             401: components["responses"]["401Unauthorized"];
@@ -14634,7 +14854,36 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "get-env-vars-for-artifact-source": {
+    "trigger-build-source-build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Build started */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["build"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "get-env-vars-for-build-source": {
         parameters: {
             query?: {
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -14644,7 +14893,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14669,12 +14918,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "update-env-vars-for-artifact-source": {
+    "update-env-vars-for-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14704,12 +14953,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "retrieve-artifact-source-env-var": {
+    "retrieve-build-source-env-var": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The name of the environment variable */
                 envVarKey: components["parameters"]["envVarKeyParam"];
             };
@@ -14736,12 +14985,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "update-artifact-source-env-var": {
+    "update-build-source-env-var": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The name of the environment variable */
                 envVarKey: components["parameters"]["envVarKeyParam"];
             };
@@ -14773,12 +15022,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "delete-artifact-source-env-var": {
+    "delete-build-source-env-var": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The name of the environment variable */
                 envVarKey: components["parameters"]["envVarKeyParam"];
             };
@@ -14803,7 +15052,7 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "list-secret-files-for-artifact-source": {
+    "list-secret-files-for-build-source": {
         parameters: {
             query?: {
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -14813,7 +15062,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14838,12 +15087,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "update-secret-files-for-artifact-source": {
+    "update-secret-files-for-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
             };
             cookie?: never;
         };
@@ -14873,12 +15122,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "retrieve-artifact-source-secret-file": {
+    "retrieve-build-source-secret-file": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The file name of the secret file */
                 envVarKey: string;
             };
@@ -14905,12 +15154,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "add-or-update-artifact-source-secret-file": {
+    "add-or-update-build-source-secret-file": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The file name of the secret file */
                 envVarKey: string;
             };
@@ -14944,12 +15193,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "delete-artifact-source-secret-file": {
+    "delete-build-source-secret-file": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description The file name of the secret file */
                 envVarKey: string;
             };
@@ -14974,12 +15223,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "link-env-group-to-artifact-source": {
+    "link-env-group-to-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
             };
@@ -15004,12 +15253,12 @@ export interface operations {
             503: components["responses"]["503ServiceUnavailable"];
         };
     };
-    "unlink-env-group-from-artifact-source": {
+    "unlink-env-group-from-build-source": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                artifactSourceId: components["parameters"]["artifactSourceIdParam"];
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
                 /** @description Filter for resources that belong to an environment group */
                 envGroupId: components["parameters"]["envGroupIdParam"];
             };
@@ -15017,7 +15266,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description environment group unlinked from artifact source */
+            /** @description environment group unlinked from build source */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -15953,6 +16202,8 @@ export interface operations {
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -16128,6 +16379,163 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-sandbox-snapshot": {
+        parameters: {
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
+                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
+                 */
+                ownerId?: components["parameters"]["ownerId"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["sandboxSnapshotPOST"];
+            };
+        };
+        responses: {
+            /** @description Capture accepted. Returns the snapshot in `creating`. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxSnapshot"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-sandbox-snapshots": {
+        parameters: {
+            query: {
+                /** @description The ID of the workspace whose snapshots to return. */
+                ownerId: string;
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+                /** @description Filter by snapshot status. */
+                status?: components["schemas"]["sandboxSnapshotStatus"][];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxSnapshotWithCursor"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-sandbox-snapshot": {
+        parameters: {
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
+                 *     is determined from the sandbox group ID, and this parameter is ignored when
+                 *     supplied.
+                 */
+                ownerId?: components["parameters"]["ownerIdGroupScoped"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the snapshot */
+                snapshotId: components["parameters"]["snapshotId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxSnapshot"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "delete-sandbox-snapshot": {
+        parameters: {
+            query?: {
+                /**
+                 * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
+                 *     is determined from the sandbox group ID, and this parameter is ignored when
+                 *     supplied.
+                 */
+                ownerId?: components["parameters"]["ownerIdGroupScoped"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the snapshot */
+                snapshotId: components["parameters"]["snapshotId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
