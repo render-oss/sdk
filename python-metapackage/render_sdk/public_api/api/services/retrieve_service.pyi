@@ -7,6 +7,7 @@ from render.public_api.api.services.retrieve_service import (
     HTTPStatus as HTTPStatus,
     Optional as Optional,
     Response as Response,
+    Service as Service,
     Union as Union,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,

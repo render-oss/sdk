@@ -11,6 +11,7 @@ from render.public_api.api.services.list_services import (
     Response as Response,
     ServiceRuntime as ServiceRuntime,
     ServiceType as ServiceType,
+    ServiceWithCursor as ServiceWithCursor,
     UNSET as UNSET,
     Union as Union,
     Unset as Unset,

@@ -7,6 +7,7 @@ from render.public_api.api.services.update_service import (
     HTTPStatus as HTTPStatus,
     Optional as Optional,
     Response as Response,
+    Service as Service,
     ServicePATCH as ServicePATCH,
     Union as Union,
     _build_response as _build_response,

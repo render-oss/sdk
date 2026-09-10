@@ -24,7 +24,7 @@ class WorkflowCreate:
         name (str):
         owner_id (str):
         build_config (BuildConfig):
-        run_command (str): The command to run the workflow
+        run_command (str): The command to run the workflow. Cannot be blank.
         region (Region): Defaults to "oregon"
         auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
             commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables

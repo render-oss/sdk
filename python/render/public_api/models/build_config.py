@@ -15,7 +15,7 @@ class BuildConfig:
     """
     Attributes:
         build_command (str): The command to run to build the workflow.
-        repo (str): The repository URL to use for the build.
+        repo (str): The repository URL to use for the build. Cannot be blank.
         runtime (Runtime): The runtime environment for the workflow (e.g., node, python, etc.).
         branch (Union[Unset, str]): The branch to use for the build, if applicable.
         root_dir (Union[Unset, str]): The root directory of the repository to use for the build, if applicable.

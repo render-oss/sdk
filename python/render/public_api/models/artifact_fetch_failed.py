@@ -11,16 +11,16 @@ T = TypeVar("T", bound="ArtifactFetchFailed")
 class ArtifactFetchFailed:
     """
     Attributes:
-        artifact_id (str):
+        build_id (str): The build published by the build source that could not be fetched.
         message (str):
     """
 
-    artifact_id: str
+    build_id: str
     message: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        artifact_id = self.artifact_id
+        build_id = self.build_id
 
         message = self.message
 
@@ -28,7 +28,7 @@ class ArtifactFetchFailed:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "artifactId": artifact_id,
+                "buildId": build_id,
                 "message": message,
             }
         )
@@ -38,12 +38,12 @@ class ArtifactFetchFailed:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        artifact_id = d.pop("artifactId")
+        build_id = d.pop("buildId")
 
         message = d.pop("message")
 
         artifact_fetch_failed = cls(
-            artifact_id=artifact_id,
+            build_id=build_id,
             message=message,
         )
 

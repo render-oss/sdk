@@ -22,15 +22,15 @@ class DeployEnded:
         reason (BuildDeployEndReason):
         deploy_status (EventStatus):
         status (int):
-        artifact_id (Union[Unset, str]): Set when the deploy shipped an artifact published by the service's linked
-            artifact source.
+        build_id (Union[Unset, str]): Set when the deploy shipped a build published by the service's linked build
+            source.
     """
 
     deploy_id: str
     reason: "BuildDeployEndReason"
     deploy_status: EventStatus
     status: int
-    artifact_id: Union[Unset, str] = UNSET
+    build_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -42,7 +42,7 @@ class DeployEnded:
 
         status = self.status
 
-        artifact_id = self.artifact_id
+        build_id = self.build_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -54,8 +54,8 @@ class DeployEnded:
                 "status": status,
             }
         )
-        if artifact_id is not UNSET:
-            field_dict["artifactId"] = artifact_id
+        if build_id is not UNSET:
+            field_dict["buildId"] = build_id
 
         return field_dict
 
@@ -72,14 +72,14 @@ class DeployEnded:
 
         status = d.pop("status")
 
-        artifact_id = d.pop("artifactId", UNSET)
+        build_id = d.pop("buildId", UNSET)
 
         deploy_ended = cls(
             deploy_id=deploy_id,
             reason=reason,
             deploy_status=deploy_status,
             status=status,
-            artifact_id=artifact_id,
+            build_id=build_id,
         )
 
         deploy_ended.additional_properties = d

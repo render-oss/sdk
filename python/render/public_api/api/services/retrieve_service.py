@@ -6,6 +6,7 @@ import httpx
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
+from ...models.service import Service
 from ...types import Response
 
 
@@ -20,7 +21,14 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Optional[Error]:
+def _parse_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Optional[Union[Error, Service]]:
+    if response.status_code == 200:
+        response_200 = Service.from_dict(response.json())
+
+        return response_200
+
     if response.status_code == 401:
         response_401 = Error.from_dict(response.json())
 
@@ -67,7 +75,9 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: htt
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Response[Error]:
+def _build_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Response[Union[Error, Service]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -80,7 +90,7 @@ def sync_detailed(
     service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Error]:
+) -> Response[Union[Error, Service]]:
     """Retrieve service
 
      Retrieve the service with the provided ID.
@@ -93,7 +103,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, Service]]
     """
 
     kwargs = _get_kwargs(
@@ -111,7 +121,7 @@ def sync(
     service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Error]:
+) -> Optional[Union[Error, Service]]:
     """Retrieve service
 
      Retrieve the service with the provided ID.
@@ -124,7 +134,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, Service]
     """
 
     return sync_detailed(
@@ -137,7 +147,7 @@ async def asyncio_detailed(
     service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Error]:
+) -> Response[Union[Error, Service]]:
     """Retrieve service
 
      Retrieve the service with the provided ID.
@@ -150,7 +160,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, Service]]
     """
 
     kwargs = _get_kwargs(
@@ -166,7 +176,7 @@ async def asyncio(
     service_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Error]:
+) -> Optional[Union[Error, Service]]:
     """Retrieve service
 
      Retrieve the service with the provided ID.
@@ -179,7 +189,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, Service]
     """
 
     return (

@@ -19,13 +19,12 @@ class DeployStarted:
     Attributes:
         deploy_id (str):
         trigger (BuildDeployTrigger):
-        artifact_id (Union[Unset, str]): Set when the deploy ships an artifact published by the service's linked
-            artifact source.
+        build_id (Union[Unset, str]): Set when the deploy ships a build published by the service's linked build source.
     """
 
     deploy_id: str
     trigger: "BuildDeployTrigger"
-    artifact_id: Union[Unset, str] = UNSET
+    build_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -33,7 +32,7 @@ class DeployStarted:
 
         trigger = self.trigger.to_dict()
 
-        artifact_id = self.artifact_id
+        build_id = self.build_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -43,8 +42,8 @@ class DeployStarted:
                 "trigger": trigger,
             }
         )
-        if artifact_id is not UNSET:
-            field_dict["artifactId"] = artifact_id
+        if build_id is not UNSET:
+            field_dict["buildId"] = build_id
 
         return field_dict
 
@@ -57,12 +56,12 @@ class DeployStarted:
 
         trigger = BuildDeployTrigger.from_dict(d.pop("trigger"))
 
-        artifact_id = d.pop("artifactId", UNSET)
+        build_id = d.pop("buildId", UNSET)
 
         deploy_started = cls(
             deploy_id=deploy_id,
             trigger=trigger,
-            artifact_id=artifact_id,
+            build_id=build_id,
         )
 
         deploy_started.additional_properties = d

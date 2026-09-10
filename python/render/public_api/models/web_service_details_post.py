@@ -31,7 +31,7 @@ class WebServiceDetailsPOST:
     """
     Attributes:
         runtime (ServiceRuntime): Runtime
-        artifact_source_id (Union[Unset, str]):
+        build_source_id (Union[Unset, str]):
         autoscaling (Union[Unset, AutoscalingConfig]):
         disk (Union[Unset, ServiceDisk]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
@@ -59,7 +59,7 @@ class WebServiceDetailsPOST:
     """
 
     runtime: ServiceRuntime
-    artifact_source_id: Union[Unset, str] = UNSET
+    build_source_id: Union[Unset, str] = UNSET
     autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
     disk: Union[Unset, "ServiceDisk"] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
@@ -83,7 +83,7 @@ class WebServiceDetailsPOST:
 
         runtime = self.runtime.value
 
-        artifact_source_id = self.artifact_source_id
+        build_source_id = self.build_source_id
 
         autoscaling: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.autoscaling, Unset):
@@ -155,8 +155,8 @@ class WebServiceDetailsPOST:
                 "runtime": runtime,
             }
         )
-        if artifact_source_id is not UNSET:
-            field_dict["artifactSourceId"] = artifact_source_id
+        if build_source_id is not UNSET:
+            field_dict["buildSourceId"] = build_source_id
         if autoscaling is not UNSET:
             field_dict["autoscaling"] = autoscaling
         if disk is not UNSET:
@@ -205,7 +205,7 @@ class WebServiceDetailsPOST:
         d = dict(src_dict)
         runtime = ServiceRuntime(d.pop("runtime"))
 
-        artifact_source_id = d.pop("artifactSourceId", UNSET)
+        build_source_id = d.pop("buildSourceId", UNSET)
 
         _autoscaling = d.pop("autoscaling", UNSET)
         autoscaling: Union[Unset, AutoscalingConfig]
@@ -315,7 +315,7 @@ class WebServiceDetailsPOST:
 
         web_service_details_post = cls(
             runtime=runtime,
-            artifact_source_id=artifact_source_id,
+            build_source_id=build_source_id,
             autoscaling=autoscaling,
             disk=disk,
             env=env,
