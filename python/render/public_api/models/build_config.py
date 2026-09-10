@@ -14,7 +14,8 @@ T = TypeVar("T", bound="BuildConfig")
 class BuildConfig:
     """
     Attributes:
-        build_command (str): The command to run to build the workflow.
+        build_command (str): The command to run to build the workflow. Required for every runtime except docker, which
+            builds from its Dockerfile.
         repo (str): The repository URL to use for the build. Cannot be blank.
         runtime (Runtime): The runtime environment for the workflow (e.g., node, python, etc.).
         branch (Union[Unset, str]): The branch to use for the build, if applicable.
