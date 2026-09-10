@@ -1,5 +1,31 @@
 # Changelog
 
+## [1.1.0] - 2026-09-10
+
+### Added
+
+- (Sandboxes) `sandboxes.list_groups()`, async and sync, returning a `SandboxGroupList` of `SandboxGroup` snapshots and an optional `next_cursor`. Alpha guarantees at most one group per workspace, so the page holds zero or one group
+- (Sandboxes) Sandbox snapshots through `sandboxes.snapshots`, with `create`, `from_id`, `list` and `delete`, async and sync
+- (Sandboxes) Snapshot `kind` in `snapshots.create()`: `filesystem` captures the writable filesystem, `runtime` also captures memory and CPU state; optional `expires_at`
+- (Sandboxes) `sandboxes.create()` accepts `snapshot_id` to start from a snapshot instead of the base image
+- (Sandboxes) Snapshot error types `SnapshotNotFoundError`, `SnapshotNotReadyError` and `SnapshotPlanMismatchError`, each exposing the API error `code` when the API sends one
+- (Key Value) The size-based plan names (`256mb`, `1g`, `5g`, `10g`, `20g`, `40g`) are accepted as `InstanceConfiguration.plan` for automatic provisioning
+- `ClientError.code` carries the API error code when the response includes one
+
+### Fixed
+
+- (Blueprints) `ResourceRefType.WORKFLOW`, so `BlueprintDetail.from_dict` parses a blueprint that declares workflows instead of raising `ValueError`
+
+### Changed
+
+- Regenerated the REST client from the latest OpenAPI schema: the new compute plan identifiers, sandbox execution listing and retrieval, service disk usage events, and env group linking against artifact sources
+
+## [1.0.1] - 2026-08-21
+
+### Changed
+
+- **Breaking** The package is now named `render` rather than `render_sdk`; install `render` and import `render`. `render_sdk` remains on PyPI as a shim that re-exports `render` at the same version and warns on import
+
 ## [1.0.0] - 2026-08-20
 
 ### Changed

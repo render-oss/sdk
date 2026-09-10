@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "render_sdk"
 # Version and the render==X.Y.Z pins are kept in sync with ../python by
 # scripts/generate_mirror.py; edit the SDK version and regenerate.
-version = "1.0.1"
+version = "1.1.0"
 description = "Compatibility shim for the renamed 'render' package. Install 'render' instead."
 authors = [{ name = "Render", email = "support@render.com" }]
 readme = "README.md"
@@ -23,10 +23,10 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
-dependencies = ["render==1.0.1"]
+dependencies = ["render==1.1.0"]
 
 [project.optional-dependencies]
-key_value = ["render[key_value]==1.0.1"]
+key_value = ["render[key_value]==1.1.0"]
 
 # No [project.scripts]: the render-workflows entry point is owned by the
 # `render` distribution and installed transitively. Re-declaring it here would
