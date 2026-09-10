@@ -14,7 +14,10 @@ DESTINATION_FILES = [
   "README.md",
 ]
 
+# Paths that stay internal. Root-level files are only mirrored when listed in
+# DESTINATION_FILES above, so a root file is private by default
 DESTINATION_FILES_EXCLUDE = [
+  "RELEASING.md",
   "go/example/task/performance.go",
   ".github/CODEOWNERS",
   ".github/renovate.json",
