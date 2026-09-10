@@ -8,7 +8,7 @@ from ..models.auto_deploy_trigger import AutoDeployTrigger
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.build_config import BuildConfig
+    from ..models.build_config_update import BuildConfigUpdate
 
 
 T = TypeVar("T", bound="WorkflowUpdate")
@@ -19,15 +19,16 @@ class WorkflowUpdate:
     """
     Attributes:
         name (Union[Unset, str]):
-        build_config (Union[Unset, BuildConfig]):
-        run_command (Union[Unset, str]): The command to run the workflow
+        build_config (Union[Unset, BuildConfigUpdate]): A partial update to a workflow's build config. Every field is
+            optional; omitted fields are left unchanged.
+        run_command (Union[Unset, str]): The command to run the workflow. Cannot be blank.
         auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
             commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
             autodeploy.
     """
 
     name: Union[Unset, str] = UNSET
-    build_config: Union[Unset, "BuildConfig"] = UNSET
+    build_config: Union[Unset, "BuildConfigUpdate"] = UNSET
     run_command: Union[Unset, str] = UNSET
     auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -61,17 +62,17 @@ class WorkflowUpdate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_config import BuildConfig
+        from ..models.build_config_update import BuildConfigUpdate
 
         d = dict(src_dict)
         name = d.pop("name", UNSET)
 
         _build_config = d.pop("buildConfig", UNSET)
-        build_config: Union[Unset, BuildConfig]
+        build_config: Union[Unset, BuildConfigUpdate]
         if isinstance(_build_config, Unset):
             build_config = UNSET
         else:
-            build_config = BuildConfig.from_dict(_build_config)
+            build_config = BuildConfigUpdate.from_dict(_build_config)
 
         run_command = d.pop("runCommand", UNSET)
 

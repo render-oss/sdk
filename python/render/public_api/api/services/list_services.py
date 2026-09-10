@@ -11,6 +11,7 @@ from ...models.list_services_suspended_item import ListServicesSuspendedItem
 from ...models.region import Region
 from ...models.service_runtime import ServiceRuntime
 from ...models.service_type import ServiceType
+from ...models.service_with_cursor import ServiceWithCursor
 from ...types import UNSET, Response, Unset
 
 
@@ -124,7 +125,19 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Optional[Error]:
+def _parse_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Optional[Union[Error, list["ServiceWithCursor"]]]:
+    if response.status_code == 200:
+        response_200 = []
+        _response_200 = response.json()
+        for componentsschemasservice_list_item_data in _response_200:
+            componentsschemasservice_list_item = ServiceWithCursor.from_dict(componentsschemasservice_list_item_data)
+
+            response_200.append(componentsschemasservice_list_item)
+
+        return response_200
+
     if response.status_code == 401:
         response_401 = Error.from_dict(response.json())
 
@@ -156,7 +169,9 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: htt
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Response[Error]:
+def _build_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Response[Union[Error, list["ServiceWithCursor"]]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -182,7 +197,7 @@ def sync_detailed(
     include_previews: Union[Unset, bool] = True,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Response[Error]:
+) -> Response[Union[Error, list["ServiceWithCursor"]]]:
     """List services
 
      List services matching the provided filters. If no filters are provided, returns all services you
@@ -209,7 +224,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, list['ServiceWithCursor']]]
     """
 
     kwargs = _get_kwargs(
@@ -253,7 +268,7 @@ def sync(
     include_previews: Union[Unset, bool] = True,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Optional[Error]:
+) -> Optional[Union[Error, list["ServiceWithCursor"]]]:
     """List services
 
      List services matching the provided filters. If no filters are provided, returns all services you
@@ -280,7 +295,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, list['ServiceWithCursor']]
     """
 
     return sync_detailed(
@@ -319,7 +334,7 @@ async def asyncio_detailed(
     include_previews: Union[Unset, bool] = True,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Response[Error]:
+) -> Response[Union[Error, list["ServiceWithCursor"]]]:
     """List services
 
      List services matching the provided filters. If no filters are provided, returns all services you
@@ -346,7 +361,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, list['ServiceWithCursor']]]
     """
 
     kwargs = _get_kwargs(
@@ -388,7 +403,7 @@ async def asyncio(
     include_previews: Union[Unset, bool] = True,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
-) -> Optional[Error]:
+) -> Optional[Union[Error, list["ServiceWithCursor"]]]:
     """List services
 
      List services matching the provided filters. If no filters are provided, returns all services you
@@ -415,7 +430,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, list['ServiceWithCursor']]
     """
 
     return (

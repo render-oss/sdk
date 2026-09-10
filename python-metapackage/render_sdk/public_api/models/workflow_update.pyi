@@ -2,7 +2,7 @@
 from render.public_api.models.workflow_update import (
     Any as Any,
     AutoDeployTrigger as AutoDeployTrigger,
-    BuildConfig as BuildConfig,
+    BuildConfigUpdate as BuildConfigUpdate,
     Mapping as Mapping,
     T as T,
     TYPE_CHECKING as TYPE_CHECKING,

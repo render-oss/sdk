@@ -11,15 +11,19 @@ T = TypeVar("T", bound="User")
 class User:
     """
     Attributes:
+        id (str): The authenticated user's ID.
         email (str):
         name (str):
     """
 
+    id: str
     email: str
     name: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        id = self.id
+
         email = self.email
 
         name = self.name
@@ -28,6 +32,7 @@ class User:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
+                "id": id,
                 "email": email,
                 "name": name,
             }
@@ -38,11 +43,14 @@ class User:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
+        id = d.pop("id")
+
         email = d.pop("email")
 
         name = d.pop("name")
 
         user = cls(
+            id=id,
             email=email,
             name=name,
         )

@@ -15,9 +15,9 @@ T = TypeVar("T", bound="RecoveryInput")
 class RecoveryInput:
     """
     Attributes:
-        restore_time (datetime.datetime): The point in time to restore the database to. See `/recovery-info` for restore
-            availability
         restore_name (Union[Unset, str]): Name of the new database.
+        restore_time (Union[Unset, datetime.datetime]): The point in time to restore the database to. See `/recovery-
+            info` for restore availability
         datadog_api_key (Union[Unset, str]): Datadog API key to use for monitoring the new database. Defaults to the API
             key of the original database. Use an empty string to prevent copying of the API key to the new database.
         datadog_site (Union[Unset, str]): Datadog region code to use for monitoring the new database. Defaults to the
@@ -29,8 +29,8 @@ class RecoveryInput:
             of the original database.
     """
 
-    restore_time: datetime.datetime
     restore_name: Union[Unset, str] = UNSET
+    restore_time: Union[Unset, datetime.datetime] = UNSET
     datadog_api_key: Union[Unset, str] = UNSET
     datadog_site: Union[Unset, str] = UNSET
     plan: Union[Unset, str] = UNSET
@@ -38,9 +38,11 @@ class RecoveryInput:
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        restore_time = self.restore_time.isoformat()
-
         restore_name = self.restore_name
+
+        restore_time: Union[Unset, str] = UNSET
+        if not isinstance(self.restore_time, Unset):
+            restore_time = self.restore_time.isoformat()
 
         datadog_api_key = self.datadog_api_key
 
@@ -52,13 +54,11 @@ class RecoveryInput:
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "restoreTime": restore_time,
-            }
-        )
+        field_dict.update({})
         if restore_name is not UNSET:
             field_dict["restoreName"] = restore_name
+        if restore_time is not UNSET:
+            field_dict["restoreTime"] = restore_time
         if datadog_api_key is not UNSET:
             field_dict["datadogApiKey"] = datadog_api_key
         if datadog_site is not UNSET:
@@ -73,9 +73,14 @@ class RecoveryInput:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        restore_time = isoparse(d.pop("restoreTime"))
-
         restore_name = d.pop("restoreName", UNSET)
+
+        _restore_time = d.pop("restoreTime", UNSET)
+        restore_time: Union[Unset, datetime.datetime]
+        if isinstance(_restore_time, Unset):
+            restore_time = UNSET
+        else:
+            restore_time = isoparse(_restore_time)
 
         datadog_api_key = d.pop("datadogApiKey", UNSET)
 
@@ -86,8 +91,8 @@ class RecoveryInput:
         environment_id = d.pop("environmentId", UNSET)
 
         recovery_input = cls(
-            restore_time=restore_time,
             restore_name=restore_name,
+            restore_time=restore_time,
             datadog_api_key=datadog_api_key,
             datadog_site=datadog_site,
             plan=plan,

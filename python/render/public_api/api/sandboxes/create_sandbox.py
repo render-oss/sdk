@@ -53,6 +53,16 @@ def _parse_response(
 
         return response_403
 
+    if response.status_code == 404:
+        response_404 = Error.from_dict(response.json())
+
+        return response_404
+
+    if response.status_code == 409:
+        response_409 = Error.from_dict(response.json())
+
+        return response_409
+
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
 
@@ -94,6 +104,11 @@ def sync_detailed(
 
      Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
+    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
+    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
+    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
+    different `plan`.
+
     Args:
         body (SandboxPOST):
 
@@ -125,6 +140,11 @@ def sync(
 
      Create a sandbox. Returns the initial sandbox snapshot synchronously.
 
+    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
+    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
+    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
+    different `plan`.
+
     Args:
         body (SandboxPOST):
 
@@ -150,6 +170,11 @@ async def asyncio_detailed(
     """Create sandbox
 
      Create a sandbox. Returns the initial sandbox snapshot synchronously.
+
+    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
+    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
+    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
+    different `plan`.
 
     Args:
         body (SandboxPOST):
@@ -179,6 +204,11 @@ async def asyncio(
     """Create sandbox
 
      Create a sandbox. Returns the initial sandbox snapshot synchronously.
+
+    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
+    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
+    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
+    different `plan`.
 
     Args:
         body (SandboxPOST):

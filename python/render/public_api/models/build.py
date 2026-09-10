@@ -1,131 +1,128 @@
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 from dateutil.parser import isoparse
 
-from ..models.build_runtime import BuildRuntime
-from ..models.build_status import BuildStatus
 from ..types import UNSET, Unset
+
+if TYPE_CHECKING:
+    from ..models.build_run import BuildRun
+    from ..models.schemas_image import SchemasImage
+
 
 T = TypeVar("T", bound="Build")
 
 
 @_attrs_define
 class Build:
-    """Present when the artifact source is currently build-based. Mutually exclusive with `image`.
-
+    """
     Attributes:
         id (str):
-        status (Union[Unset, BuildStatus]):
-        build_started_at (Union[Unset, datetime.datetime]):
-        build_finished_at (Union[Unset, datetime.datetime]):
-        runtime (Union[Unset, BuildRuntime]):
-        commit_id (Union[Unset, str]):
-        commit_url (Union[Unset, str]):
+        build_source_id (str):
+        created_at (datetime.datetime):
+        updated_at (datetime.datetime):
+        build_run (Union[Unset, BuildRun]): The Render build run that produced this build. Present when the build source
+            is currently build-based. Mutually exclusive with `image`.
+        image (Union[Unset, SchemasImage]): Present when the build source is currently image-based. Mutually exclusive
+            with `buildRun`.
+        assets_deleted_at (Union[Unset, datetime.datetime]):
     """
 
     id: str
-    status: Union[Unset, BuildStatus] = UNSET
-    build_started_at: Union[Unset, datetime.datetime] = UNSET
-    build_finished_at: Union[Unset, datetime.datetime] = UNSET
-    runtime: Union[Unset, BuildRuntime] = UNSET
-    commit_id: Union[Unset, str] = UNSET
-    commit_url: Union[Unset, str] = UNSET
+    build_source_id: str
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+    build_run: Union[Unset, "BuildRun"] = UNSET
+    image: Union[Unset, "SchemasImage"] = UNSET
+    assets_deleted_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         id = self.id
 
-        status: Union[Unset, str] = UNSET
-        if not isinstance(self.status, Unset):
-            status = self.status.value
+        build_source_id = self.build_source_id
 
-        build_started_at: Union[Unset, str] = UNSET
-        if not isinstance(self.build_started_at, Unset):
-            build_started_at = self.build_started_at.isoformat()
+        created_at = self.created_at.isoformat()
 
-        build_finished_at: Union[Unset, str] = UNSET
-        if not isinstance(self.build_finished_at, Unset):
-            build_finished_at = self.build_finished_at.isoformat()
+        updated_at = self.updated_at.isoformat()
 
-        runtime: Union[Unset, str] = UNSET
-        if not isinstance(self.runtime, Unset):
-            runtime = self.runtime.value
+        build_run: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.build_run, Unset):
+            build_run = self.build_run.to_dict()
 
-        commit_id = self.commit_id
+        image: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.image, Unset):
+            image = self.image.to_dict()
 
-        commit_url = self.commit_url
+        assets_deleted_at: Union[Unset, str] = UNSET
+        if not isinstance(self.assets_deleted_at, Unset):
+            assets_deleted_at = self.assets_deleted_at.isoformat()
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
                 "id": id,
+                "buildSourceId": build_source_id,
+                "createdAt": created_at,
+                "updatedAt": updated_at,
             }
         )
-        if status is not UNSET:
-            field_dict["status"] = status
-        if build_started_at is not UNSET:
-            field_dict["buildStartedAt"] = build_started_at
-        if build_finished_at is not UNSET:
-            field_dict["buildFinishedAt"] = build_finished_at
-        if runtime is not UNSET:
-            field_dict["runtime"] = runtime
-        if commit_id is not UNSET:
-            field_dict["commitId"] = commit_id
-        if commit_url is not UNSET:
-            field_dict["commitUrl"] = commit_url
+        if build_run is not UNSET:
+            field_dict["buildRun"] = build_run
+        if image is not UNSET:
+            field_dict["image"] = image
+        if assets_deleted_at is not UNSET:
+            field_dict["assetsDeletedAt"] = assets_deleted_at
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
+        from ..models.build_run import BuildRun
+        from ..models.schemas_image import SchemasImage
+
         d = dict(src_dict)
         id = d.pop("id")
 
-        _status = d.pop("status", UNSET)
-        status: Union[Unset, BuildStatus]
-        if isinstance(_status, Unset):
-            status = UNSET
+        build_source_id = d.pop("buildSourceId")
+
+        created_at = isoparse(d.pop("createdAt"))
+
+        updated_at = isoparse(d.pop("updatedAt"))
+
+        _build_run = d.pop("buildRun", UNSET)
+        build_run: Union[Unset, BuildRun]
+        if isinstance(_build_run, Unset):
+            build_run = UNSET
         else:
-            status = BuildStatus(_status)
+            build_run = BuildRun.from_dict(_build_run)
 
-        _build_started_at = d.pop("buildStartedAt", UNSET)
-        build_started_at: Union[Unset, datetime.datetime]
-        if isinstance(_build_started_at, Unset):
-            build_started_at = UNSET
+        _image = d.pop("image", UNSET)
+        image: Union[Unset, SchemasImage]
+        if isinstance(_image, Unset):
+            image = UNSET
         else:
-            build_started_at = isoparse(_build_started_at)
+            image = SchemasImage.from_dict(_image)
 
-        _build_finished_at = d.pop("buildFinishedAt", UNSET)
-        build_finished_at: Union[Unset, datetime.datetime]
-        if isinstance(_build_finished_at, Unset):
-            build_finished_at = UNSET
+        _assets_deleted_at = d.pop("assetsDeletedAt", UNSET)
+        assets_deleted_at: Union[Unset, datetime.datetime]
+        if isinstance(_assets_deleted_at, Unset):
+            assets_deleted_at = UNSET
         else:
-            build_finished_at = isoparse(_build_finished_at)
-
-        _runtime = d.pop("runtime", UNSET)
-        runtime: Union[Unset, BuildRuntime]
-        if isinstance(_runtime, Unset):
-            runtime = UNSET
-        else:
-            runtime = BuildRuntime(_runtime)
-
-        commit_id = d.pop("commitId", UNSET)
-
-        commit_url = d.pop("commitUrl", UNSET)
+            assets_deleted_at = isoparse(_assets_deleted_at)
 
         build = cls(
             id=id,
-            status=status,
-            build_started_at=build_started_at,
-            build_finished_at=build_finished_at,
-            runtime=runtime,
-            commit_id=commit_id,
-            commit_url=commit_url,
+            build_source_id=build_source_id,
+            created_at=created_at,
+            updated_at=updated_at,
+            build_run=build_run,
+            image=image,
+            assets_deleted_at=assets_deleted_at,
         )
 
         build.additional_properties = d

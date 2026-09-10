@@ -77,28 +77,28 @@ def sync_workflows_service(client):
 @pytest.fixture
 def mock_cancel_task_run_sync(mocker):
     return mocker.patch(
-        "render.public_api.api.workflow_tasks_beta.cancel_task_run.sync_detailed"
+        "render.public_api.api.workflow_tasks.cancel_task_run.sync_detailed"
     )
 
 
 @pytest.fixture
 def mock_list_task_runs_sync(mocker):
     return mocker.patch(
-        "render.public_api.api.workflow_tasks_beta.list_task_runs.sync_detailed"
+        "render.public_api.api.workflow_tasks.list_task_runs.sync_detailed"
     )
 
 
 @pytest.fixture
 def mock_create_task_sync(mocker):
     return mocker.patch(
-        "render.public_api.api.workflow_tasks_beta.create_task.sync_detailed"
+        "render.public_api.api.workflow_tasks.create_task.sync_detailed"
     )
 
 
 @pytest.fixture
 def mock_get_task_run_sync(mocker):
     return mocker.patch(
-        "render.public_api.api.workflow_tasks_beta.get_task_run.sync_detailed"
+        "render.public_api.api.workflow_tasks.get_task_run.sync_detailed"
     )
 
 

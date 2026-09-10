@@ -11,7 +11,7 @@ T = TypeVar("T", bound="SchemasImage")
 
 @_attrs_define
 class SchemasImage:
-    """Present when the artifact source is currently image-based. Mutually exclusive with `build`.
+    """Present when the build source is currently image-based. Mutually exclusive with `buildRun`.
 
     Attributes:
         image_version_id (Union[Unset, str]):

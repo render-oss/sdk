@@ -7,6 +7,7 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.preview_input import PreviewInput
+from ...models.service_and_deploy import ServiceAndDeploy
 from ...types import Response
 
 
@@ -30,7 +31,14 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Optional[Error]:
+def _parse_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Optional[Union[Error, ServiceAndDeploy]]:
+    if response.status_code == 200:
+        response_200 = ServiceAndDeploy.from_dict(response.json())
+
+        return response_200
+
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
 
@@ -72,7 +80,9 @@ def _parse_response(*, client: Union[AuthenticatedClient, Client], response: htt
         return None
 
 
-def _build_response(*, client: Union[AuthenticatedClient, Client], response: httpx.Response) -> Response[Error]:
+def _build_response(
+    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
+) -> Response[Union[Error, ServiceAndDeploy]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -86,7 +96,7 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: PreviewInput,
-) -> Response[Error]:
+) -> Response[Union[Error, ServiceAndDeploy]]:
     """Create service preview (image-backed)
 
      Create a preview instance for an image-backed service. The preview uses the settings of the base
@@ -105,7 +115,7 @@ def sync_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, ServiceAndDeploy]]
     """
 
     kwargs = _get_kwargs(
@@ -125,7 +135,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     body: PreviewInput,
-) -> Optional[Error]:
+) -> Optional[Union[Error, ServiceAndDeploy]]:
     """Create service preview (image-backed)
 
      Create a preview instance for an image-backed service. The preview uses the settings of the base
@@ -144,7 +154,7 @@ def sync(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, ServiceAndDeploy]
     """
 
     return sync_detailed(
@@ -159,7 +169,7 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     body: PreviewInput,
-) -> Response[Error]:
+) -> Response[Union[Error, ServiceAndDeploy]]:
     """Create service preview (image-backed)
 
      Create a preview instance for an image-backed service. The preview uses the settings of the base
@@ -178,7 +188,7 @@ async def asyncio_detailed(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error]
+        Response[Union[Error, ServiceAndDeploy]]
     """
 
     kwargs = _get_kwargs(
@@ -196,7 +206,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     body: PreviewInput,
-) -> Optional[Error]:
+) -> Optional[Union[Error, ServiceAndDeploy]]:
     """Create service preview (image-backed)
 
      Create a preview instance for an image-backed service. The preview uses the settings of the base
@@ -215,7 +225,7 @@ async def asyncio(
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error
+        Union[Error, ServiceAndDeploy]
     """
 
     return (

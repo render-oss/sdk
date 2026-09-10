@@ -82,21 +82,21 @@ def test_deep_import_cold(statement: str) -> None:
 def test_deep_import_via_importlib_resolves_to_real_leaf() -> None:
     """importlib.import_module on a generated leaf returns the real module.
 
-    render_sdk/public_api/models/artifact.py exists in the generated mirror
-    and aliases itself to render.public_api.models.artifact.
+    render_sdk/public_api/models/service.py exists in the generated mirror
+    and aliases itself to render.public_api.models.service.
     """
     code = (
         "import importlib\n"
-        "m = importlib.import_module('render_sdk.public_api.models.artifact')\n"
+        "m = importlib.import_module('render_sdk.public_api.models.service')\n"
         "import json\n"
         "print(json.dumps({\n"
         "    'name': m.__name__,\n"
-        "    'has_artifact': m.Artifact is not None,\n"
+        "    'has_service': m.Service is not None,\n"
         "}))\n"
     )
     payload = run_py_json(code)
-    assert payload["name"] == "render.public_api.models.artifact"
-    assert payload["has_artifact"] is True
+    assert payload["name"] == "render.public_api.models.service"
+    assert payload["has_service"] is True
 
 
 def test_client_attribute_access_delegates_to_real_module() -> None:

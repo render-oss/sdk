@@ -13,41 +13,40 @@ T = TypeVar("T", bound="ArtifactSourceChanged")
 class ArtifactSourceChanged:
     """
     Attributes:
-        from_artifact_source_id (Union[Unset, str]): The previously linked artifact source. Absent when the service was
-            newly attached.
-        to_artifact_source_id (Union[Unset, str]): The newly linked artifact source. Absent when the service was
-            detached.
+        from_build_source_id (Union[Unset, str]): The previously linked build source. Absent when the service was newly
+            attached.
+        to_build_source_id (Union[Unset, str]): The newly linked build source. Absent when the service was detached.
     """
 
-    from_artifact_source_id: Union[Unset, str] = UNSET
-    to_artifact_source_id: Union[Unset, str] = UNSET
+    from_build_source_id: Union[Unset, str] = UNSET
+    to_build_source_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from_artifact_source_id = self.from_artifact_source_id
+        from_build_source_id = self.from_build_source_id
 
-        to_artifact_source_id = self.to_artifact_source_id
+        to_build_source_id = self.to_build_source_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if from_artifact_source_id is not UNSET:
-            field_dict["fromArtifactSourceId"] = from_artifact_source_id
-        if to_artifact_source_id is not UNSET:
-            field_dict["toArtifactSourceId"] = to_artifact_source_id
+        if from_build_source_id is not UNSET:
+            field_dict["fromBuildSourceId"] = from_build_source_id
+        if to_build_source_id is not UNSET:
+            field_dict["toBuildSourceId"] = to_build_source_id
 
         return field_dict
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        from_artifact_source_id = d.pop("fromArtifactSourceId", UNSET)
+        from_build_source_id = d.pop("fromBuildSourceId", UNSET)
 
-        to_artifact_source_id = d.pop("toArtifactSourceId", UNSET)
+        to_build_source_id = d.pop("toBuildSourceId", UNSET)
 
         artifact_source_changed = cls(
-            from_artifact_source_id=from_artifact_source_id,
-            to_artifact_source_id=to_artifact_source_id,
+            from_build_source_id=from_build_source_id,
+            to_build_source_id=to_build_source_id,
         )
 
         artifact_source_changed.additional_properties = d

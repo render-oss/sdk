@@ -16,7 +16,8 @@ class DockerDetailsPATCH:
         docker_command (Union[Unset, str]):
         docker_context (Union[Unset, str]):
         dockerfile_path (Union[Unset, str]):
-        registry_credential_id (Union[Unset, str]):
+        registry_credential_id (Union[Unset, str]): Optional reference to the registry credential for this build. Omit
+            the field to leave the stored credential unchanged; send an empty string to clear it.
     """
 
     docker_command: Union[Unset, str] = UNSET

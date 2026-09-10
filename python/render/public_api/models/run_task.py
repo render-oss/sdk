@@ -16,8 +16,8 @@ class RunTask:
     """
     Attributes:
         task (str): A task slug in the format workflow-slug/task-name. An optional version can be appended (workflow-
-            slug/task-name:version). If no version is provided, the latest version is used. Example: my-workflow-slug/my-
-            task, my-workflow-slug/my-task:SHA123.
+            slug/task-name:version). If no version is provided, the latest version is used. Cannot be blank. Example: my-
+            workflow-slug/my-task, my-workflow-slug/my-task:SHA123.
         input_ (Union['TaskDataType1', list[Any]]): Input data for a task. Can be either an array (for positional
             arguments) or an object (for named parameters).
     """

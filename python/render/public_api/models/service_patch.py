@@ -25,8 +25,8 @@ T = TypeVar("T", bound="ServicePATCH")
 class ServicePATCH:
     """
     Attributes:
-        artifact_source_id (Union[Unset, str]):
-        artifact_id (Union[Unset, str]):
+        build_source_id (Union[Unset, str]):
+        build_id (Union[Unset, str]):
         auto_deploy (Union[Unset, AutoDeploy]):
         auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a
             commit is pushed to a branch. checksPass waits for the branch to be green.
@@ -40,8 +40,8 @@ class ServicePATCH:
             'StaticSiteDetailsPATCH', 'WebServiceDetailsPATCH', Unset]):
     """
 
-    artifact_source_id: Union[Unset, str] = UNSET
-    artifact_id: Union[Unset, str] = UNSET
+    build_source_id: Union[Unset, str] = UNSET
+    build_id: Union[Unset, str] = UNSET
     auto_deploy: Union[Unset, AutoDeploy] = UNSET
     auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
     repo: Union[Unset, str] = UNSET
@@ -66,9 +66,9 @@ class ServicePATCH:
         from ..models.static_site_details_patch import StaticSiteDetailsPATCH
         from ..models.web_service_details_patch import WebServiceDetailsPATCH
 
-        artifact_source_id = self.artifact_source_id
+        build_source_id = self.build_source_id
 
-        artifact_id = self.artifact_id
+        build_id = self.build_id
 
         auto_deploy: Union[Unset, str] = UNSET
         if not isinstance(self.auto_deploy, Unset):
@@ -111,10 +111,10 @@ class ServicePATCH:
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
-        if artifact_source_id is not UNSET:
-            field_dict["artifactSourceId"] = artifact_source_id
-        if artifact_id is not UNSET:
-            field_dict["artifactId"] = artifact_id
+        if build_source_id is not UNSET:
+            field_dict["buildSourceId"] = build_source_id
+        if build_id is not UNSET:
+            field_dict["buildId"] = build_id
         if auto_deploy is not UNSET:
             field_dict["autoDeploy"] = auto_deploy
         if auto_deploy_trigger is not UNSET:
@@ -147,9 +147,9 @@ class ServicePATCH:
         from ..models.web_service_details_patch import WebServiceDetailsPATCH
 
         d = dict(src_dict)
-        artifact_source_id = d.pop("artifactSourceId", UNSET)
+        build_source_id = d.pop("buildSourceId", UNSET)
 
-        artifact_id = d.pop("artifactId", UNSET)
+        build_id = d.pop("buildId", UNSET)
 
         _auto_deploy = d.pop("autoDeploy", UNSET)
         auto_deploy: Union[Unset, AutoDeploy]
@@ -240,8 +240,8 @@ class ServicePATCH:
         service_details = _parse_service_details(d.pop("serviceDetails", UNSET))
 
         service_patch = cls(
-            artifact_source_id=artifact_source_id,
-            artifact_id=artifact_id,
+            build_source_id=build_source_id,
+            build_id=build_id,
             auto_deploy=auto_deploy,
             auto_deploy_trigger=auto_deploy_trigger,
             repo=repo,
