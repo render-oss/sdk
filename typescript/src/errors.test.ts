@@ -2,6 +2,9 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxSnapshotNotFoundError,
+  SandboxSnapshotNotReadyError,
+  SandboxSnapshotPlanMismatchError,
   ServerError,
   TaskRunError,
   TimeoutError,
@@ -41,7 +44,46 @@ describe("errors", () => {
       expect(err.name).toBe("ClientError");
       expect(err.statusCode).toBe(404);
       expect(err.response).toEqual({ detail: "missing" });
+      expect(err.code).toBeUndefined();
       expect(err instanceof RenderError).toBe(true);
+    });
+
+    it("carries the API error code when given", () => {
+      const err = new ClientError("conflict", 409, "sandbox is stopped", "sandbox_not_running");
+      expect(err.code).toBe("sandbox_not_running");
+    });
+  });
+
+  describe("snapshot errors", () => {
+    it.each([
+      {
+        name: "SandboxSnapshotNotFoundError",
+        ErrorClass: SandboxSnapshotNotFoundError,
+        statusCode: 404,
+        code: undefined,
+      },
+      {
+        name: "SandboxSnapshotNotReadyError",
+        ErrorClass: SandboxSnapshotNotReadyError,
+        statusCode: 409,
+        code: "snapshot_creating",
+      },
+      {
+        name: "SandboxSnapshotPlanMismatchError",
+        ErrorClass: SandboxSnapshotPlanMismatchError,
+        statusCode: 409,
+        code: "snapshot_plan_mismatch",
+      },
+    ])("$name is a ClientError with its own name", ({ name, ErrorClass, statusCode, code }) => {
+      const err = new ErrorClass("failed", statusCode, "detail", code);
+      expect(err.name).toBe(name);
+      expect(err.message).toBe("failed");
+      expect(err.statusCode).toBe(statusCode);
+      expect(err.response).toBe("detail");
+      expect(err.code).toBe(code);
+      expect(err).toBeInstanceOf(ErrorClass);
+      expect(err).toBeInstanceOf(ClientError);
+      expect(err).toBeInstanceOf(RenderError);
     });
   });
 
