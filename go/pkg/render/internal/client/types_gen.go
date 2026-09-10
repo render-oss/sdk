@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/oapi-codegen/runtime"
-	externalRef0 "github.com/render-oss/sdk/go/pkg/render/internal/client/artifactsources"
-	externalRef1 "github.com/render-oss/sdk/go/pkg/render/internal/client/autodeploy"
-	externalRef2 "github.com/render-oss/sdk/go/pkg/render/internal/client/autoscaling"
-	externalRef3 "github.com/render-oss/sdk/go/pkg/render/internal/client/blueprints"
+	externalRef0 "github.com/render-oss/sdk/go/pkg/render/internal/client/autodeploy"
+	externalRef1 "github.com/render-oss/sdk/go/pkg/render/internal/client/autoscaling"
+	externalRef2 "github.com/render-oss/sdk/go/pkg/render/internal/client/blueprints"
+	externalRef3 "github.com/render-oss/sdk/go/pkg/render/internal/client/buildsources"
 	externalRef4 "github.com/render-oss/sdk/go/pkg/render/internal/client/disks"
 	externalRef5 "github.com/render-oss/sdk/go/pkg/render/internal/client/envvar"
 	externalRef6 "github.com/render-oss/sdk/go/pkg/render/internal/client/events"
@@ -1778,7 +1778,7 @@ type AutoDeploy string
 
 // BackgroundWorkerDetails defines model for backgroundWorkerDetails.
 type BackgroundWorkerDetails struct {
-	Autoscaling *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
+	Autoscaling *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
 	BuildPlan   BuildPlan                       `json:"buildPlan"`
 	Disk        *externalRef4.Disk              `json:"disk,omitempty"`
 
@@ -1836,9 +1836,9 @@ type BackgroundWorkerDetailsPATCH struct {
 
 // BackgroundWorkerDetailsPOST defines model for backgroundWorkerDetailsPOST.
 type BackgroundWorkerDetailsPOST struct {
-	ArtifactSourceId *externalRef0.ArtifactSourceId  `json:"artifactSourceId,omitempty"`
-	Autoscaling      *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
-	Disk             *ServiceDisk                    `json:"disk,omitempty"`
+	Autoscaling   *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
+	BuildSourceId *externalRef3.BuildSourceId     `json:"buildSourceId,omitempty"`
+	Disk          *ServiceDisk                    `json:"disk,omitempty"`
 
 	// Env This field has been deprecated, runtime should be used in its place.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
@@ -1869,7 +1869,7 @@ type BackgroundWorkerDetailsPOST struct {
 
 // BlueprintWithCursor A Blueprint with a cursor
 type BlueprintWithCursor struct {
-	Blueprint externalRef3.Blueprint `json:"blueprint"`
+	Blueprint externalRef2.Blueprint `json:"blueprint"`
 	Cursor    Cursor                 `json:"cursor"`
 }
 
@@ -1935,7 +1935,7 @@ type CronJobDetailsPATCH struct {
 
 // CronJobDetailsPOST defines model for cronJobDetailsPOST.
 type CronJobDetailsPOST struct {
-	ArtifactSourceId *externalRef0.ArtifactSourceId `json:"artifactSourceId,omitempty"`
+	BuildSourceId *externalRef3.BuildSourceId `json:"buildSourceId,omitempty"`
 
 	// Env This field has been deprecated, runtime should be used in its place.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
@@ -2074,8 +2074,8 @@ type DedicatedIPStatus string
 
 // Deploy defines model for deploy.
 type Deploy struct {
-	ArtifactId *string `json:"artifactId,omitempty"`
-	Commit     *struct {
+	BuildId *string `json:"buildId,omitempty"`
+	Commit  *struct {
 		CreatedAt *time.Time `json:"createdAt,omitempty"`
 		Id        *string    `json:"id,omitempty"`
 		Message   *string    `json:"message,omitempty"`
@@ -2142,9 +2142,11 @@ type DockerDetails struct {
 
 // DockerDetailsPATCH defines model for dockerDetailsPATCH.
 type DockerDetailsPATCH struct {
-	DockerCommand        *string `json:"dockerCommand,omitempty"`
-	DockerContext        *string `json:"dockerContext,omitempty"`
-	DockerfilePath       *string `json:"dockerfilePath,omitempty"`
+	DockerCommand  *string `json:"dockerCommand,omitempty"`
+	DockerContext  *string `json:"dockerContext,omitempty"`
+	DockerfilePath *string `json:"dockerfilePath,omitempty"`
+
+	// RegistryCredentialId Optional reference to the registry credential for this build. Omit the field to leave the stored credential unchanged; send an empty string to clear it.
 	RegistryCredentialId *string `json:"registryCredentialId,omitempty"`
 }
 
@@ -2816,7 +2818,7 @@ type PreviewsGeneration string
 
 // PrivateServiceDetails defines model for privateServiceDetails.
 type PrivateServiceDetails struct {
-	Autoscaling *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
+	Autoscaling *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
 	BuildPlan   BuildPlan                       `json:"buildPlan"`
 	Disk        *externalRef4.Disk              `json:"disk,omitempty"`
 
@@ -2876,9 +2878,9 @@ type PrivateServiceDetailsPATCH struct {
 
 // PrivateServiceDetailsPOST defines model for privateServiceDetailsPOST.
 type PrivateServiceDetailsPOST struct {
-	ArtifactSourceId *externalRef0.ArtifactSourceId  `json:"artifactSourceId,omitempty"`
-	Autoscaling      *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
-	Disk             *ServiceDisk                    `json:"disk,omitempty"`
+	Autoscaling   *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
+	BuildSourceId *externalRef3.BuildSourceId     `json:"buildSourceId,omitempty"`
+	Disk          *ServiceDisk                    `json:"disk,omitempty"`
 
 	// Env This field has been deprecated, runtime should be used in its place.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
@@ -3223,6 +3225,12 @@ type SandboxGroupWithCursor struct {
 	SandboxGroup externalRef15.SandboxGroup `json:"sandboxGroup"`
 }
 
+// SandboxSnapshotWithCursor A sandbox snapshot with a cursor
+type SandboxSnapshotWithCursor struct {
+	Cursor   Cursor                        `json:"cursor"`
+	Snapshot externalRef15.SandboxSnapshot `json:"snapshot"`
+}
+
 // SandboxWithCursor A sandbox with a cursor
 type SandboxWithCursor struct {
 	Cursor  Cursor                `json:"cursor"`
@@ -3253,13 +3261,13 @@ type ServerPortProtocol string
 
 // Service defines model for service.
 type Service struct {
-	ArtifactSourceId *externalRef0.ArtifactSourceId `json:"artifactSourceId,omitempty"`
-	AutoDeploy       AutoDeploy                     `json:"autoDeploy"`
+	AutoDeploy AutoDeploy `json:"autoDeploy"`
 
 	// AutoDeployTrigger Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
-	AutoDeployTrigger *externalRef1.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
+	AutoDeployTrigger *externalRef0.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
 	Branch            *string                         `json:"branch,omitempty"`
 	BuildFilter       *BuildFilter                    `json:"buildFilter,omitempty"`
+	BuildSourceId     *externalRef3.BuildSourceId     `json:"buildSourceId,omitempty"`
 	CreatedAt         time.Time                       `json:"createdAt"`
 
 	// DashboardUrl The URL to view the service in the Render Dashboard
@@ -3327,14 +3335,14 @@ type ServiceList = []ServiceWithCursor
 
 // ServicePATCH defines model for servicePATCH.
 type ServicePATCH struct {
-	ArtifactId       *string                        `json:"artifactId,omitempty"`
-	ArtifactSourceId *externalRef0.ArtifactSourceId `json:"artifactSourceId,omitempty"`
-	AutoDeploy       *AutoDeploy                    `json:"autoDeploy,omitempty"`
+	AutoDeploy *AutoDeploy `json:"autoDeploy,omitempty"`
 
 	// AutoDeployTrigger Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
-	AutoDeployTrigger *externalRef1.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
+	AutoDeployTrigger *externalRef0.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
 	Branch            *string                         `json:"branch,omitempty"`
 	BuildFilter       *BuildFilter                    `json:"buildFilter,omitempty"`
+	BuildId           *string                         `json:"buildId,omitempty"`
+	BuildSourceId     *externalRef3.BuildSourceId     `json:"buildSourceId,omitempty"`
 	Image             *Image                          `json:"image,omitempty"`
 	Name              *string                         `json:"name,omitempty"`
 	Repo              *string                         `json:"repo,omitempty"`
@@ -3352,7 +3360,7 @@ type ServicePOST struct {
 	AutoDeploy *AutoDeploy `json:"autoDeploy,omitempty"`
 
 	// AutoDeployTrigger Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
-	AutoDeployTrigger *externalRef1.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
+	AutoDeployTrigger *externalRef0.AutoDeployTrigger `json:"autoDeployTrigger,omitempty"`
 
 	// Branch The repo branch to pull, build, and deploy. If omitted, uses the repository's default branch.
 	Branch      *string                        `json:"branch,omitempty"`
@@ -3467,7 +3475,7 @@ type SuspenderType string
 // SyncWithCursor A Blueprint sync with a cursor
 type SyncWithCursor struct {
 	Cursor Cursor            `json:"cursor"`
-	Sync   externalRef3.Sync `json:"sync"`
+	Sync   externalRef2.Sync `json:"sync"`
 }
 
 // TaskRunWithCursor defines model for taskRunWithCursor.
@@ -3510,12 +3518,15 @@ type TeamMembers = []TeamMember
 // User defines model for user.
 type User struct {
 	Email string `json:"email"`
-	Name  string `json:"name"`
+
+	// Id The authenticated user's ID.
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 // WebServiceDetails defines model for webServiceDetails.
 type WebServiceDetails struct {
-	Autoscaling *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
+	Autoscaling *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
 	BuildPlan   BuildPlan                       `json:"buildPlan"`
 	Cache       *Cache                          `json:"cache,omitempty"`
 	Disk        *externalRef4.Disk              `json:"disk,omitempty"`
@@ -3594,9 +3605,9 @@ type WebServiceDetailsPATCH struct {
 
 // WebServiceDetailsPOST defines model for webServiceDetailsPOST.
 type WebServiceDetailsPOST struct {
-	ArtifactSourceId *externalRef0.ArtifactSourceId  `json:"artifactSourceId,omitempty"`
-	Autoscaling      *externalRef2.AutoscalingConfig `json:"autoscaling,omitempty"`
-	Disk             *ServiceDisk                    `json:"disk,omitempty"`
+	Autoscaling   *externalRef1.AutoscalingConfig `json:"autoscaling,omitempty"`
+	BuildSourceId *externalRef3.BuildSourceId     `json:"buildSourceId,omitempty"`
+	Disk          *ServiceDisk                    `json:"disk,omitempty"`
 
 	// Env This field has been deprecated, runtime should be used in its place.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
@@ -3820,8 +3831,29 @@ type Logs200Response struct {
 // LogsValues200Response defines model for LogsValues200Response.
 type LogsValues200Response = []string
 
-// ListArtifactSourcesParams defines parameters for ListArtifactSources.
-type ListArtifactSourcesParams struct {
+// ListBlueprintsParams defines parameters for ListBlueprints.
+type ListBlueprintsParams struct {
+	// OwnerId The ID of the workspaces to return resources for
+	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListBlueprintSyncsParams defines parameters for ListBlueprintSyncs.
+type ListBlueprintSyncsParams struct {
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListBuildSourcesParams defines parameters for ListBuildSources.
+type ListBuildSourcesParams struct {
 	// Name Filter by name
 	Name *NameParam `form:"name,omitempty" json:"name,omitempty"`
 
@@ -3848,8 +3880,8 @@ type ListArtifactSourcesParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// ListArtifactsInArtifactSourceParams defines parameters for ListArtifactsInArtifactSource.
-type ListArtifactsInArtifactSourceParams struct {
+// ListBuildsInBuildSourceParams defines parameters for ListBuildsInBuildSource.
+type ListBuildsInBuildSourceParams struct {
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
 	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -3857,8 +3889,8 @@ type ListArtifactsInArtifactSourceParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// GetEnvVarsForArtifactSourceParams defines parameters for GetEnvVarsForArtifactSource.
-type GetEnvVarsForArtifactSourceParams struct {
+// GetEnvVarsForBuildSourceParams defines parameters for GetEnvVarsForBuildSource.
+type GetEnvVarsForBuildSourceParams struct {
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
 	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -3866,8 +3898,8 @@ type GetEnvVarsForArtifactSourceParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// ListSecretFilesForArtifactSourceParams defines parameters for ListSecretFilesForArtifactSource.
-type ListSecretFilesForArtifactSourceParams struct {
+// ListSecretFilesForBuildSourceParams defines parameters for ListSecretFilesForBuildSource.
+type ListSecretFilesForBuildSourceParams struct {
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
 	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
 
@@ -3875,33 +3907,12 @@ type ListSecretFilesForArtifactSourceParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// UpdateSecretFilesForArtifactSourceJSONBody defines parameters for UpdateSecretFilesForArtifactSource.
-type UpdateSecretFilesForArtifactSourceJSONBody = []externalRef5.SecretFileInput
+// UpdateSecretFilesForBuildSourceJSONBody defines parameters for UpdateSecretFilesForBuildSource.
+type UpdateSecretFilesForBuildSourceJSONBody = []externalRef5.SecretFileInput
 
-// AddOrUpdateArtifactSourceSecretFileJSONBody defines parameters for AddOrUpdateArtifactSourceSecretFile.
-type AddOrUpdateArtifactSourceSecretFileJSONBody struct {
+// AddOrUpdateBuildSourceSecretFileJSONBody defines parameters for AddOrUpdateBuildSourceSecretFile.
+type AddOrUpdateBuildSourceSecretFileJSONBody struct {
 	Content *string `json:"content,omitempty"`
-}
-
-// ListBlueprintsParams defines parameters for ListBlueprints.
-type ListBlueprintsParams struct {
-	// OwnerId The ID of the workspaces to return resources for
-	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
-
-	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
-	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
-	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
-}
-
-// ListBlueprintSyncsParams defines parameters for ListBlueprintSyncs.
-type ListBlueprintSyncsParams struct {
-	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
-	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
-
-	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
-	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // ListDedicatedIpsParams defines parameters for ListDedicatedIps.
@@ -4923,6 +4934,37 @@ type ListSandboxGroupsParams struct {
 	OwnerId string `form:"ownerId" json:"ownerId"`
 }
 
+// ListSandboxSnapshotsParams defines parameters for ListSandboxSnapshots.
+type ListSandboxSnapshotsParams struct {
+	// OwnerId The ID of the workspace whose snapshots to return.
+	OwnerId string `form:"ownerId" json:"ownerId"`
+
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Status Filter by snapshot status.
+	Status *[]externalRef15.SandboxSnapshotStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// DeleteSandboxSnapshotParams defines parameters for DeleteSandboxSnapshot.
+type DeleteSandboxSnapshotParams struct {
+	// OwnerId The ID of the workspace the sandbox group belongs to. Optional: the workspace
+	// is determined from the sandbox group ID, and this parameter is ignored when
+	// supplied.
+	OwnerId *externalRef15.OwnerIdGroupScoped `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
+// RetrieveSandboxSnapshotParams defines parameters for RetrieveSandboxSnapshot.
+type RetrieveSandboxSnapshotParams struct {
+	// OwnerId The ID of the workspace the sandbox group belongs to. Optional: the workspace
+	// is determined from the sandbox group ID, and this parameter is ignored when
+	// supplied.
+	OwnerId *externalRef15.OwnerIdGroupScoped `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
 // ListSandboxesParams defines parameters for ListSandboxes.
 type ListSandboxesParams struct {
 	// OwnerId The ID of the workspace whose sandboxes to return.
@@ -5011,6 +5053,13 @@ type StreamSandboxLogsParamsAccept string
 
 // ConnectSandboxRunParams defines parameters for ConnectSandboxRun.
 type ConnectSandboxRunParams struct {
+	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
+	// determined from the sandbox ID, and this parameter is ignored when supplied.
+	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
+// CreateSandboxSnapshotParams defines parameters for CreateSandboxSnapshot.
+type CreateSandboxSnapshotParams struct {
 	// OwnerId The ID of the workspace the sandbox belongs to. Optional: the workspace is
 	// determined from the sandbox ID, and this parameter is ignored when supplied.
 	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
@@ -5139,8 +5188,8 @@ type ListDeploysParams struct {
 
 // CreateDeployJSONBody defines parameters for CreateDeploy.
 type CreateDeployJSONBody struct {
-	// ArtifactId The ID of the artifact to deploy. Cannot be combined with `commitId`, `imageUrl`, or `deployMode`.
-	ArtifactId *string `json:"artifactId,omitempty"`
+	// BuildId The ID of the build to deploy. Cannot be combined with `commitId`, `imageUrl`, or `deployMode`.
+	BuildId *string `json:"buildId,omitempty"`
 
 	// ClearCache If `clear`, Render clears the service's build cache before deploying. This can be useful if you're experiencing issues with your build.
 	ClearCache *CreateDeployJSONBodyClearCache `json:"clearCache,omitempty"`
@@ -5443,29 +5492,29 @@ type ListWorkflowVersionsParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
-// CreateArtifactSourceJSONRequestBody defines body for CreateArtifactSource for application/json ContentType.
-type CreateArtifactSourceJSONRequestBody = externalRef0.ArtifactSourcePOSTInput
-
-// UpdateArtifactSourceJSONRequestBody defines body for UpdateArtifactSource for application/json ContentType.
-type UpdateArtifactSourceJSONRequestBody = externalRef0.ArtifactSourcePATCHInput
-
-// UpdateEnvVarsForArtifactSourceJSONRequestBody defines body for UpdateEnvVarsForArtifactSource for application/json ContentType.
-type UpdateEnvVarsForArtifactSourceJSONRequestBody = externalRef5.EnvVarInputArray
-
-// UpdateArtifactSourceEnvVarJSONRequestBody defines body for UpdateArtifactSourceEnvVar for application/json ContentType.
-type UpdateArtifactSourceEnvVarJSONRequestBody = AddUpdateEnvVarInput
-
-// UpdateSecretFilesForArtifactSourceJSONRequestBody defines body for UpdateSecretFilesForArtifactSource for application/json ContentType.
-type UpdateSecretFilesForArtifactSourceJSONRequestBody = UpdateSecretFilesForArtifactSourceJSONBody
-
-// AddOrUpdateArtifactSourceSecretFileJSONRequestBody defines body for AddOrUpdateArtifactSourceSecretFile for application/json ContentType.
-type AddOrUpdateArtifactSourceSecretFileJSONRequestBody AddOrUpdateArtifactSourceSecretFileJSONBody
-
 // ValidateBlueprintMultipartRequestBody defines body for ValidateBlueprint for multipart/form-data ContentType.
-type ValidateBlueprintMultipartRequestBody = externalRef3.ValidateBlueprintRequest
+type ValidateBlueprintMultipartRequestBody = externalRef2.ValidateBlueprintRequest
 
 // UpdateBlueprintJSONRequestBody defines body for UpdateBlueprint for application/json ContentType.
-type UpdateBlueprintJSONRequestBody = externalRef3.BlueprintPATCH
+type UpdateBlueprintJSONRequestBody = externalRef2.BlueprintPATCH
+
+// CreateBuildSourceJSONRequestBody defines body for CreateBuildSource for application/json ContentType.
+type CreateBuildSourceJSONRequestBody = externalRef3.BuildSourcePOSTInput
+
+// UpdateBuildSourceJSONRequestBody defines body for UpdateBuildSource for application/json ContentType.
+type UpdateBuildSourceJSONRequestBody = externalRef3.BuildSourcePATCHInput
+
+// UpdateEnvVarsForBuildSourceJSONRequestBody defines body for UpdateEnvVarsForBuildSource for application/json ContentType.
+type UpdateEnvVarsForBuildSourceJSONRequestBody = externalRef5.EnvVarInputArray
+
+// UpdateBuildSourceEnvVarJSONRequestBody defines body for UpdateBuildSourceEnvVar for application/json ContentType.
+type UpdateBuildSourceEnvVarJSONRequestBody = AddUpdateEnvVarInput
+
+// UpdateSecretFilesForBuildSourceJSONRequestBody defines body for UpdateSecretFilesForBuildSource for application/json ContentType.
+type UpdateSecretFilesForBuildSourceJSONRequestBody = UpdateSecretFilesForBuildSourceJSONBody
+
+// AddOrUpdateBuildSourceSecretFileJSONRequestBody defines body for AddOrUpdateBuildSourceSecretFile for application/json ContentType.
+type AddOrUpdateBuildSourceSecretFileJSONRequestBody AddOrUpdateBuildSourceSecretFileJSONBody
 
 // CreateDedicatedIpJSONRequestBody defines body for CreateDedicatedIp for application/json ContentType.
 type CreateDedicatedIpJSONRequestBody = DedicatedIPPOST
@@ -5582,6 +5631,9 @@ type UpdateSandboxExecJSONRequestBody = externalRef15.SandboxExecUpdateRequest
 // ConnectSandboxRunJSONRequestBody defines body for ConnectSandboxRun for application/json ContentType.
 type ConnectSandboxRunJSONRequestBody = externalRef15.SandboxConnectRequest
 
+// CreateSandboxSnapshotJSONRequestBody defines body for CreateSandboxSnapshot for application/json ContentType.
+type CreateSandboxSnapshotJSONRequestBody = externalRef15.SandboxSnapshotPOST
+
 // CreateServiceJSONRequestBody defines body for CreateService for application/json ContentType.
 type CreateServiceJSONRequestBody = ServicePOST
 
@@ -5589,7 +5641,7 @@ type CreateServiceJSONRequestBody = ServicePOST
 type UpdateServiceJSONRequestBody = ServicePATCH
 
 // AutoscaleServiceJSONRequestBody defines body for AutoscaleService for application/json ContentType.
-type AutoscaleServiceJSONRequestBody = externalRef2.AutoscalingConfig
+type AutoscaleServiceJSONRequestBody = externalRef1.AutoscalingConfig
 
 // CreateCustomDomainJSONRequestBody defines body for CreateCustomDomain for application/json ContentType.
 type CreateCustomDomainJSONRequestBody CreateCustomDomainJSONBody

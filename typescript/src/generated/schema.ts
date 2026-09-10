@@ -7011,7 +7011,7 @@ export interface components {
         BuildConfig: {
             /** @description The branch to use for the build, if applicable. */
             branch?: string;
-            /** @description The command to run to build the workflow. */
+            /** @description The command to run to build the workflow. Required for every runtime except docker, which builds from its Dockerfile. */
             buildCommand: string;
             /** @description The repository URL to use for the build. Cannot be blank. */
             repo: string;
@@ -7061,7 +7061,7 @@ export interface components {
         BuildConfigUpdate: {
             /** @description The branch to use for the build, if applicable. */
             branch?: string;
-            /** @description The command to run to build the workflow. */
+            /** @description The command to run to build the workflow. Required for every runtime except docker, which builds from its Dockerfile. */
             buildCommand?: string;
             /** @description The repository URL to use for the build. Cannot be blank. */
             repo?: string;

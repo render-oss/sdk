@@ -16,7 +16,8 @@ class BuildConfigUpdate:
 
     Attributes:
         branch (Union[Unset, str]): The branch to use for the build, if applicable.
-        build_command (Union[Unset, str]): The command to run to build the workflow.
+        build_command (Union[Unset, str]): The command to run to build the workflow. Required for every runtime except
+            docker, which builds from its Dockerfile.
         repo (Union[Unset, str]): The repository URL to use for the build. Cannot be blank.
         root_dir (Union[Unset, str]): The root directory of the repository to use for the build, if applicable.
         runtime (Union[Unset, Runtime]): The runtime environment for the workflow (e.g., node, python, etc.).
