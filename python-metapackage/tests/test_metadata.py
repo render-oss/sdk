@@ -28,7 +28,7 @@ def test_versions_match() -> None:
         "import importlib.metadata as im, json\n"
         "print(json.dumps([im.version('render_sdk'), im.version('render')]))\n"
     )
-    assert versions == ["1.0.1", "1.0.1"]
+    assert versions == ["1.1.0", "1.1.0"]
 
 
 def test_requires_pins_render_exactly() -> None:
