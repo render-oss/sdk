@@ -4,6 +4,18 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-09-10
+
+### Added
+
+- (Sandbox) `sandboxes.listGroups()`, returning `SandboxGroupWithCursor[]` and taking an optional `ownerId`. Alpha guarantees at most one group per workspace, so the array holds zero or one group
+- (Sandbox) Sandbox snapshots through `sandboxes.snapshots`, with `create`, `get`, `list` and `delete`
+- (Sandbox) Snapshot `kind` in `snapshots.create()`: `filesystem` captures the writable filesystem, `runtime` also captures memory and CPU state; optional `expiresAt`
+- (Sandbox) `sandboxes.create()` accepts `snapshotId` to start from a snapshot instead of the base image
+- (Sandbox) Snapshot error types `SandboxSnapshotNotFoundError`, `SandboxSnapshotNotReadyError` and `SandboxSnapshotPlanMismatchError`, each exposing the API error `code` when the API sends one
+- (Key Value) The size-based plan names (`256mb`, `1g`, `5g`, `10g`, `20g`, `40g`) are accepted by `autoProvision.plan` on `keyValue.connectionInfo()`
+- `ClientError` exposes the API error `code` when the response includes one
+
 ## [1.0.0]
 
 ### Changed
