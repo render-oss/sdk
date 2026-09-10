@@ -13,6 +13,12 @@ from render.experimental.sandbox import (
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     SandboxNotFoundError as SandboxNotFoundError,
+    Snapshot as Snapshot,
+    SnapshotClient as SnapshotClient,
+    SnapshotList as SnapshotList,
+    SnapshotNotFoundError as SnapshotNotFoundError,
+    SnapshotNotReadyError as SnapshotNotReadyError,
+    SnapshotPlanMismatchError as SnapshotPlanMismatchError,
 )
 
 __all__ = [
@@ -29,4 +35,10 @@ __all__ = [
     "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
+    "Snapshot",
+    "SnapshotClient",
+    "SnapshotList",
+    "SnapshotNotFoundError",
+    "SnapshotNotReadyError",
+    "SnapshotPlanMismatchError",
 ]

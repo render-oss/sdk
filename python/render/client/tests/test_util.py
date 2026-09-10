@@ -10,6 +10,7 @@ from render.client.util import (
     handle_http_error,
     handle_httpx_exception,
     handle_storage_http_error,
+    request_errors,
     retry_with_backoff,
 )
 from render.public_api.models.error import Error
@@ -159,6 +160,51 @@ def test_handle_api_error_extracts_message_from_content_when_parsed_is_none():
         handle_api_error(response, "API request")
 
 
+def test_handle_api_error_sets_code_from_parsed_error():
+    response = Response(
+        status_code=409,
+        content=b"",
+        headers={},
+        parsed=Error(message="sandbox is suspended", code="sandbox_not_running"),
+    )
+    with pytest.raises(ClientError, match="sandbox is suspended") as excinfo:
+        handle_api_error(response, "create snapshot")
+    assert excinfo.value.code == "sandbox_not_running"
+
+
+def test_handle_api_error_sets_code_from_content_when_parsed_is_none():
+    response = Response(
+        status_code=409,
+        content=b'{"message": "still creating", "code": "snapshot_creating"}',
+        headers={},
+        parsed=None,
+    )
+    with pytest.raises(ClientError) as excinfo:
+        handle_api_error(response, "delete snapshot")
+    assert excinfo.value.code == "snapshot_creating"
+
+
+def test_handle_api_error_code_is_none_when_absent():
+    response = Response(
+        status_code=400, content=b"", headers={}, parsed=Error(message="Bad request")
+    )
+    with pytest.raises(ClientError) as excinfo:
+        handle_api_error(response, "API request")
+    assert excinfo.value.code is None
+
+
+def test_handle_api_error_ignores_non_string_code_in_content():
+    response = Response(
+        status_code=409,
+        content=b'{"message": "still creating", "code": 409}',
+        headers={},
+        parsed=None,
+    )
+    with pytest.raises(ClientError) as excinfo:
+        handle_api_error(response, "delete snapshot")
+    assert excinfo.value.code is None
+
+
 def test_handle_api_error_fallback_when_content_is_not_json():
     """When parsed is None and content is not JSON, should use fallback message."""
     response = Response(
@@ -204,6 +250,32 @@ def test_handle_wrapper_exception_unexpected_error():
         RenderError, match="failed with unexpected error: something weird"
     ):
         _handle_wrapper_exception(exc, "op")
+
+
+def test_request_errors_passes_through_when_nothing_is_raised():
+    with request_errors("op"):
+        pass
+
+
+def test_request_errors_reraises_render_error():
+    with (
+        pytest.raises(ClientError, match="already a render error"),
+        request_errors("op"),
+    ):
+        raise ClientError("already a render error")
+
+
+def test_request_errors_translates_httpx_request_error():
+    with pytest.raises(TimeoutError, match="op timed out"), request_errors("op"):
+        raise httpx.TimeoutException("timed out")
+
+
+def test_request_errors_wraps_unexpected_error():
+    with (
+        pytest.raises(RenderError, match="failed with unexpected error: boom"),
+        request_errors("op"),
+    ):
+        raise ValueError("boom")
 
 
 class TestHandleStorageHttpError:

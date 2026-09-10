@@ -7,9 +7,11 @@ import os
 import posixpath
 import stat
 from collections.abc import AsyncIterator, Sequence
+from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
 
 import httpx
 
@@ -23,6 +25,7 @@ from render.client.util import (
     handle_api_error,
     handle_http_errors,
     handle_httpx_exception,
+    request_errors,
 )
 from render.experimental.sandbox._tar import (
     aclose_content,
@@ -36,6 +39,9 @@ from render.experimental.sandbox.errors import (
     SandboxExecStreamError,
     SandboxFileNotFoundError,
     SandboxNotFoundError,
+    SnapshotNotFoundError,
+    SnapshotNotReadyError,
+    SnapshotPlanMismatchError,
 )
 from render.experimental.sandbox.files import (
     PartialDownload,
@@ -55,12 +61,18 @@ from render.experimental.sandbox.types import (
     SandboxGroup,
     SandboxGroupList,
     SandboxList,
+    Snapshot,
+    SnapshotList,
 )
 from render.public_api.api.sandboxes import (
     create_sandbox,
+    create_sandbox_snapshot,
+    delete_sandbox_snapshot,
     list_sandbox_groups,
+    list_sandbox_snapshots,
     list_sandboxes,
     retrieve_sandbox,
+    retrieve_sandbox_snapshot,
     terminate_sandbox,
 )
 from render.public_api.models.error import Error
@@ -74,9 +86,18 @@ from render.public_api.models.sandbox_network_policy_default import (
 from render.public_api.models.sandbox_plan import SandboxPlan
 from render.public_api.models.sandbox_post import SandboxPOST
 from render.public_api.models.sandbox_post_env import SandboxPOSTEnv
+from render.public_api.models.sandbox_snapshot import (
+    SandboxSnapshot as GeneratedSandboxSnapshot,
+)
+from render.public_api.models.sandbox_snapshot_kind import SandboxSnapshotKind
+from render.public_api.models.sandbox_snapshot_post import SandboxSnapshotPOST
+from render.public_api.models.sandbox_snapshot_status import SandboxSnapshotStatus
+from render.public_api.models.sandbox_snapshot_with_cursor import (
+    SandboxSnapshotWithCursor,
+)
 from render.public_api.models.sandbox_status import SandboxStatus
 from render.public_api.models.sandbox_with_cursor import SandboxWithCursor
-from render.public_api.types import UNSET, Response
+from render.public_api.types import UNSET, Response, Unset
 
 if TYPE_CHECKING:
     from render.public_api.client import AuthenticatedClient, Client
@@ -84,12 +105,20 @@ if TYPE_CHECKING:
 
 # The code the sandbox agent sends in a 404 body when the remote path is missing.
 _FILE_NOT_FOUND_CODE = "file_not_found"
+_SNAPSHOT_NOT_FOUND_CODE = "snapshot_not_found"
+_SNAPSHOT_NOT_READY_CODES = frozenset({"snapshot_creating", "snapshot_not_available"})
+_SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
 
-# Aliased at module scope so the annotations on _list_api_call resolve the
-# builtin list, not the SandboxApi.list method that shadows it in the class body.
+# Aliased at module scope so the annotations on the _api_call methods resolve
+# the builtin list, not the SandboxApi.list method that shadows it in the class body.
 _SandboxWithCursorList = list[SandboxWithCursor]
 _SandboxStatusList = list[SandboxStatus]
 _SandboxGroupWithCursorList = list[SandboxGroupWithCursor]
+_SandboxSnapshotWithCursorList = list[SandboxSnapshotWithCursor]
+_SandboxSnapshotStatusList = list[SandboxSnapshotStatus]
+
+_T = TypeVar("_T")
+_StatusEnum = TypeVar("_StatusEnum", bound=Enum)
 
 # File transfer content types. The content type states intent and nothing else:
 # a single file travels as octet-stream and a directory as an x-tar archive the
@@ -98,8 +127,11 @@ _CONTENT_TYPE_OCTET_STREAM = "application/octet-stream"
 _CONTENT_TYPE_TAR = "application/x-tar"
 
 
+def _set_or_none(value: _T | Unset | None) -> _T | None:
+    return None if isinstance(value, Unset) else value
+
+
 def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
-    terminated = model.terminated_at
     return Sandbox(
         id=model.id,
         status=model.status.value,
@@ -108,13 +140,11 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
         region=model.region,
         timeout_seconds=model.timeout_seconds,
         created_at=model.created_at,
-        terminated_at=terminated if isinstance(terminated, datetime) else None,
+        terminated_at=_set_or_none(model.terminated_at),
     )
 
 
 def _to_sandbox_group(model: GeneratedSandboxGroup) -> SandboxGroup:
-    # environment_id is Union[None, Unset, str]; both non-str cases mean None.
-    environment_id = model.environment_id
     return SandboxGroup(
         id=model.id,
         owner_id=model.owner_id,
@@ -124,15 +154,77 @@ def _to_sandbox_group(model: GeneratedSandboxGroup) -> SandboxGroup:
         concurrency_limit=model.concurrency_limit,
         created_at=model.created_at,
         updated_at=model.updated_at,
-        environment_id=environment_id if isinstance(environment_id, str) else None,
+        environment_id=_set_or_none(model.environment_id),
     )
 
 
-def _normalize_statuses(status: str | Sequence[str] | None) -> list[SandboxStatus]:
+def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
+    return Snapshot(
+        id=model.id,
+        sandbox_group_id=model.sandbox_group_id,
+        source_sandbox_id=model.source_sandbox_id,
+        kind=model.kind.value,
+        status=model.status.value,
+        plan=model.plan.value,
+        requested_at=model.requested_at,
+        captured_at=_set_or_none(model.captured_at),
+        expires_at=model.expires_at,
+        size_bytes=_set_or_none(model.size_bytes),
+        error=_set_or_none(model.error),
+    )
+
+
+def _normalize_statuses(
+    status: str | Sequence[str] | None, status_type: type[_StatusEnum]
+) -> list[_StatusEnum]:
     if status is None:
         return []
     values = [status] if isinstance(status, str) else list(status)
-    return [SandboxStatus(value) for value in values]
+    return [status_type(value) for value in values]
+
+
+@dataclass(frozen=True)
+class _ErrorBody:
+    message: str | None = None
+    code: str | None = None
+
+
+def _error_body(body: bytes | str) -> _ErrorBody:
+    try:
+        payload = json.loads(body)
+    except ValueError:
+        return _ErrorBody()
+    if not isinstance(payload, dict):
+        return _ErrorBody()
+    message = payload.get("message")
+    code = payload.get("code")
+    return _ErrorBody(
+        message=message if isinstance(message, str) else None,
+        code=code if isinstance(code, str) else None,
+    )
+
+
+def _handle_snapshot_api_error(
+    response: Response[Any],
+    snapshot_id: str,
+    operation: str,
+    *,
+    path_names_snapshot: bool = True,
+) -> None:
+    if response.status_code == 404:
+        code = _error_body(response.content).code
+        if path_names_snapshot or code == _SNAPSHOT_NOT_FOUND_CODE:
+            raise SnapshotNotFoundError(f"snapshot {snapshot_id} not found", code=code)
+    if response.status_code == 409:
+        error = _error_body(response.content)
+        message = f"{operation} failed"
+        if error.message:
+            message = f"{message}: {error.message}"
+        if error.code in _SNAPSHOT_NOT_READY_CODES:
+            raise SnapshotNotReadyError(message, code=error.code)
+        if error.code == _SNAPSHOT_PLAN_MISMATCH_CODE:
+            raise SnapshotPlanMismatchError(message, code=error.code)
+    handle_api_error(response, operation)
 
 
 class SandboxApi:
@@ -149,6 +241,7 @@ class SandboxApi:
         network_policy: str | None,
         region: str | None,
         env: dict[str, str] | None,
+        snapshot_id: str | None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if plan is not None:
@@ -163,24 +256,28 @@ class SandboxApi:
             )
         if env is not None:
             body.env = SandboxPOSTEnv.from_dict(env)
+        if snapshot_id is not None:
+            body.snapshot_id = snapshot_id
 
-        response = await self._create_api_call(body)
+        with request_errors("create sandbox"):
+            response = await create_sandbox.asyncio_detailed(
+                client=self.client, body=body
+            )
+        if snapshot_id is None:
+            handle_api_error(response, "create sandbox")
+        else:
+            _handle_snapshot_api_error(
+                response, snapshot_id, "create sandbox", path_names_snapshot=False
+            )
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to create sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
 
     async def get(self, sandbox_id: str, owner_id: str) -> Sandbox:
-        try:
+        with request_errors("retrieve sandbox"):
             response = await retrieve_sandbox.asyncio_detailed(
                 sandbox_id, client=self.client, owner_id=owner_id
             )
-        except httpx.RequestError as exc:
-            handle_httpx_exception(exc, "retrieve sandbox")
-        except json.JSONDecodeError as exc:
-            body = exc.doc.strip() if exc.doc else "empty response"
-            raise RenderError(
-                f"retrieve sandbox failed: server returned a non-JSON response: {body}"
-            ) from exc
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
         handle_api_error(response, "retrieve sandbox")
@@ -195,7 +292,7 @@ class SandboxApi:
         cursor: str | None,
         limit: int | None,
     ) -> SandboxList:
-        statuses = _normalize_statuses(status)
+        statuses = _normalize_statuses(status, SandboxStatus)
         response = await self._list_api_call(owner_id, statuses, cursor, limit)
         parsed = response.parsed
         if not isinstance(parsed, list):
@@ -239,20 +336,93 @@ class SandboxApi:
         )
 
     async def terminate(self, sandbox_id: str, owner_id: str) -> None:
-        try:
+        with request_errors("terminate sandbox"):
             response = await terminate_sandbox.asyncio_detailed(
                 sandbox_id, client=self.client, owner_id=owner_id
             )
-        except httpx.RequestError as exc:
-            handle_httpx_exception(exc, "terminate sandbox")
-        except json.JSONDecodeError as exc:
-            body = exc.doc.strip() if exc.doc else "empty response"
-            raise RenderError(
-                f"terminate sandbox failed: server returned a non-JSON response: {body}"
-            ) from exc
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
         handle_api_error(response, "terminate sandbox")
+
+    async def create_snapshot(
+        self,
+        sandbox_id: str,
+        kind: str,
+        expires_at: datetime | None,
+        owner_id: str | Unset,
+    ) -> Snapshot:
+        body = SandboxSnapshotPOST(
+            kind=SandboxSnapshotKind(kind),
+            expires_at=expires_at if expires_at is not None else UNSET,
+        )
+        with request_errors("create snapshot"):
+            response = await create_sandbox_snapshot.asyncio_detailed(
+                sandbox_id, client=self.client, body=body, owner_id=owner_id
+            )
+        if response.status_code == 404:
+            raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
+        handle_api_error(response, "create snapshot")
+        if not isinstance(response.parsed, GeneratedSandboxSnapshot):
+            raise RenderError("Failed to create snapshot: unexpected response type")
+        return _to_snapshot(response.parsed)
+
+    async def get_snapshot(
+        self, sandbox_group_id: str, snapshot_id: str, owner_id: str | Unset
+    ) -> Snapshot:
+        with request_errors("retrieve snapshot"):
+            response = await retrieve_sandbox_snapshot.asyncio_detailed(
+                sandbox_group_id, snapshot_id, client=self.client, owner_id=owner_id
+            )
+        _handle_snapshot_api_error(response, snapshot_id, "retrieve snapshot")
+        if not isinstance(response.parsed, GeneratedSandboxSnapshot):
+            raise RenderError("Failed to retrieve snapshot: unexpected response type")
+        return _to_snapshot(response.parsed)
+
+    async def list_snapshots(
+        self,
+        owner_id: str,
+        sandbox_group_id: str,
+        status: str | Sequence[str] | None,
+        cursor: str | None,
+        limit: int | None,
+    ) -> SnapshotList:
+        statuses = _normalize_statuses(status, SandboxSnapshotStatus)
+        response = await self._list_snapshots_api_call(
+            sandbox_group_id, owner_id, statuses, cursor, limit
+        )
+        parsed = response.parsed
+        if not isinstance(parsed, list):
+            raise RenderError("Failed to list snapshots: unexpected response type")
+        snapshots = [_to_snapshot(item.snapshot) for item in parsed]
+        next_cursor = parsed[-1].cursor if parsed else None
+        return SnapshotList(snapshots=snapshots, next_cursor=next_cursor)
+
+    @handle_http_errors("list snapshots")
+    async def _list_snapshots_api_call(
+        self,
+        sandbox_group_id: str,
+        owner_id: str,
+        statuses: _SandboxSnapshotStatusList,
+        cursor: str | None,
+        limit: int | None,
+    ) -> Response[Error | _SandboxSnapshotWithCursorList]:
+        return await list_sandbox_snapshots.asyncio_detailed(
+            sandbox_group_id,
+            client=self.client,
+            owner_id=owner_id,
+            status=statuses or UNSET,
+            cursor=cursor if cursor is not None else UNSET,
+            limit=limit if limit is not None else UNSET,
+        )
+
+    async def delete_snapshot(
+        self, sandbox_group_id: str, snapshot_id: str, owner_id: str | Unset
+    ) -> None:
+        with request_errors("delete snapshot"):
+            response = await delete_sandbox_snapshot.asyncio_detailed(
+                sandbox_group_id, snapshot_id, client=self.client, owner_id=owner_id
+            )
+        _handle_snapshot_api_error(response, snapshot_id, "delete snapshot")
 
     async def _mint_run_token(
         self, sandbox_id: str, owner_id: str, operation: str, command: str
@@ -486,12 +656,6 @@ class SandboxApi:
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "exec sandbox")
 
-    @handle_http_errors("create sandbox")
-    async def _create_api_call(
-        self, body: SandboxPOST
-    ) -> Response[Error | GeneratedSandbox]:
-        return await create_sandbox.asyncio_detailed(client=self.client, body=body)
-
 
 def _load_event(data: str) -> dict[str, Any]:
     try:
@@ -500,16 +664,6 @@ def _load_event(data: str) -> dict[str, Any]:
         raise SandboxExecError(
             f"failed to parse sandbox exec event data: {data}"
         ) from exc
-
-
-def _file_error_code(body: str) -> str:
-    """The ``code`` of a sandbox agent error body, or "" if it has none."""
-    try:
-        payload = json.loads(body)
-    except ValueError:
-        return ""
-    code = payload.get("code") if isinstance(payload, dict) else None
-    return code if isinstance(code, str) else ""
 
 
 def _raise_sandbox_http_error(
@@ -522,7 +676,7 @@ def _raise_sandbox_http_error(
         # The agent 404s a missing remote path with this code, and the sandbox
         # is alive when it does. Any other 404 is the sandbox itself being gone,
         # including the one the mint endpoint returns.
-        if _file_error_code(body) == _FILE_NOT_FOUND_CODE:
+        if _error_body(body).code == _FILE_NOT_FOUND_CODE:
             raise SandboxFileNotFoundError(message)
         raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
     if status_code == 429:

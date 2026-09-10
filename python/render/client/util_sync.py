@@ -16,6 +16,7 @@ from render.client.util import (
     handle_http_error,
     handle_httpx_exception,
     handle_storage_http_error,
+    request_errors,
 )
 from render.public_api.models.error import Error
 from render.public_api.types import Response
@@ -28,6 +29,7 @@ __all__ = [
     "handle_api_error",
     "handle_http_error",
     "handle_httpx_exception",
+    "request_errors",
     "handle_storage_http_error",
 ]
 

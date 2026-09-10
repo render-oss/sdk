@@ -1,10 +1,15 @@
 from datetime import datetime
 
+import pytest
+
 from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.errors import (
     SandboxExecError,
     SandboxExecStreamError,
     SandboxNotFoundError,
+    SnapshotNotFoundError,
+    SnapshotNotReadyError,
+    SnapshotPlanMismatchError,
 )
 from render.experimental.sandbox.types import (
     Sandbox,
@@ -13,6 +18,8 @@ from render.experimental.sandbox.types import (
     SandboxGroup,
     SandboxGroupList,
     SandboxList,
+    Snapshot,
+    SnapshotList,
 )
 
 
@@ -29,6 +36,32 @@ def test_sandbox_has_expected_fields():
     assert sb.id == "sbx-1"
     assert sb.network_policy == "deny-all"
     assert sb.terminated_at is None
+
+
+def test_snapshot_has_expected_fields():
+    snapshot = Snapshot(
+        id="snp-1",
+        sandbox_group_id="sbg-1",
+        source_sandbox_id="sbx-1",
+        kind="filesystem",
+        status="creating",
+        plan="starter",
+        requested_at=datetime(2026, 9, 1),
+        expires_at=datetime(2026, 9, 8),
+    )
+    assert snapshot.id == "snp-1"
+    assert snapshot.kind == "filesystem"
+    assert snapshot.status == "creating"
+    assert snapshot.captured_at is None
+    assert snapshot.expires_at == datetime(2026, 9, 8)
+    assert snapshot.size_bytes is None
+    assert snapshot.error is None
+
+
+def test_snapshot_list_defaults_are_empty():
+    page = SnapshotList()
+    assert page.snapshots == []
+    assert page.next_cursor is None
 
 
 def test_sandbox_list_defaults_are_empty():
@@ -81,3 +114,15 @@ def test_exec_errors_subclass_render_error():
     assert stream_err.message == "timed out"
     assert isinstance(stream_err, RenderError)
     assert isinstance(SandboxExecError("boom"), RenderError)
+
+
+@pytest.mark.parametrize(
+    "error_type",
+    [SnapshotNotFoundError, SnapshotNotReadyError, SnapshotPlanMismatchError],
+)
+def test_snapshot_errors_are_client_errors_carrying_a_code(error_type):
+    err = error_type("boom", code="some_code")
+    assert isinstance(err, ClientError)
+    assert str(err) == "boom"
+    assert err.code == "some_code"
+    assert error_type("boom").code is None
