@@ -1,16 +1,40 @@
 import type { ErrorEvent } from "eventsource";
-import { ClientError, ServerError } from "../errors.js";
+import {
+  ClientError,
+  SandboxSnapshotNotFoundError,
+  SandboxSnapshotNotReadyError,
+  SandboxSnapshotPlanMismatchError,
+  ServerError,
+} from "../errors.js";
 
-export const getApiError = (message: string, response: Response, context: string): Error => {
+export const getApiError = (
+  message: string,
+  response: Response,
+  context: string,
+  code?: string,
+): Error => {
   const statusCode = response.status;
   const errorMessage = `${context}: ${message}`;
 
   if (statusCode >= 500) {
     return new ServerError(errorMessage, statusCode, message);
-  } else if (statusCode >= 400) {
-    return new ClientError(errorMessage, statusCode, message);
   }
-  return new ClientError(errorMessage, statusCode, message);
+  const ErrorClass = clientErrorForCode(code);
+  return new ErrorClass(errorMessage, statusCode, message, code);
+};
+
+const clientErrorForCode = (code?: string): typeof ClientError => {
+  switch (code) {
+    case "snapshot_creating":
+    case "snapshot_not_available":
+      return SandboxSnapshotNotReadyError;
+    case "snapshot_plan_mismatch":
+      return SandboxSnapshotPlanMismatchError;
+    case "snapshot_not_found":
+      return SandboxSnapshotNotFoundError;
+    default:
+      return ClientError;
+  }
 };
 
 /**
