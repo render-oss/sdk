@@ -7,4 +7,7 @@ from render.experimental.sandbox.errors import (
     SandboxExecStreamError as SandboxExecStreamError,
     SandboxFileNotFoundError as SandboxFileNotFoundError,
     SandboxNotFoundError as SandboxNotFoundError,
+    SnapshotNotFoundError as SnapshotNotFoundError,
+    SnapshotNotReadyError as SnapshotNotReadyError,
+    SnapshotPlanMismatchError as SnapshotPlanMismatchError,
 )

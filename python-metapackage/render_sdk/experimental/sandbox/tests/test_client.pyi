@@ -34,6 +34,7 @@ from render.experimental.sandbox.tests.test_client import (
     test_create_requires_owner_id as test_create_requires_owner_id,
     test_create_sends_env_in_post_body as test_create_sends_env_in_post_body,
     test_create_sends_sandbox_post_and_returns_sandbox as test_create_sends_sandbox_post_and_returns_sandbox,
+    test_create_wraps_non_json_error_response as test_create_wraps_non_json_error_response,
     test_exec_error_event_raises_stream_error as test_exec_error_event_raises_stream_error,
     test_exec_mint_404_raises_not_found as test_exec_mint_404_raises_not_found,
     test_exec_missing_terminal_event_raises as test_exec_missing_terminal_event_raises,

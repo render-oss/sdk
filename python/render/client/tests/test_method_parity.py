@@ -25,8 +25,11 @@ from render.experimental.object.client_sync import (
 )
 from render.experimental.sandbox.api import SandboxApi
 from render.experimental.sandbox.api_sync import SyncSandboxApi
-from render.experimental.sandbox.client import SandboxClient
-from render.experimental.sandbox.client_sync import SyncSandboxClient
+from render.experimental.sandbox.client import SandboxClient, SnapshotClient
+from render.experimental.sandbox.client_sync import (
+    SyncSandboxClient,
+    SyncSnapshotClient,
+)
 
 # All async/sync class pairs. Add new pairs here when creating a new service.
 ASYNC_SYNC_PAIRS = [
@@ -38,6 +41,7 @@ ASYNC_SYNC_PAIRS = [
     (ScopedObjectClient, SyncScopedObjectClient),
     (SandboxApi, SyncSandboxApi),
     (SandboxClient, SyncSandboxClient),
+    (SnapshotClient, SyncSnapshotClient),
 ]
 
 # Modules that contain async service classes. If you add a new module with

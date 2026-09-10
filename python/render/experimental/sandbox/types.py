@@ -8,7 +8,7 @@ from datetime import datetime
 
 @dataclass
 class Sandbox:
-    """A sandbox snapshot returned by create, from_id, and list."""
+    """A sandbox as returned by create, from_id, and list."""
 
     id: str
     status: str
@@ -30,7 +30,7 @@ class SandboxList:
 
 @dataclass
 class SandboxGroup:
-    """A sandbox group snapshot returned by list_groups."""
+    """A sandbox group as returned by list_groups."""
 
     id: str
     owner_id: str
@@ -48,6 +48,31 @@ class SandboxGroupList:
     """A page of sandbox groups with an optional pagination cursor."""
 
     groups: list[SandboxGroup] = field(default_factory=list)
+    next_cursor: str | None = None
+
+
+@dataclass
+class Snapshot:
+    """A snapshot of a sandbox, as returned by snapshots.create, from_id, and list."""
+
+    id: str
+    sandbox_group_id: str
+    source_sandbox_id: str
+    kind: str
+    status: str
+    plan: str
+    requested_at: datetime
+    expires_at: datetime
+    captured_at: datetime | None = None
+    size_bytes: int | None = None
+    error: str | None = None
+
+
+@dataclass
+class SnapshotList:
+    """A page of snapshots with an optional pagination cursor."""
+
+    snapshots: list[Snapshot] = field(default_factory=list)
     next_cursor: str | None = None
 
 

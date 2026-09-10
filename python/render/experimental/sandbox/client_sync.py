@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Iterator, Sequence
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from render.client.errors import RenderError
@@ -16,7 +17,10 @@ from render.experimental.sandbox.types import (
     SandboxExecEvent,
     SandboxGroupList,
     SandboxList,
+    Snapshot,
+    SnapshotList,
 )
+from render.public_api.types import UNSET, Unset
 
 if TYPE_CHECKING:
     from render.public_api.client import AuthenticatedClient, Client
@@ -33,6 +37,7 @@ class SyncSandboxClient:
     ):
         self.client = client
         self.api = SyncSandboxApi(client)
+        self.snapshots = SyncSnapshotClient(self)
         self._default_owner_id = default_owner_id
         self._default_region = default_region
 
@@ -44,6 +49,9 @@ class SyncSandboxClient:
             )
         return resolved
 
+    def _optional_owner_id(self, owner_id: str | None) -> str | Unset:
+        return owner_id or self._default_owner_id or UNSET
+
     def create(
         self,
         *,
@@ -53,12 +61,20 @@ class SyncSandboxClient:
         network_policy: str | None = None,
         region: str | None = None,
         env: dict[str, str] | None = None,
+        snapshot_id: str | None = None,
     ) -> Sandbox:
-        """Create a sandbox and return its initial snapshot.
+        """Create a sandbox and return its initial state.
 
         All parameters are optional. Unspecified fields fall back to the
         workspace defaults enforced by the API (plan starter, 7200s timeout,
         workspace default region and network policy).
+
+        snapshot_id starts the sandbox from that snapshot instead of the base
+        image. The snapshot must be available and in the same sandbox group;
+        for a runtime snapshot, plan must match the snapshot's plan. Raises
+        SnapshotNotFoundError if the snapshot does not exist,
+        SnapshotNotReadyError if it is not available, and
+        SnapshotPlanMismatchError on a runtime plan mismatch.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         resolved_region = region or self._default_region
@@ -69,6 +85,7 @@ class SyncSandboxClient:
             network_policy=network_policy,
             region=resolved_region,
             env=env,
+            snapshot_id=snapshot_id,
         )
 
     def from_id(self, sandbox_id: str, *, owner_id: str | None = None) -> Sandbox:
@@ -182,4 +199,88 @@ class SyncSandboxClient:
             normalize_remote_path(remote_path),
             os.fspath(local_path),
             resolved_owner_id,
+        )
+
+
+class SyncSnapshotClient:
+    """Snapshots of sandboxes, accessed via ``SyncSandboxClient.snapshots``."""
+
+    def __init__(self, sandboxes: SyncSandboxClient):
+        self._sandboxes = sandboxes
+
+    def create(
+        self,
+        sandbox_id: str,
+        *,
+        kind: str = "filesystem",
+        expires_at: datetime | None = None,
+        owner_id: str | None = None,
+    ) -> Snapshot:
+        """Capture a snapshot of a running sandbox.
+
+        kind is filesystem (the writable filesystem) or runtime (also memory and
+        CPU state). expires_at must be in the future; omit it for Render's
+        default snapshot lifetime. The snapshot is returned in
+        status creating; poll from_id until it is available or failed. Raises
+        SandboxNotFoundError if the sandbox does not exist, and a ClientError
+        with code sandbox_not_running if it is not running.
+        """
+        return self._sandboxes.api.create_snapshot(
+            sandbox_id,
+            kind,
+            expires_at,
+            self._sandboxes._optional_owner_id(owner_id),
+        )
+
+    def from_id(
+        self,
+        *,
+        sandbox_group_id: str,
+        snapshot_id: str,
+        owner_id: str | None = None,
+    ) -> Snapshot:
+        """Fetch a snapshot by id.
+
+        Raises SnapshotNotFoundError if the snapshot does not exist, was
+        deleted, has expired, or belongs to another sandbox group.
+        """
+        return self._sandboxes.api.get_snapshot(
+            sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
+        )
+
+    def list(
+        self,
+        *,
+        sandbox_group_id: str,
+        status: str | Sequence[str] | None = None,
+        cursor: str | None = None,
+        limit: int | None = None,
+        owner_id: str | None = None,
+    ) -> SnapshotList:
+        """List snapshots of one sandbox group, newest first.
+
+        Deleted and expired snapshots are omitted. status filters by snapshot
+        status, one or a sequence of them (each one of creating, available,
+        failed). limit is capped at 100 by the API.
+        """
+        resolved_owner_id = self._sandboxes._resolve_owner_id(owner_id)
+        return self._sandboxes.api.list_snapshots(
+            resolved_owner_id, sandbox_group_id, status, cursor, limit
+        )
+
+    def delete(
+        self,
+        *,
+        sandbox_group_id: str,
+        snapshot_id: str,
+        owner_id: str | None = None,
+    ) -> None:
+        """Delete a snapshot.
+
+        Idempotent for an already-deleted or expired snapshot (the API returns
+        204). Raises SnapshotNotFoundError if the snapshot never existed, and
+        SnapshotNotReadyError if it is still creating.
+        """
+        self._sandboxes.api.delete_snapshot(
+            sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
         )

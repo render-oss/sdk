@@ -666,6 +666,16 @@ async def test_terminate_wraps_non_json_error_response():
         await client.terminate("sbx-abc")
 
 
+@pytest.mark.asyncio
+async def test_create_wraps_non_json_error_response():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(500, text="upstream boom")
+
+    client = _sandbox_client(handler)
+    with pytest.raises(RenderError):
+        await client.create()
+
+
 def test_render_async_exposes_sandboxes():
     from render import RenderAsync
 

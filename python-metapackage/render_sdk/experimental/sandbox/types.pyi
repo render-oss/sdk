@@ -7,6 +7,8 @@ from render.experimental.sandbox.types import (
     SandboxGroup as SandboxGroup,
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
+    Snapshot as Snapshot,
+    SnapshotList as SnapshotList,
     dataclass as dataclass,
     datetime as datetime,
     field as field,

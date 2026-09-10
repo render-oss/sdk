@@ -11,6 +11,7 @@ from render.client.util_sync import (
     handle_httpx_exception as handle_httpx_exception,
     handle_storage_http_error as handle_storage_http_error,
     logger as logger,
+    request_errors as request_errors,
     retry_with_backoff as retry_with_backoff,
     sleep as sleep,
 )
@@ -22,5 +23,6 @@ __all__ = [
     "handle_api_error",
     "handle_http_error",
     "handle_httpx_exception",
+    "request_errors",
     "handle_storage_http_error",
 ]

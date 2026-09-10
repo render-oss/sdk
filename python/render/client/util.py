@@ -4,7 +4,8 @@ import functools
 import json
 import logging
 from asyncio import sleep
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Generator
+from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, NoReturn
 
 import httpx
@@ -194,6 +195,7 @@ def handle_api_error(
 
     message: str | None = None
     error_id: str | None = None
+    code: str | None = None
 
     # Try to extract error info from parsed response
     if isinstance(response.parsed, Error):
@@ -203,6 +205,9 @@ def handle_api_error(
         raw_id = getattr(response.parsed, "id", None)
         if raw_id is not None and not isinstance(raw_id, Unset):
             error_id = raw_id
+        raw_code = getattr(response.parsed, "code", None)
+        if raw_code is not None and not isinstance(raw_code, Unset):
+            code = raw_code
     elif response.parsed is None and response.content:
         # Parsed is None (e.g., 400 not handled) - try to extract from raw content
         try:
@@ -210,6 +215,8 @@ def handle_api_error(
             if isinstance(error_data, dict):
                 message = error_data.get("message")
                 error_id = error_data.get("id")
+                raw_code = error_data.get("code")
+                code = raw_code if isinstance(raw_code, str) else None
         except (json.JSONDecodeError, UnicodeDecodeError):
             pass
 
@@ -225,13 +232,13 @@ def handle_api_error(
 
     if response.status_code:
         if response.status_code == 429:
-            raise RateLimitError(full_message)
+            raise RateLimitError(full_message, code=code)
         if response.status_code >= 400 and response.status_code < 500:
-            raise ClientError(full_message)
+            raise ClientError(full_message, code=code)
         elif response.status_code >= 500:
             raise ServerError(full_message)
     else:
-        raise ClientError(full_message)
+        raise ClientError(full_message, code=code)
 
 
 def _handle_wrapper_exception(exc: Exception, operation: str) -> NoReturn:
@@ -250,6 +257,21 @@ def _handle_wrapper_exception(exc: Exception, operation: str) -> NoReturn:
             f"{operation} failed: server returned a non-JSON response: {body}"
         ) from exc
     raise RenderError(f"{operation} failed with unexpected error: {exc}") from exc
+
+
+@contextmanager
+def request_errors(operation: str) -> Generator[None, None, None]:
+    """
+    Context manager form of handle_http_errors for a single request.
+
+    Translates HTTPX exceptions and non-JSON responses raised inside the block
+    into custom exceptions. Unlike the decorator, it leaves the HTTP status of
+    the response to the caller.
+    """
+    try:
+        yield
+    except Exception as exc:
+        _handle_wrapper_exception(exc, operation)
 
 
 def handle_http_errors(operation: str):

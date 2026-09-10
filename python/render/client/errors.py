@@ -6,9 +6,14 @@ class RenderError(Exception):
 
 class ClientError(RenderError):
     """Exception for client errors. This is returned when
-    the client makes a request to the API and the API returns a 4xx error."""
+    the client makes a request to the API and the API returns a 4xx error.
 
-    pass
+    code is the machine-readable code from the error body, or None when the
+    API did not send one."""
+
+    def __init__(self, *args: object, code: str | None = None) -> None:
+        super().__init__(*args)
+        self.code = code
 
 
 class RateLimitError(ClientError):

@@ -81,6 +81,7 @@ CLASS_RENAMES = [
     ("ObjectApi", "SyncObjectApi"),
     ("SandboxClient", "SyncSandboxClient"),
     ("SandboxApi", "SyncSandboxApi"),
+    ("SnapshotClient", "SyncSnapshotClient"),
 ]
 
 HEADER = (

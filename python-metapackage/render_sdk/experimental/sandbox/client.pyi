@@ -11,6 +11,12 @@ from render.experimental.sandbox.client import (
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     Sequence as Sequence,
+    Snapshot as Snapshot,
+    SnapshotClient as SnapshotClient,
+    SnapshotList as SnapshotList,
     TYPE_CHECKING as TYPE_CHECKING,
+    UNSET as UNSET,
+    Unset as Unset,
+    datetime as datetime,
     normalize_remote_path as normalize_remote_path,
 )
