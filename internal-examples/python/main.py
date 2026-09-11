@@ -71,6 +71,21 @@ async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     return result1 + result2
 
 
+@task
+async def write_to_disk(ctx: TaskContext, filename: str, byteLength: int) -> None:
+    """Write byte length bytes to a file on disk."""
+    # To avoid filling up memory we write to disk in chunks. The chunk is a
+    # single reusable zero-filled buffer, and the last write is trimmed with a
+    # memoryview so the file ends up exactly byteLength bytes.
+    max_chunk_size = 8 * 1024 * 1024
+    chunk = bytes(max_chunk_size)
+    with open(filename, "wb") as f:
+        remaining = byteLength
+        while remaining > 0:
+            n = min(remaining, max_chunk_size)
+            f.write(memoryview(chunk)[:n])
+            remaining -= n
+
 if __name__ == "__main__":
     try:
         start()
