@@ -24,6 +24,7 @@ DESTINATION_FILES_EXCLUDE = [
   ".github/workflows/copybara-push.yaml",
   ".github/workflows/typescript-canary.yml",
   ".github/workflows/pr-test-instructions.yml",
+  ".github/workflows/generated-client-staleness.yml",
 ]
 
 DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"
