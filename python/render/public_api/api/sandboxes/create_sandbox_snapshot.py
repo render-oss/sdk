@@ -117,7 +117,8 @@ def sync_detailed(
     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
     running; a runtime capture pauses it briefly.
 
-    409 with `code: sandbox_not_running` if the sandbox is not `running`.
+    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
+    `code: sandbox_not_running` if the sandbox is not `running`.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -158,7 +159,8 @@ def sync(
     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
     running; a runtime capture pauses it briefly.
 
-    409 with `code: sandbox_not_running` if the sandbox is not `running`.
+    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
+    `code: sandbox_not_running` if the sandbox is not `running`.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -194,7 +196,8 @@ async def asyncio_detailed(
     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
     running; a runtime capture pauses it briefly.
 
-    409 with `code: sandbox_not_running` if the sandbox is not `running`.
+    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
+    `code: sandbox_not_running` if the sandbox is not `running`.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -233,7 +236,8 @@ async def asyncio(
     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
     running; a runtime capture pauses it briefly.
 
-    409 with `code: sandbox_not_running` if the sandbox is not `running`.
+    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
+    `code: sandbox_not_running` if the sandbox is not `running`.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.

@@ -10,6 +10,7 @@ class ErrorCode(str, Enum):
     INVALID_OWNER_ID = "invalid_owner_id"
     INVALID_SANDBOX_GROUP_ID = "invalid_sandbox_group_id"
     INVALID_SNAPSHOT_ID = "invalid_snapshot_id"
+    INVALID_SNAPSHOT_NAME = "invalid_snapshot_name"
     INVALID_STATUS = "invalid_status"
     MULTIPLE_REGIONS = "multiple_regions"
     PREAUTH_ATTEMPT_SPENT = "preauth_attempt_spent"
