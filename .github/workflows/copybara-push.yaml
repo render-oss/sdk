@@ -61,5 +61,22 @@ jobs:
         env:
           RENDER_OSS_TOKEN: ${{ steps.generate-token-oss.outputs.token }}
         run: |
+          status=0
           java -jar copybara_deploy.jar copy.bara.sky push \
-            --git-destination-url "https://$USER:$RENDER_OSS_TOKEN@github.com/render-oss/sdk.git"
+            --git-destination-url "https://$USER:$RENDER_OSS_TOKEN@github.com/render-oss/sdk.git" || status=$?
+
+          # Copybara exits 4 (NO_OP) when it migrated nothing. That is not a
+          # failure, it means there was nothing to mirror. Two ways it happens:
+          # a push that only touches paths outside the mirror (an excluded
+          # workflow, internal-examples/, .zed/), and a push that raced another
+          # one whose run already carried both commits. Every copybara-push
+          # failure so far has been one of those, with no content lost.
+          #
+          # Real breakage has its own codes: 2 config, 3 repo access,
+          # 30 environment, 31 internal. Those still fail the job.
+          if [[ "$status" -eq 4 ]]; then
+            echo "Nothing to mirror (copybara reported NO_OP)."
+            exit 0
+          fi
+
+          exit "$status"

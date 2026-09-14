@@ -1,0 +1,82 @@
+name: Generated client staleness
+
+# Fails a pull request while the committed client is known to be behind the
+# schema in renderinc/api.
+#
+# How it knows: the regen automation in api regenerates on every schema change
+# and opens a PR here from a stable branch (auto/regen-sdk). While that PR is
+# open, the committed client is out of date, and anything merged on top of it is
+# built against a stale client.
+#
+# Why this shape, rather than regenerating and diffing here:
+#
+#   Regenerating requires reading the private renderinc/api. GITHUB_TOKEN is
+#   scoped to this repository, and this repo's vars.APP_ID is app 2491349
+#   (render-oss-copybara-sync), which has no installation on renderinc/api, so
+#   an app token minted here 404s before doing any work. That approach cannot
+#   run at all until a credential exists for it. This check reads only this
+#   repository's own pull requests.
+#
+# Known limitation: this is a proxy. It detects that the regen automation
+# noticed drift, not that drift exists. If that automation stops running, no
+# regen PR appears and this stays green while the client rots. The scheduled
+# run of the regen workflow in renderinc/api failing loudly is what covers
+# that case; this check does not.
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # Reads this repository's open pull requests. Nothing else.
+  pull-requests: read
+
+jobs:
+  staleness:
+    name: Check the generated client is not stale
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for an open regen PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          REGEN_BRANCH: auto/regen-sdk
+        run: |
+          set -o errexit -o nounset -o pipefail
+
+          # The regen PR is the fix for staleness, so it must not block itself.
+          #
+          # Identified by author rather than by head branch: the head branch is
+          # chosen by whoever opens the PR, so a human could bypass this by
+          # naming their branch auto/regen-sdk. The author is set by GitHub from
+          # the identity that opened the PR.
+          if [[ "$PR_AUTHOR" == "render-github-action-bot[bot]" ]]; then
+            echo "This is the regen PR itself; not checking staleness against it."
+            exit 0
+          fi
+
+          open_pr="$(gh pr list --repo "$REPO" --state open --head "$REGEN_BRANCH" --json number,url --jq '.[0].url // ""')"
+
+          if [[ -z "$open_pr" ]]; then
+            echo "No open regen PR; the committed client is up to date."
+            exit 0
+          fi
+
+          echo "::error::The generated client is out of date. Merge the regen PR first."
+          echo
+          cat <<MSG
+          A schema change has landed in renderinc/api and the regenerated client
+          has not been merged here yet, so main is behind the schema:
+
+            $open_pr
+
+          Merge that PR, then re-run this check. Merging on top of a stale client
+          means building against endpoints and types that no longer match the API.
+          MSG
+          exit 1
