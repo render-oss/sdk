@@ -4053,6 +4053,11 @@ export interface paths {
          *     exist; 409 with `code: snapshot_not_available` if it is not `available`, or
          *     `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
          *     different `plan`.
+         *
+         *     With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
+         *     malformed, 400 without a code if `snapshotId` is also set, and 404 with
+         *     `code: snapshot_not_found` if no `available` snapshot in the group has the
+         *     name. The 409 cases above apply to the resolved snapshot.
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -4196,7 +4201,8 @@ export interface paths {
          *     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
          *     running; a runtime capture pauses it briefly.
          *
-         *     409 with `code: sandbox_not_running` if the sandbox is not `running`.
+         *     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
+         *     `code: sandbox_not_running` if the sandbox is not `running`.
          */
         post: operations["create-sandbox-snapshot"];
         delete?: never;
@@ -5196,7 +5202,7 @@ export interface components {
          * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
          * @enum {string}
          */
-        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit";
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit" | "invalid_snapshot_name";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.
@@ -7293,6 +7299,14 @@ export interface components {
         };
         /** @example snp-cph1rs3idesc73a2b2mg */
         sandboxSnapshotId: string;
+        /**
+         * @description Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
+         *     so clients can tell a name from a snapshot ID. Several snapshots may
+         *     share a name; the most recently available one is the one the name
+         *     resolves to.
+         * @example gold
+         */
+        sandboxSnapshotName: string;
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
@@ -7316,6 +7330,12 @@ export interface components {
              *     match the snapshot's plan.
              */
             snapshotId?: components["schemas"]["sandboxSnapshotId"];
+            /**
+             * @description Start from the snapshot this name currently resolves to in the sandbox
+             *     group. Mutually exclusive with `snapshotId`. Same restore rules as
+             *     `snapshotId`.
+             */
+            snapshotName?: components["schemas"]["sandboxSnapshotName"];
         };
         /** @example sbg-cph1rs3idesc73a2b2mg */
         sandboxGroupId: string;
@@ -7398,6 +7418,7 @@ export interface components {
         sandboxSnapshotPOST: {
             /** @default filesystem */
             kind: components["schemas"]["sandboxSnapshotKind"];
+            name?: components["schemas"]["sandboxSnapshotName"];
             /**
              * Format: date-time
              * @description The time after which the snapshot can no longer be retrieved or restored.
@@ -7412,6 +7433,8 @@ export interface components {
             sandboxGroupId: components["schemas"]["sandboxGroupId"];
             /** @description The sandbox this snapshot was captured from. Lineage only. */
             sourceSandboxId: components["schemas"]["sandboxId"];
+            /** @description Set at create. Never changes. Null when created without a name. */
+            name?: components["schemas"]["sandboxSnapshotName"] | null;
             kind: components["schemas"]["sandboxSnapshotKind"];
             status: components["schemas"]["sandboxSnapshotStatus"];
             /** @description Plan of the source sandbox at capture time. */

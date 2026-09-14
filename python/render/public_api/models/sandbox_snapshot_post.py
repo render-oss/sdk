@@ -21,12 +21,18 @@ class SandboxSnapshotPOST:
             `runtime` also captures memory and CPU state and restores only onto the
             plan of the source sandbox.
              Default: SandboxSnapshotKind.FILESYSTEM.
+        name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
+            so clients can tell a name from a snapshot ID. Several snapshots may
+            share a name; the most recently available one is the one the name
+            resolves to.
+             Example: gold.
         expires_at (Union[Unset, datetime.datetime]): The time after which the snapshot can no longer be retrieved or
             restored.
             Must be in the future. Omit to use Render's default snapshot lifetime.
     """
 
     kind: Union[Unset, SandboxSnapshotKind] = SandboxSnapshotKind.FILESYSTEM
+    name: Union[Unset, str] = UNSET
     expires_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -34,6 +40,8 @@ class SandboxSnapshotPOST:
         kind: Union[Unset, str] = UNSET
         if not isinstance(self.kind, Unset):
             kind = self.kind.value
+
+        name = self.name
 
         expires_at: Union[Unset, str] = UNSET
         if not isinstance(self.expires_at, Unset):
@@ -44,6 +52,8 @@ class SandboxSnapshotPOST:
         field_dict.update({})
         if kind is not UNSET:
             field_dict["kind"] = kind
+        if name is not UNSET:
+            field_dict["name"] = name
         if expires_at is not UNSET:
             field_dict["expiresAt"] = expires_at
 
@@ -59,6 +69,8 @@ class SandboxSnapshotPOST:
         else:
             kind = SandboxSnapshotKind(_kind)
 
+        name = d.pop("name", UNSET)
+
         _expires_at = d.pop("expiresAt", UNSET)
         expires_at: Union[Unset, datetime.datetime]
         if isinstance(_expires_at, Unset):
@@ -68,6 +80,7 @@ class SandboxSnapshotPOST:
 
         sandbox_snapshot_post = cls(
             kind=kind,
+            name=name,
             expires_at=expires_at,
         )
 

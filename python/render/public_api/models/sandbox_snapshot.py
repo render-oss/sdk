@@ -29,6 +29,7 @@ class SandboxSnapshot:
         requested_at (datetime.datetime):
         expires_at (datetime.datetime): The time after which the snapshot can no longer be retrieved or restored.
             Set by Render when the create request did not specify one.
+        name (Union[None, Unset, str]): Set at create. Never changes. Null when created without a name.
         captured_at (Union[None, Unset, datetime.datetime]): When the sandbox was frozen for capture. Null until
             `available`.
         size_bytes (Union[None, Unset, int]): Null until `available`.
@@ -43,6 +44,7 @@ class SandboxSnapshot:
     plan: SandboxPlan
     requested_at: datetime.datetime
     expires_at: datetime.datetime
+    name: Union[None, Unset, str] = UNSET
     captured_at: Union[None, Unset, datetime.datetime] = UNSET
     size_bytes: Union[None, Unset, int] = UNSET
     error: Union[None, Unset, str] = UNSET
@@ -64,6 +66,12 @@ class SandboxSnapshot:
         requested_at = self.requested_at.isoformat()
 
         expires_at = self.expires_at.isoformat()
+
+        name: Union[None, Unset, str]
+        if isinstance(self.name, Unset):
+            name = UNSET
+        else:
+            name = self.name
 
         captured_at: Union[None, Unset, str]
         if isinstance(self.captured_at, Unset):
@@ -99,6 +107,8 @@ class SandboxSnapshot:
                 "expiresAt": expires_at,
             }
         )
+        if name is not UNSET:
+            field_dict["name"] = name
         if captured_at is not UNSET:
             field_dict["capturedAt"] = captured_at
         if size_bytes is not UNSET:
@@ -126,6 +136,15 @@ class SandboxSnapshot:
         requested_at = isoparse(d.pop("requestedAt"))
 
         expires_at = isoparse(d.pop("expiresAt"))
+
+        def _parse_name(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        name = _parse_name(d.pop("name", UNSET))
 
         def _parse_captured_at(data: object) -> Union[None, Unset, datetime.datetime]:
             if data is None:
@@ -171,6 +190,7 @@ class SandboxSnapshot:
             plan=plan,
             requested_at=requested_at,
             expires_at=expires_at,
+            name=name,
             captured_at=captured_at,
             size_bytes=size_bytes,
             error=error,

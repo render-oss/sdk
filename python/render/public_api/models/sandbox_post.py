@@ -28,6 +28,11 @@ class SandboxPOST:
         region (Union[Unset, str]): Render region. Defaults to the workspace default.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
         snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
+        snapshot_name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
+            so clients can tell a name from a snapshot ID. Several snapshots may
+            share a name; the most recently available one is the one the name
+            resolves to.
+             Example: gold.
     """
 
     owner_id: str
@@ -37,6 +42,7 @@ class SandboxPOST:
     region: Union[Unset, str] = UNSET
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
+    snapshot_name: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,6 +66,8 @@ class SandboxPOST:
 
         snapshot_id = self.snapshot_id
 
+        snapshot_name = self.snapshot_name
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -79,6 +87,8 @@ class SandboxPOST:
             field_dict["env"] = env
         if snapshot_id is not UNSET:
             field_dict["snapshotId"] = snapshot_id
+        if snapshot_name is not UNSET:
+            field_dict["snapshotName"] = snapshot_name
 
         return field_dict
 
@@ -117,6 +127,8 @@ class SandboxPOST:
 
         snapshot_id = d.pop("snapshotId", UNSET)
 
+        snapshot_name = d.pop("snapshotName", UNSET)
+
         sandbox_post = cls(
             owner_id=owner_id,
             network_policy=network_policy,
@@ -125,6 +137,7 @@ class SandboxPOST:
             region=region,
             env=env,
             snapshot_id=snapshot_id,
+            snapshot_name=snapshot_name,
         )
 
         sandbox_post.additional_properties = d
