@@ -1,6 +1,7 @@
 """Example usage of the Render Tasks Python SDK."""
 
 import logging
+import requests
 
 from not_registered import not_registered_task
 
@@ -69,6 +70,13 @@ async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     logger.info(f"Square result 2: {result2}")
 
     return result1 + result2
+
+@task
+async def make_network_request(ctx: TaskContext, url: str) -> str:
+    """Make a network request to the specified URL and return the response text."""
+    response = requests.get(url)
+
+    return response.text
 
 
 @task
