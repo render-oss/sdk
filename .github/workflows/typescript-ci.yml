@@ -102,7 +102,7 @@ jobs:
     name: TypeScript E2E Tests
     needs: [changes, lint-and-format, test]
     # Internal runner: api.staging.render.com is only reachable from inside the network.
-    runs-on: arc-runner-2cpu
+    runs-on: render-mgmt-arc-runner-2cpu
     timeout-minutes: 10
     environment:
       name: Staging
