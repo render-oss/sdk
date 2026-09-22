@@ -5130,7 +5130,6 @@ export interface components {
         deployStatus: "created" | "queued" | "build_in_progress" | "update_in_progress" | "live" | "deactivated" | "build_failed" | "update_failed" | "canceled" | "pre_deploy_in_progress" | "pre_deploy_failed";
         deploy: {
             id: string;
-            buildId?: string;
             commit?: {
                 id?: string;
                 message?: string;
@@ -5465,8 +5464,8 @@ export interface components {
          *     - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
          *     - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
          *
-         *     **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
-         *     as those are build related fields.
+         *     **Note:** `deployMode` cannot be combined with `buildId`. `deploy_only` cannot be combined with
+         *     `commitId`, `imageUrl`, or `clearCache`, as those are build related fields.
          * @default build_and_deploy
          * @enum {string}
          */
@@ -7143,9 +7142,15 @@ export interface components {
         TaskData: unknown[] | {
             [key: string]: unknown;
         };
+        /**
+         * @description A client-generated key that makes starting a task run safe to retry. Repeating a request with the same key within 24 hours returns the task run that the first request started instead of starting another one; the repeated request's input is ignored. Keys are scoped to a single workflow version, so the same key used against a different version starts a separate run. Omit the key to always start a new run.
+         * @example 6b2f1f7a-6a0e-4f6f-9d1a-2b1d0d5f6c11
+         */
+        IdempotencyKey: string;
         RunTask: {
             task: components["schemas"]["TaskSlug"];
             input: components["schemas"]["TaskData"];
+            idempotencyKey?: components["schemas"]["IdempotencyKey"];
         };
         TaskRunResult: unknown[];
         TaskAttemptDetails: {
@@ -7269,7 +7274,21 @@ export interface components {
              * @description Default action for outbound traffic.
              * @enum {string}
              */
-            default: "allow-all" | "deny-all";
+            default: "allow-all" | "deny-all" | "allow-list";
+            /**
+             * @description Domains the sandbox may reach, required when `default` is
+             *     `allow-list` and rejected otherwise.
+             *
+             *     Matching is exact: `foo.local` does not cover `api.foo.local`,
+             *     leftmost-only wildcarding e.g. `*.foo.local` is allowed. Only HTTP
+             *     and HTTPS traffic is matched against this list; under
+             *     `allow-list` all other outbound TCP is dropped.
+             * @example [
+             *       "foo.local",
+             *       "*.bar.local"
+             *     ]
+             */
+            allowedDomains?: string[];
         };
         sandbox: {
             id: components["schemas"]["sandboxId"];
@@ -9612,7 +9631,7 @@ export interface operations {
                      */
                     clearCache?: "clear" | "do_not_clear";
                     /**
-                     * @description The SHA of a specific Git commit to deploy for a service. Defaults to the latest commit on the service's connected branch.
+                     * @description The SHA of a specific Git commit to deploy for a service. Defaults to the latest commit on the service's connected branch. Cannot be combined with `buildId`, `imageUrl`, or `deployMode: deploy_only`.
                      *
                      *     Note that deploying a specific commit with this endpoint does not disable autodeploys for the service.
                      *
@@ -9622,7 +9641,7 @@ export interface operations {
                      */
                     commitId?: string;
                     /**
-                     * @description The URL of the image to deploy for an image-backed service.
+                     * @description The URL of the image to deploy for an image-backed service. Cannot be combined with `buildId`, `commitId`, or `deployMode: deploy_only`.
                      *
                      *     The host, repository, and image name all must match the currently configured image for the service.
                      */
@@ -9632,7 +9651,7 @@ export interface operations {
                      *
                      *     Defaults to `build_and_deploy` when not specified.
                      *
-                     *     **Validation:** `deploy_mode` cannot be combined with `commitId` or `imageUrl` or `clearCache`.
+                     *     **Validation:** `deployMode` cannot be combined with `buildId`. `deploy_only` cannot be combined with `commitId`, `imageUrl`, or `clearCache`.
                      */
                     deployMode?: components["schemas"]["DeployMode"];
                 };
@@ -14681,6 +14700,8 @@ export interface operations {
                 /** @description The ID of the workspaces to return resources for */
                 ownerId?: components["parameters"]["ownerIdParam"];
                 projectId?: string;
+                /** @description Include previews in the response */
+                includePreviews?: components["parameters"]["includePreviewsParam"];
                 /**
                  * @description Filter for resources created before a certain time (specified as an ISO 8601 timestamp)
                  * @example 2021-06-17T08:15:30Z

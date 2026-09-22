@@ -21,7 +21,8 @@ class CreateDeployBody:
             before deploying. This can be useful if you're experiencing issues with your build. Default:
             CreateDeployBodyClearCache.DO_NOT_CLEAR.
         commit_id (Union[Unset, str]): The SHA of a specific Git commit to deploy for a service. Defaults to the latest
-            commit on the service's connected branch.
+            commit on the service's connected branch. Cannot be combined with `buildId`, `imageUrl`, or `deployMode:
+            deploy_only`.
 
             Note that deploying a specific commit with this endpoint does not disable autodeploys for the service.
 
@@ -29,7 +30,8 @@ class CreateDeployBody:
             docs.render.com/reference/update-service) endpoint or in the Render Dashboard.
 
             Not supported for cron jobs.
-        image_url (Union[Unset, str]): The URL of the image to deploy for an image-backed service.
+        image_url (Union[Unset, str]): The URL of the image to deploy for an image-backed service. Cannot be combined
+            with `buildId`, `commitId`, or `deployMode: deploy_only`.
 
             The host, repository, and image name all must match the currently configured image for the service.
         deploy_mode (Union[Unset, DeployMode]): Controls deployment behavior when triggering a deploy.
@@ -37,8 +39,8 @@ class CreateDeployBody:
             - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
             - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
 
-            **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
-            as those are build related fields.
+            **Note:** `deployMode` cannot be combined with `buildId`. `deploy_only` cannot be combined with
+            `commitId`, `imageUrl`, or `clearCache`, as those are build related fields.
     """
 
     build_id: Union[Unset, str] = UNSET

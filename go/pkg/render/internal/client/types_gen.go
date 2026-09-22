@@ -1695,8 +1695,8 @@ func (e StreamTaskRunsEventsParamsAccept) Valid() bool {
 // - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
 // - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
 //
-// **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
-// as those are build related fields.
+// **Note:** `deployMode` cannot be combined with `buildId`. `deploy_only` cannot be combined with
+// `commitId`, `imageUrl`, or `clearCache`, as those are build related fields.
 type DeployMode string
 
 // AddUpdateEnvVarInput defines model for addUpdateEnvVarInput.
@@ -2074,8 +2074,7 @@ type DedicatedIPStatus string
 
 // Deploy defines model for deploy.
 type Deploy struct {
-	BuildId *string `json:"buildId,omitempty"`
-	Commit  *struct {
+	Commit *struct {
 		CreatedAt *time.Time `json:"createdAt,omitempty"`
 		Id        *string    `json:"id,omitempty"`
 		Message   *string    `json:"message,omitempty"`
@@ -3861,6 +3860,9 @@ type ListBuildSourcesParams struct {
 	OwnerId   *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 	ProjectId *string       `form:"projectId,omitempty" json:"projectId,omitempty"`
 
+	// IncludePreviews Include previews in the response
+	IncludePreviews *IncludePreviewsParam `form:"includePreviews,omitempty" json:"includePreviews,omitempty"`
+
 	// CreatedBefore Filter for resources created before a certain time (specified as an ISO 8601 timestamp)
 	CreatedBefore *CreatedBeforeParam `form:"createdBefore,omitempty" json:"createdBefore,omitempty"`
 
@@ -5194,7 +5196,7 @@ type CreateDeployJSONBody struct {
 	// ClearCache If `clear`, Render clears the service's build cache before deploying. This can be useful if you're experiencing issues with your build.
 	ClearCache *CreateDeployJSONBodyClearCache `json:"clearCache,omitempty"`
 
-	// CommitId The SHA of a specific Git commit to deploy for a service. Defaults to the latest commit on the service's connected branch.
+	// CommitId The SHA of a specific Git commit to deploy for a service. Defaults to the latest commit on the service's connected branch. Cannot be combined with `buildId`, `imageUrl`, or `deployMode: deploy_only`.
 	//
 	// Note that deploying a specific commit with this endpoint does not disable autodeploys for the service.
 	//
@@ -5208,11 +5210,11 @@ type CreateDeployJSONBody struct {
 	// - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
 	// - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
 	//
-	// **Note:** `deploy_only` cannot be combined with `commitId`, `imageUrl` or `clearCache` parameters,
-	// as those are build related fields.
+	// **Note:** `deployMode` cannot be combined with `buildId`. `deploy_only` cannot be combined with
+	// `commitId`, `imageUrl`, or `clearCache`, as those are build related fields.
 	DeployMode *DeployMode `json:"deployMode,omitempty"`
 
-	// ImageUrl The URL of the image to deploy for an image-backed service.
+	// ImageUrl The URL of the image to deploy for an image-backed service. Cannot be combined with `buildId`, `commitId`, or `deployMode: deploy_only`.
 	//
 	// The host, repository, and image name all must match the currently configured image for the service.
 	ImageUrl *string `json:"imageUrl,omitempty"`

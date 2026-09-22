@@ -16,6 +16,7 @@ def _get_kwargs(
     name: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     project_id: Union[Unset, str] = UNSET,
+    include_previews: Union[Unset, bool] = True,
     created_before: Union[Unset, datetime.datetime] = UNSET,
     created_after: Union[Unset, datetime.datetime] = UNSET,
     updated_before: Union[Unset, datetime.datetime] = UNSET,
@@ -38,6 +39,8 @@ def _get_kwargs(
     params["ownerId"] = json_owner_id
 
     params["projectId"] = project_id
+
+    params["includePreviews"] = include_previews
 
     json_created_before: Union[Unset, str] = UNSET
     if not isinstance(created_before, Unset):
@@ -130,6 +133,7 @@ def sync_detailed(
     name: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     project_id: Union[Unset, str] = UNSET,
+    include_previews: Union[Unset, bool] = True,
     created_before: Union[Unset, datetime.datetime] = UNSET,
     created_after: Union[Unset, datetime.datetime] = UNSET,
     updated_before: Union[Unset, datetime.datetime] = UNSET,
@@ -146,6 +150,7 @@ def sync_detailed(
         name (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         project_id (Union[Unset, str]):
+        include_previews (Union[Unset, bool]):  Default: True.
         created_before (Union[Unset, datetime.datetime]):
         created_after (Union[Unset, datetime.datetime]):
         updated_before (Union[Unset, datetime.datetime]):
@@ -165,6 +170,7 @@ def sync_detailed(
         name=name,
         owner_id=owner_id,
         project_id=project_id,
+        include_previews=include_previews,
         created_before=created_before,
         created_after=created_after,
         updated_before=updated_before,
@@ -186,6 +192,7 @@ def sync(
     name: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     project_id: Union[Unset, str] = UNSET,
+    include_previews: Union[Unset, bool] = True,
     created_before: Union[Unset, datetime.datetime] = UNSET,
     created_after: Union[Unset, datetime.datetime] = UNSET,
     updated_before: Union[Unset, datetime.datetime] = UNSET,
@@ -202,6 +209,7 @@ def sync(
         name (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         project_id (Union[Unset, str]):
+        include_previews (Union[Unset, bool]):  Default: True.
         created_before (Union[Unset, datetime.datetime]):
         created_after (Union[Unset, datetime.datetime]):
         updated_before (Union[Unset, datetime.datetime]):
@@ -222,6 +230,7 @@ def sync(
         name=name,
         owner_id=owner_id,
         project_id=project_id,
+        include_previews=include_previews,
         created_before=created_before,
         created_after=created_after,
         updated_before=updated_before,
@@ -237,6 +246,7 @@ async def asyncio_detailed(
     name: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     project_id: Union[Unset, str] = UNSET,
+    include_previews: Union[Unset, bool] = True,
     created_before: Union[Unset, datetime.datetime] = UNSET,
     created_after: Union[Unset, datetime.datetime] = UNSET,
     updated_before: Union[Unset, datetime.datetime] = UNSET,
@@ -253,6 +263,7 @@ async def asyncio_detailed(
         name (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         project_id (Union[Unset, str]):
+        include_previews (Union[Unset, bool]):  Default: True.
         created_before (Union[Unset, datetime.datetime]):
         created_after (Union[Unset, datetime.datetime]):
         updated_before (Union[Unset, datetime.datetime]):
@@ -272,6 +283,7 @@ async def asyncio_detailed(
         name=name,
         owner_id=owner_id,
         project_id=project_id,
+        include_previews=include_previews,
         created_before=created_before,
         created_after=created_after,
         updated_before=updated_before,
@@ -291,6 +303,7 @@ async def asyncio(
     name: Union[Unset, list[str]] = UNSET,
     owner_id: Union[Unset, list[str]] = UNSET,
     project_id: Union[Unset, str] = UNSET,
+    include_previews: Union[Unset, bool] = True,
     created_before: Union[Unset, datetime.datetime] = UNSET,
     created_after: Union[Unset, datetime.datetime] = UNSET,
     updated_before: Union[Unset, datetime.datetime] = UNSET,
@@ -307,6 +320,7 @@ async def asyncio(
         name (Union[Unset, list[str]]):
         owner_id (Union[Unset, list[str]]):
         project_id (Union[Unset, str]):
+        include_previews (Union[Unset, bool]):  Default: True.
         created_before (Union[Unset, datetime.datetime]):
         created_after (Union[Unset, datetime.datetime]):
         updated_before (Union[Unset, datetime.datetime]):
@@ -328,6 +342,7 @@ async def asyncio(
             name=name,
             owner_id=owner_id,
             project_id=project_id,
+            include_previews=include_previews,
             created_before=created_before,
             created_after=created_after,
             updated_before=updated_before,
