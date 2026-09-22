@@ -63,6 +63,7 @@ class Snapshot:
     plan: str
     requested_at: datetime
     expires_at: datetime
+    name: str | None = None
     captured_at: datetime | None = None
     size_bytes: int | None = None
     error: str | None = None

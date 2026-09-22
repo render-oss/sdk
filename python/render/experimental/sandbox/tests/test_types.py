@@ -52,6 +52,7 @@ def test_snapshot_has_expected_fields():
     assert snapshot.id == "snp-1"
     assert snapshot.kind == "filesystem"
     assert snapshot.status == "creating"
+    assert snapshot.name is None
     assert snapshot.captured_at is None
     assert snapshot.expires_at == datetime(2026, 9, 8)
     assert snapshot.size_bytes is None
