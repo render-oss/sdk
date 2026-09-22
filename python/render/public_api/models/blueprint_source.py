@@ -6,41 +6,39 @@ from attrs import field as _attrs_field
 
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="BlueprintPATCH")
+T = TypeVar("T", bound="BlueprintSource")
 
 
 @_attrs_define
-class BlueprintPATCH:
+class BlueprintSource:
     """
     Attributes:
-        name (Union[Unset, str]):
-        auto_sync (Union[Unset, bool]): Configuration value that controls whether or not this blueprint will be re-
-            synced on each git push to the configured branch.
-            Even when true, autoSync will not apply when the blueprint has the Created status, which indicates its first
-            sync has not yet been approved.
-            Other conditions, such as a locked workspace, can also prevent automatic syncing even when this is true.
-        path (Union[Unset, str]): Path to the Blueprint file in the repository Example: render.yaml.
+        repo (str): URL of the connected Git repository. Example: https://github.com/my-username/my-repository.
+        branch (Union[Unset, str]): Branch to read. Defaults to the repository default branch.
+        path (Union[Unset, str]): Path to the Blueprint file in the repository. Default: 'render.yaml'.
     """
 
-    name: Union[Unset, str] = UNSET
-    auto_sync: Union[Unset, bool] = UNSET
-    path: Union[Unset, str] = UNSET
+    repo: str
+    branch: Union[Unset, str] = UNSET
+    path: Union[Unset, str] = "render.yaml"
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        name = self.name
+        repo = self.repo
 
-        auto_sync = self.auto_sync
+        branch = self.branch
 
         path = self.path
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update({})
-        if name is not UNSET:
-            field_dict["name"] = name
-        if auto_sync is not UNSET:
-            field_dict["autoSync"] = auto_sync
+        field_dict.update(
+            {
+                "repo": repo,
+            }
+        )
+        if branch is not UNSET:
+            field_dict["branch"] = branch
         if path is not UNSET:
             field_dict["path"] = path
 
@@ -49,20 +47,20 @@ class BlueprintPATCH:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
-        name = d.pop("name", UNSET)
+        repo = d.pop("repo")
 
-        auto_sync = d.pop("autoSync", UNSET)
+        branch = d.pop("branch", UNSET)
 
         path = d.pop("path", UNSET)
 
-        blueprint_patch = cls(
-            name=name,
-            auto_sync=auto_sync,
+        blueprint_source = cls(
+            repo=repo,
+            branch=branch,
             path=path,
         )
 
-        blueprint_patch.additional_properties = d
-        return blueprint_patch
+        blueprint_source.additional_properties = d
+        return blueprint_source
 
     @property
     def additional_keys(self) -> list[str]:

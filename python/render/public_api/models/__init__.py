@@ -28,6 +28,7 @@ from .background_worker_details_post import BackgroundWorkerDetailsPOST
 from .blueprint import Blueprint
 from .blueprint_detail import BlueprintDetail
 from .blueprint_patch import BlueprintPATCH
+from .blueprint_source import BlueprintSource
 from .blueprint_with_cursor import BlueprintWithCursor
 from .branch_deleted import BranchDeleted
 from .build import Build
@@ -63,6 +64,8 @@ from .commit_ignored import CommitIgnored
 from .commit_ref import CommitRef
 from .connect_sandbox_files_operation import ConnectSandboxFilesOperation
 from .connect_sandbox_run_operation import ConnectSandboxRunOperation
+from .create_blueprint_request import CreateBlueprintRequest
+from .create_blueprint_response import CreateBlueprintResponse
 from .create_custom_domain_body import CreateCustomDomainBody
 from .create_deploy_body import CreateDeployBody
 from .create_deploy_body_clear_cache import CreateDeployBodyClearCache
@@ -139,6 +142,7 @@ from .execution import Execution
 from .execution_operation import ExecutionOperation
 from .execution_type import ExecutionType
 from .execution_with_cursor import ExecutionWithCursor
+from .existing_resource_mode import ExistingResourceMode
 from .failure_reason import FailureReason
 from .filter_application_values_collection_item import FilterApplicationValuesCollectionItem
 from .filter_application_values_collection_item_filter import FilterApplicationValuesCollectionItemFilter
@@ -472,6 +476,7 @@ __all__ = (
     "Blueprint",
     "BlueprintDetail",
     "BlueprintPATCH",
+    "BlueprintSource",
     "BlueprintWithCursor",
     "BranchDeleted",
     "Build",
@@ -507,6 +512,8 @@ __all__ = (
     "CommitRef",
     "ConnectSandboxFilesOperation",
     "ConnectSandboxRunOperation",
+    "CreateBlueprintRequest",
+    "CreateBlueprintResponse",
     "CreateCustomDomainBody",
     "CreateDeployBody",
     "CreateDeployBodyClearCache",
@@ -583,6 +590,7 @@ __all__ = (
     "ExecutionOperation",
     "ExecutionType",
     "ExecutionWithCursor",
+    "ExistingResourceMode",
     "FailureReason",
     "FilterApplicationValuesCollectionItem",
     "FilterApplicationValuesCollectionItemFilter",

@@ -20,7 +20,21 @@ export interface paths {
          */
         get: operations["list-blueprints"];
         put?: never;
-        post?: never;
+        /**
+         * Create a new Blueprint
+         * @description Create a new Blueprint to configure infrastructure as code.
+         *     See [Render Blueprints](https://render.com/docs/infrastructure-as-code) for more information.
+         *
+         *     This endpoint finds an existing matching Blueprint or creates one, then creates
+         *     a new Sync. A Blueprint matches when it has the same workspace, repository,
+         *     branch, Blueprint file path, and existing-resource mode. The Blueprint name and
+         *     auto-sync setting do not affect matching.
+         *
+         *     A successful response means Render connected to the repository and read the
+         *     Blueprint file. Review the returned Sync to see the resource changes the Blueprint
+         *     would make.
+         */
+        post: operations["create-blueprint"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5873,9 +5887,16 @@ export interface components {
         };
         /** @example exs-cph1rs3idesc73a2b2mg */
         blueprintId: string;
-        /** @enum {string} */
+        /**
+         * @description A Blueprint has status `created` until its first Sync is approved.
+         * @enum {string}
+         */
         status: "created" | "paused" | "in_sync" | "syncing" | "error";
-        /** @description Automatically sync changes to render.yaml */
+        /**
+         * @description Configuration value that controls whether or not this blueprint will be re-synced on each git push to the configured branch.
+         *     Even when true, autoSync will not apply when the blueprint has the Created status, which indicates its first sync has not yet been approved.
+         *     Other conditions, such as a locked workspace, can also prevent automatic syncing even when this is true.
+         */
         autoSync: boolean;
         /**
          * @description Path to the Blueprint file in the repository
@@ -5892,6 +5913,66 @@ export interface components {
             path: components["schemas"]["blueprintPath"];
             /** Format: date-time */
             lastSync?: string;
+        };
+        /**
+         * @description How Sync planning should handle existing resources.
+         *     `adopt` brings matching existing resources under this Blueprint's management
+         *     and updates their configuration to match the Blueprint file.
+         *     `create_new` creates a separate set of resources, leaving existing resources unchanged.
+         * @default adopt
+         * @enum {string}
+         */
+        existingResourceMode: "adopt" | "create_new";
+        blueprintSource: {
+            /**
+             * @description URL of the connected Git repository.
+             * @example https://github.com/my-username/my-repository
+             */
+            repo: string;
+            /** @description Branch to read. Defaults to the repository default branch. */
+            branch?: string;
+            /**
+             * @description Path to the Blueprint file in the repository.
+             * @default render.yaml
+             */
+            path: string;
+        };
+        createBlueprintRequest: {
+            /**
+             * @description ID of the workspace in which to create the Blueprint.
+             * @example tea-cjnxpkdhshc73d12t9i0
+             */
+            ownerId: string;
+            /**
+             * @description Name for the Blueprint. Defaults to an empty name.
+             * @default
+             */
+            name: string;
+            /** @default true */
+            autoSync: components["schemas"]["autoSync"];
+            existingResources?: components["schemas"]["existingResourceMode"];
+            source: components["schemas"]["blueprintSource"];
+        };
+        /** @example exe-cph1rs3idesc73a2b2mg */
+        syncId: string;
+        commitRef: {
+            id: string;
+        };
+        /** @enum {string} */
+        syncState: "created" | "pending" | "running" | "error" | "success";
+        sync: {
+            id: components["schemas"]["syncId"];
+            commit: components["schemas"]["commitRef"];
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            state: components["schemas"]["syncState"];
+        };
+        /** @description The newly created Blueprint */
+        createBlueprintResponse: {
+            blueprint: components["schemas"]["blueprint"];
+            sync: components["schemas"]["sync"];
         };
         validateBlueprintRequest: {
             /**
@@ -5962,22 +6043,6 @@ export interface components {
             name?: string;
             autoSync?: components["schemas"]["autoSync"];
             path?: components["schemas"]["blueprintPath"];
-        };
-        /** @example exe-cph1rs3idesc73a2b2mg */
-        syncId: string;
-        commitRef: {
-            id: string;
-        };
-        /** @enum {string} */
-        syncState: "created" | "pending" | "running" | "error" | "success";
-        sync: {
-            id: components["schemas"]["syncId"];
-            commit: components["schemas"]["commitRef"];
-            /** Format: date-time */
-            startedAt?: string;
-            /** Format: date-time */
-            completedAt?: string;
-            state: components["schemas"]["syncState"];
         };
         /** @example dsk-cph1rs3idesc73a2b2mg */
         diskId: string;
@@ -8072,6 +8137,72 @@ export interface operations {
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-blueprint": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["createBlueprintRequest"];
+            };
+        };
+        responses: {
+            /** @description Blueprint found or created, and new Sync created. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["createBlueprintResponse"];
+                };
+            };
+            /** @description Invalid request. The repository, branch, or path may be inaccessible or incorrect. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            /** @description The workspace was not found, or this early-access endpoint is not enabled yet for your workspace. Email tej@render.com to request access. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            429: components["responses"]["429RateLimit"];
+            /** @description An unexpected internal failure. This response does not guarantee that no Blueprint was persisted. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            /**
+             * @description We were unable to create a Blueprint because the selected Git provider was
+             *     unavailable. Retry later.
+             */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
         };
     };
     "validate-blueprint": {
