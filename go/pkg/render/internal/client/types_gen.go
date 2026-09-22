@@ -5494,6 +5494,9 @@ type ListWorkflowVersionsParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// CreateBlueprintJSONRequestBody defines body for CreateBlueprint for application/json ContentType.
+type CreateBlueprintJSONRequestBody = externalRef2.CreateBlueprintRequest
+
 // ValidateBlueprintMultipartRequestBody defines body for ValidateBlueprint for multipart/form-data ContentType.
 type ValidateBlueprintMultipartRequestBody = externalRef2.ValidateBlueprintRequest
 

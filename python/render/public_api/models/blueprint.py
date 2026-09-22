@@ -18,8 +18,12 @@ class Blueprint:
     Attributes:
         id (str):  Example: exs-cph1rs3idesc73a2b2mg.
         name (str):
-        status (Status):
-        auto_sync (bool): Automatically sync changes to render.yaml
+        status (Status): A Blueprint has status `created` until its first Sync is approved.
+        auto_sync (bool): Configuration value that controls whether or not this blueprint will be re-synced on each git
+            push to the configured branch.
+            Even when true, autoSync will not apply when the blueprint has the Created status, which indicates its first
+            sync has not yet been approved.
+            Other conditions, such as a locked workspace, can also prevent automatic syncing even when this is true.
         repo (str):
         branch (str):
         path (str): Path to the Blueprint file in the repository Example: render.yaml.
