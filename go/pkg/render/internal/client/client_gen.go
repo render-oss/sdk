@@ -9440,6 +9440,18 @@ func NewListBuildSourcesRequest(server string, params *ListBuildSourcesParams) (
 
 		}
 
+		if params.IncludePreviews != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "includePreviews", *params.IncludePreviews, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
 		if params.CreatedBefore != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "createdBefore", *params.CreatedBefore, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "date-time"}); err != nil {
