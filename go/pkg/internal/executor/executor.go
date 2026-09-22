@@ -14,15 +14,17 @@ import (
 type Executor struct {
 	tasks      *task.Tasks
 	callbacker *callbackapi.ClientWithResponses
+	input      *callbackapi.InputResponse
 }
 
 type CompleteTask func(ctx context.Context, taskName string, result []interface{}, err error) error
 type ExecuteTask func(taskName string, input ...interface{}) ([]interface{}, error)
 
-func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses) *Executor {
+func NewExecutor(tasks *task.Tasks, callbacker *callbackapi.ClientWithResponses, input *callbackapi.InputResponse) *Executor {
 	return &Executor{
 		tasks:      tasks,
 		callbacker: callbacker,
+		input:      input,
 	}
 }
 
@@ -33,7 +35,7 @@ func (e *Executor) Execute(ctx context.Context, taskName string, input ...interf
 		return err
 	}
 
-	executorContext := newExecutorContext(e.executeSubTask)
+	executorContext := newExecutorContext(e.executeSubTask, e.input)
 
 	result, err := e.tasks.ExecuteTaskByName(taskName, executorContext, input...)
 
@@ -126,13 +128,28 @@ func (e *Executor) completeTask(ctx context.Context, taskName string, result []i
 
 type executorContext struct {
 	executeTask ExecuteTask
+	metadata    task.TaskRunMetadata
 }
 
-func newExecutorContext(executeTask ExecuteTask) *executorContext {
-	return &executorContext{
+func newExecutorContext(executeTask ExecuteTask, input *callbackapi.InputResponse) *executorContext {
+	ctx := &executorContext{
 		executeTask: executeTask,
 	}
+	if input != nil {
+		if input.TaskRunId != nil {
+			ctx.metadata.TaskRunID = *input.TaskRunId
+		}
+		if input.RootTaskRunId != nil {
+			ctx.metadata.RootTaskRunID = *input.RootTaskRunId
+		}
+		if input.ParentTaskRunId != nil {
+			ctx.metadata.ParentTaskRunID = *input.ParentTaskRunId
+		}
+	}
+	return ctx
 }
+
+func (e *executorContext) Metadata() task.TaskRunMetadata { return e.metadata }
 
 func (e *executorContext) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {
 	taskName, err := task.GetFunctionName(t)

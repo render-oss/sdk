@@ -4,6 +4,7 @@ import inspect
 import logging
 from typing import Any
 
+from render.workflows._callback_models import InputResponse
 from render.workflows.client import CallbackRequest, Status, UDSClient
 from render.workflows.context import WorkflowTaskContext
 from render.workflows.task import TaskRegistry, TaskResult
@@ -19,7 +20,10 @@ class TaskExecutor:
         self.client = client
 
     async def _execute_task(
-        self, task_name: str, input_data: list[Any] | dict[str, Any]
+        self,
+        task_name: str,
+        input_data: list[Any] | dict[str, Any],
+        input_response: InputResponse | None = None,
     ) -> Any:
         """Execute a task by name with the given input."""
         func = self.task_registry.get_function(task_name)
@@ -27,7 +31,7 @@ class TaskExecutor:
             return TaskResult(error=ValueError(f"Task '{task_name}' not found"))
 
         # The context is always the first argument; the wire input holds the rest.
-        ctx = WorkflowTaskContext(self.client)
+        ctx = WorkflowTaskContext(self.client, input_response)
 
         try:
             # Determine how to call the function based on input type
@@ -47,7 +51,11 @@ class TaskExecutor:
             return TaskResult(error=e)
 
     async def execute(
-        self, task_name: str, input_data: list[Any] | dict[str, Any]
+        self,
+        task_name: str,
+        input_data: list[Any] | dict[str, Any],
+        *,
+        input_response: InputResponse | None = None,
     ) -> Any:
         """Execute a task by name with the given input."""
         logger.debug(f"Starting execution of task: {task_name}")
@@ -56,7 +64,7 @@ class TaskExecutor:
 
         try:
             # Execute the task
-            result = await self._execute_task(task_name, input_data)
+            result = await self._execute_task(task_name, input_data, input_response)
             if result.error:
                 # Send error callback and raise the error
                 await self._send_error_callback(task_name, result.error)

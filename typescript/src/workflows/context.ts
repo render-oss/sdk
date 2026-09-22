@@ -1,6 +1,6 @@
 import { RenderError } from "../errors.js";
 import { TaskRegistry } from "./registry.js";
-import type { TaskContext, TaskDefinition } from "./types.js";
+import type { GetInputResponse, TaskContext, TaskDefinition, TaskRunMetadata } from "./types.js";
 import type { UDSClient } from "./uds.js";
 
 const SUBTASK_POLL_INTERVAL_MS = 500;
@@ -12,7 +12,18 @@ const SUBTASK_POLL_INTERVAL_MS = 500;
  * completion.
  */
 export class WorkflowTaskContext implements TaskContext {
-  constructor(private readonly udsClient: UDSClient) {}
+  readonly metadata: TaskRunMetadata;
+
+  constructor(
+    private readonly udsClient: UDSClient,
+    input?: GetInputResponse,
+  ) {
+    this.metadata = {
+      taskRunId: input?.task_run_id,
+      rootTaskRunId: input?.root_task_run_id || undefined,
+      parentTaskRunId: input?.parent_task_run_id,
+    };
+  }
 
   async run<TArgs extends unknown[], TResult>(
     task: TaskDefinition<TArgs, TResult>,

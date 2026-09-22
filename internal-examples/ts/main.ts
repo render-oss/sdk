@@ -45,7 +45,8 @@ task({ name: "emitLogs" }, (_ctx: TaskContext): void => {
  */
 const calculateSquare = task(
   { name: "calculateSquare" },
-  (_ctx: TaskContext, n: number): number => {
+  (ctx: TaskContext, n: number): number => {
+    console.info("Task metadata:", ctx.metadata);
     return n * n;
   },
 );
@@ -56,6 +57,7 @@ const calculateSquare = task(
 task(
   { name: "addSquares" },
   async (ctx: TaskContext, a: number, b: number): Promise<number> => {
+    console.info("Task metadata:", ctx.metadata);
     console.info(`Computing addSquares: ${a}, ${b}`);
 
     // Execute subtasks

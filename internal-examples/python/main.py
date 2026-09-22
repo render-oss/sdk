@@ -55,12 +55,14 @@ async def emit_logs(ctx: TaskContext) -> None:
 @task
 async def calculate_square(ctx: TaskContext, n: int) -> int:
     """Calculate the square of a number."""
+    logger.info("Task metadata: %s", ctx.metadata)
     return n * n
 
 
 @task
 async def add_squares(ctx: TaskContext, a: int, b: int) -> int:
     """Add the squares of two numbers."""
+    logger.info("Task metadata: %s", ctx.metadata)
     logger.info(f"Computing add_squares: {a}, {b}")
 
     # Execute subtasks

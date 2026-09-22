@@ -7,6 +7,7 @@ import type { TaskContext, TaskDefinition } from "./types.js";
  * without a workflow environment.
  */
 const localContext: TaskContext = {
+  metadata: {},
   run: <TArgs extends unknown[], TResult>(
     definition: TaskDefinition<TArgs, TResult>,
     ...args: TArgs

@@ -16,6 +16,7 @@ __all__ = [
     "Options",
     "Retry",
     "TaskContext",
+    "TaskRunMetadata",
     "TaskDefinition",
     "TaskRegistry",
     "WorkflowTaskContext",

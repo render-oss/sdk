@@ -1,7 +1,6 @@
 import { RenderError } from "../errors.js";
 import { WorkflowTaskContext } from "./context.js";
 import { TaskRegistry } from "./registry.js";
-import type { TaskContext } from "./types.js";
 import { UDSClient } from "./uds.js";
 
 /**
@@ -9,11 +8,9 @@ import { UDSClient } from "./uds.js";
  */
 export class TaskExecutor {
   private readonly udsClient: UDSClient;
-  private readonly context: TaskContext;
 
   constructor(socketPath: string) {
     this.udsClient = new UDSClient(socketPath);
-    this.context = new WorkflowTaskContext(this.udsClient);
   }
 
   /**
@@ -35,7 +32,8 @@ export class TaskExecutor {
       }
 
       // The context is always the first argument; the wire input holds the rest.
-      const result = await taskMetadata.func(this.context, ...inputData);
+      const context = new WorkflowTaskContext(this.udsClient, input);
+      const result = await taskMetadata.func(context, ...inputData);
 
       // Send result
       await this.udsClient.sendCallback(result);

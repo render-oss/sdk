@@ -60,6 +60,7 @@ import {
   TaskRegistry,
   type TaskRun,
   type TaskRunDetails,
+  type TaskRunMetadata,
   TaskRunResult,
   TaskRunStatus,
   type TaskRunWithCursor,
@@ -149,8 +150,16 @@ describe("TaskDefinition type", () => {
 });
 
 describe("TaskContext type", () => {
-  it("has a run method", () => {
+  it("has metadata and a run method", () => {
+    expectTypeOf<TaskContext>().toHaveProperty("metadata");
     expectTypeOf<TaskContext>().toHaveProperty("run");
+  });
+
+  it("exposes readonly execution metadata", () => {
+    expectTypeOf<TaskContext["metadata"]>().toEqualTypeOf<TaskRunMetadata>();
+    expectTypeOf<TaskRunMetadata["taskRunId"]>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<TaskRunMetadata["rootTaskRunId"]>().toEqualTypeOf<string | undefined>();
+    expectTypeOf<TaskRunMetadata["parentTaskRunId"]>().toEqualTypeOf<string | undefined>();
   });
 
   it("run is generic over the task definition", () => {
@@ -336,6 +345,7 @@ async function testTaskContext() {
   const definition = {} as TaskDefinition<[number, number], number>;
 
   const mockContext: TaskContext = {
+    metadata: {},
     run: async <TArgs extends unknown[], TResult>(
       taskDef: TaskDefinition<TArgs, TResult>,
       ...args: TArgs
@@ -355,6 +365,11 @@ async function testTaskContext() {
   await mockContext.run(typed, 1, "arg");
   // @ts-expect-error argument count is checked against the definition
   await mockContext.run(typed, "arg");
+
+  // @ts-expect-error context metadata is readonly
+  mockContext.metadata = {};
+  // @ts-expect-error task run ID is readonly
+  mockContext.metadata.taskRunId = "trn-next";
 }
 
 function testTaskRegistry() {

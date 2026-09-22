@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { TaskExecutor } from "./executor.js";
 import { TaskRegistry } from "./registry.js";
 import { task } from "./task.js";
-import type { CallbackRequest } from "./types.js";
+import type { CallbackRequest, GetInputResponse, TaskContext } from "./types.js";
 
 /**
  * A stand-in for the workflow system, speaking the real protocol over a real
@@ -14,6 +14,8 @@ import type { CallbackRequest } from "./types.js";
  */
 class FakeWorkflowServer {
   readonly callbacks: CallbackRequest[] = [];
+  inputRequests = 0;
+  runIds: Partial<GetInputResponse> = {};
   private readonly server: http.Server;
   private readonly dir: string;
   readonly socketPath: string;
@@ -29,11 +31,13 @@ class FakeWorkflowServer {
 
   private handle(req: http.IncomingMessage, res: http.ServerResponse): void {
     if (req.url === "/input") {
+      this.inputRequests++;
       res.setHeader("Content-Type", "application/json");
       res.end(
         JSON.stringify({
           task_name: this.taskName,
           input: Buffer.from(JSON.stringify(this.input)).toString("base64"),
+          ...this.runIds,
         }),
       );
       return;
@@ -84,6 +88,78 @@ describe("TaskExecutor", () => {
   beforeEach(() => {
     TaskRegistry.getInstance().clear();
   });
+
+  it("caches run metadata per execution using the existing input request", async () => {
+    const contexts: TaskContext[] = [];
+    task({ name: "recordIds" }, async (ctx) => {
+      contexts.push(ctx);
+      for (let i = 0; i < 3; i++) {
+        await Promise.resolve();
+        expect(ctx.metadata.taskRunId).toBe("trn-child");
+        expect(ctx.metadata.rootTaskRunId).toBe("trn-root");
+        expect(ctx.metadata.parentTaskRunId).toBe("trn-parent");
+      }
+    });
+
+    const server = new FakeWorkflowServer("recordIds", []);
+    server.runIds = {
+      task_run_id: "trn-child",
+      root_task_run_id: "trn-root",
+      parent_task_run_id: "trn-parent",
+    };
+    await server.start();
+    try {
+      const executor = new TaskExecutor(server.socketPath);
+      await executor.executeTask();
+      expect(server.inputRequests).toBe(1);
+
+      TaskRegistry.getInstance().clear();
+      task({ name: "recordIds" }, (ctx) => {
+        contexts.push(ctx);
+        expect(ctx.metadata.taskRunId).toBe("trn-next");
+        expect(ctx.metadata.rootTaskRunId).toBe("trn-next");
+        expect(ctx.metadata.parentTaskRunId).toBeUndefined();
+      });
+      server.runIds = { task_run_id: "trn-next", root_task_run_id: "trn-next" };
+      await executor.executeTask();
+      expect(server.inputRequests).toBe(2);
+      expect(contexts[0]).not.toBe(contexts[1]);
+      expect(contexts[0].metadata).not.toBe(contexts[1].metadata);
+      expect(contexts[0].metadata.taskRunId).toBe("trn-child");
+    } finally {
+      await server.stop();
+    }
+  });
+
+  it.each([
+    { taskRunId: "trn-root", parentTaskRunId: undefined },
+    { taskRunId: "trn-child", parentTaskRunId: "trn-parent" },
+  ])(
+    "treats an empty root ID as unavailable for $taskRunId",
+    async ({ taskRunId, parentTaskRunId }) => {
+      task({ name: "emptyRoot" }, (ctx) => {
+        expect(ctx.metadata.taskRunId).toBe(taskRunId);
+        expect(ctx.metadata.rootTaskRunId).toBeUndefined();
+        expect(ctx.metadata.parentTaskRunId).toBe(parentTaskRunId);
+        return "ok";
+      });
+
+      const server = new FakeWorkflowServer("emptyRoot", []);
+      server.runIds = {
+        task_run_id: taskRunId,
+        root_task_run_id: "",
+        parent_task_run_id: parentTaskRunId,
+      };
+      await server.start();
+      try {
+        await new TaskExecutor(server.socketPath).executeTask();
+        expect(server.inputRequests).toBe(1);
+        expect(server.completedOutput()).toBe("ok");
+      } finally {
+        await server.stop();
+      }
+    },
+  );
 
   it("passes a context first, then the wire input", async () => {
     const seen: unknown[] = [];

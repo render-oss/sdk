@@ -14,6 +14,7 @@ from render_sdk import (
     RenderAsync,
     Retry,
     TaskContext,
+    TaskRunMetadata,
     Workflows,
     __version__,
     start,
@@ -85,6 +86,7 @@ __all__ = [
     "ServerError",
     "ServiceIdOptions",
     "TaskContext",
+    "TaskRunMetadata",
     "TaskData",
     "TaskRun",
     "TaskRunError",
@@ -144,3 +146,7 @@ def describe_error(err: TaskRunError) -> str:
 
 def use_context(ctx: TaskContext) -> TaskContext:
     return ctx
+
+
+def use_metadata(ctx: TaskContext) -> TaskRunMetadata:
+    return ctx.metadata

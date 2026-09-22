@@ -5,8 +5,9 @@ import pytest
 
 from render.workflows._callback_models import TaskOptions
 from render.workflows.client import Status, UDSClient
+from render.workflows.context import TaskRunMetadata
 from render.workflows.executor import TaskExecutor
-from render.workflows.runner import register
+from render.workflows.runner import register, run_async
 from render.workflows.task import (
     Options,
     Retry,
@@ -43,6 +44,103 @@ def task_executor(task_registry, mock_client):
 
 
 # End-to-end tests
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "run_ids, expected",
+    [
+        ({}, (None, None, None)),
+        (
+            {"task_run_id": "trn-root", "root_task_run_id": ""},
+            ("trn-root", None, None),
+        ),
+        (
+            {
+                "task_run_id": "trn-child",
+                "root_task_run_id": "",
+                "parent_task_run_id": "trn-parent",
+            },
+            ("trn-child", None, "trn-parent"),
+        ),
+        (
+            {"task_run_id": "trn-root", "root_task_run_id": "trn-root"},
+            ("trn-root", "trn-root", None),
+        ),
+        (
+            {
+                "task_run_id": "trn-child",
+                "root_task_run_id": "trn-root",
+                "parent_task_run_id": "trn-parent",
+            },
+            ("trn-child", "trn-root", "trn-parent"),
+        ),
+    ],
+)
+async def test_runner_reads_metadata_from_existing_input_request(
+    task_registry, task_decorator, mocker, run_ids, expected
+):
+    @task_decorator
+    def record_ids(ctx):
+        for _ in range(3):
+            assert ctx.metadata == TaskRunMetadata(*expected)
+
+    payload = {"task_name": "record_ids", "input": "W10=", **run_ids}
+    request = mocker.patch.object(UDSClient, "_request", new_callable=mocker.AsyncMock)
+    request.side_effect = [payload, None]
+    mocker.patch(
+        "render.workflows.runner.get_task_registry", return_value=task_registry
+    )
+
+    await run_async("unused.sock")
+    assert request.await_args_list == [
+        mocker.call("GET", "/input", None),
+        mocker.call("POST", "/callback", {"complete": {"output": "W251bGxd"}}),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_runner_keeps_metadata_separate_between_executions(
+    task_registry, task_decorator, mocker
+):
+    contexts = []
+
+    @task_decorator
+    def record_ids(ctx):
+        contexts.append(ctx)
+
+    request = mocker.patch.object(UDSClient, "_request", new_callable=mocker.AsyncMock)
+    request.side_effect = [
+        {
+            "task_name": "record_ids",
+            "input": "W10=",
+            "task_run_id": "trn-child",
+            "root_task_run_id": "trn-root",
+            "parent_task_run_id": "trn-parent",
+        },
+        None,
+        {
+            "task_name": "record_ids",
+            "input": "W10=",
+            "task_run_id": "trn-next",
+            "root_task_run_id": "trn-next",
+        },
+        None,
+    ]
+    mocker.patch(
+        "render.workflows.runner.get_task_registry", return_value=task_registry
+    )
+
+    await run_async("unused.sock")
+    first_metadata = contexts[0].metadata
+    await run_async("unused.sock")
+
+    assert request.await_count == 4
+    assert contexts[0] is not contexts[1]
+    assert contexts[0].metadata is first_metadata
+    assert contexts[1].metadata is not first_metadata
+    assert first_metadata == TaskRunMetadata("trn-child", "trn-root", "trn-parent")
+    assert contexts[1].metadata == TaskRunMetadata("trn-next", "trn-next")
+
+
 def test_task_registration_network_payload(task_registry, task_decorator, mocker):
     """
     Test that task registration actually sends the
