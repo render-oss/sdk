@@ -28,6 +28,7 @@ __all__ = [
     "RenderAsync",
     "Workflows",
     "TaskContext",
+    "TaskRunMetadata",
     "Options",
     "Retry",
     "start",

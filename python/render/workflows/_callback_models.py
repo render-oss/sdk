@@ -78,10 +78,19 @@ class _Wire:
 class InputResponse(_Wire):
     task_name: str
     input_: str = field(metadata={"wire_name": "input"})
+    task_run_id: str | _Unset = UNSET
+    root_task_run_id: str | _Unset = UNSET
+    parent_task_run_id: str | _Unset = UNSET
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> InputResponse:
-        return cls(task_name=d["task_name"], input_=d.get("input", ""))
+        return cls(
+            task_name=d["task_name"],
+            input_=d.get("input", ""),
+            task_run_id=d.get("task_run_id", UNSET),
+            root_task_run_id=d.get("root_task_run_id", UNSET),
+            parent_task_run_id=d.get("parent_task_run_id", UNSET),
+        )
 
 
 @dataclass

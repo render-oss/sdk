@@ -223,7 +223,18 @@ func (t *TaskResult) Get(output ...interface{}) error {
 	return nil
 }
 
+// TaskRunMetadata identifies the task run being executed.
+//
+// RootTaskRunID is empty when unavailable. ParentTaskRunID is empty for root runs.
+type TaskRunMetadata struct {
+	TaskRunID       string
+	RootTaskRunID   string
+	ParentTaskRunID string
+}
+
 type TaskContext interface {
+	// Metadata returns metadata captured from the initial input response.
+	Metadata() TaskRunMetadata
 	ExecuteTask(task Task, input ...interface{}) *TaskResult
 }
 

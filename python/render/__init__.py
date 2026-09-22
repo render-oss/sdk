@@ -42,6 +42,7 @@ from render.workflows import (
     Options,
     Retry,
     TaskContext,
+    TaskRunMetadata,
     Workflows,
     start,
     task,
@@ -58,6 +59,7 @@ __all__ = [
     "RenderAsync",  # Async REST API client
     "Workflows",  # Task definition
     "TaskContext",  # First parameter of every task
+    "TaskRunMetadata",
     # Configuration
     "Options",
     "Retry",

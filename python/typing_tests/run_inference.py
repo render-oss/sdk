@@ -7,7 +7,7 @@ from typing import ParamSpec, TypeVar
 
 from typing_extensions import assert_type
 
-from render import Retry, Workflows
+from render import Retry, TaskRunMetadata, Workflows
 from render.workflows import TaskContext, TaskDefinition, task
 
 P = ParamSpec("P")
@@ -106,6 +106,8 @@ class StandInContext:
     ``*args: object`` stand-in does not conform.
     """
 
+    metadata = TaskRunMetadata()
+
     async def run(
         self, task: TaskDefinition[P, R], *args: P.args, **kwargs: P.kwargs
     ) -> R:
@@ -115,3 +117,14 @@ class StandInContext:
 def a_stand_in_satisfies_the_protocol() -> None:
     ctx: TaskContext = StandInContext()
     del ctx
+
+
+def metadata_is_typed_and_read_only(ctx: TaskContext) -> None:
+    assert_type(ctx.metadata, TaskRunMetadata)
+    assert_type(ctx.metadata.task_run_id, str | None)
+    assert_type(ctx.metadata.root_task_run_id, str | None)
+    assert_type(ctx.metadata.parent_task_run_id, str | None)
+    ctx.metadata = TaskRunMetadata()  # type: ignore[misc]
+    ctx.metadata.task_run_id = "trn-other"  # type: ignore[misc]
+    ctx.metadata.root_task_run_id = "trn-other"  # type: ignore[misc]
+    ctx.metadata.parent_task_run_id = "trn-other"  # type: ignore[misc]

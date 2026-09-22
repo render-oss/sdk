@@ -77,6 +77,17 @@ from tasks_b import app as app_b
 combined = Workflows.from_workflows(app_a, app_b)
 ```
 
+### Task run IDs
+
+The task context exposes a read-only `ctx.metadata` object with
+`task_run_id`, `root_task_run_id`, and `parent_task_run_id` fields. The SDK reads
+them from the initial input response and keeps them for that execution, so
+accessing metadata does not make a network request.
+
+For a root run, `ctx.metadata.root_task_run_id` equals
+`ctx.metadata.task_run_id` and `ctx.metadata.parent_task_run_id` is `None`.
+IDs are `None` when unavailable.
+
 ### Running the Local Task Server
 
 For local development, use the Render CLI:

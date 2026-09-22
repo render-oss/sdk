@@ -1,9 +1,12 @@
 """Tests for the task execution context."""
 
+from dataclasses import FrozenInstanceError
+
 import pytest
 
+from render.workflows._callback_models import InputResponse
 from render.workflows.client import UDSClient
-from render.workflows.context import TaskContext, WorkflowTaskContext
+from render.workflows.context import TaskContext, TaskRunMetadata, WorkflowTaskContext
 from render.workflows.task import TaskRegistry, create_task_decorator
 
 
@@ -33,6 +36,8 @@ async def test_a_stand_in_can_satisfy_the_protocol(task_decorator):
     """
 
     class RecordingContext:
+        metadata = TaskRunMetadata()
+
         def __init__(self):
             self.runs = []
 
@@ -51,6 +56,29 @@ async def test_a_stand_in_can_satisfy_the_protocol(task_decorator):
     recording: TaskContext = RecordingContext()
     assert await caller.func(recording, 5) == "stubbed"
     assert recording.runs == [("callee", (5,), {})]
+
+
+def test_metadata_is_a_read_only_snapshot(mock_client):
+    input_response = InputResponse(
+        task_name="example",
+        input_="W10=",
+        task_run_id="trn-child",
+        root_task_run_id="trn-root",
+        parent_task_run_id="trn-parent",
+    )
+    ctx = WorkflowTaskContext(mock_client, input_response)
+    metadata = ctx.metadata
+    input_response.task_run_id = "trn-other"
+    input_response.root_task_run_id = "trn-other"
+    input_response.parent_task_run_id = "trn-other"
+
+    assert ctx.metadata is metadata
+    assert metadata == TaskRunMetadata("trn-child", "trn-root", "trn-parent")
+    with pytest.raises(AttributeError):
+        ctx.metadata = TaskRunMetadata()
+    for field in ("task_run_id", "root_task_run_id", "parent_task_run_id"):
+        with pytest.raises(FrozenInstanceError):
+            setattr(metadata, field, "trn-overwrite")
 
 
 class TestRun:

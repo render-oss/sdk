@@ -152,7 +152,13 @@ task({ name: "sumSquares" }, async (ctx: TaskContext, values: number[]) => {
 | ------------------------ | ----------------------------------------------------------- |
 | `ctx.run(task, ...args)` | Runs `task` on its own compute and resolves with its result |
 
-In the future we will add more methods on context to interact with workflows.
+The context exposes read-only execution metadata at `ctx.metadata.taskRunId`,
+`ctx.metadata.rootTaskRunId`, and `ctx.metadata.parentTaskRunId`. The SDK reads
+it from the initial input response and keeps it for that execution. Accessing
+it does not make a network request.
+
+For a root run, `ctx.metadata.rootTaskRunId` equals `ctx.metadata.taskRunId` and
+`ctx.metadata.parentTaskRunId` is `undefined`.
 
 ### Run the Local Task Server
 

@@ -6,6 +6,9 @@ import type { components } from "./schema.js";
  * The context is how a task reaches the rest of the workflow system.
  */
 export interface TaskContext {
+  /** Metadata about this task's execution. */
+  readonly metadata: TaskRunMetadata;
+
   /**
    * Run another task on its own compute and wait for its result.
    */
@@ -53,6 +56,16 @@ export interface TaskDefinition<TArgs extends unknown[] = unknown[], TResult = u
 }
 
 export type TaskOptions = components["schemas"]["TaskOptions"];
+
+/** Metadata about the task execution. */
+export interface TaskRunMetadata {
+  /** This run's ID. */
+  readonly taskRunId?: string;
+  /** The root run's ID. An empty root ID is undefined. */
+  readonly rootTaskRunId?: string;
+  /** The parent run's ID. Undefined for root runs. */
+  readonly parentTaskRunId?: string;
+}
 
 /**
  * Task metadata

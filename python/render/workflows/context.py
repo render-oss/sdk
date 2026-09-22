@@ -2,14 +2,31 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar
 
+from render.workflows._callback_models import Unset
+
 if TYPE_CHECKING:
+    from render.workflows._callback_models import InputResponse
     from render.workflows.client import UDSClient
     from render.workflows.task import TaskDefinition
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
+
+@dataclass(frozen=True)
+class TaskRunMetadata:
+    """Run IDs for one task execution.
+
+    IDs are None when unavailable. The root ID is also None when the server
+    sends an empty string. Root runs have no parent ID.
+    """
+
+    task_run_id: str | None = None
+    root_task_run_id: str | None = None
+    parent_task_run_id: str | None = None
 
 
 class TaskContext(Protocol):
@@ -18,6 +35,11 @@ class TaskContext(Protocol):
 
     The context is how a task reaches the rest of the workflow system.
     """
+
+    @property
+    def metadata(self) -> TaskRunMetadata:
+        """Read-only metadata for this execution, available without a request."""
+        ...
 
     async def run(
         self, task: TaskDefinition[P, R], *args: P.args, **kwargs: P.kwargs
@@ -42,8 +64,33 @@ class TaskContext(Protocol):
 class WorkflowTaskContext(TaskContext):
     """The TaskContext handed to tasks by the workflow runtime."""
 
-    def __init__(self, client: UDSClient) -> None:
+    def __init__(
+        self, client: UDSClient, input_response: InputResponse | None = None
+    ) -> None:
         self._client = client
+        self._metadata = TaskRunMetadata(
+            task_run_id=(
+                input_response.task_run_id
+                if input_response and not isinstance(input_response.task_run_id, Unset)
+                else None
+            ),
+            root_task_run_id=(
+                input_response.root_task_run_id or None
+                if input_response
+                and not isinstance(input_response.root_task_run_id, Unset)
+                else None
+            ),
+            parent_task_run_id=(
+                input_response.parent_task_run_id
+                if input_response
+                and not isinstance(input_response.parent_task_run_id, Unset)
+                else None
+            ),
+        )
+
+    @property
+    def metadata(self) -> TaskRunMetadata:
+        return self._metadata
 
     async def run(
         self, task: TaskDefinition[P, R], *args: P.args, **kwargs: P.kwargs

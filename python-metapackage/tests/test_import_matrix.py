@@ -23,6 +23,7 @@ TOP_LEVEL_ALL: tuple[str, ...] = (
     "RenderAsync",
     "Workflows",
     "TaskContext",
+    "TaskRunMetadata",
     "Options",
     "Retry",
     "start",
@@ -116,9 +117,8 @@ def test_client_attribute_access_delegates_to_real_module() -> None:
 
 
 def test_star_import_top_level_binds_exactly_all() -> None:
-    """`from render_sdk import *` binds exactly the __all__ names — the eight
-    public names plus __version__ (star import honors __all__ even for the
-    dunder listed there)."""
+    """`from render_sdk import *` binds exactly the __all__ names,
+    including __version__ (star import honors __all__ even for the dunder)."""
     code = (
         "ns = {}\n"
         "exec('from render_sdk import *', ns)\n"

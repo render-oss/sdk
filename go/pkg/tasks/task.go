@@ -50,6 +50,7 @@ func RegisterTaskWithOptions(t task.Task, options *Options) error {
 }
 
 type TaskContext = task.TaskContext
+type TaskRunMetadata = task.TaskRunMetadata
 type Options = task.Options
 type Retry = task.Retry
 
@@ -95,8 +96,6 @@ func executeTaskWithRecovery(ctx context.Context, callbackerClient *callbackapi.
 
 // executeTask executes a single task, returning idiomatic errors.
 func executeTask(ctx context.Context, callbackerClient *callbackapi.ClientWithResponses) error {
-	execer := executor.NewExecutor(taskSingleton, callbackerClient)
-
 	inputResp, err := callbackerClient.GetInputWithResponse(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get input: %w", err)
@@ -113,6 +112,7 @@ func executeTask(ctx context.Context, callbackerClient *callbackapi.ClientWithRe
 	}
 
 	// We use this to avoid idempotency checks by the server adapter
+	execer := executor.NewExecutor(taskSingleton, callbackerClient, inputResp.JSON200)
 	err = execer.Execute(ctx, taskName, input...)
 	if err != nil {
 		return err

@@ -56,7 +56,7 @@ async def run_async(socket_path: str) -> None:
         executor = TaskExecutor(task_registry, client)
 
         logger.debug(f"Executing task: {task_name}")
-        await executor.execute(task_name, input_data)
+        await executor.execute(task_name, input_data, input_response=input_response)
     except Exception:
         raise
 

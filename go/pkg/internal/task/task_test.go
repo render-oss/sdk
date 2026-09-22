@@ -28,6 +28,7 @@ func taskWithOnlyError(_ task.TaskContext, shouldFail bool) error {
 }
 
 type fakeTaskContext struct {
+	task.TaskContext
 }
 
 func (f *fakeTaskContext) ExecuteTask(t task.Task, input ...interface{}) *task.TaskResult {

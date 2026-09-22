@@ -64,7 +64,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           "application/json": components["schemas"]["CallbackRequest"];
         };
@@ -130,7 +130,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           "application/json": components["schemas"]["Tasks"];
         };
@@ -182,7 +182,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           "application/json": components["schemas"]["RunSubtaskRequest"];
         };
@@ -256,7 +256,7 @@ export interface paths {
         path?: never;
         cookie?: never;
       };
-      requestBody?: {
+      requestBody: {
         content: {
           "application/json": components["schemas"]["SubtaskResultRequest"];
         };
@@ -333,6 +333,11 @@ export interface components {
       task_name: string;
       /** Format: byte */
       input: string;
+      task_run_id?: string;
+      /** @description Run ID of the root of this run's task tree. Equal to task_run_id when the run has no parent. */
+      root_task_run_id?: string;
+      /** @description Run ID of the task run that started this one. Omitted for a root run. */
+      parent_task_run_id?: string;
     };
     Tasks: {
       tasks: components["schemas"]["Task"][];
