@@ -57,8 +57,26 @@ export type SandboxExecEvent =
   | ({ type: "output" } & SandboxExecOutputEvent)
   | ({ type: "exit" } & SandboxExecExitEvent);
 
+type SandboxRestoreInput =
+  | {
+      /**
+       * Start from this snapshot instead of the base image. Must be `available` and in the same
+       * sandbox group. For a `runtime` snapshot, `plan` must match the snapshot's plan.
+       */
+      snapshotId?: string;
+      snapshotName?: never;
+    }
+  | {
+      snapshotId?: never;
+      /**
+       * Start from the available snapshot this name currently resolves to in the sandbox group.
+       * For a `runtime` snapshot, `plan` must match the snapshot's plan.
+       */
+      snapshotName?: string;
+    };
+
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
-export type SandboxCreateInput = {
+export type SandboxCreateInput = SandboxRestoreInput & {
   ownerId?: `tea-${string}`;
   plan?: components["schemas"]["sandboxPlan"];
   /** Maximum sandbox lifetime in seconds. The API defaults to 7200. */
@@ -68,12 +86,9 @@ export type SandboxCreateInput = {
   networkPolicy?: components["schemas"]["sandboxNetworkPolicy"];
   /** Environment variables injected into the sandbox at creation. */
   env?: Record<string, string>;
-  /**
-   * Start from this snapshot instead of the base image. Must be `available` and in the same
-   * sandbox group. For a `runtime` snapshot, `plan` must match the snapshot's plan.
-   */
-  snapshotId?: string;
 };
+
+export type Sandbox = components["schemas"]["sandbox"];
 
 /** A sandbox snapshot as returned by the API. */
 export type SandboxSnapshot = components["schemas"]["sandboxSnapshot"];
@@ -95,6 +110,8 @@ export type SandboxSnapshotCreateInput = {
   sandboxId: string;
   /** The API defaults to `filesystem`. */
   kind?: SandboxSnapshotKind;
+  /** Case-sensitive name for this snapshot. May be reused within the sandbox group. */
+  name?: string;
   /** ISO 8601. Omit for Render's default snapshot lifetime. */
   expiresAt?: string;
   /** Defaults to the client's owner ID. */
@@ -181,11 +198,13 @@ export class SandboxSnapshotsClient {
   async create({
     sandboxId,
     kind,
+    name,
     expiresAt,
     ownerId,
   }: SandboxSnapshotCreateInput): Promise<SandboxSnapshot> {
     const body = {
       ...(kind ? { kind } : {}),
+      ...(name === undefined ? {} : { name }),
       ...(expiresAt ? { expiresAt } : {}),
     } as components["schemas"]["sandboxSnapshotPOST"];
     return unwrap(
@@ -194,7 +213,7 @@ export class SandboxSnapshotsClient {
           path: { sandboxId },
           ...optionalOwnerIdQuery(ownerId, this.defaultOwnerId),
         },
-        ...(kind || expiresAt ? { body } : {}),
+        ...(kind || name !== undefined || expiresAt ? { body } : {}),
       }),
       "Failed to create snapshot",
     );
@@ -283,7 +302,7 @@ export class SandboxesClient {
     return data;
   }
 
-  async create(input: SandboxCreateInput = {}) {
+  async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
     const region = input.region ?? this.defaultRegion;
     const body = {
       ownerId: this.resolveOwnerId(input.ownerId),
@@ -293,6 +312,7 @@ export class SandboxesClient {
       ...(input.networkPolicy ? { networkPolicy: input.networkPolicy } : {}),
       ...(input.env ? { env: input.env } : {}),
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
+      ...(input.snapshotName === undefined ? {} : { snapshotName: input.snapshotName }),
     } as components["schemas"]["sandboxPOST"];
     return unwrap(await this.apiClient.POST("/sandboxes", { body }), "Failed to create sandbox");
   }

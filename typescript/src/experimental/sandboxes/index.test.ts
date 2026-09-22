@@ -86,6 +86,7 @@ const SNAPSHOT: SandboxSnapshot = {
   id: "snp-cph1rs3idesc73a2b2mg",
   sandboxGroupId: "sbg-123",
   sourceSandboxId: "sbx-123",
+  name: null,
   kind: "filesystem",
   status: "creating",
   plan: "starter",
@@ -233,6 +234,15 @@ describe("SandboxesClient", () => {
   });
 
   describe("create", () => {
+    it("keeps snapshot ID and snapshot name mutually exclusive in the public type", () => {
+      expectTypeOf<{ snapshotId: string }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ snapshotName: string }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{
+        snapshotId: string;
+        snapshotName: string;
+      }>().not.toExtend<SandboxCreateInput>();
+    });
+
     it("passes caller-supplied options and falls back to the client region", async () => {
       const sandbox = { id: "sbx-123" };
       const apiClient = {
@@ -292,6 +302,17 @@ describe("SandboxesClient", () => {
       });
     });
 
+    it("forwards the snapshot name", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", snapshotName: "gold" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", snapshotName: "gold" },
+      });
+    });
+
     const createErrorRows: {
       status: number;
       code: string | undefined;
@@ -301,7 +322,7 @@ describe("SandboxesClient", () => {
       {
         status: 404,
         code: "snapshot_not_found",
-        input: { snapshotId: "snp-missing" },
+        input: { snapshotName: "missing" },
         ErrorClass: SandboxSnapshotNotFoundError,
       },
       {
@@ -320,8 +341,14 @@ describe("SandboxesClient", () => {
       {
         status: 409,
         code: "snapshot_plan_mismatch",
-        input: { snapshotId: "snp-runtime", plan: "pro" },
+        input: { snapshotName: "runtime", plan: "pro" },
         ErrorClass: SandboxSnapshotPlanMismatchError,
+      },
+      {
+        status: 400,
+        code: "invalid_snapshot_name",
+        input: { snapshotName: "" },
+        ErrorClass: ClientError,
       },
     ];
 
@@ -469,6 +496,10 @@ describe("SandboxesClient", () => {
     );
 
     describe("create", () => {
+      it("exposes a nullable optional snapshot name", () => {
+        expectTypeOf<SandboxSnapshot["name"]>().toEqualTypeOf<string | null | undefined>();
+      });
+
       it("captures a snapshot of the requested kind", async () => {
         const apiClient = mockApiClient("POST", { status: 202, data: SNAPSHOT });
         const client = new SandboxesClient(apiClient, "tea-default");
@@ -508,6 +539,21 @@ describe("SandboxesClient", () => {
         });
       });
 
+      it("sends the snapshot name", async () => {
+        const namedSnapshot = { ...SNAPSHOT, name: "gold" };
+        const apiClient = mockApiClient("POST", { status: 202, data: namedSnapshot });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(
+          client.snapshots.create({ sandboxId: "sbx-123", name: "gold" }),
+        ).resolves.toEqual(namedSnapshot);
+
+        expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/snapshots", {
+          params: { path: { sandboxId: "sbx-123" }, query: { ownerId: "tea-default" } },
+          body: { name: "gold" },
+        });
+      });
+
       const codeRows: {
         status: number;
         code: string | undefined;
@@ -522,6 +568,7 @@ describe("SandboxesClient", () => {
         },
         { status: 404, code: "snapshot_not_found", ErrorClass: SandboxSnapshotNotFoundError },
         { status: 409, code: "sandbox_not_running", ErrorClass: ClientError },
+        { status: 400, code: "invalid_snapshot_name", ErrorClass: ClientError },
         { status: 409, code: undefined, ErrorClass: ClientError },
         { status: 404, code: undefined, ErrorClass: ClientError },
         { status: 500, code: "snapshot_creating", ErrorClass: ServerError },
