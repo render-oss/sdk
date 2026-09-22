@@ -7,10 +7,13 @@ from render.experimental.sandbox.tests.test_e2e import (
     _OWNER_ID as _OWNER_ID,
     _exec_output as _exec_output,
     _wait_until_running as _wait_until_running,
+    _wait_until_snapshot_available as _wait_until_snapshot_available,
     pytestmark as pytestmark,
     sandboxes as sandboxes,
     test_copy_from_file_and_directory as test_copy_from_file_and_directory,
     test_copy_to_file_and_directory as test_copy_to_file_and_directory,
     test_create_exec_terminate as test_create_exec_terminate,
     test_list_groups_returns_the_workspace_default as test_list_groups_returns_the_workspace_default,
+    test_restore_from_named_snapshot as test_restore_from_named_snapshot,
+    uuid4 as uuid4,
 )

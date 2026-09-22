@@ -60,6 +60,7 @@ class SandboxClient:
         region: str | None = None,
         env: dict[str, str] | None = None,
         snapshot_id: str | None = None,
+        snapshot_name: str | None = None,
     ) -> Sandbox:
         """Create a sandbox and return its initial state.
 
@@ -67,13 +68,16 @@ class SandboxClient:
         workspace defaults enforced by the API (plan starter, 7200s timeout,
         workspace default region and network policy).
 
-        snapshot_id starts the sandbox from that snapshot instead of the base
-        image. The snapshot must be available and in the same sandbox group;
-        for a runtime snapshot, plan must match the snapshot's plan. Raises
-        SnapshotNotFoundError if the snapshot does not exist,
+        snapshot_id starts the sandbox from that snapshot; snapshot_name starts
+        it from the available snapshot that name currently resolves to in the
+        sandbox group. The two parameters are mutually exclusive. For a runtime
+        snapshot, plan must match the snapshot's plan. Raises
+        SnapshotNotFoundError if the snapshot ID or name does not resolve,
         SnapshotNotReadyError if it is not available, and
         SnapshotPlanMismatchError on a runtime plan mismatch.
         """
+        if snapshot_id is not None and snapshot_name is not None:
+            raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
         resolved_owner_id = self._resolve_owner_id(owner_id)
         resolved_region = region or self._default_region
         return await self.api.create(
@@ -84,6 +88,7 @@ class SandboxClient:
             region=resolved_region,
             env=env,
             snapshot_id=snapshot_id,
+            snapshot_name=snapshot_name,
         )
 
     async def from_id(self, sandbox_id: str, *, owner_id: str | None = None) -> Sandbox:
@@ -211,14 +216,16 @@ class SnapshotClient:
         sandbox_id: str,
         *,
         kind: str = "filesystem",
+        name: str | None = None,
         expires_at: datetime | None = None,
         owner_id: str | None = None,
     ) -> Snapshot:
         """Capture a snapshot of a running sandbox.
 
         kind is filesystem (the writable filesystem) or runtime (also memory and
-        CPU state). expires_at must be in the future; omit it for Render's
-        default snapshot lifetime. The snapshot is returned in
+        CPU state). name is case sensitive and can be reused within a sandbox
+        group. expires_at must be in the future; omit it for Render's default
+        snapshot lifetime. The snapshot is returned in
         status creating; poll from_id until it is available or failed. Raises
         SandboxNotFoundError if the sandbox does not exist, and a ClientError
         with code sandbox_not_running if it is not running.
@@ -226,6 +233,7 @@ class SnapshotClient:
         return await self._sandboxes.api.create_snapshot(
             sandbox_id,
             kind,
+            name,
             expires_at,
             self._sandboxes._optional_owner_id(owner_id),
         )

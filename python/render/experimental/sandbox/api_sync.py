@@ -169,6 +169,7 @@ def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
         status=model.status.value,
         plan=model.plan.value,
         requested_at=model.requested_at,
+        name=_set_or_none(model.name),
         captured_at=_set_or_none(model.captured_at),
         expires_at=model.expires_at,
         size_bytes=_set_or_none(model.size_bytes),
@@ -244,6 +245,7 @@ class SyncSandboxApi:
         region: str | None,
         env: dict[str, str] | None,
         snapshot_id: str | None,
+        snapshot_name: str | None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if plan is not None:
@@ -260,14 +262,17 @@ class SyncSandboxApi:
             body.env = SandboxPOSTEnv.from_dict(env)
         if snapshot_id is not None:
             body.snapshot_id = snapshot_id
+        if snapshot_name is not None:
+            body.snapshot_name = snapshot_name
 
         with request_errors("create sandbox"):
             response = create_sandbox.sync_detailed(client=self.client, body=body)
-        if snapshot_id is None:
+        snapshot_ref = snapshot_id if snapshot_id is not None else snapshot_name
+        if snapshot_ref is None:
             handle_api_error(response, "create sandbox")
         else:
             _handle_snapshot_api_error(
-                response, snapshot_id, "create sandbox", path_names_snapshot=False
+                response, snapshot_ref, "create sandbox", path_names_snapshot=False
             )
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to create sandbox: unexpected response type")
@@ -348,11 +353,13 @@ class SyncSandboxApi:
         self,
         sandbox_id: str,
         kind: str,
+        name: str | None,
         expires_at: datetime | None,
         owner_id: str | Unset,
     ) -> Snapshot:
         body = SandboxSnapshotPOST(
             kind=SandboxSnapshotKind(kind),
+            name=name if name is not None else UNSET,
             expires_at=expires_at if expires_at is not None else UNSET,
         )
         with request_errors("create snapshot"):

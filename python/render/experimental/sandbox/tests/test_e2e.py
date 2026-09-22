@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import os
 import time
+from uuid import uuid4
 
 import pytest
 
@@ -67,6 +68,28 @@ async def _wait_until_running(sandboxes, sandbox_id, owner_id, timeout_s=180.0):
         if time.monotonic() > deadline:
             raise AssertionError(
                 f"sandbox {sandbox_id} still {sandbox.status!r} after {timeout_s}s"
+            )
+        await asyncio.sleep(3.0)
+
+
+async def _wait_until_snapshot_available(
+    sandboxes, snapshot, owner_id, timeout_s=180.0
+):
+    """Poll a snapshot until it is available, or fail on timeout/error."""
+    deadline = time.monotonic() + timeout_s
+    while True:
+        current = await sandboxes.snapshots.from_id(
+            sandbox_group_id=snapshot.sandbox_group_id,
+            snapshot_id=snapshot.id,
+            owner_id=owner_id,
+        )
+        if current.status == "available":
+            return current
+        if current.status == "failed":
+            raise AssertionError(f"snapshot {snapshot.id} failed: {current.error}")
+        if time.monotonic() > deadline:
+            raise AssertionError(
+                f"snapshot {snapshot.id} still {current.status!r} after {timeout_s}s"
             )
         await asyncio.sleep(3.0)
 
@@ -263,3 +286,70 @@ async def test_copy_to_file_and_directory(sandboxes, tmp_path):
         assert target.strip() == "nested/data.txt"
     finally:
         await sandboxes.terminate(sandbox.id, owner_id=owner_id)
+
+
+@pytest.mark.asyncio
+async def test_restore_from_named_snapshot(sandboxes):
+    owner_id = _OWNER_ID
+    name = f"sdk-e2e-{uuid4()}"
+    marker = f"marker-{uuid4()}"
+
+    source = restored = snapshot = None
+    try:
+        source = await sandboxes.create(owner_id=owner_id)
+        await _wait_until_running(sandboxes, source.id, owner_id)
+        await _exec_output(
+            sandboxes,
+            source.id,
+            owner_id,
+            f"printf {marker} > /tmp/marker",
+        )
+
+        snapshot = await sandboxes.snapshots.create(
+            source.id,
+            kind="filesystem",
+            name=name,
+            owner_id=owner_id,
+        )
+        snapshot = await _wait_until_snapshot_available(sandboxes, snapshot, owner_id)
+        assert snapshot.name == name
+
+        page = await sandboxes.snapshots.list(
+            sandbox_group_id=snapshot.sandbox_group_id,
+            owner_id=owner_id,
+        )
+        assert any(
+            item.id == snapshot.id and item.name == name for item in page.snapshots
+        )
+
+        restored = await sandboxes.create(
+            owner_id=owner_id,
+            snapshot_name=name,
+        )
+        await _wait_until_running(sandboxes, restored.id, owner_id)
+        assert (
+            await _exec_output(
+                sandboxes,
+                restored.id,
+                owner_id,
+                "cat /tmp/marker",
+            )
+            == marker
+        )
+    finally:
+        cleanup = []
+        if restored is not None:
+            cleanup.append(sandboxes.terminate(restored.id, owner_id=owner_id))
+        if source is not None:
+            cleanup.append(sandboxes.terminate(source.id, owner_id=owner_id))
+        if snapshot is not None and snapshot.status == "available":
+            cleanup.append(
+                sandboxes.snapshots.delete(
+                    sandbox_group_id=snapshot.sandbox_group_id,
+                    snapshot_id=snapshot.id,
+                    owner_id=owner_id,
+                )
+            )
+        results = await asyncio.gather(*cleanup, return_exceptions=True)
+        errors = [result for result in results if isinstance(result, BaseException)]
+        assert not errors, f"resource cleanup failed: {errors}"

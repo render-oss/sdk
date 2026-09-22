@@ -29,6 +29,7 @@ CREATING_SNAPSHOT_JSON = {
     "id": "snp-abc",
     "sandboxGroupId": "sbg-abc",
     "sourceSandboxId": "sbx-abc",
+    "name": None,
     "kind": "filesystem",
     "status": "creating",
     "plan": "standard",
@@ -41,6 +42,7 @@ CREATING_SNAPSHOT_JSON = {
 
 AVAILABLE_SNAPSHOT_JSON = {
     **CREATING_SNAPSHOT_JSON,
+    "name": "gold",
     "kind": "runtime",
     "status": "available",
     "capturedAt": "2026-09-01T00:00:05Z",
@@ -99,6 +101,7 @@ async def test_create_posts_kind_and_returns_creating_snapshot():
     assert snapshot.id == "snp-abc"
     assert snapshot.sandbox_group_id == "sbg-abc"
     assert snapshot.source_sandbox_id == "sbx-abc"
+    assert snapshot.name is None
     assert snapshot.kind == "filesystem"
     assert snapshot.status == "creating"
     assert snapshot.plan == "standard"
@@ -123,6 +126,21 @@ async def test_create_sends_the_runtime_kind_and_an_explicit_owner_id():
 
     assert captured["query"]["ownerId"] == "tea-other"
     assert captured["body"] == {"kind": "runtime"}
+
+
+@pytest.mark.asyncio
+async def test_create_sends_name_and_returns_it():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
+
+    client = _sandbox_client(handler)
+    snapshot = await client.snapshots.create("sbx-abc", name="gold")
+
+    assert captured["body"] == {"kind": "filesystem", "name": "gold"}
+    assert snapshot.name == "gold"
 
 
 @pytest.mark.asyncio
@@ -174,6 +192,22 @@ async def test_create_surfaces_sandbox_not_running_as_a_client_error_with_code()
 
 
 @pytest.mark.asyncio
+async def test_create_surfaces_invalid_name_as_a_client_error_with_code():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            400,
+            json={"message": "invalid snapshot name", "code": "invalid_snapshot_name"},
+        )
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError, match="invalid snapshot name") as excinfo:
+        await client.snapshots.create("sbx-abc", name="")
+
+    assert type(excinfo.value) is ClientError
+    assert excinfo.value.code == "invalid_snapshot_name"
+
+
+@pytest.mark.asyncio
 async def test_from_id_gets_the_snapshot_from_its_group():
     captured = {}
 
@@ -192,6 +226,7 @@ async def test_from_id_gets_the_snapshot_from_its_group():
     assert captured["path"] == "/v1/sandbox-groups/sbg-abc/snapshots/snp-abc"
     assert captured["query"]["ownerId"] == "tea-test"
     assert snapshot.kind == "runtime"
+    assert snapshot.name == "gold"
     assert snapshot.status == "available"
     assert snapshot.captured_at.isoformat() == "2026-09-01T00:00:05+00:00"
     assert snapshot.expires_at.isoformat() == "2026-09-08T00:00:05+00:00"
@@ -378,6 +413,10 @@ def _create_from_snapshot(client):
     return client.create(snapshot_id="snp-abc", plan="pro")
 
 
+def _create_from_snapshot_name(client):
+    return client.create(snapshot_name="gold", plan="pro")
+
+
 def _create_plain(client):
     return client.create()
 
@@ -458,6 +497,30 @@ def _create_plain(client):
             "snapshot_plan_mismatch",
             "requires plan standard",
         ),
+        (
+            _create_from_snapshot_name,
+            404,
+            {"message": "snapshot not found", "code": "snapshot_not_found"},
+            SnapshotNotFoundError,
+            "snapshot_not_found",
+            "gold",
+        ),
+        (
+            _create_from_snapshot_name,
+            409,
+            {"message": "requires plan standard", "code": "snapshot_plan_mismatch"},
+            SnapshotPlanMismatchError,
+            "snapshot_plan_mismatch",
+            "requires plan standard",
+        ),
+        (
+            _create_from_snapshot_name,
+            400,
+            {"message": "invalid snapshot name", "code": "invalid_snapshot_name"},
+            ClientError,
+            "invalid_snapshot_name",
+            "invalid snapshot name",
+        ),
     ],
     ids=[
         "from_id-404",
@@ -469,6 +532,9 @@ def _create_plain(client):
         "create-without-snapshot-404",
         "create-409-not_available",
         "create-409-plan_mismatch",
+        "create-by-name-404-snapshot_not_found",
+        "create-by-name-409-plan_mismatch",
+        "create-by-name-400-invalid_snapshot_name",
     ],
 )
 async def test_maps_api_errors_to_snapshot_error_types(
@@ -523,6 +589,29 @@ async def test_sandbox_create_sends_snapshot_id():
 
 
 @pytest.mark.asyncio
+async def test_sandbox_create_sends_snapshot_name():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=SANDBOX_JSON)
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(snapshot_name="gold")
+
+    assert captured["body"]["snapshotName"] == "gold"
+    assert sandbox.id == "sbx-abc"
+
+
+@pytest.mark.asyncio
+async def test_sandbox_create_rejects_snapshot_id_and_name_together():
+    client = _sandbox_client(_unreachable)
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        await client.create(snapshot_id="snp-abc", snapshot_name="gold")
+
+
+@pytest.mark.asyncio
 async def test_sandbox_create_omits_snapshot_id_by_default():
     captured = {}
 
@@ -534,6 +623,7 @@ async def test_sandbox_create_omits_snapshot_id_by_default():
     sandbox = await client.create()
 
     assert "snapshotId" not in captured["body"]
+    assert "snapshotName" not in captured["body"]
     assert sandbox.id == "sbx-abc"
 
 
@@ -544,16 +634,17 @@ def test_sync_create_posts_kind_and_returns_snapshot():
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
 
     client = _sync_sandbox_client(handler)
-    snapshot = client.snapshots.create("sbx-abc", kind="runtime")
+    snapshot = client.snapshots.create("sbx-abc", kind="runtime", name="gold")
 
     assert captured["method"] == "POST"
     assert captured["path"] == "/v1/sandboxes/sbx-abc/snapshots"
-    assert captured["body"] == {"kind": "runtime"}
+    assert captured["body"] == {"kind": "runtime", "name": "gold"}
     assert snapshot.id == "snp-abc"
     assert snapshot.status == "creating"
+    assert snapshot.name == "gold"
 
 
 def test_sync_list_by_group_returns_snapshots_and_cursor():
@@ -599,3 +690,24 @@ def test_sync_sandbox_create_sends_snapshot_id():
 
     assert captured["body"]["snapshotId"] == "snp-abc"
     assert sandbox.id == "sbx-abc"
+
+
+def test_sync_sandbox_create_sends_snapshot_name():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=SANDBOX_JSON)
+
+    client = _sync_sandbox_client(handler)
+    sandbox = client.create(snapshot_name="gold")
+
+    assert captured["body"]["snapshotName"] == "gold"
+    assert sandbox.id == "sbx-abc"
+
+
+def test_sync_sandbox_create_rejects_snapshot_id_and_name_together():
+    client = _sync_sandbox_client(lambda request: pytest.fail("unexpected request"))
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        client.create(snapshot_id="snp-abc", snapshot_name="gold")
