@@ -4,6 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- (Workflows) `startTask()` and `runTask()` accept an options object with an `idempotencyKey`, which makes starting a run safe to retry: repeating a call with the same key within 24 hours returns the run the first call started. The third argument still accepts a bare `AbortSignal`
+
 ## [1.1.0] - 2026-09-10
 
 ### Added

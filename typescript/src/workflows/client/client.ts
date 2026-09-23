@@ -8,11 +8,21 @@ import { TaskEventType } from "./sse.js";
 import { TaskRunResult } from "./task-run-result.js";
 import type {
   ListTaskRunsParams,
+  StartTaskOptions,
   TaskData,
   TaskRunDetails,
   TaskRunWithCursor,
   TaskSlug,
 } from "./types.js";
+
+function normalizeStartTaskOptions(
+  signalOrOptions?: AbortSignal | StartTaskOptions,
+): StartTaskOptions {
+  if (signalOrOptions instanceof AbortSignal) {
+    return { signal: signalOrOptions };
+  }
+  return signalOrOptions ?? {};
+}
 
 /**
  * Main Workflow SDK Client
@@ -220,12 +230,15 @@ export class WorkflowsClient {
    * Results are not streamed until you call .get() on the returned result.
    * Use this when you just need the task run ID, want to defer awaiting, or
    * want fire-and-forget.
+   *
+   * Pass `idempotencyKey` in the options object to make the call safe to retry.
    */
   async startTask(
     taskSlug: TaskSlug,
     inputData: TaskData,
-    signal?: AbortSignal,
+    signalOrOptions?: AbortSignal | StartTaskOptions,
   ): Promise<TaskRunResult> {
+    const { signal, idempotencyKey } = normalizeStartTaskOptions(signalOrOptions);
     if (signal?.aborted) {
       throw new AbortError();
     }
@@ -235,6 +248,7 @@ export class WorkflowsClient {
         body: {
           task: taskSlug,
           input: inputData,
+          ...(idempotencyKey === undefined ? {} : { idempotencyKey }),
         },
         signal,
       });
@@ -259,9 +273,9 @@ export class WorkflowsClient {
   async runTask(
     taskSlug: TaskSlug,
     inputData: TaskData,
-    signal?: AbortSignal,
+    signalOrOptions?: AbortSignal | StartTaskOptions,
   ): Promise<TaskRunDetails> {
-    const result = await this.startTask(taskSlug, inputData, signal);
+    const result = await this.startTask(taskSlug, inputData, signalOrOptions);
     return result.get();
   }
 

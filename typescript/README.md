@@ -231,7 +231,7 @@ const client = createWorkflowsClient({
 
 ### Workflows Client Methods
 
-#### `render.workflows.runTask(taskSlug, inputData, signal?)`
+#### `render.workflows.runTask(taskSlug, inputData, signalOrOptions?)`
 
 Runs a task and waits for completion.
 
@@ -239,7 +239,7 @@ Runs a task and waits for completion.
 
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
-- `signal?: AbortSignal` - Optional abort signal for cancellation
+- `signalOrOptions?: AbortSignal | StartTaskOptions` - An abort signal, or an options object with `signal` and/or `idempotencyKey`
 
 **Returns:** `Promise<TaskRunDetails>`
 
@@ -251,7 +251,7 @@ const result = await render.workflows.runTask("my-workflow/square", [5]);
 console.log("Results:", result.results);
 ```
 
-#### `render.workflows.startTask(taskSlug, inputData, signal?)`
+#### `render.workflows.startTask(taskSlug, inputData, signalOrOptions?)`
 
 Starts a task run and returns a `TaskRunResult`. Results are not streamed until you call `.get()` on the returned result. Use this when you need the task run ID, want to defer awaiting, or want fire-and-forget.
 
@@ -259,7 +259,7 @@ Starts a task run and returns a `TaskRunResult`. Results are not streamed until 
 
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
-- `signal?: AbortSignal` - Optional abort signal for cancellation
+- `signalOrOptions?: AbortSignal | StartTaskOptions` - An abort signal, or an options object with `signal` and/or `idempotencyKey`
 
 **Returns:** `Promise<TaskRunResult>`
 
@@ -275,6 +275,16 @@ console.log("Task run ID:", run.taskRunId);
 // Await the result when you're ready
 const result = await run.get();
 console.log("Results:", result.results);
+```
+
+##### Idempotency keys
+
+Pass an `idempotencyKey` to make starting a run safe to retry. Repeating a call with the same key within 24 hours returns the run the first call started instead of starting another one, so a client that retries after a timeout does not run the task twice. Keys are scoped to a single workflow version.
+
+```typescript
+const run = await render.workflows.startTask("my-workflow/charge", [orderId], {
+  idempotencyKey: `charge-${orderId}`,
+});
 ```
 
 #### `render.workflows.taskRunEvents(taskRunIds, signal?)`

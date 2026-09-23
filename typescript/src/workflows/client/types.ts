@@ -50,6 +50,18 @@ export type ListTaskRunsParams = paths["/task-runs"]["get"]["parameters"]["query
 export interface RunTaskRequest {
   task: TaskSlug;
   input: TaskData;
+  idempotencyKey?: string;
+}
+
+export interface StartTaskOptions {
+  signal?: AbortSignal;
+  /**
+   * A client-generated key that makes starting the run safe to retry.
+   * Repeating a call with the same key within 24 hours returns the task run
+   * the first call started instead of starting another one. Keys are scoped to
+   * a single workflow version.
+   */
+  idempotencyKey?: string;
 }
 
 /**

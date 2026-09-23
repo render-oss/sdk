@@ -184,6 +184,8 @@ class WorkflowsService:
         self,
         task_slug: TaskSlug,
         input_data: TaskData,
+        *,
+        idempotency_key: str | None = None,
     ) -> AwaitableTaskRun:
         """Start a task and return an awaitable task run without waiting for completion.
 
@@ -203,6 +205,9 @@ class WorkflowsService:
             input_data: The input data for the task. Can be either:
                 - A list for positional arguments: [arg1, arg2, arg3]
                 - A dict for named parameters: {"param1": value1, "param2": value2}
+            idempotency_key: Optional client-generated key that makes this call safe
+                to retry. Repeating a call with the same key within 24 hours returns
+                the task run the first call started instead of starting another one.
 
         Returns:
             AwaitableTaskRun: A task run that can be awaited for the result
@@ -212,7 +217,11 @@ class WorkflowsService:
             ServerError: For 5xx server errors and network failures
             TimeoutError: If the request times out
         """
-        response = (await self._create_task_api_call(task_slug, input_data)).parsed
+        response = (
+            await self._create_task_api_call(
+                task_slug, input_data, idempotency_key=idempotency_key
+            )
+        ).parsed
 
         return AwaitableTaskRun(response, self)
 
@@ -220,6 +229,8 @@ class WorkflowsService:
         self,
         task_slug: TaskSlug,
         input_data: TaskData,
+        *,
+        idempotency_key: str | None = None,
     ) -> TaskRunDetails:
         """Start a task and wait for it to complete, returning the result.
 
@@ -231,6 +242,9 @@ class WorkflowsService:
             input_data: The input data for the task. Can be either:
                 - A list for positional arguments: [arg1, arg2, arg3]
                 - A dict for named parameters: {"param1": value1, "param2": value2}
+            idempotency_key: Optional client-generated key that makes this call safe
+                to retry. Repeating a call with the same key within 24 hours returns
+                the task run the first call started instead of starting another one.
 
         Returns:
             TaskRunDetails: The completed task run details
@@ -241,12 +255,18 @@ class WorkflowsService:
             TimeoutError: If the request times out
             TaskRunError: If the task run fails with an error
         """
-        task_run = await self.start_task(task_slug, input_data)
+        task_run = await self.start_task(
+            task_slug, input_data, idempotency_key=idempotency_key
+        )
         return await task_run
 
     @handle_http_errors("create task")
     async def _create_task_api_call(
-        self, task_slug: TaskSlug, input_data: TaskData
+        self,
+        task_slug: TaskSlug,
+        input_data: TaskData,
+        *,
+        idempotency_key: str | None = None,
     ) -> Response[Error | TaskRun]:
         """Internal method to make the create task API call."""
         # Convert dict to TaskDataType1 for named parameters
@@ -260,6 +280,7 @@ class WorkflowsService:
         run_task = RunTask(
             task=task_slug,
             input_=task_data_input,
+            idempotency_key=idempotency_key if idempotency_key is not None else UNSET,
         )
 
         # Make the API call
