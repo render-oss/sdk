@@ -4,11 +4,23 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.2.0] - 2026-09-23
 
 ### Added
 
 - (Workflows) `startTask()` and `runTask()` accept an options object with an `idempotencyKey`, which makes starting a run safe to retry: repeating a call with the same key within 24 hours returns the run the first call started. The third argument still accepts a bare `AbortSignal`
+- (Workflows) `ctx.metadata` exposes `taskRunId`, `rootTaskRunId` and `parentTaskRunId` for the running task. The IDs come from the task's initial input, so reading them does not make a network request. For a root run, `rootTaskRunId` equals `taskRunId` and `parentTaskRunId` is `undefined`
+- (Sandbox) Snapshot names: `snapshots.create()` accepts `name`, and `sandboxes.create()` accepts `snapshotName` to start from the snapshot that name resolves to. `SandboxCreateInput` takes either `snapshotId` or `snapshotName`, not both
+- (Sandbox) The `Sandbox` type is exported, and `sandboxes.create()` is typed to return it
+
+### Changed
+
+- Regenerated the REST API types from the latest OpenAPI schema: blueprint creation, `includePreviews` when listing build sources, and allowed domains on sandbox network policies. `Deploy` no longer has a `buildId` field
+
+### Fixed
+
+- The npm package no longer ships `e2e-helpers` or `.d.ts.map` files
+- `js-yaml` is pinned to 4.3.2 or later through an npm override, which resolves GHSA-2883-xcg3-v3hh
 
 ## [1.1.0] - 2026-09-10
 
