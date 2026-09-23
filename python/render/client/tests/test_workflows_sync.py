@@ -117,6 +117,58 @@ def test_start_task_success(
     mock_create_task_sync.assert_called_once()
 
 
+def test_start_task_omits_idempotency_key_when_not_given(
+    mock_create_task_sync, sync_workflows_service, mock_task_run
+):
+    mock_create_task_sync.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+
+    sync_workflows_service.start_task("test-task", {"input": "data"})
+
+    body = mock_create_task_sync.call_args.kwargs["body"]
+    assert "idempotencyKey" not in body.to_dict()
+
+
+def test_start_task_sends_idempotency_key(
+    mock_create_task_sync, sync_workflows_service, mock_task_run
+):
+    mock_create_task_sync.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+
+    sync_workflows_service.start_task(
+        "test-task", {"input": "data"}, idempotency_key="order-42"
+    )
+
+    body = mock_create_task_sync.call_args.kwargs["body"]
+    assert body.to_dict()["idempotencyKey"] == "order-42"
+
+
+def test_run_task_sends_idempotency_key(
+    mocker,
+    mock_create_task_sync,
+    sync_workflows_service,
+    mock_task_run,
+    mock_task_run_details,
+):
+    mock_create_task_sync.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+    mocker.patch.object(
+        sync_workflows_service,
+        "_task_run_completed_with_sse",
+        return_value=mock_task_run_details,
+    )
+
+    sync_workflows_service.run_task(
+        "test-task", {"input": "data"}, idempotency_key="order-42"
+    )
+
+    body = mock_create_task_sync.call_args.kwargs["body"]
+    assert body.idempotency_key == "order-42"
+
+
 def test_start_task_failure(mock_create_task_sync, sync_workflows_service):
     """Test task start failure."""
 

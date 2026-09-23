@@ -119,6 +119,62 @@ async def test_start_task_success(
 
 
 @pytest.mark.asyncio
+async def test_start_task_omits_idempotency_key_when_not_given(
+    mock_create_task_asyncio, workflows_service, mock_task_run
+):
+    mock_create_task_asyncio.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+
+    await workflows_service.start_task("test-task", {"input": "data"})
+
+    body = mock_create_task_asyncio.call_args.kwargs["body"]
+    assert "idempotencyKey" not in body.to_dict()
+
+
+@pytest.mark.asyncio
+async def test_start_task_sends_idempotency_key(
+    mock_create_task_asyncio, workflows_service, mock_task_run
+):
+    mock_create_task_asyncio.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+
+    await workflows_service.start_task(
+        "test-task", {"input": "data"}, idempotency_key="order-42"
+    )
+
+    body = mock_create_task_asyncio.call_args.kwargs["body"]
+    assert body.to_dict()["idempotencyKey"] == "order-42"
+
+
+@pytest.mark.asyncio
+async def test_run_task_sends_idempotency_key(
+    mocker,
+    mock_create_task_asyncio,
+    workflows_service,
+    mock_task_run,
+    mock_task_run_details,
+):
+    mock_create_task_asyncio.return_value = Response(
+        status_code=202, content=b"", headers={}, parsed=mock_task_run
+    )
+    mocker.patch.object(
+        AwaitableTaskRun,
+        "_wait_for_completion",
+        new_callable=mocker.AsyncMock,
+        return_value=mock_task_run_details,
+    )
+
+    await workflows_service.run_task(
+        "test-task", {"input": "data"}, idempotency_key="order-42"
+    )
+
+    body = mock_create_task_asyncio.call_args.kwargs["body"]
+    assert body.idempotency_key == "order-42"
+
+
+@pytest.mark.asyncio
 async def test_start_task_failure(mock_create_task_asyncio, workflows_service):
     """Test task start failure."""
 

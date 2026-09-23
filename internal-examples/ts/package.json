@@ -6,7 +6,8 @@
   "scripts": {
     "preinstall": "cd ../../typescript && npm i && npm run build",
     "start": "tsx main.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "idempotency": "tsx client/idempotency.ts"
   },
   "dependencies": {
     "@renderinc/sdk": "file:../../typescript"

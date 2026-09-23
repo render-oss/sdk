@@ -13,12 +13,27 @@ type WorkflowsService struct {
 	client *Client
 }
 
+type RunTaskOption func(*RunTask)
+
+// WithIdempotencyKey makes starting a task run safe to retry. Repeating a call
+// with the same key within 24 hours returns the task run the first call
+// started instead of starting another one. Keys are scoped to a single
+// workflow version.
+func WithIdempotencyKey(key string) RunTaskOption {
+	return func(runTask *RunTask) {
+		runTask.IdempotencyKey = &key
+	}
+}
+
 // RunTask executes a task using the workflows API
 // POST /task-runs
-func (w *WorkflowsService) RunTask(taskSlug TaskSlug, input TaskData) (*TaskRunWithGet, error) {
+func (w *WorkflowsService) RunTask(taskSlug TaskSlug, input TaskData, opts ...RunTaskOption) (*TaskRunWithGet, error) {
 	runTask := workflows.RunTask{
 		Task:  workflows.TaskSlug(taskSlug),
 		Input: workflows.TaskData(input),
+	}
+	for _, opt := range opts {
+		opt(&runTask)
 	}
 
 	resp, err := w.client.internal.CreateTaskWithResponse(context.Background(), runTask)

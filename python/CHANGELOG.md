@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- (Workflows) `start_task()` and `run_task()` accept a keyword-only `idempotency_key`, which makes starting a run safe to retry: repeating a call with the same key within 24 hours returns the run the first call started
+
 ## [1.1.0] - 2026-09-10
 
 ### Added

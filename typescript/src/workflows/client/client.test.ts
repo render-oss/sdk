@@ -102,6 +102,57 @@ describe("WorkflowsClient", () => {
       expect(result).toBeInstanceOf(TaskRunResult);
       expect(result.taskRunId).toBe("run-456");
     });
+
+    it("omits idempotencyKey from the body when none is given", async () => {
+      const mockApiClient = {
+        POST: vi.fn().mockResolvedValue({
+          data: { id: "run-456" },
+          error: undefined,
+          response: { status: 200 },
+        }),
+      } as unknown as Client<paths>;
+
+      const client = new WorkflowsClient(mockApiClient, "http://test", "token");
+      await client.startTask("workflow/task", [1, 2]);
+
+      expect(mockApiClient.POST).toHaveBeenCalledWith("/task-runs", {
+        body: { task: "workflow/task", input: [1, 2] },
+        signal: undefined,
+      });
+    });
+
+    it("sends the idempotencyKey from the options object", async () => {
+      const mockApiClient = {
+        POST: vi.fn().mockResolvedValue({
+          data: { id: "run-456" },
+          error: undefined,
+          response: { status: 200 },
+        }),
+      } as unknown as Client<paths>;
+
+      const controller = new AbortController();
+      const client = new WorkflowsClient(mockApiClient, "http://test", "token");
+      await client.startTask("workflow/task", [1, 2], {
+        idempotencyKey: "order-42",
+        signal: controller.signal,
+      });
+
+      expect(mockApiClient.POST).toHaveBeenCalledWith("/task-runs", {
+        body: { task: "workflow/task", input: [1, 2], idempotencyKey: "order-42" },
+        signal: controller.signal,
+      });
+    });
+
+    it("throws AbortError if the options object carries an aborted signal", async () => {
+      const mockApiClient = {} as unknown as Client<paths>;
+      const client = new WorkflowsClient(mockApiClient, "http://test", "token");
+
+      const controller = new AbortController();
+      controller.abort();
+      await expect(
+        client.startTask("task-1", ["data"], { signal: controller.signal }),
+      ).rejects.toBeInstanceOf(AbortError);
+    });
   });
 
   describe("runTask", () => {
@@ -127,6 +178,27 @@ describe("WorkflowsClient", () => {
       const details = await client.runTask("workflow/task", [4]);
 
       expect(details).toBe(mockDetails);
+      getSpy.mockRestore();
+    });
+
+    it("passes the idempotencyKey through to the request body", async () => {
+      const mockApiClient = {
+        POST: vi.fn().mockResolvedValue({
+          data: { id: "run-456" },
+          error: undefined,
+          response: { status: 200 },
+        }),
+      } as unknown as Client<paths>;
+
+      const getSpy = vi.spyOn(TaskRunResult.prototype, "get").mockResolvedValue({} as any);
+
+      const client = new WorkflowsClient(mockApiClient, "http://test", "token");
+      await client.runTask("workflow/task", [4], { idempotencyKey: "order-42" });
+
+      expect(mockApiClient.POST).toHaveBeenCalledWith("/task-runs", {
+        body: { task: "workflow/task", input: [4], idempotencyKey: "order-42" },
+        signal: undefined,
+      });
       getSpy.mockRestore();
     });
   });

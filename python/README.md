@@ -145,6 +145,19 @@ for event in render.workflows.task_run_events([task_run.id]):
 runs = render.workflows.list_task_runs(ListTaskRunsParams(limit=10))
 ```
 
+#### Idempotency Keys
+
+Pass an `idempotency_key` to make starting a run safe to retry. Repeating a call
+with the same key within 24 hours returns the run the first call started instead
+of starting another one, so a client that retries after a timeout does not run
+the task twice. Keys are scoped to a single workflow version.
+
+```python
+task_run = render.workflows.start_task(
+    "my-workflow/charge", [order_id], idempotency_key=f"charge-{order_id}"
+)
+```
+
 #### Async Usage
 
 For async contexts (e.g. FastAPI), use `RenderAsync`:
