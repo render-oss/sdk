@@ -32,12 +32,12 @@ TOP_LEVEL_ALL: tuple[str, ...] = (
 
 
 def test_top_level_names_import_and_version_matches() -> None:
-    """Every name in render_sdk.__all__ is importable; __version__ is 1.1.0."""
+    """Every name in render_sdk.__all__ is importable; __version__ is 1.2.0."""
     names = ", ".join(TOP_LEVEL_ALL)
     code = (
         f"from render_sdk import {names}\nimport json\nprint(json.dumps(__version__))\n"
     )
-    assert run_py_json(code) == "1.1.0"
+    assert run_py_json(code) == "1.2.0"
 
 
 def test_lazy_render_clients_resolve_and_materialize_real_modules() -> None:
@@ -133,7 +133,7 @@ def test_star_import_top_level_binds_exactly_all() -> None:
     payload = run_py_json(code)
     assert payload["bound"] == sorted(n for n in TOP_LEVEL_ALL if n != "__version__")
     assert payload["has_version"] is True
-    assert payload["version"] == "1.1.0"
+    assert payload["version"] == "1.2.0"
 
 
 @pytest.mark.parametrize("subpackage", ["workflows", "client"])

@@ -33,7 +33,7 @@ Async REST API access:
     result = await task_run
 """
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 # Render/RenderAsync are lazy-loaded so the workflow worker path stays fast.
 from typing import TYPE_CHECKING
