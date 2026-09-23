@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0] - 2026-09-23
+
+Released in lockstep with `render` 1.2.0, which this package pins and
+re-exports. See [the `render` changelog](../python/CHANGELOG.md) for what
+changed.
+
 ## [1.1.0] - 2026-09-10
 
 Released in lockstep with `render` 1.1.0, which this package pins and

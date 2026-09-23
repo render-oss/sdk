@@ -1,10 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.0] - 2026-09-23
 
 ### Added
 
 - (Workflows) `start_task()` and `run_task()` accept a keyword-only `idempotency_key`, which makes starting a run safe to retry: repeating a call with the same key within 24 hours returns the run the first call started
+- (Workflows) `ctx.metadata` exposes `task_run_id`, `root_task_run_id` and `parent_task_run_id` for the running task. The IDs come from the task's initial input, so reading them does not make a network request; each is `None` when unavailable
+- (Sandboxes) Snapshot names: `snapshots.create()` accepts `name`, `sandboxes.create()` accepts `snapshot_name` to start from the snapshot that name resolves to, and `Snapshot` exposes `name`. Passing both `snapshot_id` and `snapshot_name` raises `ValueError`
+
+### Changed
+
+- Regenerated the REST client from the latest OpenAPI schema: blueprint creation, `include_previews` when listing build sources, and allowed domains on sandbox network policies. `Deploy` no longer has a `build_id` field
 
 ## [1.1.0] - 2026-09-10
 

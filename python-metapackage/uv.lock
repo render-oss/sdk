@@ -1054,7 +1054,7 @@ wheels = [
 
 [[package]]
 name = "render"
-version = "1.1.0"
+version = "1.2.0"
 source = { editable = "../python" }
 dependencies = [
     { name = "aiohttp" },
@@ -1093,7 +1093,7 @@ dev = [
 
 [[package]]
 name = "render-sdk"
-version = "1.1.0"
+version = "1.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "render" },
