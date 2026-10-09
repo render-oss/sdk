@@ -26,7 +26,7 @@ class Sandbox:
         plan (SandboxPlan): Compute plan. Sizing matches Workflow plans of the same name.
         network_policy (SandboxNetworkPolicy):
         region (str): Region the sandbox is running in. Example: oregon.
-        timeout_seconds (int): Maximum sandbox lifetime in seconds. Example: 7200.
+        timeout_seconds (int): Maximum sandbox lifetime in seconds. Example: 86400.
         created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
         terminated_at (Union[None, Unset, datetime.datetime]): When the sandbox was terminated, or null.
     """

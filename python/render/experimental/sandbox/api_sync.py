@@ -81,9 +81,11 @@ from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
 from render.public_api.models.sandbox_group import SandboxGroup as GeneratedSandboxGroup
 from render.public_api.models.sandbox_group_with_cursor import SandboxGroupWithCursor
-from render.public_api.models.sandbox_network_policy import SandboxNetworkPolicy
-from render.public_api.models.sandbox_network_policy_default import (
-    SandboxNetworkPolicyDefault,
+from render.public_api.models.sandbox_network_policy_post import (
+    SandboxNetworkPolicyPOST,
+)
+from render.public_api.models.sandbox_network_policy_type import (
+    SandboxNetworkPolicyType,
 )
 from render.public_api.models.sandbox_plan import SandboxPlan
 from render.public_api.models.sandbox_post import SandboxPOST
@@ -138,7 +140,7 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
         id=model.id,
         status=model.status.value,
         plan=model.plan.value,
-        network_policy=model.network_policy.default.value,
+        network_policy=model.network_policy.type_.value,
         region=model.region,
         timeout_seconds=model.timeout_seconds,
         created_at=model.created_at,
@@ -255,8 +257,8 @@ class SyncSandboxApi:
         if region is not None:
             body.region = region
         if network_policy is not None:
-            body.network_policy = SandboxNetworkPolicy(
-                default=SandboxNetworkPolicyDefault(network_policy)
+            body.network_policy = SandboxNetworkPolicyPOST(
+                type_=SandboxNetworkPolicyType(network_policy)
             )
         if env is not None:
             body.env = SandboxPOSTEnv.from_dict(env)

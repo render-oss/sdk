@@ -303,7 +303,8 @@ type ClientInterface interface {
 
 	// ListBuildsInBuildSource List builds in a build source
 	//
-	// List builds in a build source.
+	// List builds in a build source, newest first. Pass the last item's
+	// `cursor` as the `cursor` parameter to fetch the next page.
 	//
 	// Corresponds with GET /build-sources/{buildSourceId}/builds (the `ListBuildsInBuildSource` operationId).
 	ListBuildsInBuildSource(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, params *ListBuildsInBuildSourceParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -322,6 +323,13 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /build-sources/{buildSourceId}/builds (the `TriggerBuildSourceBuild` operationId).
 	TriggerBuildSourceBuild(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// RetrieveBuildSourceBuild Retrieve a build
+	//
+	// Retrieve a build of a build source, including its status.
+	//
+	// Corresponds with GET /build-sources/{buildSourceId}/builds/{buildId} (the `RetrieveBuildSourceBuild` operationId).
+	RetrieveBuildSourceBuild(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, buildId externalRef3.BuildIdParam, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UnlinkEnvGroupFromBuildSource Unlink environment group
 	//
@@ -3378,7 +3386,8 @@ func (c *Client) UpdateBuildSource(ctx context.Context, buildSourceId externalRe
 
 // ListBuildsInBuildSource List builds in a build source
 //
-// List builds in a build source.
+// List builds in a build source, newest first. Pass the last item's
+// `cursor` as the `cursor` parameter to fetch the next page.
 //
 // Corresponds with GET /build-sources/{buildSourceId}/builds (the `ListBuildsInBuildSource` operationId).
 func (c *Client) ListBuildsInBuildSource(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, params *ListBuildsInBuildSourceParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -3408,6 +3417,23 @@ func (c *Client) ListBuildsInBuildSource(ctx context.Context, buildSourceId exte
 // Corresponds with POST /build-sources/{buildSourceId}/builds (the `TriggerBuildSourceBuild` operationId).
 func (c *Client) TriggerBuildSourceBuild(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewTriggerBuildSourceBuildRequest(c.Server, buildSourceId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// RetrieveBuildSourceBuild Retrieve a build
+//
+// Retrieve a build of a build source, including its status.
+//
+// Corresponds with GET /build-sources/{buildSourceId}/builds/{buildId} (the `RetrieveBuildSourceBuild` operationId).
+func (c *Client) RetrieveBuildSourceBuild(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, buildId externalRef3.BuildIdParam, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewRetrieveBuildSourceBuildRequest(c.Server, buildSourceId, buildId)
 	if err != nil {
 		return nil, err
 	}
@@ -9929,6 +9955,47 @@ func NewTriggerBuildSourceBuildRequest(server string, buildSourceId externalRef3
 	}
 
 	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewRetrieveBuildSourceBuildRequest constructs an http.Request for the RetrieveBuildSourceBuild method
+func NewRetrieveBuildSourceBuildRequest(server string, buildSourceId externalRef3.BuildSourceIdParam, buildId externalRef3.BuildIdParam) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "buildSourceId", buildSourceId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "buildId", buildId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/build-sources/%s/builds/%s", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24992,7 +25059,8 @@ type ClientWithResponsesInterface interface {
 
 	// ListBuildsInBuildSourceWithResponse List builds in a build source
 	//
-	// List builds in a build source.
+	// List builds in a build source, newest first. Pass the last item's
+	// `cursor` as the `cursor` parameter to fetch the next page.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -25015,6 +25083,15 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /build-sources/{buildSourceId}/builds (the `TriggerBuildSourceBuild` operationId).
 	TriggerBuildSourceBuildWithResponse(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, reqEditors ...RequestEditorFn) (*TriggerBuildSourceBuildResponse, error)
+
+	// RetrieveBuildSourceBuildWithResponse Retrieve a build
+	//
+	// Retrieve a build of a build source, including its status.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /build-sources/{buildSourceId}/builds/{buildId} (the `RetrieveBuildSourceBuild` operationId).
+	RetrieveBuildSourceBuildWithResponse(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, buildId externalRef3.BuildIdParam, reqEditors ...RequestEditorFn) (*RetrieveBuildSourceBuildResponse, error)
 
 	// UnlinkEnvGroupFromBuildSourceWithResponse Unlink environment group
 	//
@@ -29230,7 +29307,7 @@ type ListBuildsInBuildSourceResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
-	JSON200 *[]externalRef3.Build
+	JSON200 *[]externalRef3.BuildWithCursor
 	// JSON401 the response for an HTTP 401 `application/json` response
 	JSON401 *N401Unauthorized
 	// JSON403 the response for an HTTP 403 `application/json` response
@@ -29252,7 +29329,7 @@ type ListBuildsInBuildSourceResponse struct {
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r ListBuildsInBuildSourceResponse) GetJSON200() *[]externalRef3.Build {
+func (r ListBuildsInBuildSourceResponse) GetJSON200() *[]externalRef3.BuildWithCursor {
 	return r.JSON200
 }
 
@@ -29419,6 +29496,113 @@ func (r TriggerBuildSourceBuildResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r TriggerBuildSourceBuildResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// RetrieveBuildSourceBuildResponse429Headers the declared response headers of an HTTP 429 response for RetrieveBuildSourceBuild
+type RetrieveBuildSourceBuildResponse429Headers struct {
+	RateLimitLimit     *int
+	RateLimitRemaining *int
+	RateLimitReset     *int
+	RetryAfter         *int
+}
+
+type RetrieveBuildSourceBuildResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *externalRef3.Build
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *N401Unauthorized
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *N403Forbidden
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *N404NotFound
+	// JSON406 the response for an HTTP 406 `application/json` response
+	JSON406 *N406NotAcceptable
+	// JSON410 the response for an HTTP 410 `application/json` response
+	JSON410 *N410Gone
+	// JSON429 the response for an HTTP 429 `application/json` response
+	JSON429 *N429RateLimit
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *N500InternalServerError
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *N503ServiceUnavailable
+	// Headers429 the parsed response headers for an HTTP 429 response
+	Headers429 *RetrieveBuildSourceBuildResponse429Headers
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON200() *externalRef3.Build {
+	return r.JSON200
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON401() *N401Unauthorized {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON403() *N403Forbidden {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON404() *N404NotFound {
+	return r.JSON404
+}
+
+// GetJSON406 returns the response for an HTTP 406 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON406() *N406NotAcceptable {
+	return r.JSON406
+}
+
+// GetJSON410 returns the response for an HTTP 410 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON410() *N410Gone {
+	return r.JSON410
+}
+
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON429() *N429RateLimit {
+	return r.JSON429
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON500() *N500InternalServerError {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r RetrieveBuildSourceBuildResponse) GetJSON503() *N503ServiceUnavailable {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r RetrieveBuildSourceBuildResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r RetrieveBuildSourceBuildResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r RetrieveBuildSourceBuildResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r RetrieveBuildSourceBuildResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -50371,6 +50555,8 @@ type ListTaskRunsResponse struct {
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
 	JSON200 *[]TaskRunWithCursor
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *N400BadRequest
 	// JSON401 the response for an HTTP 401 `application/json` response
 	JSON401 *N401Unauthorized
 	// JSON403 the response for an HTTP 403 `application/json` response
@@ -50390,6 +50576,11 @@ type ListTaskRunsResponse struct {
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
 func (r ListTaskRunsResponse) GetJSON200() *[]TaskRunWithCursor {
 	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r ListTaskRunsResponse) GetJSON400() *N400BadRequest {
+	return r.JSON400
 }
 
 // GetJSON401 returns the response for an HTTP 401 `application/json` response
@@ -50664,6 +50855,8 @@ type CancelTaskRunResponse429Headers struct {
 type CancelTaskRunResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *N400BadRequest
 	// JSON401 the response for an HTTP 401 `application/json` response
 	JSON401 *N401Unauthorized
 	// JSON403 the response for an HTTP 403 `application/json` response
@@ -50678,6 +50871,11 @@ type CancelTaskRunResponse struct {
 	JSON503 *N503ServiceUnavailable
 	// Headers429 the parsed response headers for an HTTP 429 response
 	Headers429 *CancelTaskRunResponse429Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r CancelTaskRunResponse) GetJSON400() *N400BadRequest {
+	return r.JSON400
 }
 
 // GetJSON401 returns the response for an HTTP 401 `application/json` response
@@ -50752,6 +50950,8 @@ type GetTaskRunResponse struct {
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
 	JSON200 *externalRef18.TaskRunDetails
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *N400BadRequest
 	// JSON401 the response for an HTTP 401 `application/json` response
 	JSON401 *N401Unauthorized
 	// JSON403 the response for an HTTP 403 `application/json` response
@@ -50771,6 +50971,11 @@ type GetTaskRunResponse struct {
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
 func (r GetTaskRunResponse) GetJSON200() *externalRef18.TaskRunDetails {
 	return r.JSON200
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r GetTaskRunResponse) GetJSON400() *N400BadRequest {
+	return r.JSON400
 }
 
 // GetJSON401 returns the response for an HTTP 401 `application/json` response
@@ -52676,7 +52881,8 @@ func (c *ClientWithResponses) UpdateBuildSourceWithResponse(ctx context.Context,
 
 // ListBuildsInBuildSourceWithResponse List builds in a build source
 //
-// List builds in a build source.
+// List builds in a build source, newest first. Pass the last item's
+// `cursor` as the `cursor` parameter to fetch the next page.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -52710,6 +52916,21 @@ func (c *ClientWithResponses) TriggerBuildSourceBuildWithResponse(ctx context.Co
 		return nil, err
 	}
 	return ParseTriggerBuildSourceBuildResponse(rsp)
+}
+
+// RetrieveBuildSourceBuildWithResponse Retrieve a build
+//
+// Retrieve a build of a build source, including its status.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /build-sources/{buildSourceId}/builds/{buildId} (the `RetrieveBuildSourceBuild` operationId).
+func (c *ClientWithResponses) RetrieveBuildSourceBuildWithResponse(ctx context.Context, buildSourceId externalRef3.BuildSourceIdParam, buildId externalRef3.BuildIdParam, reqEditors ...RequestEditorFn) (*RetrieveBuildSourceBuildResponse, error) {
+	rsp, err := c.RetrieveBuildSourceBuild(ctx, buildSourceId, buildId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseRetrieveBuildSourceBuildResponse(rsp)
 }
 
 // UnlinkEnvGroupFromBuildSourceWithResponse Unlink environment group
@@ -58882,7 +59103,7 @@ func ParseListBuildsInBuildSourceResponse(rsp *http.Response) (*ListBuildsInBuil
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest []externalRef3.Build
+		var dest []externalRef3.BuildWithCursor
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -59058,6 +59279,122 @@ func ParseTriggerBuildSourceBuildResponse(rsp *http.Response) (*TriggerBuildSour
 	switch {
 	case rsp.StatusCode == 429:
 		var headers TriggerBuildSourceBuildResponse429Headers
+		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitReset = &value
+		}
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers429 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseRetrieveBuildSourceBuildResponse parses an HTTP response from a RetrieveBuildSourceBuildWithResponse call
+func ParseRetrieveBuildSourceBuildResponse(rsp *http.Response) (*RetrieveBuildSourceBuildResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &RetrieveBuildSourceBuildResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest externalRef3.Build
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest N401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest N403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest N404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 406:
+		var dest N406NotAcceptable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON406 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 410:
+		var dest N410Gone
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON410 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest N429RateLimit
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest N500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest N503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 429:
+		var headers RetrieveBuildSourceBuildResponse429Headers
 		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
 			var value int
 			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
@@ -81596,6 +81933,13 @@ func ParseListTaskRunsResponse(rsp *http.Response) (*ListTaskRunsResponse, error
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest N401Unauthorized
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -81929,6 +82273,13 @@ func ParseCancelTaskRunResponse(rsp *http.Response) (*CancelTaskRunResponse, err
 	case rsp.StatusCode == 204:
 		break // No content-type
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest N401Unauthorized
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -82030,6 +82381,13 @@ func ParseGetTaskRunResponse(rsp *http.Response) (*GetTaskRunResponse, error) {
 			return nil, err
 		}
 		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest N401Unauthorized

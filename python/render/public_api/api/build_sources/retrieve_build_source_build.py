@@ -5,17 +5,18 @@ import httpx
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
+from ...models.build import Build
 from ...models.error import Error
-from ...models.task_run_details import TaskRunDetails
 from ...types import Response
 
 
 def _get_kwargs(
-    task_run_id: str,
+    build_source_id: str,
+    build_id: str,
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/task-runs/{task_run_id}",
+        "url": f"/build-sources/{build_source_id}/builds/{build_id}",
     }
 
     return _kwargs
@@ -23,16 +24,11 @@ def _get_kwargs(
 
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, TaskRunDetails]]:
+) -> Optional[Union[Build, Error]]:
     if response.status_code == 200:
-        response_200 = TaskRunDetails.from_dict(response.json())
+        response_200 = Build.from_dict(response.json())
 
         return response_200
-
-    if response.status_code == 400:
-        response_400 = Error.from_dict(response.json())
-
-        return response_400
 
     if response.status_code == 401:
         response_401 = Error.from_dict(response.json())
@@ -48,6 +44,16 @@ def _parse_response(
         response_404 = Error.from_dict(response.json())
 
         return response_404
+
+    if response.status_code == 406:
+        response_406 = Error.from_dict(response.json())
+
+        return response_406
+
+    if response.status_code == 410:
+        response_410 = Error.from_dict(response.json())
+
+        return response_410
 
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
@@ -72,7 +78,7 @@ def _parse_response(
 
 def _build_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, TaskRunDetails]]:
+) -> Response[Union[Build, Error]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -82,27 +88,30 @@ def _build_response(
 
 
 def sync_detailed(
-    task_run_id: str,
+    build_source_id: str,
+    build_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, TaskRunDetails]]:
-    """Retrieve task run
+) -> Response[Union[Build, Error]]:
+    """Retrieve a build
 
-     Retrieve the workflow task run with the provided ID.
+     Retrieve a build of a build source, including its status.
 
     Args:
-        task_run_id (str):
+        build_source_id (str):
+        build_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, TaskRunDetails]]
+        Response[Union[Build, Error]]
     """
 
     kwargs = _get_kwargs(
-        task_run_id=task_run_id,
+        build_source_id=build_source_id,
+        build_id=build_id,
     )
 
     response = client.get_httpx_client().request(
@@ -113,53 +122,59 @@ def sync_detailed(
 
 
 def sync(
-    task_run_id: str,
+    build_source_id: str,
+    build_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, TaskRunDetails]]:
-    """Retrieve task run
+) -> Optional[Union[Build, Error]]:
+    """Retrieve a build
 
-     Retrieve the workflow task run with the provided ID.
+     Retrieve a build of a build source, including its status.
 
     Args:
-        task_run_id (str):
+        build_source_id (str):
+        build_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, TaskRunDetails]
+        Union[Build, Error]
     """
 
     return sync_detailed(
-        task_run_id=task_run_id,
+        build_source_id=build_source_id,
+        build_id=build_id,
         client=client,
     ).parsed
 
 
 async def asyncio_detailed(
-    task_run_id: str,
+    build_source_id: str,
+    build_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, TaskRunDetails]]:
-    """Retrieve task run
+) -> Response[Union[Build, Error]]:
+    """Retrieve a build
 
-     Retrieve the workflow task run with the provided ID.
+     Retrieve a build of a build source, including its status.
 
     Args:
-        task_run_id (str):
+        build_source_id (str):
+        build_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, TaskRunDetails]]
+        Response[Union[Build, Error]]
     """
 
     kwargs = _get_kwargs(
-        task_run_id=task_run_id,
+        build_source_id=build_source_id,
+        build_id=build_id,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -168,28 +183,31 @@ async def asyncio_detailed(
 
 
 async def asyncio(
-    task_run_id: str,
+    build_source_id: str,
+    build_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, TaskRunDetails]]:
-    """Retrieve task run
+) -> Optional[Union[Build, Error]]:
+    """Retrieve a build
 
-     Retrieve the workflow task run with the provided ID.
+     Retrieve a build of a build source, including its status.
 
     Args:
-        task_run_id (str):
+        build_source_id (str):
+        build_id (str):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
         httpx.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, TaskRunDetails]
+        Union[Build, Error]
     """
 
     return (
         await asyncio_detailed(
-            task_run_id=task_run_id,
+            build_source_id=build_source_id,
+            build_id=build_id,
             client=client,
         )
     ).parsed

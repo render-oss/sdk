@@ -18,7 +18,7 @@ SANDBOX_JSON = {
     "id": "sbx-abc",
     "status": "creating",
     "plan": "standard",
-    "networkPolicy": {"default": "deny-all"},
+    "networkPolicy": {"type": "deny-all"},
     "region": "oregon",
     "timeoutSeconds": 300,
     "createdAt": "2026-09-01T00:00:00Z",

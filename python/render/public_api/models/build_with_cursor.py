@@ -5,27 +5,26 @@ from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 if TYPE_CHECKING:
-    from ..models.service_event import ServiceEvent
+    from ..models.build import Build
 
 
-T = TypeVar("T", bound="ServiceEventWithCursor")
+T = TypeVar("T", bound="BuildWithCursor")
 
 
 @_attrs_define
-class ServiceEventWithCursor:
-    """A service event with a cursor
-
+class BuildWithCursor:
+    """
     Attributes:
-        event (ServiceEvent):
+        build (Build):
         cursor (str):
     """
 
-    event: "ServiceEvent"
+    build: "Build"
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        event = self.event.to_dict()
+        build = self.build.to_dict()
 
         cursor = self.cursor
 
@@ -33,7 +32,7 @@ class ServiceEventWithCursor:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "event": event,
+                "build": build,
                 "cursor": cursor,
             }
         )
@@ -42,20 +41,20 @@ class ServiceEventWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.service_event import ServiceEvent
+        from ..models.build import Build
 
         d = dict(src_dict)
-        event = ServiceEvent.from_dict(d.pop("event"))
+        build = Build.from_dict(d.pop("build"))
 
         cursor = d.pop("cursor")
 
-        service_event_with_cursor = cls(
-            event=event,
+        build_with_cursor = cls(
+            build=build,
             cursor=cursor,
         )
 
-        service_event_with_cursor.additional_properties = d
-        return service_event_with_cursor
+        build_with_cursor.additional_properties = d
+        return build_with_cursor
 
     @property
     def additional_keys(self) -> list[str]:

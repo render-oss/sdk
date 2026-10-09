@@ -7,6 +7,7 @@ class SandboxStatus(str, Enum):
     RESUMING = "resuming"
     RUNNING = "running"
     SUSPENDED = "suspended"
+    SUSPENDING = "suspending"
     TERMINATED = "terminated"
 
     def __str__(self) -> str:

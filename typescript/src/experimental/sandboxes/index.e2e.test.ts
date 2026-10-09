@@ -24,6 +24,9 @@ async function openExecWithRetry(
   command: string,
   ownerId: `tea-${string}`,
 ): Promise<AsyncGenerator<SandboxExecEvent>> {
+  // Token minting can fail while the sandbox is still creating. Wait for
+  // readiness before connecting, as the Python sandbox E2E tests do.
+  await waitUntilSandboxRunning(sandboxes, sandboxId, ownerId);
   for (let attempt = 0; attempt < EXEC_RETRY_ATTEMPTS; attempt++) {
     try {
       return await sandboxes.exec(sandboxId, command, ownerId);
@@ -35,6 +38,22 @@ async function openExecWithRetry(
     }
   }
   throw new Error("could not establish exec stream");
+}
+
+async function waitUntilSandboxRunning(
+  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxId: string,
+  ownerId: `tea-${string}`,
+): Promise<void> {
+  for (let attempt = 0; attempt < RESOURCE_RETRY_ATTEMPTS; attempt++) {
+    const current = await sandboxes.get(sandboxId, ownerId);
+    if (current?.status === "running") return;
+    if (current?.status === "errored" || current?.status === "terminated") {
+      throw new Error(`sandbox ${sandboxId} reached terminal status ${current.status}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, RESOURCE_RETRY_DELAY_MS));
+  }
+  throw new Error(`sandbox ${sandboxId} did not become running`);
 }
 
 async function waitUntilSnapshotAvailable(
@@ -107,8 +126,8 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
       const sandbox = await sandboxes.create({ ownerId });
       try {
         expect(sandbox.id).toMatch(sbxIdRegex);
-        // API create response hardcodes status to "creating" for now; readiness is
-        // observed via exec retries rather than polling get().
+        // The create response reports "creating"; openExecWithRetry polls get()
+        // for readiness before minting a connect token.
         expect(sandbox.status).toBe("creating");
 
         const listedSandboxes = await sandboxes.list({ ownerId });

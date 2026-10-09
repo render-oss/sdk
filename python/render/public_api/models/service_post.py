@@ -35,9 +35,17 @@ class ServicePOST:
             page in the Render Dashboard.
         repo (Union[Unset, str]): The service's repository URL. Do not specify a branch in this string (use the `branch`
             parameter instead). Example: https://github.com/render-examples/flask-hello-world.
-        auto_deploy (Union[Unset, AutoDeploy]):
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a
-            commit is pushed to a branch. checksPass waits for the branch to be green.
+        auto_deploy (Union[Unset, AutoDeploy]): Deprecated: use `autoDeployTrigger` instead. You can't set both
+            `autoDeploy` and `autoDeployTrigger` in the same request.
+
+            - `yes` is equivalent to `autoDeployTrigger: commit`.
+            - `no` is equivalent to `autoDeployTrigger: off`.
+        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+
+            - `commit`: Deploy each time a commit is pushed to the service's linked branch.
+            - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
+            pass.
+            - `off`: Disable autodeploys.
         branch (Union[Unset, str]): The repo branch to pull, build, and deploy. If omitted, uses the repository's
             default branch.
         image (Union[Unset, Image]):

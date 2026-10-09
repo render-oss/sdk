@@ -27,9 +27,17 @@ class ServicePATCH:
     Attributes:
         build_source_id (Union[Unset, str]):
         build_id (Union[Unset, str]):
-        auto_deploy (Union[Unset, AutoDeploy]):
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a
-            commit is pushed to a branch. checksPass waits for the branch to be green.
+        auto_deploy (Union[Unset, AutoDeploy]): Deprecated: use `autoDeployTrigger` instead. You can't set both
+            `autoDeploy` and `autoDeployTrigger` in the same request.
+
+            - `yes` is equivalent to `autoDeployTrigger: commit`.
+            - `no` is equivalent to `autoDeployTrigger: off`.
+        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+
+            - `commit`: Deploy each time a commit is pushed to the service's linked branch.
+            - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
+            pass.
+            - `off`: Disable autodeploys.
         repo (Union[Unset, str]):
         branch (Union[Unset, str]):
         image (Union[Unset, Image]):

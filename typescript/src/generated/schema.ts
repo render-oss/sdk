@@ -3472,7 +3472,8 @@ export interface paths {
         };
         /**
          * List builds in a build source
-         * @description List builds in a build source.
+         * @description List builds in a build source, newest first. Pass the last item's
+         *     `cursor` as the `cursor` parameter to fetch the next page.
          */
         get: operations["list-builds-in-build-source"];
         put?: never;
@@ -3489,6 +3490,29 @@ export interface paths {
          *     Only `git` build sources can be built.
          */
         post: operations["trigger-build-source-build"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/build-sources/{buildSourceId}/builds/{buildId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
+                buildId: components["parameters"]["buildIdParam"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve a build
+         * @description Retrieve a build of a build source, including its status.
+         */
+        get: operations["retrieve-build-source-build"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4468,7 +4492,7 @@ export interface components {
              * @example CreateServerEvent
              * @enum {string}
              */
-            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateArtifactSourceEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateSavedSearchEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteSavedSearchEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
+            event: "AcceptOrgInviteEvent" | "AcceptTeamInviteEvent" | "AddOrgMemberEvent" | "ApplyBlueprintEvent" | "ChangeEnvironmentProtectionEvent" | "ChangeOrg2FAEnforcementEvent" | "ChangeOrgAllowedLoginMethodsEvent" | "ChangeOrgNameEvent" | "ChangeOrgRoleEvent" | "ChangeTeam2FAEnforcementEvent" | "ChangeTeamAllowedLoginMethodsEvent" | "ChangeTeamMemberRoleEvent" | "ChangeWorkspaceDeployHandlingEvent" | "ChangeWorkspacePrivacyEvent" | "CreateArtifactSourceEvent" | "CreateCronJobEvent" | "CreateEnvVarsEvent" | "CreateEnvironmentEvent" | "CreateOrgDomainEvent" | "CreateOtelIntegrationEvent" | "CreatePostgresEvent" | "CreatePrivateLinkEvent" | "CreateProjectEvent" | "CreateRedisEvent" | "CreateSSOConnectionEvent" | "CreateSavedSearchEvent" | "CreateServerDiskEvent" | "CreateServerEvent" | "CreateWebhookEvent" | "CreateWorkspaceEvent" | "DeleteCronJobEvent" | "DeleteEnvGroupEvent" | "DeleteEnvVarsEvent" | "DeleteEnvironmentEvent" | "DeleteOrgDomainEvent" | "DeleteOtelIntegrationEvent" | "DeletePostgresEvent" | "DeletePrivateLinkEvent" | "DeleteProjectEvent" | "DeleteRedisEvent" | "DeleteSSOConnectionEvent" | "DeleteSavedSearchEvent" | "DeleteServerDiskEvent" | "DeleteServerEvent" | "DeleteWebhookEvent" | "DeleteWorkspaceEvent" | "DocumentDownloadEvent" | "DownloadDatabaseBackupEvent" | "EnableRedisInternalAuthEvent" | "InviteToOrgEvent" | "InviteToTeamEvent" | "JoinTeamEvent" | "LoginEvent" | "LogoutEvent" | "MaintenanceModeEnabledEvent" | "MaintenanceModeURIUpdatedEvent" | "MoveEnvironmentResourceEvent" | "ProvisionOrganizationSCIMToken" | "RemoveOrgMemberEvent" | "RemoveUserFromTeamEvent" | "RestoreDiskSnapshotEvent" | "ResumePostgresEvent" | "ResumeServiceEvent" | "RevokeOrganizationSCIMToken" | "SignNDAEvent" | "EndShellEvent" | "StartShellEvent" | "SuspendPostgresEvent" | "SuspendServiceEvent" | "UpdateEnvVarsEvent" | "UpdateIPAllowListEvent" | "UpdateOrgPaymentMethodEvent" | "UpdateOtelIntegrationEvent" | "UpdateSSOConnectionEvent" | "UpdateServiceNameEvent" | "UpdateWebhookEvent" | "UpdateWorkspacePaymentMethodEvent" | "VerifyOrgDomainEvent" | "ViewConnectionInfoEvent" | "ViewEnvVarValuesEvent" | "GrantOAuthAccessEvent" | "RevokeOAuthAccessEvent";
             /**
              * @description The status of the event
              * @example success
@@ -4559,6 +4583,11 @@ export interface components {
             deployId?: string;
         };
         /**
+         * @deprecated
+         * @description Deprecated: use `autoDeployTrigger` instead. You can't set both `autoDeploy` and `autoDeployTrigger` in the same request.
+         *
+         *     - `yes` is equivalent to `autoDeployTrigger: commit`.
+         *     - `no` is equivalent to `autoDeployTrigger: off`.
          * @default yes
          * @enum {string}
          */
@@ -5843,6 +5872,7 @@ export interface components {
         /** @description A service event with a cursor */
         serviceEventWithCursor: {
             event: components["schemas"]["serviceEvent"];
+            cursor: components["schemas"]["cursor"];
         };
         jobWithCursor: {
             job: components["schemas"]["job"];
@@ -6104,7 +6134,11 @@ export interface components {
         };
         buildSourceId: string;
         /**
-         * @description Controls autodeploy behavior. commit deploys when a commit is pushed to a branch. checksPass waits for the branch to be green.
+         * @description Controls autodeploy behavior.
+         *
+         *     - `commit`: Deploy each time a commit is pushed to the service's linked branch.
+         *     - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks pass.
+         *     - `off`: Disable autodeploys.
          * @enum {string}
          */
         autoDeployTrigger: "commit" | "off" | "checksPass";
@@ -7034,6 +7068,10 @@ export interface components {
             /** Format: date-time */
             assetsDeletedAt?: string;
         };
+        buildWithCursor: {
+            build: components["schemas"]["build"];
+            cursor: string;
+        };
         /** @example whk-d04m9b1r0fns73ckp94f */
         webhookId: string;
         /** @description The event types that will trigger the webhook. An empty list means all event types will trigger the webhook. */
@@ -7326,7 +7364,7 @@ export interface components {
             maxSizeBytes: number;
         };
         /** @enum {string} */
-        sandboxStatus: "creating" | "running" | "suspended" | "resuming" | "errored" | "terminated";
+        sandboxStatus: "creating" | "running" | "suspending" | "suspended" | "resuming" | "errored" | "terminated";
         /** @example sbx-1cd4gcph1rs3idesc73a2b2mg */
         sandboxId: string;
         /**
@@ -7334,26 +7372,45 @@ export interface components {
          * @enum {string}
          */
         sandboxPlan: "starter" | "standard" | "pro";
-        sandboxNetworkPolicy: {
+        /**
+         * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
+         *     `allow-list` (requires additional `rules`).
+         * @enum {string}
+         */
+        sandboxNetworkPolicyType: "allow-all" | "deny-all" | "allow-list";
+        sandboxEgressRule: {
             /**
-             * @description Default action for outbound traffic.
+             * @description Hostname to apply the rule to. Matching is exact: `foo.local` does not
+             *     cover `api.foo.local`, which needs its own rule or `*.foo.local`. A
+             *     wildcard is only allowed as the leftmost label.
+             * @example *.bar.local
+             */
+            domain: string;
+            /**
+             * @description Protocol this rule admits. Only `https` is accepted:
+             *     under `allow-list` every other outbound protocol is dropped.
+             * @default https
              * @enum {string}
              */
-            default: "allow-all" | "deny-all" | "allow-list";
+            protocol: "https";
+        };
+        sandboxNetworkPolicy: {
             /**
-             * @description Domains the sandbox may reach, required when `default` is
-             *     `allow-list` and rejected otherwise.
-             *
-             *     Matching is exact: `foo.local` does not cover `api.foo.local`,
-             *     leftmost-only wildcarding e.g. `*.foo.local` is allowed. Only HTTP
-             *     and HTTPS traffic is matched against this list; under
-             *     `allow-list` all other outbound TCP is dropped.
-             * @example [
-             *       "foo.local",
-             *       "*.bar.local"
-             *     ]
+             * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
+             *     `allow-list` (requires additional `rules`).
              */
-            allowedDomains?: string[];
+            type: components["schemas"]["sandboxNetworkPolicyType"];
+            /**
+             * @deprecated
+             * @description Deprecated alias for `type`, always returned with the same value.
+             *     To be removed before GA; read `type` instead.
+             */
+            default?: components["schemas"]["sandboxNetworkPolicyType"];
+            /**
+             * @description Destinations the sandbox may reach, present when `type` is
+             *     `allow-list` and absent otherwise. Each domain may be listed once.
+             */
+            rules?: components["schemas"]["sandboxEgressRule"][];
         };
         sandbox: {
             id: components["schemas"]["sandboxId"];
@@ -7367,7 +7424,7 @@ export interface components {
             region: string;
             /**
              * @description Maximum sandbox lifetime in seconds.
-             * @example 7200
+             * @example 86400
              */
             timeoutSeconds: number;
             /**
@@ -7380,6 +7437,30 @@ export interface components {
              * @description When the sandbox was terminated, or null.
              */
             terminatedAt?: string | null;
+        };
+        /**
+         * @description Set either `type` or its deprecated alias `default`. Sending both is
+         *     only accepted when they name the same policy.
+         */
+        sandboxNetworkPolicyPOST: {
+            /**
+             * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
+             *     `allow-list` (requires additional `rules`). Either `type` or `default`
+             *     is required when `networkPolicy` is provided. Omitting
+             *     `networkPolicy` defaults to `allow-all`.
+             */
+            type?: components["schemas"]["sandboxNetworkPolicyType"];
+            /**
+             * @deprecated
+             * @description Deprecated alias for `type`, accepted so that clients built against
+             *     the earlier schema keep working. To be removed before GA.
+             */
+            default?: components["schemas"]["sandboxNetworkPolicyType"];
+            /**
+             * @description Destinations the sandbox may reach, required when the policy is
+             *     `allow-list` and rejected otherwise. Each domain may be listed once.
+             */
+            rules?: components["schemas"]["sandboxEgressRule"][];
         };
         /** @example snp-cph1rs3idesc73a2b2mg */
         sandboxSnapshotId: string;
@@ -7394,12 +7475,12 @@ export interface components {
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
-            networkPolicy?: components["schemas"]["sandboxNetworkPolicy"];
+            networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
             /** @default starter */
             plan: components["schemas"]["sandboxPlan"];
             /**
              * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-             * @default 7200
+             * @default 86400
              */
             timeoutSeconds: number;
             /** @description Render region. Defaults to the workspace default. */
@@ -8042,6 +8123,7 @@ export interface components {
         maintenanceStateParam: components["schemas"]["maintenanceState"][];
         maintenanceRunParam: components["schemas"]["maintenanceRunId"];
         buildSourceIdParam: components["schemas"]["buildSourceId"];
+        buildIdParam: components["schemas"]["buildId"];
         /** @description Unique identifier for the webhook */
         webhookIdParam: components["schemas"]["webhookId"];
         /**
@@ -15016,7 +15098,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["build"][];
+                    "application/json": components["schemas"]["buildWithCursor"][];
                 };
             };
             401: components["responses"]["401Unauthorized"];
@@ -15053,6 +15135,37 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-build-source-build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                buildSourceId: components["parameters"]["buildSourceIdParam"];
+                buildId: components["parameters"]["buildIdParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["build"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            406: components["responses"]["406NotAcceptable"];
+            410: components["responses"]["410Gone"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -16015,6 +16128,7 @@ export interface operations {
                     "application/json": components["schemas"]["taskRunWithCursor"][];
                 };
             };
+            400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -16114,6 +16228,7 @@ export interface operations {
                     "application/json": components["schemas"]["TaskRunDetails"];
                 };
             };
+            400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -16141,6 +16256,7 @@ export interface operations {
                 };
                 content?: never;
             };
+            400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -16341,7 +16457,7 @@ export interface operations {
                  * @example {
                  *       "ownerId": "tea-cph1rs3idesc73a2b2mg",
                  *       "networkPolicy": {
-                 *         "default": "deny-all"
+                 *         "type": "deny-all"
                  *       },
                  *       "plan": "standard",
                  *       "timeoutSeconds": 7200
@@ -16363,6 +16479,7 @@ export interface operations {
                      *       "status": "creating",
                      *       "plan": "standard",
                      *       "networkPolicy": {
+                     *         "type": "deny-all",
                      *         "default": "deny-all"
                      *       },
                      *       "region": "oregon",

@@ -57,6 +57,7 @@ from .build_source_post_input import BuildSourcePOSTInput
 from .build_source_service_link import BuildSourceServiceLink
 from .build_source_with_cursor import BuildSourceWithCursor
 from .build_started import BuildStarted
+from .build_with_cursor import BuildWithCursor
 from .cache import Cache
 from .cache_profile import CacheProfile
 from .cidr_block_and_description import CidrBlockAndDescription
@@ -342,6 +343,8 @@ from .sandbox import Sandbox
 from .sandbox_connect_request import SandboxConnectRequest
 from .sandbox_connect_response import SandboxConnectResponse
 from .sandbox_directory_listing import SandboxDirectoryListing
+from .sandbox_egress_rule import SandboxEgressRule
+from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
 from .sandbox_exec_update_request import SandboxExecUpdateRequest
 from .sandbox_exec_update_response import SandboxExecUpdateResponse
 from .sandbox_file_entry import SandboxFileEntry
@@ -349,7 +352,8 @@ from .sandbox_file_entry_type import SandboxFileEntryType
 from .sandbox_group import SandboxGroup
 from .sandbox_group_with_cursor import SandboxGroupWithCursor
 from .sandbox_network_policy import SandboxNetworkPolicy
-from .sandbox_network_policy_default import SandboxNetworkPolicyDefault
+from .sandbox_network_policy_post import SandboxNetworkPolicyPOST
+from .sandbox_network_policy_type import SandboxNetworkPolicyType
 from .sandbox_plan import SandboxPlan
 from .sandbox_post import SandboxPOST
 from .sandbox_post_env import SandboxPOSTEnv
@@ -505,6 +509,7 @@ __all__ = (
     "BuildSourceServiceLink",
     "BuildSourceWithCursor",
     "BuildStarted",
+    "BuildWithCursor",
     "Cache",
     "CacheProfile",
     "CidrBlockAndDescription",
@@ -788,6 +793,8 @@ __all__ = (
     "SandboxConnectRequest",
     "SandboxConnectResponse",
     "SandboxDirectoryListing",
+    "SandboxEgressRule",
+    "SandboxEgressRuleProtocol",
     "SandboxExecUpdateRequest",
     "SandboxExecUpdateResponse",
     "SandboxFileEntry",
@@ -795,7 +802,8 @@ __all__ = (
     "SandboxGroup",
     "SandboxGroupWithCursor",
     "SandboxNetworkPolicy",
-    "SandboxNetworkPolicyDefault",
+    "SandboxNetworkPolicyPOST",
+    "SandboxNetworkPolicyType",
     "SandboxPlan",
     "SandboxPOST",
     "SandboxPOSTEnv",

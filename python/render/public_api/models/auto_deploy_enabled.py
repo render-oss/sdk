@@ -14,8 +14,12 @@ T = TypeVar("T", bound="AutoDeployEnabled")
 class AutoDeployEnabled:
     """
     Attributes:
-        new_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a commit is
-            pushed to a branch. checksPass waits for the branch to be green.
+        new_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+
+            - `commit`: Deploy each time a commit is pushed to the service's linked branch.
+            - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
+            pass.
+            - `off`: Disable autodeploys.
     """
 
     new_trigger: Union[Unset, AutoDeployTrigger] = UNSET

@@ -83,7 +83,7 @@ export type SandboxCreateInput = SandboxRestoreInput & {
   timeoutSeconds?: number;
   /** Defaults to the client's region, then to the workspace default. */
   region?: string;
-  networkPolicy?: components["schemas"]["sandboxNetworkPolicy"];
+  networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
   /** Environment variables injected into the sandbox at creation. */
   env?: Record<string, string>;
 };

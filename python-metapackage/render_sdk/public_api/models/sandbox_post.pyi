@@ -2,7 +2,7 @@
 from render.public_api.models.sandbox_post import (
     Any as Any,
     Mapping as Mapping,
-    SandboxNetworkPolicy as SandboxNetworkPolicy,
+    SandboxNetworkPolicyPOST as SandboxNetworkPolicyPOST,
     SandboxPOST as SandboxPOST,
     SandboxPOSTEnv as SandboxPOSTEnv,
     SandboxPlan as SandboxPlan,

@@ -22,7 +22,7 @@ SANDBOX_JSON = {
     "id": "sbx-abc",
     "status": "running",
     "plan": "standard",
-    "networkPolicy": {"default": "deny-all"},
+    "networkPolicy": {"type": "deny-all"},
     "region": "oregon",
     "timeoutSeconds": 300,
     "createdAt": "2026-07-17T00:00:00Z",
@@ -71,10 +71,46 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
     assert captured["body"]["plan"] == "standard"
     assert captured["body"]["timeoutSeconds"] == 300
     assert "env" not in captured["body"]
+    assert "networkPolicy" not in captured["body"]
     assert sandbox.id == "sbx-abc"
     assert sandbox.status == "running"
     assert sandbox.network_policy == "deny-all"
     assert sandbox.terminated_at is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("policy", ["allow-all", "deny-all"])
+async def test_create_sends_network_policy_type(policy):
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(
+            201, json={**SANDBOX_JSON, "networkPolicy": {"type": policy}}
+        )
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(network_policy=policy)
+
+    assert captured["body"]["networkPolicy"] == {"type": policy}
+    assert sandbox.network_policy == policy
+
+
+@pytest.mark.parametrize("policy", ["allow-all", "deny-all"])
+def test_sync_create_sends_network_policy_type(policy):
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(
+            201, json={**SANDBOX_JSON, "networkPolicy": {"type": policy}}
+        )
+
+    client = _sync_sandbox_client(handler)
+    sandbox = client.create(network_policy=policy)
+
+    assert captured["body"]["networkPolicy"] == {"type": policy}
+    assert sandbox.network_policy == policy
 
 
 @pytest.mark.asyncio

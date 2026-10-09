@@ -32,7 +32,11 @@ class Service:
     """
     Attributes:
         id (str):
-        auto_deploy (AutoDeploy):
+        auto_deploy (AutoDeploy): Deprecated: use `autoDeployTrigger` instead. You can't set both `autoDeploy` and
+            `autoDeployTrigger` in the same request.
+
+            - `yes` is equivalent to `autoDeployTrigger: commit`.
+            - `no` is equivalent to `autoDeployTrigger: off`.
         created_at (datetime.datetime):
         dashboard_url (str): The URL to view the service in the Render Dashboard
         name (str):
@@ -47,8 +51,12 @@ class Service:
         service_details (Union['BackgroundWorkerDetails', 'CronJobDetails', 'PrivateServiceDetails',
             'StaticSiteDetails', 'WebServiceDetails']):
         build_source_id (Union[Unset, str]):
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. commit deploys when a
-            commit is pushed to a branch. checksPass waits for the branch to be green.
+        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+
+            - `commit`: Deploy each time a commit is pushed to the service's linked branch.
+            - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
+            pass.
+            - `off`: Disable autodeploys.
         branch (Union[Unset, str]):
         build_filter (Union[Unset, BuildFilter]):
         environment_id (Union[Unset, str]):

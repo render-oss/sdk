@@ -368,6 +368,12 @@ type BuildSourceWithCursor struct {
 	Cursor      string      `json:"cursor"`
 }
 
+// BuildWithCursor defines model for buildWithCursor.
+type BuildWithCursor struct {
+	Build  Build  `json:"build"`
+	Cursor string `json:"cursor"`
+}
+
 // Image Present when the build source is currently image-based. Mutually exclusive with `buildRun`.
 type Image struct {
 	SHA                  *string `json:"SHA,omitempty"`
@@ -376,6 +382,9 @@ type Image struct {
 	Ref                  *string `json:"ref,omitempty"`
 	RegistryCredentialId *string `json:"registryCredentialId,omitempty"`
 }
+
+// BuildIdParam defines model for buildIdParam.
+type BuildIdParam = BuildId
 
 // BuildSourceIdParam defines model for buildSourceIdParam.
 type BuildSourceIdParam = BuildSourceId

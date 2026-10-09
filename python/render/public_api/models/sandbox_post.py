@@ -8,7 +8,7 @@ from ..models.sandbox_plan import SandboxPlan
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.sandbox_network_policy import SandboxNetworkPolicy
+    from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST
     from ..models.sandbox_post_env import SandboxPOSTEnv
 
 
@@ -20,11 +20,13 @@ class SandboxPOST:
     """
     Attributes:
         owner_id (str): The ID of the workspace the sandbox belongs to.
-        network_policy (Union[Unset, SandboxNetworkPolicy]):
+        network_policy (Union[Unset, SandboxNetworkPolicyPOST]): Set either `type` or its deprecated alias `default`.
+            Sending both is
+            only accepted when they name the same policy.
         plan (Union[Unset, SandboxPlan]): Compute plan. Sizing matches Workflow plans of the same name. Default:
             SandboxPlan.STARTER.
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-            Default: 7200.
+            Default: 86400.
         region (Union[Unset, str]): Render region. Defaults to the workspace default.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
         snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
@@ -36,9 +38,9 @@ class SandboxPOST:
     """
 
     owner_id: str
-    network_policy: Union[Unset, "SandboxNetworkPolicy"] = UNSET
+    network_policy: Union[Unset, "SandboxNetworkPolicyPOST"] = UNSET
     plan: Union[Unset, SandboxPlan] = SandboxPlan.STARTER
-    timeout_seconds: Union[Unset, int] = 7200
+    timeout_seconds: Union[Unset, int] = 86400
     region: Union[Unset, str] = UNSET
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
@@ -94,18 +96,18 @@ class SandboxPOST:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_network_policy import SandboxNetworkPolicy
+        from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST
         from ..models.sandbox_post_env import SandboxPOSTEnv
 
         d = dict(src_dict)
         owner_id = d.pop("ownerId")
 
         _network_policy = d.pop("networkPolicy", UNSET)
-        network_policy: Union[Unset, SandboxNetworkPolicy]
+        network_policy: Union[Unset, SandboxNetworkPolicyPOST]
         if isinstance(_network_policy, Unset):
             network_policy = UNSET
         else:
-            network_policy = SandboxNetworkPolicy.from_dict(_network_policy)
+            network_policy = SandboxNetworkPolicyPOST.from_dict(_network_policy)
 
         _plan = d.pop("plan", UNSET)
         plan: Union[Unset, SandboxPlan]

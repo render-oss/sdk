@@ -112,7 +112,7 @@ describe("SandboxesClient", () => {
             id: "sbx-123",
             status: "running",
             plan: "standard",
-            networkPolicy: { default: "deny-all" },
+            networkPolicy: { type: "deny-all" },
             region: "oregon",
             timeoutSeconds: 300,
             createdAt: "2026-08-12T00:00:00Z",
@@ -234,6 +234,25 @@ describe("SandboxesClient", () => {
   });
 
   describe("create", () => {
+    it.each([
+      { type: "deny-all" as const },
+      { type: "allow-all" as const },
+      { default: "deny-all" as const },
+      {
+        type: "allow-list" as const,
+        rules: [{ domain: "example.com", protocol: "https" as const }],
+      },
+    ])("forwards network policy %j", async (networkPolicy) => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient, "tea-test");
+
+      await client.create({ networkPolicy });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", networkPolicy },
+      });
+    });
+
     it("keeps snapshot ID and snapshot name mutually exclusive in the public type", () => {
       expectTypeOf<{ snapshotId: string }>().toExtend<SandboxCreateInput>();
       expectTypeOf<{ snapshotName: string }>().toExtend<SandboxCreateInput>();

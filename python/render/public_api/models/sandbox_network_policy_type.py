@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SandboxNetworkPolicyDefault(str, Enum):
+class SandboxNetworkPolicyType(str, Enum):
     ALLOW_ALL = "allow-all"
     ALLOW_LIST = "allow-list"
     DENY_ALL = "deny-all"
