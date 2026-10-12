@@ -261,13 +261,15 @@ type BuildSource struct {
 
 // BuildSourceGit defines model for buildSourceGit.
 type BuildSourceGit struct {
-	BaseDir      *string `json:"baseDir,omitempty"`
 	Branch       *string `json:"branch,omitempty"`
 	BuildCommand *string `json:"buildCommand,omitempty"`
 
 	// BuildFilter Glob patterns matched against files changed by a commit. When set, a commit only triggers a build when at least one changed file matches `paths` and none match `ignoredPaths`. Useful for monorepos where a single repo backs many services.
-	BuildFilter    *BuildFilter `json:"buildFilter,omitempty"`
-	DockerfilePath *string      `json:"dockerfilePath,omitempty"`
+	BuildFilter *BuildFilter `json:"buildFilter,omitempty"`
+
+	// DockerContext Directory passed to `docker build` as the build context, relative to the repository root. Only valid for the `docker` runtime. Defaults to ".".
+	DockerContext  *string `json:"dockerContext,omitempty"`
+	DockerfilePath *string `json:"dockerfilePath,omitempty"`
 
 	// Region Defaults to "oregon"
 	Region               *BuildSourceGitRegion `json:"region,omitempty"`
@@ -297,13 +299,15 @@ type BuildSourceImage struct {
 
 // BuildSourcePATCHGit defines model for buildSourcePATCHGit.
 type BuildSourcePATCHGit struct {
-	BaseDir      *string `json:"baseDir,omitempty"`
 	Branch       *string `json:"branch,omitempty"`
 	BuildCommand *string `json:"buildCommand,omitempty"`
 
 	// BuildFilter Glob patterns matched against files changed by a commit. When set, a commit only triggers a build when at least one changed file matches `paths` and none match `ignoredPaths`. Useful for monorepos where a single repo backs many services.
-	BuildFilter    *BuildFilter `json:"buildFilter,omitempty"`
-	DockerfilePath *string      `json:"dockerfilePath,omitempty"`
+	BuildFilter *BuildFilter `json:"buildFilter,omitempty"`
+
+	// DockerContext Directory passed to `docker build` as the build context, relative to the repository root. Only valid for the `docker` runtime.
+	DockerContext  *string `json:"dockerContext,omitempty"`
+	DockerfilePath *string `json:"dockerfilePath,omitempty"`
 
 	// Region Region for the build. Honored only when this PATCH performs an image→build transition; rejected on a pure build patch (the cluster is pinned for an existing build), and must match the prior build region when switching back to build after time as an external image. Defaults to "oregon" for first-time builds.
 	Region *BuildSourcePATCHGitRegion `json:"region,omitempty"`

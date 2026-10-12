@@ -24,6 +24,17 @@ type (
 	LimitParam         = client.LimitParam
 	CursorParam        = client.CursorParam
 	OwnerIdParam       = client.OwnerIdParam
+	ListObjectsParams  = client.ListObjectsParams
+	Region             = client.Region
+)
+
+// Constants for Region
+const (
+	RegionFrankfurt = client.Frankfurt
+	RegionOhio      = client.Ohio
+	RegionOregon    = client.Oregon
+	RegionSingapore = client.Singapore
+	RegionVirginia  = client.Virginia
 )
 
 // Constants for TaskRunStatus

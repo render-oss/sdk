@@ -12,24 +12,6 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for ExistingResourceMode.
-const (
-	AdoptExisting ExistingResourceMode = "adopt"
-	CreateNew     ExistingResourceMode = "create_new"
-)
-
-// Valid indicates whether the value is a known member of the ExistingResourceMode enum.
-func (e ExistingResourceMode) Valid() bool {
-	switch e {
-	case AdoptExisting:
-		return true
-	case CreateNew:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for ResourceRefType.
 const (
 	BackgroundWorker ResourceRefType = "background_worker"
@@ -203,56 +185,10 @@ type BlueprintPATCH struct {
 // Example: render.yaml
 type BlueprintPath = string
 
-// BlueprintSource defines model for blueprintSource.
-type BlueprintSource struct {
-	// Branch Branch to read. Defaults to the repository default branch.
-	Branch *string `json:"branch,omitempty"`
-
-	// Path Path to the Blueprint file in the repository.
-	Path *string `json:"path,omitempty"`
-
-	// Repo URL of the connected Git repository.
-	//
-	// Example: https://github.com/my-username/my-repository
-	Repo string `json:"repo"`
-}
-
 // CommitRef defines model for commitRef.
 type CommitRef struct {
 	Id string `json:"id"`
 }
-
-// CreateBlueprintRequest defines model for createBlueprintRequest.
-type CreateBlueprintRequest struct {
-	AutoSync *AutoSync `json:"autoSync,omitempty"`
-
-	// ExistingResources How Sync planning should handle existing resources.
-	// `adopt` brings matching existing resources under this Blueprint's management
-	// and updates their configuration to match the Blueprint file.
-	// `create_new` creates a separate set of resources, leaving existing resources unchanged.
-	ExistingResources *ExistingResourceMode `json:"existingResources,omitempty"`
-
-	// Name Name for the Blueprint. Defaults to an empty name.
-	Name *string `json:"name,omitempty"`
-
-	// OwnerId ID of the workspace in which to create the Blueprint.
-	//
-	// Example: tea-cjnxpkdhshc73d12t9i0
-	OwnerId string          `json:"ownerId"`
-	Source  BlueprintSource `json:"source"`
-}
-
-// CreateBlueprintResponse The newly created Blueprint
-type CreateBlueprintResponse struct {
-	Blueprint Blueprint `json:"blueprint"`
-	Sync      Sync      `json:"sync"`
-}
-
-// ExistingResourceMode How Sync planning should handle existing resources.
-// `adopt` brings matching existing resources under this Blueprint's management
-// and updates their configuration to match the Blueprint file.
-// `create_new` creates a separate set of resources, leaving existing resources unchanged.
-type ExistingResourceMode string
 
 // ResourceRef defines model for resourceRef.
 type ResourceRef struct {

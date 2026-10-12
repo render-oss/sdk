@@ -22,19 +22,19 @@ T = TypeVar("T", bound="CronJobDetailsPOST")
 class CronJobDetailsPOST:
     """
     Attributes:
-        runtime (ServiceRuntime): Runtime
         schedule (str):
         build_source_id (Union[Unset, str]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
+        runtime (Union[Unset, ServiceRuntime]): Runtime
         env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails', Unset]):
         plan (Union[Unset, PaidPlan]): Defaults to `0.5c-512mb` when creating a new service.
         region (Union[Unset, Region]): Defaults to "oregon"
     """
 
-    runtime: ServiceRuntime
     schedule: str
     build_source_id: Union[Unset, str] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
+    runtime: Union[Unset, ServiceRuntime] = UNSET
     env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails", Unset] = UNSET
     plan: Union[Unset, PaidPlan] = UNSET
     region: Union[Unset, Region] = UNSET
@@ -43,8 +43,6 @@ class CronJobDetailsPOST:
     def to_dict(self) -> dict[str, Any]:
         from ..models.docker_details import DockerDetails
 
-        runtime = self.runtime.value
-
         schedule = self.schedule
 
         build_source_id = self.build_source_id
@@ -52,6 +50,10 @@ class CronJobDetailsPOST:
         env: Union[Unset, str] = UNSET
         if not isinstance(self.env, Unset):
             env = self.env.value
+
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         env_specific_details: Union[Unset, dict[str, Any]]
         if isinstance(self.env_specific_details, Unset):
@@ -73,7 +75,6 @@ class CronJobDetailsPOST:
         field_dict.update(self.additional_properties)
         field_dict.update(
             {
-                "runtime": runtime,
                 "schedule": schedule,
             }
         )
@@ -81,6 +82,8 @@ class CronJobDetailsPOST:
             field_dict["buildSourceId"] = build_source_id
         if env is not UNSET:
             field_dict["env"] = env
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if env_specific_details is not UNSET:
             field_dict["envSpecificDetails"] = env_specific_details
         if plan is not UNSET:
@@ -96,8 +99,6 @@ class CronJobDetailsPOST:
         from ..models.native_environment_details import NativeEnvironmentDetails
 
         d = dict(src_dict)
-        runtime = ServiceRuntime(d.pop("runtime"))
-
         schedule = d.pop("schedule")
 
         build_source_id = d.pop("buildSourceId", UNSET)
@@ -108,6 +109,13 @@ class CronJobDetailsPOST:
             env = UNSET
         else:
             env = ServiceEnv(_env)
+
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, ServiceRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = ServiceRuntime(_runtime)
 
         def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails", Unset]:
             if isinstance(data, Unset):
@@ -143,10 +151,10 @@ class CronJobDetailsPOST:
             region = Region(_region)
 
         cron_job_details_post = cls(
-            runtime=runtime,
             schedule=schedule,
             build_source_id=build_source_id,
             env=env,
+            runtime=runtime,
             env_specific_details=env_specific_details,
             plan=plan,
             region=region,

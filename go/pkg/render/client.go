@@ -22,9 +22,12 @@ type Client struct {
 	internal *client.ClientWithResponses
 	token    string
 	baseURL  string
+	ownerID  string
+	region   string
 
 	// Service clients
-	Workflows *WorkflowsService
+	Workflows    *WorkflowsService
+	Experimental *ExperimentalService
 }
 
 type ClientOption func(*Client) error
@@ -41,6 +44,38 @@ func WithToken(token string) ClientOption {
 		c.token = token
 		return nil
 	}
+}
+
+// WithOwnerID sets the default owner (workspace) ID for sandboxes. Object
+// storage takes the owner ID per call instead. It falls back to the RENDER_WORKSPACE_ID environment variable.
+func WithOwnerID(ownerID string) ClientOption {
+	return func(c *Client) error {
+		c.ownerID = ownerID
+		return nil
+	}
+}
+
+// WithRegion sets the default region for sandboxes. Object storage takes the
+// region per call instead. It falls back to the RENDER_REGION environment variable.
+func WithRegion(region string) ClientOption {
+	return func(c *Client) error {
+		c.region = region
+		return nil
+	}
+}
+
+func (c *Client) defaultOwnerID() string {
+	if c.ownerID != "" {
+		return c.ownerID
+	}
+	return os.Getenv("RENDER_WORKSPACE_ID")
+}
+
+func (c *Client) defaultRegion() string {
+	if c.region != "" {
+		return c.region
+	}
+	return os.Getenv("RENDER_REGION")
 }
 
 // NewClient creates a new Render API client
@@ -101,9 +136,12 @@ func NewClient(options ...ClientOption) (*Client, error) {
 		internal: internalClient,
 		token:    tempClient.token,
 		baseURL:  baseURL,
+		ownerID:  tempClient.ownerID,
+		region:   tempClient.region,
 	}
 
 	renderClient.Workflows = &WorkflowsService{client: renderClient}
+	renderClient.Experimental = newExperimentalService(renderClient)
 
 	return renderClient, nil
 }
@@ -136,5 +174,6 @@ func NewSocketClient(unixSocketPath string) (*Client, error) {
 	}
 
 	renderClient.Workflows = &WorkflowsService{client: renderClient}
+	renderClient.Experimental = newExperimentalService(renderClient)
 	return renderClient, nil
 }

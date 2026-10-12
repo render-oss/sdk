@@ -20,7 +20,7 @@ repos:
       - id: check-toml
 
   - repo: https://github.com/golangci/golangci-lint
-    rev: v2.4.0
+    rev: v2.14.0
     hooks:
       - id: golangci-lint
         entry: bash -c 'cd go && golangci-lint run'

@@ -20,21 +20,7 @@ export interface paths {
          */
         get: operations["list-blueprints"];
         put?: never;
-        /**
-         * Create a new Blueprint
-         * @description Create a new Blueprint to configure infrastructure as code.
-         *     See [Render Blueprints](https://render.com/docs/infrastructure-as-code) for more information.
-         *
-         *     This endpoint finds an existing matching Blueprint or creates one, then creates
-         *     a new Sync. A Blueprint matches when it has the same workspace, repository,
-         *     branch, Blueprint file path, and existing-resource mode. The Blueprint name and
-         *     auto-sync setting do not affect matching.
-         *
-         *     A successful response means Render connected to the repository and read the
-         *     Blueprint file. Review the returned Sync to see the resource changes the Blueprint
-         *     would make.
-         */
-        post: operations["create-blueprint"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4880,7 +4866,8 @@ export interface components {
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
-            runtime: components["schemas"]["serviceRuntime"];
+            /** @description Required unless `buildSourceId` is set, since the build source provides its own runtime. */
+            runtime?: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetailsPOST"];
             healthCheckPath?: string;
             maintenanceMode?: components["schemas"]["maintenanceMode"];
@@ -4906,7 +4893,8 @@ export interface components {
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
-            runtime: components["schemas"]["serviceRuntime"];
+            /** @description Required unless `buildSourceId` is set, since the build source provides its own runtime. */
+            runtime?: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetailsPOST"];
             /**
              * @description Defaults to 1
@@ -4926,7 +4914,8 @@ export interface components {
             autoscaling?: components["schemas"]["autoscalingConfig"];
             disk?: components["schemas"]["serviceDisk"];
             env?: components["schemas"]["serviceEnv"];
-            runtime: components["schemas"]["serviceRuntime"];
+            /** @description Required unless `buildSourceId` is set, since the build source provides its own runtime. */
+            runtime?: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetailsPOST"];
             /**
              * @description Defaults to 1
@@ -4944,14 +4933,15 @@ export interface components {
             /** @description The ID of the Build Source to build and deploy from. Provides all source and build configuration: omit `repo`, `branch`, `image`, `buildFilter`, `runtime`, and build-related `envSpecificDetails` fields when set. */
             buildSourceId?: components["schemas"]["buildSourceId"];
             env?: components["schemas"]["serviceEnv"];
-            runtime: components["schemas"]["serviceRuntime"];
+            /** @description Required unless `buildSourceId` is set, since the build source provides its own runtime. */
+            runtime?: components["schemas"]["serviceRuntime"];
             envSpecificDetails?: components["schemas"]["envSpecificDetails"];
             plan?: components["schemas"]["paidPlan"];
             region?: components["schemas"]["region"];
             schedule: string;
         };
         servicePATCH: {
-            /** @description The ID of the Build Source to attach this service to. Cannot be combined with other build-configuration changes. Attaching to a Build Source with no builds triggers one. */
+            /** @description The ID of the Build Source to link this service to. Cannot be combined with other build-configuration changes. */
             buildSourceId?: components["schemas"]["buildSourceId"];
             buildId?: string;
             autoDeploy?: components["schemas"]["autoDeploy"];
@@ -5944,66 +5934,6 @@ export interface components {
             /** Format: date-time */
             lastSync?: string;
         };
-        /**
-         * @description How Sync planning should handle existing resources.
-         *     `adopt` brings matching existing resources under this Blueprint's management
-         *     and updates their configuration to match the Blueprint file.
-         *     `create_new` creates a separate set of resources, leaving existing resources unchanged.
-         * @default adopt
-         * @enum {string}
-         */
-        existingResourceMode: "adopt" | "create_new";
-        blueprintSource: {
-            /**
-             * @description URL of the connected Git repository.
-             * @example https://github.com/my-username/my-repository
-             */
-            repo: string;
-            /** @description Branch to read. Defaults to the repository default branch. */
-            branch?: string;
-            /**
-             * @description Path to the Blueprint file in the repository.
-             * @default render.yaml
-             */
-            path: string;
-        };
-        createBlueprintRequest: {
-            /**
-             * @description ID of the workspace in which to create the Blueprint.
-             * @example tea-cjnxpkdhshc73d12t9i0
-             */
-            ownerId: string;
-            /**
-             * @description Name for the Blueprint. Defaults to an empty name.
-             * @default
-             */
-            name: string;
-            /** @default true */
-            autoSync: components["schemas"]["autoSync"];
-            existingResources?: components["schemas"]["existingResourceMode"];
-            source: components["schemas"]["blueprintSource"];
-        };
-        /** @example exe-cph1rs3idesc73a2b2mg */
-        syncId: string;
-        commitRef: {
-            id: string;
-        };
-        /** @enum {string} */
-        syncState: "created" | "pending" | "running" | "error" | "success";
-        sync: {
-            id: components["schemas"]["syncId"];
-            commit: components["schemas"]["commitRef"];
-            /** Format: date-time */
-            startedAt?: string;
-            /** Format: date-time */
-            completedAt?: string;
-            state: components["schemas"]["syncState"];
-        };
-        /** @description The newly created Blueprint */
-        createBlueprintResponse: {
-            blueprint: components["schemas"]["blueprint"];
-            sync: components["schemas"]["sync"];
-        };
         validateBlueprintRequest: {
             /**
              * @description The ID of the workspace to validate against. Obtain your workspace ID from its Settings page in the Render Dashboard.
@@ -6073,6 +6003,22 @@ export interface components {
             name?: string;
             autoSync?: components["schemas"]["autoSync"];
             path?: components["schemas"]["blueprintPath"];
+        };
+        /** @example exe-cph1rs3idesc73a2b2mg */
+        syncId: string;
+        commitRef: {
+            id: string;
+        };
+        /** @enum {string} */
+        syncState: "created" | "pending" | "running" | "error" | "success";
+        sync: {
+            id: components["schemas"]["syncId"];
+            commit: components["schemas"]["commitRef"];
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            state: components["schemas"]["syncState"];
         };
         /** @example dsk-cph1rs3idesc73a2b2mg */
         diskId: string;
@@ -6937,10 +6883,11 @@ export interface components {
             ignoredPaths: string[];
         };
         buildSourceGit: {
-            baseDir?: string;
             branch?: string;
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
+            /** @description Directory passed to `docker build` as the build context, relative to the repository root. Only valid for the `docker` runtime. Defaults to ".". */
+            dockerContext?: string;
             dockerfilePath?: string;
             /**
              * @description Build runtime for the build source. Static sites are not supported for build sources.
@@ -7002,10 +6949,11 @@ export interface components {
             envGroupIds?: string[];
         };
         buildSourcePATCHGit: {
-            baseDir?: string;
             branch?: string;
             buildCommand?: string;
             buildFilter?: components["schemas"]["schemas-buildFilter"];
+            /** @description Directory passed to `docker build` as the build context, relative to the repository root. Only valid for the `docker` runtime. */
+            dockerContext?: string;
             dockerfilePath?: string;
             /**
              * @description Build runtime for the build source. Static sites are not supported for build sources.
@@ -8219,72 +8167,6 @@ export interface operations {
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
-        };
-    };
-    "create-blueprint": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["createBlueprintRequest"];
-            };
-        };
-        responses: {
-            /** @description Blueprint found or created, and new Sync created. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["createBlueprintResponse"];
-                };
-            };
-            /** @description Invalid request. The repository, branch, or path may be inaccessible or incorrect. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
-            401: components["responses"]["401Unauthorized"];
-            403: components["responses"]["403Forbidden"];
-            /** @description The workspace was not found, or this early-access endpoint is not enabled yet for your workspace. Email tej@render.com to request access. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
-            429: components["responses"]["429RateLimit"];
-            /** @description An unexpected internal failure. This response does not guarantee that no Blueprint was persisted. */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
-            /**
-             * @description We were unable to create a Blueprint because the selected Git provider was
-             *     unavailable. Retry later.
-             */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
         };
     };
     "validate-blueprint": {

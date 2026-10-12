@@ -1875,7 +1875,7 @@ type BackgroundWorkerDetailsPOST struct {
 	Region *Region `json:"region,omitempty"`
 
 	// Runtime Runtime
-	Runtime ServiceRuntime `json:"runtime"`
+	Runtime ServiceRuntime `json:"runtime,omitempty"`
 }
 
 // BlueprintWithCursor A Blueprint with a cursor
@@ -1960,7 +1960,7 @@ type CronJobDetailsPOST struct {
 	Region *Region `json:"region,omitempty"`
 
 	// Runtime Runtime
-	Runtime  ServiceRuntime `json:"runtime"`
+	Runtime  ServiceRuntime `json:"runtime,omitempty"`
 	Schedule string         `json:"schedule"`
 }
 
@@ -2916,7 +2916,7 @@ type PrivateServiceDetailsPOST struct {
 	Region *Region `json:"region,omitempty"`
 
 	// Runtime Runtime
-	Runtime ServiceRuntime `json:"runtime"`
+	Runtime ServiceRuntime `json:"runtime,omitempty"`
 }
 
 // Project A project is a collection of environments
@@ -3682,7 +3682,7 @@ type WebServiceDetailsPOST struct {
 	RenderSubdomainPolicy *RenderSubdomainPolicy `json:"renderSubdomainPolicy,omitempty"`
 
 	// Runtime Runtime
-	Runtime ServiceRuntime `json:"runtime"`
+	Runtime ServiceRuntime `json:"runtime,omitempty"`
 }
 
 // WebhookEventWithCursor defines model for webhookEventWithCursor.
@@ -5532,9 +5532,6 @@ type ListWorkflowVersionsParams struct {
 	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
-
-// CreateBlueprintJSONRequestBody defines body for CreateBlueprint for application/json ContentType.
-type CreateBlueprintJSONRequestBody = externalRef2.CreateBlueprintRequest
 
 // ValidateBlueprintMultipartRequestBody defines body for ValidateBlueprint for multipart/form-data ContentType.
 type ValidateBlueprintMultipartRequestBody = externalRef2.ValidateBlueprintRequest

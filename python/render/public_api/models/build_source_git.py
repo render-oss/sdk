@@ -21,12 +21,13 @@ class BuildSourceGit:
     Attributes:
         runtime (BuildSourceGitRuntime): Build runtime for the build source. Static sites are not supported for build
             sources.
-        base_dir (Union[Unset, str]):
         branch (Union[Unset, str]):
         build_command (Union[Unset, str]):
         build_filter (Union[Unset, SchemasBuildFilter]): Glob patterns matched against files changed by a commit. When
             set, a commit only triggers a build when at least one changed file matches `paths` and none match
             `ignoredPaths`. Useful for monorepos where a single repo backs many services.
+        docker_context (Union[Unset, str]): Directory passed to `docker build` as the build context, relative to the
+            repository root. Only valid for the `docker` runtime. Defaults to ".".
         dockerfile_path (Union[Unset, str]):
         registry_credential_id (Union[Unset, str]):
         region (Union[Unset, BuildSourceGitRegion]): Defaults to "oregon" Default: BuildSourceGitRegion.OREGON.
@@ -35,10 +36,10 @@ class BuildSourceGit:
     """
 
     runtime: BuildSourceGitRuntime
-    base_dir: Union[Unset, str] = UNSET
     branch: Union[Unset, str] = UNSET
     build_command: Union[Unset, str] = UNSET
     build_filter: Union[Unset, "SchemasBuildFilter"] = UNSET
+    docker_context: Union[Unset, str] = UNSET
     dockerfile_path: Union[Unset, str] = UNSET
     registry_credential_id: Union[Unset, str] = UNSET
     region: Union[Unset, BuildSourceGitRegion] = BuildSourceGitRegion.OREGON
@@ -49,8 +50,6 @@ class BuildSourceGit:
     def to_dict(self) -> dict[str, Any]:
         runtime = self.runtime.value
 
-        base_dir = self.base_dir
-
         branch = self.branch
 
         build_command = self.build_command
@@ -58,6 +57,8 @@ class BuildSourceGit:
         build_filter: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.build_filter, Unset):
             build_filter = self.build_filter.to_dict()
+
+        docker_context = self.docker_context
 
         dockerfile_path = self.dockerfile_path
 
@@ -78,14 +79,14 @@ class BuildSourceGit:
                 "runtime": runtime,
             }
         )
-        if base_dir is not UNSET:
-            field_dict["baseDir"] = base_dir
         if branch is not UNSET:
             field_dict["branch"] = branch
         if build_command is not UNSET:
             field_dict["buildCommand"] = build_command
         if build_filter is not UNSET:
             field_dict["buildFilter"] = build_filter
+        if docker_context is not UNSET:
+            field_dict["dockerContext"] = docker_context
         if dockerfile_path is not UNSET:
             field_dict["dockerfilePath"] = dockerfile_path
         if registry_credential_id is not UNSET:
@@ -106,8 +107,6 @@ class BuildSourceGit:
         d = dict(src_dict)
         runtime = BuildSourceGitRuntime(d.pop("runtime"))
 
-        base_dir = d.pop("baseDir", UNSET)
-
         branch = d.pop("branch", UNSET)
 
         build_command = d.pop("buildCommand", UNSET)
@@ -118,6 +117,8 @@ class BuildSourceGit:
             build_filter = UNSET
         else:
             build_filter = SchemasBuildFilter.from_dict(_build_filter)
+
+        docker_context = d.pop("dockerContext", UNSET)
 
         dockerfile_path = d.pop("dockerfilePath", UNSET)
 
@@ -136,10 +137,10 @@ class BuildSourceGit:
 
         build_source_git = cls(
             runtime=runtime,
-            base_dir=base_dir,
             branch=branch,
             build_command=build_command,
             build_filter=build_filter,
+            docker_context=docker_context,
             dockerfile_path=dockerfile_path,
             registry_credential_id=registry_credential_id,
             region=region,

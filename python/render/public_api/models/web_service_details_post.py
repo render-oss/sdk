@@ -30,11 +30,11 @@ T = TypeVar("T", bound="WebServiceDetailsPOST")
 class WebServiceDetailsPOST:
     """
     Attributes:
-        runtime (ServiceRuntime): Runtime
         build_source_id (Union[Unset, str]):
         autoscaling (Union[Unset, AutoscalingConfig]):
         disk (Union[Unset, ServiceDisk]):
         env (Union[Unset, ServiceEnv]): This field has been deprecated, runtime should be used in its place.
+        runtime (Union[Unset, ServiceRuntime]): Runtime
         env_specific_details (Union['DockerDetailsPOST', 'NativeEnvironmentDetailsPOST', Unset]):
         health_check_path (Union[Unset, str]):
         maintenance_mode (Union[Unset, MaintenanceMode]):
@@ -58,11 +58,11 @@ class WebServiceDetailsPOST:
         ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
     """
 
-    runtime: ServiceRuntime
     build_source_id: Union[Unset, str] = UNSET
     autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
     disk: Union[Unset, "ServiceDisk"] = UNSET
     env: Union[Unset, ServiceEnv] = UNSET
+    runtime: Union[Unset, ServiceRuntime] = UNSET
     env_specific_details: Union["DockerDetailsPOST", "NativeEnvironmentDetailsPOST", Unset] = UNSET
     health_check_path: Union[Unset, str] = UNSET
     maintenance_mode: Union[Unset, "MaintenanceMode"] = UNSET
@@ -81,8 +81,6 @@ class WebServiceDetailsPOST:
     def to_dict(self) -> dict[str, Any]:
         from ..models.docker_details_post import DockerDetailsPOST
 
-        runtime = self.runtime.value
-
         build_source_id = self.build_source_id
 
         autoscaling: Union[Unset, dict[str, Any]] = UNSET
@@ -96,6 +94,10 @@ class WebServiceDetailsPOST:
         env: Union[Unset, str] = UNSET
         if not isinstance(self.env, Unset):
             env = self.env.value
+
+        runtime: Union[Unset, str] = UNSET
+        if not isinstance(self.runtime, Unset):
+            runtime = self.runtime.value
 
         env_specific_details: Union[Unset, dict[str, Any]]
         if isinstance(self.env_specific_details, Unset):
@@ -150,11 +152,7 @@ class WebServiceDetailsPOST:
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "runtime": runtime,
-            }
-        )
+        field_dict.update({})
         if build_source_id is not UNSET:
             field_dict["buildSourceId"] = build_source_id
         if autoscaling is not UNSET:
@@ -163,6 +161,8 @@ class WebServiceDetailsPOST:
             field_dict["disk"] = disk
         if env is not UNSET:
             field_dict["env"] = env
+        if runtime is not UNSET:
+            field_dict["runtime"] = runtime
         if env_specific_details is not UNSET:
             field_dict["envSpecificDetails"] = env_specific_details
         if health_check_path is not UNSET:
@@ -203,8 +203,6 @@ class WebServiceDetailsPOST:
         from ..models.service_disk import ServiceDisk
 
         d = dict(src_dict)
-        runtime = ServiceRuntime(d.pop("runtime"))
-
         build_source_id = d.pop("buildSourceId", UNSET)
 
         _autoscaling = d.pop("autoscaling", UNSET)
@@ -227,6 +225,13 @@ class WebServiceDetailsPOST:
             env = UNSET
         else:
             env = ServiceEnv(_env)
+
+        _runtime = d.pop("runtime", UNSET)
+        runtime: Union[Unset, ServiceRuntime]
+        if isinstance(_runtime, Unset):
+            runtime = UNSET
+        else:
+            runtime = ServiceRuntime(_runtime)
 
         def _parse_env_specific_details(
             data: object,
@@ -314,11 +319,11 @@ class WebServiceDetailsPOST:
             ip_allow_list.append(ip_allow_list_item)
 
         web_service_details_post = cls(
-            runtime=runtime,
             build_source_id=build_source_id,
             autoscaling=autoscaling,
             disk=disk,
             env=env,
+            runtime=runtime,
             env_specific_details=env_specific_details,
             health_check_path=health_check_path,
             maintenance_mode=maintenance_mode,
