@@ -10,6 +10,7 @@ from render import (
     Workflows as Workflows,
     _LAZY_ATTRS as _LAZY_ATTRS,
     __version__ as __version__,
+    _startup as _startup,
     start as start,
     task as task,
 )

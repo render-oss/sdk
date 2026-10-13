@@ -86,6 +86,7 @@ async def test_runner_reads_metadata_from_existing_input_request(
     payload = {"task_name": "record_ids", "input": "W10=", **run_ids}
     request = mocker.patch.object(UDSClient, "_request", new_callable=mocker.AsyncMock)
     request.side_effect = [payload, None]
+    mocker.patch("render._startup.input_query", return_value="")
     mocker.patch(
         "render.workflows.runner.get_task_registry", return_value=task_registry
     )

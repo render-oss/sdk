@@ -5,6 +5,7 @@ from datetime import datetime
 
 import pytest
 
+from render import _startup
 from render.workflows._callback_models import RunSubtaskRequest, RunSubtaskResponse
 from render.workflows.client import Status, TaskResultResponse, UDSClient
 
@@ -57,3 +58,32 @@ async def test_run_subtask_generates_a_distinct_key_per_call(monkeypatch, tmp_pa
     assert len(keys) == 2
     assert all(uuid.UUID(key).version == 4 for key in keys)
     assert keys[0] != keys[1]
+
+
+@pytest.mark.parametrize(
+    ("started", "finished", "sdk_started", "query"),
+    [
+        (1, 2, 3, "?sdk_import_started_at=1&sdk_import_finished_at=2&sdk_started_at=3"),
+        (None, None, 3, "?sdk_started_at=3"),
+        (None, None, None, ""),
+    ],
+)
+@pytest.mark.asyncio
+async def test_get_input_sends_captured_startup_timestamps(
+    monkeypatch, tmp_path, started, finished, sdk_started, query
+):
+    monkeypatch.setattr(_startup, "_import_started_ns", started)
+    monkeypatch.setattr(_startup, "_import_finished_ns", finished)
+    monkeypatch.setattr(_startup, "_sdk_started_ns", sdk_started)
+    client = UDSClient(str(tmp_path / "test.sock"))
+    paths: list[str] = []
+
+    async def fake_request(method, path, body):
+        paths.append(path)
+        return {"task_name": "t", "input": ""}
+
+    monkeypatch.setattr(client, "_request", fake_request)
+
+    await client.get_input()
+
+    assert paths == ["/input" + query]

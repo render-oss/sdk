@@ -30,7 +30,7 @@ class FakeWorkflowServer {
   }
 
   private handle(req: http.IncomingMessage, res: http.ServerResponse): void {
-    if (req.url === "/input") {
+    if (req.url?.split("?")[0] === "/input") {
       this.inputRequests++;
       res.setHeader("Content-Type", "application/json");
       res.end(

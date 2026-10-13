@@ -1,3 +1,6 @@
+// Must stay the first import: it records when SDK import began.
+import { markImportFinished } from "./startup.js";
+
 // Main Render SDK class
 
 export * from "./errors.js";
@@ -5,3 +8,5 @@ export * from "./errors.js";
 export type { ExperimentalClient } from "./experimental/index.js";
 export { Render } from "./render.js";
 export { getUserAgent, VERSION } from "./version.js";
+
+markImportFinished();

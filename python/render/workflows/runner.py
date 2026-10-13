@@ -6,6 +6,7 @@ import json
 import logging
 import os
 
+from render import _startup
 from render.workflows._callback_models import (
     UNSET,
     RetryConfig,
@@ -65,6 +66,7 @@ def run(socket_path: str) -> None:
     """
     Run a single task execution (sync wrapper).
     """
+    _startup.mark_sdk_started()
     asyncio.run(run_async(socket_path))
 
 

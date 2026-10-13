@@ -11,6 +11,7 @@ from render.workflows.runner import (
     UNSET as UNSET,
     Unset as Unset,
     _convert_parameter_info_to_api_model as _convert_parameter_info_to_api_model,
+    _startup as _startup,
     get_task_registry as get_task_registry,
     logger as logger,
     register as register,

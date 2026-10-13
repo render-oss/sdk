@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, ParamSpec, TypeVar
 
+from render import _startup
 from render.client.errors import (
     ClientError,
     RateLimitError,
@@ -225,7 +226,7 @@ class UDSClient:
     @_translate_errors("get input")
     async def get_input(self) -> InputResponse:
         """Get the task name and input for a task run."""
-        payload = await self._request("GET", "/input", None)
+        payload = await self._request("GET", "/input" + _startup.input_query(), None)
         if not isinstance(payload, dict):
             raise RenderError(f"get input failed: unexpected response: {payload!r}")
         return InputResponse.from_dict(payload)

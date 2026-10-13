@@ -38,6 +38,7 @@ from render.workflows.client import (
     _UDS_MAX_RETRIES as _UDS_MAX_RETRIES,
     _extract_status_message as _extract_status_message,
     _retry_transient_errors as _retry_transient_errors,
+    _startup as _startup,
     _translate_errors as _translate_errors,
     dataclass as dataclass,
     datetime as datetime,

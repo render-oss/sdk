@@ -1,4 +1,5 @@
 import { RenderError } from "../errors.js";
+import { markSdkStarted } from "../startup.js";
 import { TaskExecutor } from "./executor.js";
 import { markServerStarted } from "./task.js";
 
@@ -7,6 +8,7 @@ import { markServerStarted } from "./task.js";
  */
 export async function startTaskServer(): Promise<void> {
   const mode = process.env.RENDER_SDK_MODE || "run";
+  if (mode === "run") markSdkStarted();
   const socketPath = process.env.RENDER_SDK_SOCKET_PATH;
 
   if (!socketPath) {
@@ -33,6 +35,7 @@ export async function startTaskServer(): Promise<void> {
  * Run a specific task (for testing or direct execution)
  */
 export async function run(socketPath: string): Promise<void> {
+  markSdkStarted();
   const executor = new TaskExecutor(socketPath);
   await executor.executeTask();
 }

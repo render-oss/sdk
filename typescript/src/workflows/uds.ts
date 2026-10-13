@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import http from "node:http";
+import { inputQuery } from "../startup.js";
 import { getUserAgent } from "../version.js";
 
 import type {
@@ -31,7 +32,7 @@ export class UDSClient {
    * Get task input and name
    */
   async getInput(): Promise<GetInputResponse> {
-    return this.request<GetInputResponse>("/input", "GET");
+    return this.request<GetInputResponse>(`/input${inputQuery()}`, "GET");
   }
 
   private buildCallbackBody(results?: any, error?: string): CallbackRequest {

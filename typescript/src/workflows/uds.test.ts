@@ -1,4 +1,5 @@
 import http from "node:http";
+import { markImportFinished, markSdkStarted } from "../startup.js";
 import { UDSClient } from "./uds.js";
 
 vi.mock("node:http");
@@ -6,6 +7,10 @@ vi.mock("node:http");
 type RequestCallback = (res: http.IncomingMessage) => void;
 
 const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+
+const INPUT_PARTIAL_RE = /^\/input\?sdk_import_started_at=\d+$/;
+const INPUT_FULL_RE =
+  /^\/input\?sdk_import_started_at=\d+&sdk_import_finished_at=\d+&sdk_started_at=\d+$/;
 
 // UDSClient request is private, so stub the type for testing.
 interface UDSClientRequestable {
@@ -54,6 +59,25 @@ function mockHttpRequestSequence(
 describe("UDSClient", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe("startup timestamps", () => {
+    it("sends captured timestamps on getInput only, omitting missing ones", async () => {
+      mockHttpRequestSequence([{ statusCode: 200, body: '{"task_name":"t","input":"W10="}' }]);
+      const client = new UDSClient("/tmp/test.sock");
+      await client.getInput();
+      markImportFinished();
+      markSdkStarted();
+      await client.getInput();
+      await client.sendCallback("result");
+
+      const paths = vi
+        .mocked(http.request)
+        .mock.calls.map(([options]) => (options as http.RequestOptions).path);
+      expect(paths[0]).toMatch(INPUT_PARTIAL_RE);
+      expect(paths[1]).toMatch(INPUT_FULL_RE);
+      expect(paths[2]).toBe("/callback");
+    });
   });
 
   describe("request (Content-Length via Buffer.byteLength)", () => {

@@ -33,6 +33,9 @@ Async REST API access:
     result = await task_run
 """
 
+# Must stay the first import: it records when SDK import began.
+from render import _startup
+
 __version__ = "1.2.0"
 
 # Render/RenderAsync are lazy-loaded so the workflow worker path stays fast.
@@ -98,3 +101,5 @@ def __dir__() -> list[str]:
 #
 # Raw API access available via:
 #   from render.public_api import AuthenticatedClient
+
+_startup.mark_import_finished()

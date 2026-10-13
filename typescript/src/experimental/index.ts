@@ -1,3 +1,6 @@
+// Must stay the first import: it records when SDK import began.
+import { markImportFinished } from "../startup.js";
+
 // Experimental client
 
 export { ExperimentalClient, StorageClient } from "./experimental.js";
@@ -45,3 +48,5 @@ export {
   type SandboxUploadData,
   type SandboxUploadOptions,
 } from "./sandboxes/index.js";
+
+markImportFinished();
