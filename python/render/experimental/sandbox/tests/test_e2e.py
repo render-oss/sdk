@@ -22,7 +22,10 @@ from uuid import uuid4
 
 import pytest
 
+from render.client.errors import ClientError
 from render.experimental.sandbox import (
+    EgressRule,
+    NetworkPolicy,
     SandboxExecExit,
     SandboxExecOutput,
     SandboxFileNotFoundError,
@@ -172,6 +175,50 @@ async def test_create_exec_terminate(sandboxes):
                 exit_event = event
         assert exit_event is not None
         assert exit_event.exit_code == 3
+    finally:
+        await sandboxes.terminate(sandbox.id, owner_id=owner_id)
+
+
+async def _exec_exit_code(sandboxes, sandbox_id, owner_id, command):
+    """Run command and return its exit code, whatever it is."""
+    exit_event = None
+    async for event in sandboxes.exec(sandbox_id, command, owner_id=owner_id):
+        if isinstance(event, SandboxExecExit):
+            exit_event = event
+    assert exit_event is not None
+    return exit_event.exit_code
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("domains", [["example.com"], []])
+async def test_allow_list_network_policy_limits_egress(sandboxes, domains):
+    owner_id = _OWNER_ID
+    policy = NetworkPolicy(
+        type="allow-list", rules=[EgressRule(domain=d) for d in domains]
+    )
+
+    if not domains:
+        # The API requires a rule despite the schema omitting minItems.
+        with pytest.raises(ClientError, match="rules must list at least one rule"):
+            await sandboxes.create(owner_id=owner_id, network_policy=policy)
+        return
+    sandbox = await sandboxes.create(owner_id=owner_id, network_policy=policy)
+    try:
+        assert sandbox.network_policy == policy
+        await _wait_until_running(sandboxes, sandbox.id, owner_id)
+
+        fetched = await sandboxes.from_id(sandbox.id, owner_id=owner_id)
+        assert fetched.network_policy == policy
+
+        curl = "curl -sS -o /dev/null --max-time 15"
+        allowed = await _exec_exit_code(
+            sandboxes, sandbox.id, owner_id, f"{curl} https://example.com"
+        )
+        assert allowed == 0, f"allow-listed domain exited {allowed}"
+        blocked = await _exec_exit_code(
+            sandboxes, sandbox.id, owner_id, f"{curl} https://www.render.com"
+        )
+        assert blocked != 0, "domain outside the allow-list was reachable"
     finally:
         await sandboxes.terminate(sandbox.id, owner_id=owner_id)
 
@@ -353,3 +400,47 @@ async def test_restore_from_named_snapshot(sandboxes):
         results = await asyncio.gather(*cleanup, return_exceptions=True)
         errors = [result for result in results if isinstance(result, BaseException)]
         assert not errors, f"resource cleanup failed: {errors}"
+
+
+@pytest.mark.parametrize("domains", [["example.com"], []])
+def test_sync_allow_list_network_policy_limits_egress(domains):
+    from render.render import Render
+
+    sandboxes = Render(
+        base_url=os.environ.get("RENDER_BASE_URL") or "https://api.render.com"
+    ).experimental.sandboxes
+    policy = NetworkPolicy(
+        type="allow-list", rules=[EgressRule(domain=d) for d in domains]
+    )
+    if not domains:
+        with pytest.raises(ClientError, match="rules must list at least one rule"):
+            sandboxes.create(owner_id=_OWNER_ID, network_policy=policy)
+        return
+    sandbox = sandboxes.create(owner_id=_OWNER_ID, network_policy=policy)
+    try:
+        assert sandbox.network_policy == policy
+        deadline = time.monotonic() + 180
+        while True:
+            fetched = sandboxes.from_id(sandbox.id, owner_id=_OWNER_ID)
+            assert fetched.network_policy == policy
+            if fetched.status == "running":
+                break
+            assert fetched.status not in {"errored", "terminated"}
+            assert time.monotonic() < deadline, "sandbox did not become running"
+            time.sleep(2)
+        for domain in ["example.com", "www.render.com"]:
+            exit_code = None
+            for event in sandboxes.exec(
+                sandbox.id,
+                f"curl -sS -o /dev/null --max-time 15 https://{domain}",
+                owner_id=_OWNER_ID,
+            ):
+                if isinstance(event, SandboxExecExit):
+                    exit_code = event.exit_code
+            assert exit_code is not None
+            if domain in domains:
+                assert exit_code == 0, f"allow-listed domain exited {exit_code}"
+            else:
+                assert exit_code != 0, "domain outside the allow-list was reachable"
+    finally:
+        sandboxes.terminate(sandbox.id, owner_id=_OWNER_ID)

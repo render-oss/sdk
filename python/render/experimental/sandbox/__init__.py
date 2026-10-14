@@ -12,6 +12,8 @@ from render.experimental.sandbox.errors import (
     SnapshotPlanMismatchError,
 )
 from render.experimental.sandbox.types import (
+    EgressRule,
+    NetworkPolicy,
     Sandbox,
     SandboxExecEvent,
     SandboxExecExit,
@@ -24,6 +26,8 @@ from render.experimental.sandbox.types import (
 )
 
 __all__ = [
+    "EgressRule",
+    "NetworkPolicy",
     "Sandbox",
     "SandboxClient",
     "SandboxDownloadError",

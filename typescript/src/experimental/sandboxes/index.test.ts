@@ -237,7 +237,7 @@ describe("SandboxesClient", () => {
     it.each([
       { type: "deny-all" as const },
       { type: "allow-all" as const },
-      { default: "deny-all" as const },
+      { type: "allow-list" as const, rules: [] },
       {
         type: "allow-list" as const,
         rules: [{ domain: "example.com", protocol: "https" as const }],
@@ -262,6 +262,44 @@ describe("SandboxesClient", () => {
       }>().not.toExtend<SandboxCreateInput>();
     });
 
+    it("requires rules for an allow-list network policy and rejects them otherwise", () => {
+      expectTypeOf<{
+        networkPolicy: { type: "allow-list"; rules: [{ domain: "pypi.org" }] };
+      }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ networkPolicy: { type: "deny-all" } }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ networkPolicy: { type: "allow-list" } }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{
+        networkPolicy: { type: "deny-all"; rules: [{ domain: "pypi.org" }] };
+      }>().not.toExtend<SandboxCreateInput>();
+    });
+
+    it("sends allow-list rules in the network policy", async () => {
+      const apiClient = {
+        POST: vi.fn().mockResolvedValue({
+          data: { id: "sbx-123" },
+          error: undefined,
+          response: new Response(null, { status: 201 }),
+        }),
+      } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      await client.create({
+        networkPolicy: {
+          type: "allow-list",
+          rules: [{ domain: "pypi.org" }, { domain: "*.github.com", protocol: "https" }],
+        },
+      });
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: {
+          ownerId: "tea-default",
+          networkPolicy: {
+            type: "allow-list",
+            rules: [{ domain: "pypi.org" }, { domain: "*.github.com", protocol: "https" }],
+          },
+        },
+      });
+    });
+
     it("passes caller-supplied options and falls back to the client region", async () => {
       const sandbox = { id: "sbx-123" };
       const apiClient = {
@@ -277,7 +315,7 @@ describe("SandboxesClient", () => {
         client.create({
           plan: "pro",
           timeoutSeconds: 600,
-          networkPolicy: { default: "deny-all" },
+          networkPolicy: { type: "deny-all" },
           env: { NODE_ENV: "test" },
         }),
       ).resolves.toEqual(sandbox);
@@ -287,7 +325,7 @@ describe("SandboxesClient", () => {
           plan: "pro",
           timeoutSeconds: 600,
           region: "oregon",
-          networkPolicy: { default: "deny-all" },
+          networkPolicy: { type: "deny-all" },
           env: { NODE_ENV: "test" },
         },
       });

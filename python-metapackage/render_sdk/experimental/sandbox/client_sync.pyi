@@ -3,6 +3,7 @@ from render.experimental.sandbox.client_sync import (
     AuthenticatedClient as AuthenticatedClient,
     Client as Client,
     Iterator as Iterator,
+    NetworkPolicy as NetworkPolicy,
     RenderError as RenderError,
     Sandbox as Sandbox,
     SandboxExecEvent as SandboxExecEvent,

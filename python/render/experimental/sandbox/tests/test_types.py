@@ -12,6 +12,8 @@ from render.experimental.sandbox.errors import (
     SnapshotPlanMismatchError,
 )
 from render.experimental.sandbox.types import (
+    EgressRule,
+    NetworkPolicy,
     Sandbox,
     SandboxExecExit,
     SandboxExecOutput,
@@ -28,14 +30,19 @@ def test_sandbox_has_expected_fields():
         id="sbx-1",
         status="running",
         plan="starter",
-        network_policy="deny-all",
+        network_policy=NetworkPolicy(type="deny-all"),
         region="oregon",
         timeout_seconds=7200,
         created_at=datetime(2026, 7, 17),
     )
     assert sb.id == "sbx-1"
-    assert sb.network_policy == "deny-all"
+    assert sb.network_policy.type == "deny-all"
+    assert sb.network_policy.rules == []
     assert sb.terminated_at is None
+
+
+def test_egress_rule_defaults_to_https():
+    assert EgressRule(domain="pypi.org").protocol == "https"
 
 
 def test_snapshot_has_expected_fields():

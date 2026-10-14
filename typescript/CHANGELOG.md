@@ -4,6 +4,16 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- (Sandbox) Egress rules: `sandboxes.create()` now accepts `networkPolicy: { type: "allow-list", rules: [{ domain: "pypi.org" }] }` to restrict outbound traffic to specific destinations. A rule's `protocol` defaults to `"https"`. The `SandboxNetworkPolicy` and `SandboxEgressRule` types are exported. Domains can be specific (pypi.org) or use wildcards (*.pypi.org)
+
+### Changed
+
+- **Breaking:** (Sandbox) `SandboxCreateInput.networkPolicy` takes `type` instead of `default`. `allow-list` requires `rules`, and the other policy types reject them. Existing `deny-all` and `allow-all` policies are unaffected
+
 ## [1.2.0] - 2026-09-23
 
 ### Added

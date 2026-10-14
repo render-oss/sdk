@@ -75,6 +75,25 @@ type SandboxRestoreInput =
       snapshotName?: string;
     };
 
+/** A destination a sandbox under an `allow-list` network policy may reach. */
+export type SandboxEgressRule = {
+  /**
+   * Hostname to admit. Matching is exact: `foo.local` does not cover `api.foo.local`, which
+   * needs its own rule or `*.foo.local`. A wildcard is only allowed as the leftmost label.
+   */
+  domain: string;
+  /** The API defaults to `https`. */
+  protocol?: components["schemas"]["sandboxEgressRule"]["protocol"];
+};
+
+/**
+ * How a sandbox's outbound traffic is handled. `allow-list` admits only the destinations in
+ * `rules`; the other policy types take no rules.
+ */
+export type SandboxNetworkPolicy =
+  | { type: "allow-all" | "deny-all"; rules?: never }
+  | { type: "allow-list"; rules: SandboxEgressRule[] };
+
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
 export type SandboxCreateInput = SandboxRestoreInput & {
   ownerId?: `tea-${string}`;
@@ -83,7 +102,8 @@ export type SandboxCreateInput = SandboxRestoreInput & {
   timeoutSeconds?: number;
   /** Defaults to the client's region, then to the workspace default. */
   region?: string;
-  networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
+  /** The API defaults to `allow-all`. */
+  networkPolicy?: SandboxNetworkPolicy;
   /** Environment variables injected into the sandbox at creation. */
   env?: Record<string, string>;
 };

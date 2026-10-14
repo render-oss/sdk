@@ -13,6 +13,7 @@ from render.client.errors import RenderError
 from render.experimental.sandbox.api_sync import SyncSandboxApi
 from render.experimental.sandbox.files import normalize_remote_path
 from render.experimental.sandbox.types import (
+    NetworkPolicy,
     Sandbox,
     SandboxExecEvent,
     SandboxGroupList,
@@ -58,7 +59,7 @@ class SyncSandboxClient:
         owner_id: str | None = None,
         plan: str | None = None,
         timeout_seconds: int | None = None,
-        network_policy: str | None = None,
+        network_policy: NetworkPolicy | str | None = None,
         region: str | None = None,
         env: dict[str, str] | None = None,
         snapshot_id: str | None = None,
@@ -69,6 +70,11 @@ class SyncSandboxClient:
         All parameters are optional. Unspecified fields fall back to the
         workspace defaults enforced by the API (plan starter, 7200s timeout,
         workspace default region and network policy).
+
+        network_policy is a NetworkPolicy, or a policy type string as a
+        shorthand for one without rules. To restrict outbound traffic to
+        specific destinations, pass
+        NetworkPolicy(type="allow-list", rules=[EgressRule(domain=...)]).
 
         snapshot_id starts the sandbox from that snapshot; snapshot_name starts
         it from the available snapshot that name currently resolves to in the

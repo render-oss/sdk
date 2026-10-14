@@ -93,6 +93,20 @@ async function execOutput(
   return output.join("");
 }
 
+async function execExitCode(
+  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxId: string,
+  command: string,
+  ownerId: `tea-${string}`,
+): Promise<number | undefined> {
+  const stream = await openExecWithRetry(sandboxes, sandboxId, command, ownerId);
+  let exitCode: number | undefined;
+  for await (const event of stream) {
+    if (event.type === "exit") exitCode = event.exit_code;
+  }
+  return exitCode;
+}
+
 describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
   const ownerId = process.env.RENDER_E2E_OWNER_ID as `tea-${string}`;
 
@@ -161,6 +175,50 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
         await sandboxes.terminate(sandbox.id, ownerId);
       }
     });
+
+    it.each([{ domains: ["example.com"] }, { domains: [] }])(
+      "handles allow-list domains $domains",
+      async ({ domains }) => {
+        const sandboxes = render.experimental.sandboxes;
+        if (domains.length === 0) {
+          // The API requires a rule despite the schema omitting minItems.
+          await expect(
+            sandboxes.create({
+              ownerId,
+              networkPolicy: { type: "allow-list", rules: [] },
+            }),
+          ).rejects.toThrow("networkPolicy.rules must list at least one rule");
+          return;
+        }
+        const sandbox = await sandboxes.create({
+          ownerId,
+          networkPolicy: { type: "allow-list", rules: domains.map((domain) => ({ domain })) },
+        });
+        try {
+          const expectedPolicy = {
+            type: "allow-list",
+            rules: domains.map((domain) => ({ domain, protocol: "https" })),
+          };
+          expect(sandbox.networkPolicy).toMatchObject(expectedPolicy);
+          const fetched = await sandboxes.get(sandbox.id, ownerId);
+          expect(fetched.networkPolicy).toMatchObject(expectedPolicy);
+
+          const curl = "curl -sS -o /dev/null --max-time 15";
+          const exampleExit = await execExitCode(
+            sandboxes,
+            sandbox.id,
+            `${curl} https://example.com`,
+            ownerId,
+          );
+          expect(exampleExit).toBe(0);
+          expect(
+            await execExitCode(sandboxes, sandbox.id, `${curl} https://www.render.com`, ownerId),
+          ).not.toBe(0);
+        } finally {
+          await sandboxes.terminate(sandbox.id, ownerId);
+        }
+      },
+    );
   });
   describe("snapshots", () => {
     it("creates a filesystem snapshot", async () => {

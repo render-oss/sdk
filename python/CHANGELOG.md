@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- (Sandboxes) Egress rules: `sandboxes.create()` accepts `network_policy=NetworkPolicy(type="allow-list", rules=[EgressRule(domain="pypi.org")])` to restrict outbound traffic to specific destinations. `EgressRule.protocol` defaults to `"https"`. Domains can be specific (pypi.org) or use wildcards (*.pypi.org)
+
+### Changed
+
+- **Breaking:** (Sandboxes) `Sandbox.network_policy` is a `NetworkPolicy` with `type` and `rules` instead of a string. Read `sandbox.network_policy.type` where you previously read `sandbox.network_policy`. Existing `deny-all` and `allow-all` policies are unaffected
+
 ## [1.2.0] - 2026-09-23
 
 ### Added

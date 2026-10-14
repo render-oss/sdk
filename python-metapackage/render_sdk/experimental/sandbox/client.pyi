@@ -3,6 +3,7 @@ from render.experimental.sandbox.client import (
     AsyncIterator as AsyncIterator,
     AuthenticatedClient as AuthenticatedClient,
     Client as Client,
+    NetworkPolicy as NetworkPolicy,
     RenderError as RenderError,
     Sandbox as Sandbox,
     SandboxApi as SandboxApi,

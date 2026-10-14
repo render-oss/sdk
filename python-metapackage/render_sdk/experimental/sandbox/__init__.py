@@ -13,6 +13,8 @@ _real = importlib.import_module("render.experimental.sandbox")
 
 __doc__ = _real.__doc__
 __all__ = [
+    "EgressRule",
+    "NetworkPolicy",
     "Sandbox",
     "SandboxClient",
     "SandboxDownloadError",

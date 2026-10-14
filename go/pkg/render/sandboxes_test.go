@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -79,7 +80,7 @@ func TestSandboxAPI(t *testing.T) {
 
 	sbx, err := sandboxes.Create(ctx, CreateSandboxParams{Plan: "pro"})
 	require.NoError(t, err)
-	require.Equal(t, &Sandbox{ID: "sbx-1", Status: "running", Plan: "starter", NetworkPolicy: "allow-all",
+	require.Equal(t, &Sandbox{ID: "sbx-1", Status: "running", Plan: "starter", NetworkPolicy: NetworkPolicy{Type: "allow-all"},
 		Region: "oregon", TimeoutSeconds: 60, CreatedAt: sbx.CreatedAt}, sbx)
 
 	list, err := sandboxes.List(ctx, &ListSandboxesOptions{Status: []string{"running"}})
@@ -269,4 +270,113 @@ func TestExtractTarRefusesUnsafeArchives(t *testing.T) {
 		})
 	}
 	require.NoError(t, extractTar(t.TempDir(), build(true, file("ok"))))
+}
+
+func TestSandboxNetworkPolicyCreate(t *testing.T) {
+	tests := []struct {
+		name   string
+		policy *NetworkPolicy
+		wire   string
+		want   NetworkPolicy
+	}{
+		{"nil uses default", nil, "", NetworkPolicy{Type: "allow-all"}},
+		{"allow all", &NetworkPolicy{Type: "allow-all"}, `{"type":"allow-all"}`, NetworkPolicy{Type: "allow-all"}},
+		{"deny all", &NetworkPolicy{Type: "deny-all"}, `{"type":"deny-all"}`, NetworkPolicy{Type: "deny-all"}},
+		{"allow list", &NetworkPolicy{Type: "allow-list", Rules: []EgressRule{{Domain: "pypi.org"}, {Domain: "*.github.com", Protocol: "https"}}}, `{"type":"allow-list","rules":[{"domain":"pypi.org","protocol":"https"},{"domain":"*.github.com","protocol":"https"}]}`, NetworkPolicy{Type: "allow-list", Rules: []EgressRule{{Domain: "pypi.org", Protocol: "https"}, {Domain: "*.github.com", Protocol: "https"}}}},
+		{"empty allow list reaches API validation", &NetworkPolicy{Type: "allow-list"}, `{"type":"allow-list","rules":[]}`, NetworkPolicy{}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(UseLocalDev, "")
+			t.Setenv(LocalDevURL, "")
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, "/v1/sandboxes", r.URL.Path)
+				require.Equal(t, http.MethodPost, r.Method)
+				var body map[string]json.RawMessage
+				require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+				if tt.wire == "" {
+					require.NotContains(t, body, "networkPolicy")
+				} else {
+					require.JSONEq(t, tt.wire, string(body["networkPolicy"]))
+				}
+				w.Header().Set("Content-Type", "application/json")
+				if tt.policy != nil && tt.policy.Type == "allow-list" && len(tt.policy.Rules) == 0 {
+					w.WriteHeader(http.StatusBadRequest)
+					_, _ = w.Write([]byte(`{"message":"networkPolicy.rules must list at least one rule"}`))
+					return
+				}
+				policy := tt.wire
+				if policy == "" {
+					policy = `{"type":"allow-all"}`
+				}
+				w.WriteHeader(http.StatusCreated)
+				_, _ = w.Write([]byte(strings.Replace(sandboxJSON, `{"type":"allow-all","default":"allow-all"}`, policy, 1)))
+			}))
+			defer server.Close()
+			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+			require.NoError(t, err)
+			sandbox, err := client.Experimental.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: tt.policy})
+			if tt.policy != nil && tt.policy.Type == "allow-list" && len(tt.policy.Rules) == 0 {
+				require.ErrorContains(t, err, "networkPolicy.rules must list at least one rule")
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, sandbox.NetworkPolicy)
+		})
+	}
+}
+
+func TestSandboxRejectsInvalidNetworkPolicy(t *testing.T) {
+	t.Setenv(UseLocalDev, "")
+	t.Setenv(LocalDevURL, "")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("invalid policy reached the API")
+	}))
+	defer server.Close()
+	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+	for _, policy := range []NetworkPolicy{
+		{Type: "allow-all", Rules: []EgressRule{{Domain: "pypi.org"}}},
+		{Type: "deny-all", Rules: []EgressRule{{Domain: "pypi.org"}}},
+		{Type: "allow-list", Rules: []EgressRule{{Domain: "pypi.org", Protocol: "http"}}},
+		{Type: "unknown"}, {},
+	} {
+		_, err := client.Experimental.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: &policy})
+		require.Error(t, err)
+	}
+}
+
+func TestSandboxNetworkPolicyRead(t *testing.T) {
+	// Responses may contain historical protocols or omit the default protocol.
+	model, err := json.Marshal(map[string]any{
+		"id": "sbx-1", "status": "running", "plan": "starter", "region": "oregon",
+		"timeoutSeconds": 60, "createdAt": "2026-01-01T00:00:00Z",
+		"networkPolicy": map[string]any{"type": "allow-list", "rules": []map[string]string{
+			{"domain": "example.com"}, {"domain": "legacy.example.com", "protocol": "http"},
+		}},
+	})
+	require.NoError(t, err)
+	t.Setenv(UseLocalDev, "")
+	t.Setenv(LocalDevURL, "")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/v1/sandboxes" {
+			_, _ = fmt.Fprintf(w, `[{"cursor":"c1","sandbox":%s}]`, model)
+		} else {
+			_, _ = w.Write(model)
+		}
+	}))
+	defer server.Close()
+	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+	want := NetworkPolicy{Type: "allow-list", Rules: []EgressRule{
+		{Domain: "example.com", Protocol: "https"}, {Domain: "legacy.example.com", Protocol: "http"},
+	}}
+	sandbox, err := client.Experimental.Sandboxes.FromID(context.Background(), "sbx-1")
+	require.NoError(t, err)
+	require.Equal(t, want, sandbox.NetworkPolicy)
+	page, err := client.Experimental.Sandboxes.List(context.Background(), nil)
+	require.NoError(t, err)
+	require.Len(t, page.Sandboxes, 1)
+	require.Equal(t, want, page.Sandboxes[0].NetworkPolicy)
 }

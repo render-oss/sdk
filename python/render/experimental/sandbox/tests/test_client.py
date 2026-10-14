@@ -15,7 +15,12 @@ from render.experimental.sandbox.errors import (
     SandboxExecStreamError,
     SandboxNotFoundError,
 )
-from render.experimental.sandbox.types import SandboxExecExit, SandboxExecOutput
+from render.experimental.sandbox.types import (
+    EgressRule,
+    NetworkPolicy,
+    SandboxExecExit,
+    SandboxExecOutput,
+)
 from render.public_api.client import AuthenticatedClient
 
 SANDBOX_JSON = {
@@ -74,7 +79,7 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
     assert "networkPolicy" not in captured["body"]
     assert sandbox.id == "sbx-abc"
     assert sandbox.status == "running"
-    assert sandbox.network_policy == "deny-all"
+    assert sandbox.network_policy == NetworkPolicy(type="deny-all")
     assert sandbox.terminated_at is None
 
 
@@ -93,7 +98,7 @@ async def test_create_sends_network_policy_type(policy):
     sandbox = await client.create(network_policy=policy)
 
     assert captured["body"]["networkPolicy"] == {"type": policy}
-    assert sandbox.network_policy == policy
+    assert sandbox.network_policy == NetworkPolicy(type=policy)
 
 
 @pytest.mark.parametrize("policy", ["allow-all", "deny-all"])
@@ -110,7 +115,7 @@ def test_sync_create_sends_network_policy_type(policy):
     sandbox = client.create(network_policy=policy)
 
     assert captured["body"]["networkPolicy"] == {"type": policy}
-    assert sandbox.network_policy == policy
+    assert sandbox.network_policy == NetworkPolicy(type=policy)
 
 
 @pytest.mark.asyncio
@@ -125,6 +130,59 @@ async def test_create_sends_env_in_post_body():
     await client.create(env={"FOO": "bar", "BAZ": "qux"})
 
     assert captured["body"]["env"] == {"FOO": "bar", "BAZ": "qux"}
+
+
+@pytest.mark.asyncio
+async def test_create_sends_network_policy_type_shorthand():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=SANDBOX_JSON)
+
+    client = _sandbox_client(handler)
+    await client.create(network_policy="deny-all")
+
+    assert captured["body"]["networkPolicy"] == {"type": "deny-all"}
+
+
+@pytest.mark.asyncio
+async def test_create_sends_allow_list_rules_and_returns_them():
+    captured = {}
+    allow_list_json = {
+        **SANDBOX_JSON,
+        "networkPolicy": {
+            "type": "allow-list",
+            "rules": [
+                {"domain": "pypi.org", "protocol": "https"},
+                {"domain": "*.github.com", "protocol": "https"},
+            ],
+        },
+    }
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=allow_list_json)
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(
+        network_policy=NetworkPolicy(
+            type="allow-list",
+            rules=[EgressRule(domain="pypi.org"), EgressRule(domain="*.github.com")],
+        )
+    )
+
+    assert captured["body"]["networkPolicy"] == {
+        "type": "allow-list",
+        "rules": [
+            {"domain": "pypi.org", "protocol": "https"},
+            {"domain": "*.github.com", "protocol": "https"},
+        ],
+    }
+    assert sandbox.network_policy == NetworkPolicy(
+        type="allow-list",
+        rules=[EgressRule(domain="pypi.org"), EgressRule(domain="*.github.com")],
+    )
 
 
 @pytest.mark.asyncio
@@ -997,3 +1055,38 @@ async def test_copy_to_rejects_an_empty_remote_path(mocker, tmp_path):
     with pytest.raises(ValueError, match="remote_path is required"):
         await client.copy_to("sbx-123", source, "")
     mint.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("rules", [[], [EgressRule(domain="pypi.org")]])
+async def test_create_preserves_allow_list_rules_in_both_clients(rules):
+    policy_json = {
+        "type": "allow-list",
+        "rules": [{"domain": r.domain, "protocol": "https"} for r in rules],
+    }
+    captured = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured.append(json.loads(request.content)["networkPolicy"])
+        return httpx.Response(201, json={**SANDBOX_JSON, "networkPolicy": policy_json})
+
+    policy = NetworkPolicy(type="allow-list", rules=rules)
+    asynchronous = await _sandbox_client(handler).create(network_policy=policy)
+    synchronous = _sync_sandbox_client(handler).create(network_policy=policy)
+
+    assert captured == [policy_json, policy_json]
+    assert asynchronous.network_policy == policy
+    assert synchronous.network_policy == policy
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("policy_type", ["allow-all", "deny-all"])
+async def test_create_rejects_rules_for_other_policies_in_both_clients(policy_type):
+    def handler(request: httpx.Request) -> httpx.Response:
+        pytest.fail("invalid policies must be rejected before sending a request")
+
+    policy = NetworkPolicy(type=policy_type, rules=[EgressRule(domain="pypi.org")])
+    with pytest.raises(ValueError, match="rules are only allowed"):
+        await _sandbox_client(handler).create(network_policy=policy)
+    with pytest.raises(ValueError, match="rules are only allowed"):
+        _sync_sandbox_client(handler).create(network_policy=policy)

@@ -7,13 +7,38 @@ from datetime import datetime
 
 
 @dataclass
+class EgressRule:
+    """A destination a sandbox under an ``allow-list`` network policy may reach.
+
+    Matching on domain is exact: ``foo.local`` does not cover ``api.foo.local``,
+    which needs its own rule or ``*.foo.local``. A wildcard is only allowed as
+    the leftmost label.
+    """
+
+    domain: str
+    protocol: str = "https"
+
+
+@dataclass
+class NetworkPolicy:
+    """How a sandbox's outbound traffic is handled.
+
+    type is ``allow-all``, ``deny-all``, or ``allow-list``. rules lists the
+    destinations an ``allow-list`` policy admits and is empty otherwise.
+    """
+
+    type: str
+    rules: list[EgressRule] = field(default_factory=list)
+
+
+@dataclass
 class Sandbox:
     """A sandbox as returned by create, from_id, and list."""
 
     id: str
     status: str
     plan: str
-    network_policy: str
+    network_policy: NetworkPolicy
     region: str
     timeout_seconds: int
     created_at: datetime

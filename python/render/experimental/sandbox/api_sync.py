@@ -56,6 +56,8 @@ from render.experimental.sandbox.files import (
     run_blocking,
 )
 from render.experimental.sandbox.types import (
+    EgressRule,
+    NetworkPolicy,
     Sandbox,
     SandboxExecEvent,
     SandboxExecExit,
@@ -79,8 +81,15 @@ from render.public_api.api.sandboxes import (
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
+from render.public_api.models.sandbox_egress_rule import SandboxEgressRule
+from render.public_api.models.sandbox_egress_rule_protocol import (
+    SandboxEgressRuleProtocol,
+)
 from render.public_api.models.sandbox_group import SandboxGroup as GeneratedSandboxGroup
 from render.public_api.models.sandbox_group_with_cursor import SandboxGroupWithCursor
+from render.public_api.models.sandbox_network_policy import (
+    SandboxNetworkPolicy as GeneratedNetworkPolicy,
+)
 from render.public_api.models.sandbox_network_policy_post import (
     SandboxNetworkPolicyPOST,
 )
@@ -135,12 +144,42 @@ def _set_or_none(value: _T | Unset | None) -> _T | None:
     return None if isinstance(value, Unset) else value
 
 
+def _to_egress_rule(model: SandboxEgressRule) -> EgressRule:
+    if isinstance(model.protocol, Unset):
+        return EgressRule(domain=model.domain)
+    return EgressRule(domain=model.domain, protocol=model.protocol.value)
+
+
+def _to_network_policy(model: GeneratedNetworkPolicy) -> NetworkPolicy:
+    rules = _set_or_none(model.rules) or []
+    return NetworkPolicy(
+        type=model.type_.value,
+        rules=[_to_egress_rule(rule) for rule in rules],
+    )
+
+
+def _to_network_policy_post(policy: NetworkPolicy | str) -> SandboxNetworkPolicyPOST:
+    if isinstance(policy, str):
+        policy = NetworkPolicy(type=policy)
+    body = SandboxNetworkPolicyPOST(type_=SandboxNetworkPolicyType(policy.type))
+    if policy.type == "allow-list":
+        body.rules = [
+            SandboxEgressRule(
+                domain=rule.domain, protocol=SandboxEgressRuleProtocol(rule.protocol)
+            )
+            for rule in policy.rules
+        ]
+    elif policy.rules:
+        raise ValueError("rules are only allowed for an allow-list network policy")
+    return body
+
+
 def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
     return Sandbox(
         id=model.id,
         status=model.status.value,
         plan=model.plan.value,
-        network_policy=model.network_policy.type_.value,
+        network_policy=_to_network_policy(model.network_policy),
         region=model.region,
         timeout_seconds=model.timeout_seconds,
         created_at=model.created_at,
@@ -243,7 +282,7 @@ class SyncSandboxApi:
         owner_id: str,
         plan: str | None,
         timeout_seconds: int | None,
-        network_policy: str | None,
+        network_policy: NetworkPolicy | str | None,
         region: str | None,
         env: dict[str, str] | None,
         snapshot_id: str | None,
@@ -257,9 +296,7 @@ class SyncSandboxApi:
         if region is not None:
             body.region = region
         if network_policy is not None:
-            body.network_policy = SandboxNetworkPolicyPOST(
-                type_=SandboxNetworkPolicyType(network_policy)
-            )
+            body.network_policy = _to_network_policy_post(network_policy)
         if env is not None:
             body.env = SandboxPOSTEnv.from_dict(env)
         if snapshot_id is not None:

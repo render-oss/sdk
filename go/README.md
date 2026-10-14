@@ -19,6 +19,25 @@ fmt.Println(metadata.ParentTaskRunID)
 For a root run, `RootTaskRunID` equals `TaskRunID` and `ParentTaskRunID` is
 empty.
 
+## Sandbox network policies
+
+Create sandboxes through `client.Experimental.Sandboxes`. Use `render.NetworkPolicy` with egress rules:
+
+```go
+sandbox, err := client.Experimental.Sandboxes.Create(ctx, render.CreateSandboxParams{
+    NetworkPolicy: &render.NetworkPolicy{
+        Type: "allow-list",
+        Rules: []render.EgressRule{
+            {Domain: "pypi.org"},
+            {Domain: "*.github.com", Protocol: "https"},
+        },
+    },
+})
+```
+
+An allow-list needs at least one rule. Sandbox responses expose the policy and
+rules in `sandbox.NetworkPolicy`.
+
 ## Development
 
 ### Generating the OpenAPI spec

@@ -65,12 +65,27 @@ const (
 // connection is detected without cutting off a live but idle stream.
 const sandboxIdleTimeout = 45 * time.Second
 
+// EgressRule is a destination admitted by an allow-list network policy.
+// Domain matching is exact; a wildcard is only allowed as the leftmost label.
+type EgressRule struct {
+	Domain string
+	// Protocol defaults to https.
+	Protocol string
+}
+
+// NetworkPolicy controls outbound sandbox traffic. Type is allow-all, deny-all,
+// or allow-list. Rules are accepted only for allow-list.
+type NetworkPolicy struct {
+	Type  string
+	Rules []EgressRule
+}
+
 // Sandbox is a sandbox as returned by Create, FromID, and List.
 type Sandbox struct {
 	ID             string
 	Status         string
 	Plan           string
-	NetworkPolicy  string
+	NetworkPolicy  NetworkPolicy
 	Region         string
 	TimeoutSeconds int
 	CreatedAt      time.Time
@@ -147,7 +162,8 @@ func (SandboxExecExit) isSandboxExecEvent()   {}
 type CreateSandboxParams struct {
 	Plan           string
 	TimeoutSeconds int
-	NetworkPolicy  string
+	// NetworkPolicy nil uses the API default.
+	NetworkPolicy *NetworkPolicy
 	// Region defaults to the client's region.
 	Region string
 	Env    map[string]string
@@ -238,9 +254,11 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 	if params.TimeoutSeconds != 0 {
 		body.TimeoutSeconds = &params.TimeoutSeconds
 	}
-	if params.NetworkPolicy != "" {
-		policy := sandboxes.SandboxNetworkPolicyType(params.NetworkPolicy)
-		body.NetworkPolicy = &sandboxes.SandboxNetworkPolicyPOST{Type: &policy}
+	if params.NetworkPolicy != nil {
+		body.NetworkPolicy, err = toNetworkPolicyPost(*params.NetworkPolicy)
+		if err != nil {
+			return nil, err
+		}
 	}
 	region := params.Region
 	if region == "" {
@@ -636,12 +654,52 @@ func (s *SnapshotClient) Delete(ctx context.Context, sandboxGroupID, snapshotID 
 	return nil
 }
 
+func toNetworkPolicyPost(policy NetworkPolicy) (*sandboxes.SandboxNetworkPolicyPOST, error) {
+	policyType := sandboxes.SandboxNetworkPolicyType(policy.Type)
+	if !policyType.Valid() {
+		return nil, fmt.Errorf("invalid network policy type %q", policy.Type)
+	}
+	body := &sandboxes.SandboxNetworkPolicyPOST{Type: &policyType}
+	if policy.Type == "allow-list" {
+		rules := make([]sandboxes.SandboxEgressRule, 0, len(policy.Rules))
+		for _, rule := range policy.Rules {
+			protocol := sandboxes.SandboxEgressRuleProtocol(rule.Protocol)
+			if protocol == "" {
+				protocol = sandboxes.Https
+			}
+			if !protocol.Valid() {
+				return nil, fmt.Errorf("invalid egress rule protocol %q", rule.Protocol)
+			}
+			rules = append(rules, sandboxes.SandboxEgressRule{Domain: rule.Domain, Protocol: &protocol})
+		}
+		body.Rules = &rules
+	} else if len(policy.Rules) > 0 {
+		return nil, fmt.Errorf("rules are only allowed for an allow-list network policy")
+	}
+	return body, nil
+}
+
+func toNetworkPolicy(model sandboxes.SandboxNetworkPolicy) NetworkPolicy {
+	policy := NetworkPolicy{Type: string(model.Type)}
+	if model.Rules != nil {
+		policy.Rules = make([]EgressRule, 0, len(*model.Rules))
+		for _, rule := range *model.Rules {
+			protocol := "https"
+			if rule.Protocol != nil {
+				protocol = string(*rule.Protocol)
+			}
+			policy.Rules = append(policy.Rules, EgressRule{Domain: rule.Domain, Protocol: protocol})
+		}
+	}
+	return policy
+}
+
 func toSandbox(m sandboxes.Sandbox) *Sandbox {
 	return &Sandbox{
 		ID:             m.Id,
 		Status:         string(m.Status),
 		Plan:           string(m.Plan),
-		NetworkPolicy:  string(m.NetworkPolicy.Type),
+		NetworkPolicy:  toNetworkPolicy(m.NetworkPolicy),
 		Region:         m.Region,
 		TimeoutSeconds: m.TimeoutSeconds,
 		CreatedAt:      m.CreatedAt,
