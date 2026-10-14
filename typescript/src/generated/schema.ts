@@ -113,12 +113,7 @@ export interface paths {
     };
     "/blueprints/{blueprintId}/syncs": {
         parameters: {
-            query?: {
-                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
-                cursor?: components["parameters"]["cursorParam"];
-                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
-                limit?: components["parameters"]["limitParam"];
-            };
+            query?: never;
             header?: never;
             path: {
                 /** @description The ID of the Blueprint */
