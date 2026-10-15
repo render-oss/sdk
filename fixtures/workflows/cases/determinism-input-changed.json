@@ -1,0 +1,80 @@
+{
+  "description": "Outside state changed the first step's input from 100 to 120 between attempts, so the replay fails at seq 0 with an input_hash determinism error before it reaches the open seq 1.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      },
+      {
+        "seq": 1,
+        "step_key": "1-run",
+        "type": "inline",
+        "task_name": "reserve_inventory",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            "ord_1"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:10Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        120
+      ],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "reserve_inventory",
+      "args": [
+        "ord_1"
+      ],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "mark_done",
+      "args": [],
+      "attempts": []
+    }
+  ],
+  "exchanges": [],
+  "callback": {
+    "error": {
+      "reason": "DeterminismError",
+      "determinism": {
+        "step_key": "0-run",
+        "seq": 0,
+        "kind": "input_hash"
+      }
+    },
+    "complete": null
+  }
+}

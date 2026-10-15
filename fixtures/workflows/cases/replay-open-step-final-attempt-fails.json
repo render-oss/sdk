@@ -1,0 +1,95 @@
+{
+  "description": "Interrupted attempts count toward the retry limit. When the interrupted attempt was the last one allowed, the step completes with AttemptInterrupted without running again, and the workflow can catch it.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "send_sms",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            "+15550100"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z"
+      }
+    ],
+    "step_attempts": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "attempt": 0,
+        "workflow_attempt": 0,
+        "error": {
+          "name": "CarrierError",
+          "message": "carrier 503"
+        },
+        "started_at": "2026-10-14T12:00:02Z",
+        "ended_at": "2026-10-14T12:00:03Z"
+      }
+    ]
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_sms",
+      "args": [
+        "+15550100"
+      ],
+      "retry": {
+        "max_retries": 1,
+        "wait_duration_ms": 0
+      },
+      "attempts": [],
+      "catch": true
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_sms",
+          "kind": "complete",
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "output": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              {
+                "caught": {
+                  "name": "AttemptInterrupted",
+                  "message": "the attempt was cut short by an infrastructure failure"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

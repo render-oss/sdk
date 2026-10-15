@@ -1,0 +1,161 @@
+{
+  "description": "A replay after a step ran out of retries: the recorded error rethrows without running send_sms, the except branch's step is memoized, and the open mark_done records its interrupted attempt 0 and completes on attempt 1.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "send_sms",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": []
+        },
+        "error": {
+          "name": "CarrierError",
+          "message": "carrier 503"
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      },
+      {
+        "seq": 1,
+        "step_key": "1-run",
+        "type": "inline",
+        "task_name": "send_email",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": []
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "msg_1"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:10Z",
+        "completed_at": "2026-10-14T12:00:11Z"
+      },
+      {
+        "seq": 2,
+        "step_key": "2-run",
+        "type": "inline",
+        "task_name": "mark_done",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": []
+        },
+        "started_at": "2026-10-14T12:00:20Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_sms",
+      "args": [],
+      "retry": {
+        "max_retries": 2,
+        "wait_duration_ms": 0
+      },
+      "attempts": [],
+      "catch": true
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "mark_done",
+      "args": [],
+      "retry": {
+        "max_retries": 1,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "return": "ok"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 2,
+          "step_key": "2-run",
+          "task_name": "mark_done",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 2,
+          "step_key": "2-run",
+          "task_name": "mark_done",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "ok"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              {
+                "caught": {
+                  "name": "CarrierError",
+                  "message": "carrier 503"
+                }
+              },
+              "msg_1",
+              "ok"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

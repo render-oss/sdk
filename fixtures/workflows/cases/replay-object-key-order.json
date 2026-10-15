@@ -1,0 +1,72 @@
+{
+  "description": "Replay compares inputs as canonical JSON, with object keys sorted at every level, so a call whose objects set their keys in a different order matches its recorded step.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "save_order",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            {
+              "lines": [
+                {
+                  "qty": 1,
+                  "sku": "a"
+                }
+              ],
+              "id": "ord_1"
+            }
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "saved"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "save_order",
+      "args": [
+        {
+          "id": "ord_1",
+          "lines": [
+            {
+              "sku": "a",
+              "qty": 1
+            }
+          ]
+        }
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "saved"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

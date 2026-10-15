@@ -1,0 +1,118 @@
+{
+  "description": "A finished step in history returns its recorded output without running or writing again. The next call, with no history, runs and records as usual.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "send_receipt",
+      "args": [
+        "ada@example.com"
+      ],
+      "attempts": [
+        {
+          "return": "msg_1"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_receipt",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "ada@example.com"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_receipt",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_1"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "ch_123",
+              "msg_1"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

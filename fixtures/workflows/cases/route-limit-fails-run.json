@@ -1,0 +1,50 @@
+{
+  "description": "A 422 limit error fails the run, since a replay would hit the same limit.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              100
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 422,
+        "body": {
+          "code": "workflow_step_limit_exceeded",
+          "message": "a workflow run can record at most 10000 steps",
+          "limit": 10000,
+          "value": 10001
+        }
+      }
+    }
+  ],
+  "callback": {
+    "error": {
+      "reason": null,
+      "determinism": null
+    },
+    "complete": null
+  }
+}

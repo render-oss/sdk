@@ -1,0 +1,213 @@
+{
+  "description": "When an inline step's last allowed attempt fails, its error becomes the step's outcome instead of a failed-attempt row. The workflow can catch the step error and carry on.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_sms",
+      "args": [
+        "+15550100"
+      ],
+      "retry": {
+        "max_retries": 2,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "raise": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          }
+        },
+        {
+          "raise": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          }
+        },
+        {
+          "raise": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          }
+        }
+      ],
+      "catch": true
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [
+        "ada@example.com"
+      ],
+      "attempts": [
+        {
+          "return": "msg_1"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_sms",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "+15550100"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_sms",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_sms",
+          "kind": "attempt",
+          "attempt": 1,
+          "error": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_sms",
+          "kind": "complete",
+          "error": {
+            "name": "CarrierError",
+            "message": "carrier 503"
+          },
+          "output": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "ada@example.com"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_1"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              {
+                "caught": {
+                  "name": "CarrierError",
+                  "message": "carrier 503"
+                }
+              },
+              "msg_1"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

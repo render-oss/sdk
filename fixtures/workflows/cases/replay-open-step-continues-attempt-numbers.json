@@ -1,0 +1,147 @@
+{
+  "description": "Attempt numbers keep counting across workflow attempts, and an interrupted attempt takes a number: after a recorded failure, the replay records attempt 1 as interrupted, attempt 2 fails, and attempt 3 succeeds.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "send_email",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            "ada@example.com"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z"
+      }
+    ],
+    "step_attempts": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "attempt": 0,
+        "workflow_attempt": 0,
+        "error": {
+          "name": "SmtpTimeout",
+          "message": "smtp timed out"
+        },
+        "started_at": "2026-10-14T12:00:02Z",
+        "ended_at": "2026-10-14T12:00:03Z"
+      }
+    ]
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [
+        "ada@example.com"
+      ],
+      "retry": {
+        "max_retries": 3,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "raise": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          }
+        },
+        {
+          "return": "msg_456"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 1,
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 2,
+          "error": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_456"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "msg_456"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

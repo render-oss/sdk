@@ -1,0 +1,52 @@
+{
+  "description": "A recorded step type the SDK doesn't know fails the run with an unknown_type determinism error.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "signal",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [],
+  "callback": {
+    "error": {
+      "reason": "DeterminismError",
+      "determinism": {
+        "step_key": "0-run",
+        "seq": 0,
+        "kind": "unknown_type"
+      }
+    },
+    "complete": null
+  }
+}

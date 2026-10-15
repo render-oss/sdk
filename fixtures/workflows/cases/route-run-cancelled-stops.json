@@ -1,0 +1,42 @@
+{
+  "description": "A 409 run_cancelled means the run was cancelled. The attempt stops without running the step and without sending a callback.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              100
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 409,
+        "body": {
+          "code": "run_cancelled",
+          "message": "the run was cancelled"
+        }
+      }
+    }
+  ],
+  "callback": null
+}

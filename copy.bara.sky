@@ -8,6 +8,7 @@ DESTINATION_FILES = [
   "python/**",
   "python-metapackage/**",
   "typescript/**",
+  "fixtures/**",
   ".github/**",
   ".pre-commit-config.yaml",
   "copy.bara.sky",

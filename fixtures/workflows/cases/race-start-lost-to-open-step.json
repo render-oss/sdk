@@ -1,0 +1,159 @@
+{
+  "description": "A start that loses to an open step with the same input counts that step's in-flight attempt as used: it records attempt 0 with AttemptInterrupted and runs attempt 1, so the step never runs more often than its retry policy allows.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [
+        "ada@example.com"
+      ],
+      "retry": {
+        "max_retries": 1,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "return": "msg_456"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "ada@example.com"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": false,
+          "step": {
+            "seq": 1,
+            "step_key": "1-run",
+            "type": "inline",
+            "task_name": "send_email",
+            "workflow_attempt": 0,
+            "input": {
+              "serializer": "json",
+              "value": [
+                "ada@example.com"
+              ]
+            },
+            "started_at": "2026-10-14T12:00:10Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_456"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "ch_123",
+              "msg_456"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

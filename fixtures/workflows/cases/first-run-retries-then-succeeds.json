@@ -1,0 +1,145 @@
+{
+  "description": "An inline step retries in-process under the call's retry policy. Each failed attempt is recorded, numbered from 0, before the next one runs, and the success completes the step.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [
+        "ada@example.com"
+      ],
+      "retry": {
+        "max_retries": 3,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "raise": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          }
+        },
+        {
+          "raise": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          }
+        },
+        {
+          "return": "msg_456"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "ada@example.com"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 1,
+          "error": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_456"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "msg_456"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

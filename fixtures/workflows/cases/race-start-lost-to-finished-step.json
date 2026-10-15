@@ -1,0 +1,111 @@
+{
+  "description": "A start that loses to a step another attempt already finished adopts that step's outcome. The function doesn't run and nothing more is written.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [
+        "ada@example.com"
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              "ada@example.com"
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": false,
+          "step": {
+            "seq": 1,
+            "step_key": "1-run",
+            "type": "inline",
+            "task_name": "send_email",
+            "workflow_attempt": 0,
+            "input": {
+              "serializer": "json",
+              "value": [
+                "ada@example.com"
+              ]
+            },
+            "output": {
+              "serializer": "json",
+              "value": [
+                "msg_456"
+              ]
+            },
+            "started_at": "2026-10-14T12:00:10Z",
+            "completed_at": "2026-10-14T12:00:11Z"
+          }
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "ch_123",
+              "msg_456"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "description": "A step with a start row, no outcome and no failed attempts was cut short mid-attempt. The interrupted attempt counts: the replay records it as attempt 0 with AttemptInterrupted, then runs attempt 1.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "send_receipt",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            "ada@example.com"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "send_receipt",
+      "args": [
+        "ada@example.com"
+      ],
+      "retry": {
+        "max_retries": 1,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "return": "msg_1"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_receipt",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "send_receipt",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_1"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "msg_1"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

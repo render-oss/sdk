@@ -1,0 +1,86 @@
+{
+  "description": "A step error the workflow doesn't catch fails the run with an ordinary error, not a determinism error. The workflow makes no further calls.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "retry": {
+        "max_retries": 0,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "raise": {
+            "name": "CardDeclined",
+            "message": "card declined"
+          }
+        }
+      ]
+    },
+    {
+      "method": "run",
+      "name": "mark_done",
+      "args": [],
+      "attempts": []
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              100
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "complete",
+          "error": {
+            "name": "CardDeclined",
+            "message": "card declined"
+          },
+          "output": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "error": {
+      "reason": null,
+      "determinism": null
+    },
+    "complete": null
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "description": "Workflow code can't swallow a determinism error. Catching it doesn't help: the next ctx call raises it again, and the run fails with it.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": [
+            100
+          ]
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      }
+    ],
+    "step_attempts": []
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        120
+      ],
+      "attempts": [],
+      "catch": true
+    },
+    {
+      "method": "run",
+      "name": "send_receipt",
+      "args": [
+        "ada@example.com"
+      ],
+      "attempts": []
+    }
+  ],
+  "exchanges": [],
+  "callback": {
+    "error": {
+      "reason": "DeterminismError",
+      "determinism": {
+        "step_key": "0-run",
+        "seq": 0,
+        "kind": "input_hash"
+      }
+    },
+    "complete": null
+  }
+}

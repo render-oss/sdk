@@ -1,0 +1,197 @@
+{
+  "description": "A replay after a crash mid-retry: the finished step is memoized, the interrupted attempt 1 is recorded with AttemptInterrupted, attempt 2 runs and completes the step, and the rest of the workflow runs.",
+  "attempt": 1,
+  "history": {
+    "steps": [
+      {
+        "seq": 0,
+        "step_key": "0-run",
+        "type": "inline",
+        "task_name": "charge_card",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": []
+        },
+        "output": {
+          "serializer": "json",
+          "value": [
+            "ch_123"
+          ]
+        },
+        "started_at": "2026-10-14T12:00:00Z",
+        "completed_at": "2026-10-14T12:00:01Z"
+      },
+      {
+        "seq": 1,
+        "step_key": "1-run",
+        "type": "inline",
+        "task_name": "send_email",
+        "workflow_attempt": 0,
+        "input": {
+          "serializer": "json",
+          "value": []
+        },
+        "started_at": "2026-10-14T12:00:10Z"
+      }
+    ],
+    "step_attempts": [
+      {
+        "seq": 1,
+        "step_key": "1-run",
+        "attempt": 0,
+        "workflow_attempt": 0,
+        "error": {
+          "name": "SmtpTimeout",
+          "message": "smtp timed out"
+        },
+        "started_at": "2026-10-14T12:00:12Z",
+        "ended_at": "2026-10-14T12:00:13Z"
+      }
+    ]
+  },
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [],
+      "attempts": []
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [],
+      "retry": {
+        "max_retries": 3,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "return": "msg_456"
+        }
+      ]
+    },
+    {
+      "method": "run",
+      "name": "mark_done",
+      "args": [],
+      "attempts": [
+        {
+          "return": "ok"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 1,
+          "error": {
+            "name": "AttemptInterrupted",
+            "message": "the attempt was cut short by an infrastructure failure"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_456"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 2,
+          "step_key": "2-run",
+          "task_name": "mark_done",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": []
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 2,
+          "step_key": "2-run",
+          "task_name": "mark_done",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "ok"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "ch_123",
+              "msg_456",
+              "ok"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

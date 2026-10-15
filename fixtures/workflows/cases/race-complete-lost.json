@@ -1,0 +1,217 @@
+{
+  "description": "A zombie attempt records its own failed attempts, then loses the completion to the attempt that replaced it. It adopts the outcome that won, so the step has exactly one outcome.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [],
+      "attempts": [
+        {
+          "return": "ch_123"
+        }
+      ]
+    },
+    {
+      "method": "run",
+      "name": "send_email",
+      "args": [],
+      "retry": {
+        "max_retries": 3,
+        "wait_duration_ms": 0
+      },
+      "attempts": [
+        {
+          "raise": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          }
+        },
+        {
+          "raise": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          }
+        },
+        {
+          "return": "msg_789"
+        }
+      ]
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": []
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "ch_123"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": []
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 0,
+          "error": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "attempt",
+          "attempt": 1,
+          "error": {
+            "name": "SmtpTimeout",
+            "message": "smtp timed out"
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 1,
+          "step_key": "1-run",
+          "task_name": "send_email",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "msg_789"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": false,
+          "step": {
+            "seq": 1,
+            "step_key": "1-run",
+            "type": "inline",
+            "task_name": "send_email",
+            "workflow_attempt": 0,
+            "input": {
+              "serializer": "json",
+              "value": []
+            },
+            "output": {
+              "serializer": "json",
+              "value": [
+                "msg_456"
+              ]
+            },
+            "started_at": "2026-10-14T12:00:10Z",
+            "completed_at": "2026-10-14T12:00:20Z"
+          }
+        }
+      }
+    }
+  ],
+  "callback": {
+    "complete": {
+      "output": {
+        "serializer": "json",
+        "value": [
+          {
+            "results": [
+              "ch_123",
+              "msg_456"
+            ]
+          }
+        ]
+      },
+      "error": null
+    }
+  }
+}

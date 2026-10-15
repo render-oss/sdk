@@ -1,0 +1,82 @@
+{
+  "description": "A 409 missing_start means a completion was sent for a step with no recorded start. The run fails.",
+  "attempt": 0,
+  "workflow": [
+    {
+      "method": "run",
+      "name": "charge_card",
+      "args": [
+        100
+      ],
+      "attempts": [
+        {
+          "return": "ch_123"
+        }
+      ]
+    },
+    {
+      "method": "run",
+      "name": "mark_done",
+      "args": [],
+      "attempts": []
+    }
+  ],
+  "exchanges": [
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "start",
+          "input": {
+            "serializer": "json",
+            "value": [
+              100
+            ]
+          },
+          "started_at": "<any>"
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "applied": true
+        }
+      }
+    },
+    {
+      "request": {
+        "path": "/step-inline",
+        "body": {
+          "seq": 0,
+          "step_key": "0-run",
+          "task_name": "charge_card",
+          "kind": "complete",
+          "output": {
+            "serializer": "json",
+            "value": [
+              "ch_123"
+            ]
+          },
+          "error": null
+        }
+      },
+      "response": {
+        "status": 409,
+        "body": {
+          "code": "missing_start",
+          "message": "step 0-run has no recorded start"
+        }
+      }
+    }
+  ],
+  "callback": {
+    "error": {
+      "reason": null,
+      "determinism": null
+    },
+    "complete": null
+  }
+}
