@@ -1966,7 +1966,7 @@ type CronJobDetailsPOST struct {
 
 // CronJobRun A run of a cron job
 type CronJobRun struct {
-	// CanceledBy user who cancelled the cron job run
+	// CanceledBy user who canceled the cron job run
 	CanceledBy *string `json:"canceledBy,omitempty"`
 
 	// FinishedAt Example: 2021-07-15T07:20:05.777035-07:00
@@ -2328,6 +2328,24 @@ type ExecutionWithCursor struct {
 	// while the execution is in flight (recorded at token mint). `stoppedAt`
 	// and `exitCode` are absent until a status report or sandbox finalization.
 	Execution externalRef15.Execution `json:"execution"`
+}
+
+// FlowRunStepWithCursor defines model for flowRunStepWithCursor.
+type FlowRunStepWithCursor struct {
+	Cursor Cursor                    `json:"cursor"`
+	Step   externalRef18.FlowRunStep `json:"step"`
+}
+
+// FlowRunWithCursor defines model for flowRunWithCursor.
+type FlowRunWithCursor struct {
+	Cursor  Cursor                `json:"cursor"`
+	FlowRun externalRef18.FlowRun `json:"flowRun"`
+}
+
+// FlowWithCursor defines model for flowWithCursor.
+type FlowWithCursor struct {
+	Cursor Cursor             `json:"cursor"`
+	Flow   externalRef18.Flow `json:"flow"`
 }
 
 // Header defines model for header.
@@ -4073,6 +4091,63 @@ type RemoveResourcesFromEnvironmentParams struct {
 	ResourceIds []string `form:"resourceIds" json:"resourceIds"`
 }
 
+// ListFlowRunsParams defines parameters for ListFlowRuns.
+type ListFlowRunsParams struct {
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// FlowSlug An array of flow slugs in the format workflow-slug/flow-name. An optional version can be appended (workflow-slug/flow-name:version). If no version is provided, the latest version is used.
+	FlowSlug *externalRef18.FlowSlugFilterParam `form:"flowSlug,omitempty" json:"flowSlug,omitempty"`
+
+	// FlowId An array of flow IDs
+	FlowId *externalRef18.FlowIDFilterParam `form:"flowId,omitempty" json:"flowId,omitempty"`
+
+	// Status An array of flow run statuses to filter on
+	Status *externalRef18.FlowRunStatusFilterParam `form:"status,omitempty" json:"status,omitempty"`
+
+	// OwnerId The ID of the workspaces to return resources for
+	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+
+	// WorkflowVersionId An array of workflow version IDs
+	WorkflowVersionId *externalRef18.WorkflowVersionIDFilterParam `form:"workflowVersionId,omitempty" json:"workflowVersionId,omitempty"`
+
+	// WorkflowId An array of workflow IDs
+	WorkflowId *externalRef18.WorkflowIDFilterParam `form:"workflowId,omitempty" json:"workflowId,omitempty"`
+}
+
+// ListFlowRunStepsParams defines parameters for ListFlowRunSteps.
+type ListFlowRunStepsParams struct {
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// ListFlowsParams defines parameters for ListFlows.
+type ListFlowsParams struct {
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// OwnerId The ID of the workspaces to return resources for
+	OwnerId *OwnerIdParam `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+
+	// FlowSlug An array of flow slugs in the format workflow-slug/flow-name. An optional version can be appended (workflow-slug/flow-name:version). If no version is provided, the latest version is used.
+	FlowSlug *externalRef18.FlowSlugFilterParam `form:"flowSlug,omitempty" json:"flowSlug,omitempty"`
+
+	// WorkflowVersionId An array of workflow version IDs
+	WorkflowVersionId *externalRef18.WorkflowVersionIDFilterParam `form:"workflowVersionId,omitempty" json:"workflowVersionId,omitempty"`
+
+	// WorkflowId An array of workflow IDs
+	WorkflowId *externalRef18.WorkflowIDFilterParam `form:"workflowId,omitempty" json:"workflowId,omitempty"`
+}
+
 // ListKeyValueParams defines parameters for ListKeyValue.
 type ListKeyValueParams struct {
 	// Name Filter by name
@@ -5592,6 +5667,9 @@ type UpdateEnvironmentJSONRequestBody = EnvironmentPATCHInput
 
 // AddResourcesToEnvironmentJSONRequestBody defines body for AddResourcesToEnvironment for application/json ContentType.
 type AddResourcesToEnvironmentJSONRequestBody = EnvironmentResourcesPOSTInput
+
+// StartFlowRunJSONRequestBody defines body for StartFlowRun for application/json ContentType.
+type StartFlowRunJSONRequestBody = externalRef18.StartFlowRun
 
 // CreateKeyValueJSONRequestBody defines body for CreateKeyValue for application/json ContentType.
 type CreateKeyValueJSONRequestBody = KeyValuePOSTInput

@@ -22,7 +22,7 @@ class CronJobRun:
         started_at (Union[Unset, datetime.datetime]):  Example: 2021-07-15T07:20:05.777035-07:00.
         finished_at (Union[Unset, datetime.datetime]):  Example: 2021-07-15T07:20:05.777035-07:00.
         triggered_by (Union[Unset, str]): user who triggered the cron job run
-        canceled_by (Union[Unset, str]): user who cancelled the cron job run
+        canceled_by (Union[Unset, str]): user who canceled the cron job run
     """
 
     id: str
