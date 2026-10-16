@@ -14,7 +14,9 @@ import uuid
 
 import pytest
 
+from render.experimental.object.client import ObjectClient
 from render.experimental.object.e2e_helpers import object_storage_crud_check
+from render.experimental.object.tests.rate_limit import patch_rate_limit_retries
 from render.render_async import RenderAsync
 
 # ---------------------------------------------------------------------------
@@ -43,6 +45,13 @@ def render():
 
 
 @pytest.fixture
+def objects(render) -> ObjectClient:
+    client = render.client.experimental.storage.objects
+    patch_rate_limit_retries(client)
+    return client
+
+
+@pytest.fixture
 def owner_id():
     return os.environ["RENDER_E2E_OWNER_ID"]
 
@@ -57,20 +66,14 @@ def region():
 # ---------------------------------------------------------------------------
 class TestObjectClientE2E:
     @pytest.mark.asyncio
-    async def test_crud_cycle(self, render, owner_id, region):
+    async def test_crud_cycle(self, objects, owner_id, region):
         """Full PUT → LIST → GET → DELETE → verify-deletion cycle."""
-        await object_storage_crud_check(
-            render.client.experimental.storage.objects,
-            owner_id,
-            region,
-        )
+        await object_storage_crud_check(objects, owner_id, region)
 
     @pytest.mark.asyncio
-    async def test_scoped_accessor(self, render, owner_id, region):
+    async def test_scoped_accessor(self, objects, owner_id, region):
         """Verify scoped() wiring with a simple PUT/GET/DELETE."""
-        scoped = render.client.experimental.storage.objects.scoped(
-            owner_id=owner_id, region=region
-        )
+        scoped = objects.scoped(owner_id=owner_id, region=region)
         key = f"e2e-test/{uuid.uuid4()}/scoped-test.txt"
 
         try:
@@ -93,11 +96,10 @@ class TestObjectClientE2E:
 )
 class TestObjectClientPagination:
     @pytest.mark.asyncio
-    async def test_pagination(self, render):
+    async def test_pagination(self, objects):
         """Walk all pages with limit=2, verify multiple pages returned."""
         owner_id = os.environ["RENDER_E2E_PAGINATION_OWNER_ID"]
         region = os.environ.get("RENDER_E2E_REGION", "oregon")
-        objects = render.client.experimental.storage.objects
 
         page_size = 2
         cursor = None
