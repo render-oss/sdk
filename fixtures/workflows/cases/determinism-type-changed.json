@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "detached",
         "task_name": "charge_card",
         "workflow_attempt": 0,
@@ -42,8 +43,9 @@
     "error": {
       "reason": "DeterminismError",
       "determinism": {
-        "step_key": "0-run",
-        "seq": 0,
+        "step_key": {
+          "seq": 0
+        },
         "kind": "type"
       }
     },

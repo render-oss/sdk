@@ -27,6 +27,11 @@ REQUIRED_BY_KIND = {
 }
 
 
+def seq_of(value: dict[str, Any], default: Any = None) -> Any:
+    key = value.get("step_key")
+    return key.get("seq", default) if isinstance(key, dict) else default
+
+
 class Checker:
     def __init__(self, name: str) -> None:
         self.name = name
@@ -46,12 +51,17 @@ class Checker:
             self.fail(where, "an error needs a name and a message")
 
     def key(self, where: str, value: dict[str, Any]) -> None:
-        if "idx" in value:
-            self.fail(where, "steps are keyed by seq and step_key; a case has no idx")
-        if not isinstance(value.get("seq"), int) or value["seq"] < 0:
-            self.fail(where, "seq must be a non-negative integer")
-        elif value.get("step_key") != f"{value['seq']}-run":
-            self.fail(where, f'step_key must be "{value["seq"]}-run"')
+        if "idx" in value or "seq" in value:
+            self.fail(
+                where, "steps are keyed by step_key alone; a case has no idx or seq"
+            )
+        key = value.get("step_key")
+        if not isinstance(key, dict):
+            self.fail(where, 'step_key must be {"seq": ...}')
+        elif not isinstance(key.get("seq"), int) or key["seq"] < 0:
+            self.fail(f"{where}.step_key", "seq must be a non-negative integer")
+        elif set(key) != {"seq"}:
+            self.fail(f"{where}.step_key", "the SDK leaves sub_key unset at GA")
 
     def step(self, where: str, step: Any) -> None:
         if not isinstance(step, dict):
@@ -102,19 +112,19 @@ class Checker:
         for i, attempt in enumerate(history["step_attempts"]):
             self.step_attempt(f"history.step_attempts[{i}]", attempt)
         steps = [s for s in history["steps"] if isinstance(s, dict)]
-        seqs = [s.get("seq") for s in steps]
+        seqs = [seq_of(s) for s in steps]
         if seqs != sorted(set(seqs), key=lambda s: (s is None, s)):
             self.fail("history.steps", "steps must be in seq order, one per seq")
         attempts = [a for a in history["step_attempts"] if isinstance(a, dict)]
-        keys = [(a.get("seq", -1), a.get("attempt", -1)) for a in attempts]
+        keys = [(seq_of(a, -1), a.get("attempt", -1)) for a in attempts]
         if keys != sorted(set(keys)):
             self.fail(
                 "history.step_attempts",
                 "must be in (seq, attempt) order, one per attempt",
             )
-        open_seqs = {s.get("seq") for s in steps if "completed_at" not in s}
+        open_seqs = {seq_of(s) for s in steps if "completed_at" not in s}
         for i, attempt in enumerate(attempts):
-            if attempt.get("seq") not in open_seqs:
+            if seq_of(attempt) not in open_seqs:
                 self.fail(
                     f"history.step_attempts[{i}]",
                     "a failed attempt belongs to an open step",
@@ -217,7 +227,7 @@ class Checker:
                 self.fail(f"{where}.response.body", f"a lost {kind} returns the row")
             elif "step" in rbody:
                 self.step(f"{where}.response.body.step", rbody["step"])
-                if rbody["step"].get("seq") != body.get("seq"):
+                if seq_of(rbody["step"]) != seq_of(body):
                     self.fail(
                         f"{where}.response.body.step",
                         "the returned row is for another seq",

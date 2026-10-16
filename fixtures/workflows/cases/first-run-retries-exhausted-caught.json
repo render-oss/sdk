@@ -52,8 +52,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_sms",
           "kind": "start",
           "input": {
@@ -76,8 +77,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_sms",
           "kind": "attempt",
           "attempt": 0,
@@ -99,8 +101,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_sms",
           "kind": "attempt",
           "attempt": 1,
@@ -122,8 +125,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_sms",
           "kind": "complete",
           "error": {
@@ -144,8 +148,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "start",
           "input": {
@@ -168,8 +173,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "complete",
           "output": {

@@ -9,7 +9,7 @@ socket, so two SDKs that pass them behave the same way toward renderd.
 
 The cases cover sequential inline steps. Detached tasks (`/run-subtask`,
 `/step-wait`) and `ctx.sleep` (`/step-sleep`) have no cases. Steps are keyed by
-`seq` and `step_key`, and a failed attempt records `ended_at`.
+a `step_key` object holding `seq`, and a failed attempt records `ended_at`.
 
 `check.py` validates the cases' structure. It runs in CI and needs only the
 Python standard library:
@@ -122,8 +122,7 @@ SDK records it when it resumes the step, with this error:
 
 ```json
 {
-  "seq": 0,
-  "step_key": "0-run",
+  "step_key": { "seq": 0 },
   "type": "inline",
   "task_name": "charge_card",
   "workflow_attempt": 0,
@@ -142,8 +141,7 @@ A step is finished exactly when `completed_at` is set, with either `output` or
 
 ```json
 {
-  "seq": 1,
-  "step_key": "1-run",
+  "step_key": { "seq": 1 },
   "attempt": 0,
   "workflow_attempt": 0,
   "error": { "name": "SmtpTimeout", "message": "smtp timed out" },
@@ -152,8 +150,9 @@ A step is finished exactly when `completed_at` is set, with either `output` or
 }
 ```
 
-Every `ctx` call has its own `seq`, starting at 0, and its `step_key` is
-`"<seq>-run"`.
+Every `ctx` call has its own `seq`, starting at 0. The SDK leaves
+`step_key.sub_key` unset: it's reserved for parallel steps, and GA needs only
+`seq`.
 
 ### Exchanges
 
@@ -164,8 +163,7 @@ Each exchange is one request to a step route and its response:
   "request": {
     "path": "/step-inline",
     "body": {
-      "seq": 0,
-      "step_key": "0-run",
+      "step_key": { "seq": 0 },
       "task_name": "charge_card",
       "kind": "start",
       "input": { "serializer": "json", "value": [100] },

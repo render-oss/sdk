@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "charge_card",
         "workflow_attempt": 0,
@@ -25,8 +26,9 @@
         "completed_at": "2026-10-14T12:00:01Z"
       },
       {
-        "seq": 1,
-        "step_key": "1-run",
+        "step_key": {
+          "seq": 1
+        },
         "type": "inline",
         "task_name": "reserve_inventory",
         "workflow_attempt": 0,
@@ -70,8 +72,9 @@
     "error": {
       "reason": "DeterminismError",
       "determinism": {
-        "step_key": "0-run",
-        "seq": 0,
+        "step_key": {
+          "seq": 0
+        },
         "kind": "input_hash"
       }
     },

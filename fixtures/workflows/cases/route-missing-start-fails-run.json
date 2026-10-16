@@ -26,8 +26,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "charge_card",
           "kind": "start",
           "input": {
@@ -50,8 +51,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "charge_card",
           "kind": "complete",
           "output": {

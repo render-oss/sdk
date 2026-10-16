@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "send_sms",
         "workflow_attempt": 0,
@@ -57,8 +58,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "start",
           "input": {
@@ -81,8 +83,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "complete",
           "output": {

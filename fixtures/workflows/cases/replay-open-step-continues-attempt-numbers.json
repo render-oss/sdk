@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "send_email",
         "workflow_attempt": 0,
@@ -20,8 +21,9 @@
     ],
     "step_attempts": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "attempt": 0,
         "workflow_attempt": 0,
         "error": {
@@ -62,8 +64,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_email",
           "kind": "attempt",
           "attempt": 1,
@@ -85,8 +88,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_email",
           "kind": "attempt",
           "attempt": 2,
@@ -108,8 +112,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_email",
           "kind": "complete",
           "output": {

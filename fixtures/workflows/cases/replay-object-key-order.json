@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "save_order",
         "workflow_attempt": 0,

@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "send_receipt",
         "workflow_attempt": 0,
@@ -43,8 +44,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_receipt",
           "kind": "attempt",
           "attempt": 0,
@@ -66,8 +68,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 0,
-          "step_key": "0-run",
+          "step_key": {
+            "seq": 0
+          },
           "task_name": "send_receipt",
           "kind": "complete",
           "output": {

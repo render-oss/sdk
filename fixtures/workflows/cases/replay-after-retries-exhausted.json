@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "send_sms",
         "workflow_attempt": 0,
@@ -21,8 +22,9 @@
         "completed_at": "2026-10-14T12:00:01Z"
       },
       {
-        "seq": 1,
-        "step_key": "1-run",
+        "step_key": {
+          "seq": 1
+        },
         "type": "inline",
         "task_name": "send_email",
         "workflow_attempt": 0,
@@ -40,8 +42,9 @@
         "completed_at": "2026-10-14T12:00:11Z"
       },
       {
-        "seq": 2,
-        "step_key": "2-run",
+        "step_key": {
+          "seq": 2
+        },
         "type": "inline",
         "task_name": "mark_done",
         "workflow_attempt": 0,
@@ -92,8 +95,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 2,
-          "step_key": "2-run",
+          "step_key": {
+            "seq": 2
+          },
           "task_name": "mark_done",
           "kind": "attempt",
           "attempt": 0,
@@ -115,8 +119,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 2,
-          "step_key": "2-run",
+          "step_key": {
+            "seq": 2
+          },
           "task_name": "mark_done",
           "kind": "complete",
           "output": {

@@ -4,8 +4,9 @@
   "history": {
     "steps": [
       {
-        "seq": 0,
-        "step_key": "0-run",
+        "step_key": {
+          "seq": 0
+        },
         "type": "inline",
         "task_name": "charge_card",
         "workflow_attempt": 0,
@@ -23,8 +24,9 @@
         "completed_at": "2026-10-14T12:00:01Z"
       },
       {
-        "seq": 1,
-        "step_key": "1-run",
+        "step_key": {
+          "seq": 1
+        },
         "type": "inline",
         "task_name": "send_email",
         "workflow_attempt": 0,
@@ -37,8 +39,9 @@
     ],
     "step_attempts": [
       {
-        "seq": 1,
-        "step_key": "1-run",
+        "step_key": {
+          "seq": 1
+        },
         "attempt": 0,
         "workflow_attempt": 0,
         "error": {
@@ -87,8 +90,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "attempt",
           "attempt": 1,
@@ -110,8 +114,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 1,
-          "step_key": "1-run",
+          "step_key": {
+            "seq": 1
+          },
           "task_name": "send_email",
           "kind": "complete",
           "output": {
@@ -134,8 +139,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 2,
-          "step_key": "2-run",
+          "step_key": {
+            "seq": 2
+          },
           "task_name": "mark_done",
           "kind": "start",
           "input": {
@@ -156,8 +162,9 @@
       "request": {
         "path": "/step-inline",
         "body": {
-          "seq": 2,
-          "step_key": "2-run",
+          "step_key": {
+            "seq": 2
+          },
           "task_name": "mark_done",
           "kind": "complete",
           "output": {
