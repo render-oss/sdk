@@ -310,16 +310,15 @@ export class SandboxesClient {
   }
 
   async get(sandboxId: string, ownerId?: `tea-${string}`) {
-    const { data, error, response } = await this.apiClient.GET("/sandboxes/{sandboxId}", {
-      params: {
-        path: { sandboxId },
-        query: { ownerId: this.resolveOwnerId(ownerId) },
-      },
-    });
-    if (error) {
-      throw getTypedApiError(error, response, "Failed to get sandbox");
-    }
-    return data;
+    return unwrap(
+      await this.apiClient.GET("/sandboxes/{sandboxId}", {
+        params: {
+          path: { sandboxId },
+          query: { ownerId: this.resolveOwnerId(ownerId) },
+        },
+      }),
+      "Failed to get sandbox",
+    );
   }
 
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
@@ -348,34 +347,32 @@ export class SandboxesClient {
     limit?: number;
     status?: components["schemas"]["sandboxStatus"][];
   } = {}) {
-    const { data, error, response } = await this.apiClient.GET("/sandboxes", {
-      params: {
-        query: {
-          ownerId: this.resolveOwnerId(ownerId),
-          cursor,
-          limit,
-          status,
+    return unwrap(
+      await this.apiClient.GET("/sandboxes", {
+        params: {
+          query: {
+            ownerId: this.resolveOwnerId(ownerId),
+            cursor,
+            limit,
+            status,
+          },
         },
-      },
-    });
-    if (error) {
-      throw getTypedApiError(error, response, "Failed to list sandboxes");
-    }
-    return data;
+      }),
+      "Failed to list sandboxes",
+    );
   }
 
   async listGroups({ ownerId }: SandboxGroupListInput = {}): Promise<SandboxGroupWithCursor[]> {
-    const { data, error, response } = await this.apiClient.GET("/sandbox-groups", {
-      params: {
-        query: {
-          ownerId: this.resolveOwnerId(ownerId),
+    return unwrap(
+      await this.apiClient.GET("/sandbox-groups", {
+        params: {
+          query: {
+            ownerId: this.resolveOwnerId(ownerId),
+          },
         },
-      },
-    });
-    if (error) {
-      throw getTypedApiError(error, response, "Failed to list sandbox groups");
-    }
-    return data;
+      }),
+      "Failed to list sandbox groups",
+    );
   }
 
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
@@ -385,7 +382,7 @@ export class SandboxesClient {
         query: { ownerId: this.resolveOwnerId(ownerId) },
       },
     });
-    if (error) {
+    if (error !== undefined || !response.ok) {
       throw getTypedApiError(error, response, "Failed to terminate sandbox");
     }
   }
@@ -471,9 +468,8 @@ export class SandboxesClient {
     ownerId?: `tea-${string}`,
     command?: string,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
-    const { data, error, response } = await this.apiClient.POST(
-      `/sandboxes/{sandboxId}/runs/{operation}/token`,
-      {
+    return unwrap(
+      await this.apiClient.POST(`/sandboxes/{sandboxId}/runs/{operation}/token`, {
         params: {
           path: {
             sandboxId,
@@ -484,12 +480,9 @@ export class SandboxesClient {
           },
         },
         ...(command ? { body: { command } } : {}),
-      },
+      }),
+      "Failed to get connect token",
     );
-    if (error) {
-      throw getTypedApiError(error, response, "Failed to get connect token");
-    }
-    return data;
   }
 
   private async getFileConnectToken(
@@ -498,9 +491,8 @@ export class SandboxesClient {
     operation: SandboxFileOperation,
     ownerId?: `tea-${string}`,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
-    const { data, error, response } = await this.apiClient.POST(
-      "/sandboxes/{sandboxId}/files/{operation}/token",
-      {
+    return unwrap(
+      await this.apiClient.POST("/sandboxes/{sandboxId}/files/{operation}/token", {
         params: {
           path: { sandboxId, operation },
           query: {
@@ -508,12 +500,9 @@ export class SandboxesClient {
             path,
           },
         },
-      },
+      }),
+      "Failed to get file connect token",
     );
-    if (error) {
-      throw getTypedApiError(error, response, "Failed to get file connect token");
-    }
-    return data;
   }
 
   async exec(

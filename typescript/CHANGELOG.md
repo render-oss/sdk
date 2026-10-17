@@ -14,6 +14,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - **Breaking:** (Sandbox) `SandboxCreateInput.networkPolicy` takes `type` instead of `default`. `allow-list` requires `rules`, and the other policy types reject them. Existing `deny-all` and `allow-all` policies are unaffected
 
+### Fixed
+
+- (Sandbox) `get()`, `list()`, `listGroups()`, `terminate()`, `exec()`, `upload()` and `download()` throw `ClientError` or `ServerError` when the API answers with an error status and no body. Before, these calls checked only the parsed error body, so an empty 5xx or 4xx looked like success: `terminate()` returned, `get()` and the list calls returned `undefined`, and the file and exec calls failed later with a `TypeError`
+
 ## [1.2.0] - 2026-09-23
 
 ### Added

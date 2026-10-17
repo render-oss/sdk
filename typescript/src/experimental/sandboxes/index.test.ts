@@ -58,7 +58,11 @@ const CONNECT_RESPONSE = {
 
 function mockApiClientWithConnectResponse(): Client<paths> {
   return {
-    POST: vi.fn().mockResolvedValue({ data: CONNECT_RESPONSE, error: undefined }),
+    POST: vi.fn().mockResolvedValue({
+      data: CONNECT_RESPONSE,
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    }),
   } as unknown as Client<paths>;
 }
 
@@ -104,6 +108,76 @@ describe("SandboxesClient", () => {
     vi.restoreAllMocks();
   });
 
+  describe("error responses without a body", () => {
+    const calls: Array<{
+      name: string;
+      method: "GET" | "POST";
+      context: string;
+      call: (client: SandboxesClient) => Promise<unknown>;
+    }> = [
+      {
+        name: "get",
+        method: "GET",
+        context: "Failed to get sandbox",
+        call: (c) => c.get("sbx-123"),
+      },
+      { name: "list", method: "GET", context: "Failed to list sandboxes", call: (c) => c.list() },
+      {
+        name: "listGroups",
+        method: "GET",
+        context: "Failed to list sandbox groups",
+        call: (c) => c.listGroups(),
+      },
+      {
+        name: "terminate",
+        method: "POST",
+        context: "Failed to terminate sandbox",
+        call: (c) => c.terminate("sbx-123"),
+      },
+      {
+        name: "upload",
+        method: "POST",
+        context: "Failed to get file connect token",
+        call: (c) => c.upload("sbx-123", "/root/a.txt", "hi"),
+      },
+      {
+        name: "download",
+        method: "POST",
+        context: "Failed to get file connect token",
+        call: (c) => c.download("sbx-123", "/root/a.txt"),
+      },
+      {
+        name: "exec",
+        method: "POST",
+        context: "Failed to get connect token",
+        call: (c) => c.exec("sbx-123", "echo hi").then((events) => collect(events)),
+      },
+    ];
+
+    for (const { name, method, context, call } of calls) {
+      for (const [status, ErrorClass] of [
+        [503, ServerError],
+        [404, ClientError],
+      ] as const) {
+        it(`${name} throws ${ErrorClass.name} for a bodiless ${status}`, async () => {
+          const fetchMock = vi.spyOn(globalThis, "fetch");
+          const client = new SandboxesClient(
+            mockApiClient(method, { status, statusText: "Upstream Failure" }),
+            "tea-default",
+          );
+
+          const error = await call(client).catch((err) => err);
+          expect(error).toBeInstanceOf(ErrorClass);
+          expect(error).toMatchObject({
+            statusCode: status,
+            message: `${context}: Upstream Failure`,
+          });
+          expect(fetchMock).not.toHaveBeenCalled();
+        });
+      }
+    }
+  });
+
   describe("list", () => {
     it("lists sandboxes with the requested filters", async () => {
       const sandboxes = [
@@ -122,7 +196,11 @@ describe("SandboxesClient", () => {
         },
       ];
       const apiClient = {
-        GET: vi.fn().mockResolvedValue({ data: sandboxes, error: undefined }),
+        GET: vi.fn().mockResolvedValue({
+          data: sandboxes,
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const client = new SandboxesClient(apiClient);
 
@@ -148,7 +226,11 @@ describe("SandboxesClient", () => {
 
     it("uses client defaults when called without options", async () => {
       const apiClient = {
-        GET: vi.fn().mockResolvedValue({ data: [], error: undefined }),
+        GET: vi.fn().mockResolvedValue({
+          data: [],
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const client = new SandboxesClient(apiClient, "tea-default");
 
@@ -184,7 +266,11 @@ describe("SandboxesClient", () => {
 
     it("lists sandbox groups for the requested owner", async () => {
       const apiClient = {
-        GET: vi.fn().mockResolvedValue({ data: [GROUP], error: undefined }),
+        GET: vi.fn().mockResolvedValue({
+          data: [GROUP],
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const client = new SandboxesClient(apiClient, "tea-default");
 
@@ -196,7 +282,11 @@ describe("SandboxesClient", () => {
 
     it("uses the client default owner when called without options", async () => {
       const apiClient = {
-        GET: vi.fn().mockResolvedValue({ data: [], error: undefined }),
+        GET: vi.fn().mockResolvedValue({
+          data: [],
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const client = new SandboxesClient(apiClient, "tea-default");
 
@@ -229,6 +319,21 @@ describe("SandboxesClient", () => {
       expect(error).toMatchObject({
         statusCode: 404,
         message: "Failed to list sandbox groups: workspace not found",
+      });
+    });
+  });
+
+  describe("terminate", () => {
+    it("terminates a sandbox when the API answers 204 with no body", async () => {
+      const apiClient = mockApiClient("POST", { status: 204 });
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      await expect(client.terminate("sbx-123", "tea-test")).resolves.toBeUndefined();
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/terminate", {
+        params: {
+          path: { sandboxId: "sbx-123" },
+          query: { ownerId: "tea-test" },
+        },
       });
     });
   });
@@ -755,7 +860,11 @@ describe("SandboxesClient", () => {
         method: "PUT",
       };
       const apiClient = {
-        POST: vi.fn().mockResolvedValue({ data: connection, error: undefined }),
+        POST: vi.fn().mockResolvedValue({
+          data: connection,
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null));
       const client = new SandboxesClient(apiClient);
@@ -787,7 +896,11 @@ describe("SandboxesClient", () => {
 
     it("throws AbortError when reading an upload error response is aborted", async () => {
       const apiClient = {
-        POST: vi.fn().mockResolvedValue({ data: CONNECT_RESPONSE, error: undefined }),
+        POST: vi.fn().mockResolvedValue({
+          data: CONNECT_RESPONSE,
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const response = new Response(null, { status: 500 });
       vi.spyOn(response, "text").mockRejectedValue(
@@ -808,7 +921,11 @@ describe("SandboxesClient", () => {
         method: "GET",
       };
       const apiClient = {
-        POST: vi.fn().mockResolvedValue({ data: connection, error: undefined }),
+        POST: vi.fn().mockResolvedValue({
+          data: connection,
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
         new Response("hello", {
@@ -837,7 +954,11 @@ describe("SandboxesClient", () => {
 
     it("throws AbortError when reading the download body is aborted", async () => {
       const apiClient = {
-        POST: vi.fn().mockResolvedValue({ data: CONNECT_RESPONSE, error: undefined }),
+        POST: vi.fn().mockResolvedValue({
+          data: CONNECT_RESPONSE,
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
       } as unknown as Client<paths>;
       const response = new Response();
       vi.spyOn(response, "arrayBuffer").mockRejectedValue(
