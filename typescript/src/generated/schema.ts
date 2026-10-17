@@ -124,6 +124,7 @@ export interface paths {
         /**
          * List Blueprint syncs
          * @description List syncs for the Blueprint with the provided ID.
+         *     Syncs that are planned but not yet approved (in the `created` state) are not included.
          */
         get: operations["list-blueprint-syncs"];
         put?: never;

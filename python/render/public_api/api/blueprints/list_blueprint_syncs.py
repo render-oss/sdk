@@ -113,6 +113,7 @@ def sync_detailed(
     """List Blueprint syncs
 
      List syncs for the Blueprint with the provided ID.
+    Syncs that are planned but not yet approved (in the `created` state) are not included.
 
     Args:
         blueprint_id (str):  Example: exs-cph1rs3idesc73a2b2mg.
@@ -150,6 +151,7 @@ def sync(
     """List Blueprint syncs
 
      List syncs for the Blueprint with the provided ID.
+    Syncs that are planned but not yet approved (in the `created` state) are not included.
 
     Args:
         blueprint_id (str):  Example: exs-cph1rs3idesc73a2b2mg.
@@ -182,6 +184,7 @@ async def asyncio_detailed(
     """List Blueprint syncs
 
      List syncs for the Blueprint with the provided ID.
+    Syncs that are planned but not yet approved (in the `created` state) are not included.
 
     Args:
         blueprint_id (str):  Example: exs-cph1rs3idesc73a2b2mg.
@@ -217,6 +220,7 @@ async def asyncio(
     """List Blueprint syncs
 
      List syncs for the Blueprint with the provided ID.
+    Syncs that are planned but not yet approved (in the `created` state) are not included.
 
     Args:
         blueprint_id (str):  Example: exs-cph1rs3idesc73a2b2mg.
