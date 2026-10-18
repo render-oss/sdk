@@ -4,19 +4,23 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.3.0] - 2026-10-17
 
 ### Added
 
-- (Sandbox) Egress rules: `sandboxes.create()` now accepts `networkPolicy: { type: "allow-list", rules: [{ domain: "pypi.org" }] }` to restrict outbound traffic to specific destinations. A rule's `protocol` defaults to `"https"`. The `SandboxNetworkPolicy` and `SandboxEgressRule` types are exported. Domains can be specific (pypi.org) or use wildcards (*.pypi.org)
+- (Sandbox) `sandboxes.create()` accepts `networkPolicy: { type: "allow-list", rules: [{ domain: "pypi.org" }] }` to restrict outbound traffic. Rules support domain names and wildcard domains such as `*.pypi.org`. A rule's `protocol` defaults to `"https"`. The SDK exports `SandboxNetworkPolicy` and `SandboxEgressRule`.
+- (REST API) Generated types include flows, flow runs, run steps, and individual build retrieval.
 
 ### Changed
 
-- **Breaking:** (Sandbox) `SandboxCreateInput.networkPolicy` takes `type` instead of `default`. `allow-list` requires `rules`, and the other policy types reject them. Existing `deny-all` and `allow-all` policies are unaffected
+- **Breaking:** (Sandbox) `SandboxCreateInput.networkPolicy` uses `type` instead of `default`. An `allow-list` policy requires `rules`. The other policy types do not accept `rules`.
+- **Breaking:** (REST API) Removed Blueprint creation and its request and response types. Build source Git fields use `dockerContext` instead of `baseDir`. Build list entries contain `build` and `cursor` instead of a bare build.
+- (REST API) Service creation can omit `runtime` when `buildSourceId` is set. `autoDeploy` is deprecated; use `autoDeployTrigger`. Sandbox status includes `suspending`. Service event list entries include a `cursor`.
+- (Workflows) The SDK sends import and startup timestamps with the initial input request. The runtime can use these timestamps to measure SDK import and startup time.
 
 ### Fixed
 
-- (Sandbox) `get()`, `list()`, `listGroups()`, `terminate()`, `exec()`, `upload()` and `download()` throw `ClientError` or `ServerError` when the API answers with an error status and no body. Before, these calls checked only the parsed error body, so an empty 5xx or 4xx looked like success: `terminate()` returned, `get()` and the list calls returned `undefined`, and the file and exec calls failed later with a `TypeError`
+- (Sandbox) `get()`, `list()`, `listGroups()`, `terminate()`, `exec()`, `upload()`, and `download()` throw `ClientError` or `ServerError` when the API returns an error status with an empty body. These responses could previously appear to succeed or cause a later `TypeError`.
 
 ## [1.2.0] - 2026-09-23
 
