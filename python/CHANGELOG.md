@@ -1,14 +1,18 @@
 # Changelog
 
-## [Unreleased]
+## [1.3.0] - 2026-10-17
 
 ### Added
 
-- (Sandboxes) Egress rules: `sandboxes.create()` accepts `network_policy=NetworkPolicy(type="allow-list", rules=[EgressRule(domain="pypi.org")])` to restrict outbound traffic to specific destinations. `EgressRule.protocol` defaults to `"https"`. Domains can be specific (pypi.org) or use wildcards (*.pypi.org)
+- (Sandboxes) `sandboxes.create()` accepts `network_policy=NetworkPolicy(type="allow-list", rules=[EgressRule(domain="pypi.org")])` to restrict outbound traffic. Rules support domain names and wildcard domains such as `*.pypi.org`. `EgressRule.protocol` defaults to `"https"`. Both the sync and async clients support these rules.
+- (REST API) Generated clients include flows, flow runs, run steps, and individual build retrieval.
 
 ### Changed
 
-- **Breaking:** (Sandboxes) `Sandbox.network_policy` is a `NetworkPolicy` with `type` and `rules` instead of a string. Read `sandbox.network_policy.type` where you previously read `sandbox.network_policy`. Existing `deny-all` and `allow-all` policies are unaffected
+- **Breaking:** (Sandboxes) `Sandbox.network_policy` is a `NetworkPolicy` object with `type` and `rules` instead of a string. Read `sandbox.network_policy.type` to get the policy type. String inputs such as `network_policy="deny-all"` still work when you create a sandbox.
+- **Breaking:** (REST API) Removed `create_blueprint` and its request and response models. Build source Git fields use `docker_context` instead of `base_dir`. Build lists return `BuildWithCursor` entries with `build` and `cursor` fields instead of bare `Build` entries.
+- (REST API) Service creation can omit `runtime` when `build_source_id` is set. `auto_deploy` is deprecated; use `auto_deploy_trigger`. Sandbox status includes `suspending`. Service event list entries include a `cursor`.
+- (Workflows) The SDK sends import and startup timestamps with the initial input request. The runtime can use these timestamps to measure SDK import and startup time.
 
 ## [1.2.0] - 2026-09-23
 

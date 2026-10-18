@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.0] - 2026-10-17
+
+Released with `render` 1.3.0. This package requires that version and exports
+its public names. See [the `render` changelog](../python/CHANGELOG.md) for
+the release notes.
+
 ## [1.2.0] - 2026-09-23
 
 Released in lockstep with `render` 1.2.0, which this package pins and
