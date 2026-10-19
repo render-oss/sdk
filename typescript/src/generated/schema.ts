@@ -4247,6 +4247,8 @@ export interface paths {
          *     malformed, 400 without a code if `snapshotId` is also set, and 404 with
          *     `code: snapshot_not_found` if no `available` snapshot in the group has the
          *     name. The 409 cases above apply to the resolved snapshot.
+         *
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -4391,7 +4393,8 @@ export interface paths {
          *     running; a runtime capture pauses it briefly.
          *
          *     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-         *     `code: sandbox_not_running` if the sandbox is not `running`.
+         *     `code: sandbox_not_running` if the sandbox is not `running`, or
+         *     `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["create-sandbox-snapshot"];
         delete?: never;
@@ -4489,6 +4492,8 @@ export interface paths {
          * @description Mint a short-lived, capability-scoped connect token that authorizes a
          *     single run operation against the specified sandbox. The response contains
          *     the sandbox URI where the caller sends the command with the token as a bearer credential.
+         *
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["connect-sandbox-run"];
         delete?: never;
@@ -4576,6 +4581,8 @@ export interface paths {
          *     downloads return `application/x-tar` with `Content-Encoding: gzip`. The
          *     token is bound to this sandbox, operation, and path, and expires
          *     shortly after issuance.
+         *
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["connect-sandbox-files"];
         delete?: never;
@@ -5399,7 +5406,7 @@ export interface components {
          * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
          * @enum {string}
          */
-        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit" | "invalid_snapshot_name";
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit" | "invalid_snapshot_name" | "sandbox_group_suspended";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.

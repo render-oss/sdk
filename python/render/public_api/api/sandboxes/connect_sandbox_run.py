@@ -115,6 +115,8 @@ def sync_detailed(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
@@ -160,6 +162,8 @@ def sync(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
@@ -199,6 +203,8 @@ async def asyncio_detailed(
      Mint a short-lived, capability-scoped connect token that authorizes a
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -242,6 +248,8 @@ async def asyncio(
      Mint a short-lived, capability-scoped connect token that authorizes a
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.

@@ -116,6 +116,8 @@ def sync_detailed(
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
@@ -165,6 +167,8 @@ def sync(
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
@@ -208,6 +212,8 @@ async def asyncio_detailed(
     downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -255,6 +261,8 @@ async def asyncio(
     downloads return `application/x-tar` with `Content-Encoding: gzip`. The
     token is bound to this sandbox, operation, and path, and expires
     shortly after issuance.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.

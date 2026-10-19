@@ -2035,6 +2035,8 @@ type ClientInterface interface {
 	// `code: snapshot_not_found` if no `available` snapshot in the group has the
 	// name. The 409 cases above apply to the resolved snapshot.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -2053,6 +2055,8 @@ type ClientInterface interface {
 	// malformed, 400 without a code if `snapshotId` is also set, and 404 with
 	// `code: snapshot_not_found` if no `available` snapshot in the group has the
 	// name. The 409 cases above apply to the resolved snapshot.
+	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -2124,6 +2128,8 @@ type ClientInterface interface {
 	// token is bound to this sandbox, operation, and path, and expires
 	// shortly after issuance.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
 	ConnectSandboxFiles(ctx context.Context, sandboxId externalRef15.SandboxId, operation string, params *ConnectSandboxFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2143,6 +2149,8 @@ type ClientInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /sandboxes/{sandboxId}/runs/{operation}/token (the `ConnectSandboxRun` operationId).
@@ -2153,6 +2161,8 @@ type ClientInterface interface {
 	// Mint a short-lived, capability-scoped connect token that authorizes a
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
+	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -2166,7 +2176,8 @@ type ClientInterface interface {
 	// running; a runtime capture pauses it briefly.
 	//
 	// 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-	// `code: sandbox_not_running` if the sandbox is not `running`.
+	// `code: sandbox_not_running` if the sandbox is not `running`, or
+	// `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2180,7 +2191,8 @@ type ClientInterface interface {
 	// running; a runtime capture pauses it briefly.
 	//
 	// 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-	// `code: sandbox_not_running` if the sandbox is not `running`.
+	// `code: sandbox_not_running` if the sandbox is not `running`, or
+	// `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -7188,6 +7200,8 @@ func (c *Client) ListSandboxes(ctx context.Context, params *ListSandboxesParams,
 // `code: snapshot_not_found` if no `available` snapshot in the group has the
 // name. The 409 cases above apply to the resolved snapshot.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -7216,6 +7230,8 @@ func (c *Client) CreateSandboxWithBody(ctx context.Context, contentType string, 
 // malformed, 400 without a code if `snapshotId` is also set, and 404 with
 // `code: snapshot_not_found` if no `available` snapshot in the group has the
 // name. The 409 cases above apply to the resolved snapshot.
+//
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -7357,6 +7373,8 @@ func (c *Client) ListSandboxFiles(ctx context.Context, sandboxId externalRef15.S
 // token is bound to this sandbox, operation, and path, and expires
 // shortly after issuance.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
 func (c *Client) ConnectSandboxFiles(ctx context.Context, sandboxId externalRef15.SandboxId, operation string, params *ConnectSandboxFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewConnectSandboxFilesRequest(c.Server, sandboxId, operation, params)
@@ -7396,6 +7414,8 @@ func (c *Client) StreamSandboxLogs(ctx context.Context, sandboxId externalRef15.
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /sandboxes/{sandboxId}/runs/{operation}/token (the `ConnectSandboxRun` operationId).
@@ -7416,6 +7436,8 @@ func (c *Client) ConnectSandboxRunWithBody(ctx context.Context, sandboxId extern
 // Mint a short-lived, capability-scoped connect token that authorizes a
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
+//
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -7439,7 +7461,8 @@ func (c *Client) ConnectSandboxRun(ctx context.Context, sandboxId externalRef15.
 // running; a runtime capture pauses it briefly.
 //
 // 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-// `code: sandbox_not_running` if the sandbox is not `running`.
+// `code: sandbox_not_running` if the sandbox is not `running`, or
+// `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes any type of body and a specified content type.
 //
@@ -7463,7 +7486,8 @@ func (c *Client) CreateSandboxSnapshotWithBody(ctx context.Context, sandboxId ex
 // running; a runtime capture pauses it briefly.
 //
 // 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-// `code: sandbox_not_running` if the sandbox is not `running`.
+// `code: sandbox_not_running` if the sandbox is not `running`, or
+// `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -27647,6 +27671,8 @@ type ClientWithResponsesInterface interface {
 	// `code: snapshot_not_found` if no `available` snapshot in the group has the
 	// name. The 409 cases above apply to the resolved snapshot.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -27665,6 +27691,8 @@ type ClientWithResponsesInterface interface {
 	// malformed, 400 without a code if `snapshotId` is also set, and 404 with
 	// `code: snapshot_not_found` if no `available` snapshot in the group has the
 	// name. The 409 cases above apply to the resolved snapshot.
+	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -27744,6 +27772,8 @@ type ClientWithResponsesInterface interface {
 	// token is bound to this sandbox, operation, and path, and expires
 	// shortly after issuance.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
@@ -27767,6 +27797,8 @@ type ClientWithResponsesInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes/{sandboxId}/runs/{operation}/token (the `ConnectSandboxRun` operationId).
@@ -27777,6 +27809,8 @@ type ClientWithResponsesInterface interface {
 	// Mint a short-lived, capability-scoped connect token that authorizes a
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
+	//
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -27790,7 +27824,8 @@ type ClientWithResponsesInterface interface {
 	// running; a runtime capture pauses it briefly.
 	//
 	// 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-	// `code: sandbox_not_running` if the sandbox is not `running`.
+	// `code: sandbox_not_running` if the sandbox is not `running`, or
+	// `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -27804,7 +27839,8 @@ type ClientWithResponsesInterface interface {
 	// running; a runtime capture pauses it briefly.
 	//
 	// 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-	// `code: sandbox_not_running` if the sandbox is not `running`.
+	// `code: sandbox_not_running` if the sandbox is not `running`, or
+	// `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -57427,6 +57463,8 @@ func (c *ClientWithResponses) ListSandboxesWithResponse(ctx context.Context, par
 // `code: snapshot_not_found` if no `available` snapshot in the group has the
 // name. The 409 cases above apply to the resolved snapshot.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -57451,6 +57489,8 @@ func (c *ClientWithResponses) CreateSandboxWithBodyWithResponse(ctx context.Cont
 // malformed, 400 without a code if `snapshotId` is also set, and 404 with
 // `code: snapshot_not_found` if no `available` snapshot in the group has the
 // name. The 409 cases above apply to the resolved snapshot.
+//
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -57572,6 +57612,8 @@ func (c *ClientWithResponses) ListSandboxFilesWithResponse(ctx context.Context, 
 // token is bound to this sandbox, operation, and path, and expires
 // shortly after issuance.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
@@ -57607,6 +57649,8 @@ func (c *ClientWithResponses) StreamSandboxLogsWithResponse(ctx context.Context,
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes/{sandboxId}/runs/{operation}/token (the `ConnectSandboxRun` operationId).
@@ -57623,6 +57667,8 @@ func (c *ClientWithResponses) ConnectSandboxRunWithBodyWithResponse(ctx context.
 // Mint a short-lived, capability-scoped connect token that authorizes a
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
+//
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -57642,7 +57688,8 @@ func (c *ClientWithResponses) ConnectSandboxRunWithResponse(ctx context.Context,
 // running; a runtime capture pauses it briefly.
 //
 // 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-// `code: sandbox_not_running` if the sandbox is not `running`.
+// `code: sandbox_not_running` if the sandbox is not `running`, or
+// `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -57662,7 +57709,8 @@ func (c *ClientWithResponses) CreateSandboxSnapshotWithBodyWithResponse(ctx cont
 // running; a runtime capture pauses it briefly.
 //
 // 400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-// `code: sandbox_not_running` if the sandbox is not `running`.
+// `code: sandbox_not_running` if the sandbox is not `running`, or
+// `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //

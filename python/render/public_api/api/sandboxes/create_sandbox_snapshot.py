@@ -118,7 +118,8 @@ def sync_detailed(
     running; a runtime capture pauses it briefly.
 
     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`.
+    `code: sandbox_not_running` if the sandbox is not `running`, or
+    `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -160,7 +161,8 @@ def sync(
     running; a runtime capture pauses it briefly.
 
     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`.
+    `code: sandbox_not_running` if the sandbox is not `running`, or
+    `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -197,7 +199,8 @@ async def asyncio_detailed(
     running; a runtime capture pauses it briefly.
 
     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`.
+    `code: sandbox_not_running` if the sandbox is not `running`, or
+    `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -237,7 +240,8 @@ async def asyncio(
     running; a runtime capture pauses it briefly.
 
     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`.
+    `code: sandbox_not_running` if the sandbox is not `running`, or
+    `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.

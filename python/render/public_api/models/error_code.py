@@ -18,6 +18,7 @@ class ErrorCode(str, Enum):
     PREAUTH_DECLINED = "preauth_declined"
     PREAUTH_NO_PAYMENT_METHOD = "preauth_no_payment_method"
     PREAUTH_UNAVAILABLE = "preauth_unavailable"
+    SANDBOX_GROUP_SUSPENDED = "sandbox_group_suspended"
     SANDBOX_NOT_RUNNING = "sandbox_not_running"
     SNAPSHOT_CREATING = "snapshot_creating"
     SNAPSHOT_NOT_AVAILABLE = "snapshot_not_available"

@@ -114,6 +114,8 @@ def sync_detailed(
     `code: snapshot_not_found` if no `available` snapshot in the group has the
     name. The 409 cases above apply to the resolved snapshot.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         body (SandboxPOST):
 
@@ -155,6 +157,8 @@ def sync(
     `code: snapshot_not_found` if no `available` snapshot in the group has the
     name. The 409 cases above apply to the resolved snapshot.
 
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
     Args:
         body (SandboxPOST):
 
@@ -190,6 +194,8 @@ async def asyncio_detailed(
     malformed, 400 without a code if `snapshotId` is also set, and 404 with
     `code: snapshot_not_found` if no `available` snapshot in the group has the
     name. The 409 cases above apply to the resolved snapshot.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         body (SandboxPOST):
@@ -229,6 +235,8 @@ async def asyncio(
     malformed, 400 without a code if `snapshotId` is also set, and 404 with
     `code: snapshot_not_found` if no `available` snapshot in the group has the
     name. The 409 cases above apply to the resolved snapshot.
+
+    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         body (SandboxPOST):
