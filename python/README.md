@@ -150,7 +150,7 @@ runs = render.workflows.list_task_runs(ListTaskRunsParams(limit=10))
 Pass an `idempotency_key` to make starting a run safe to retry. Repeating a call
 with the same key within 24 hours returns the run the first call started instead
 of starting another one, so a client that retries after a timeout does not run
-the task twice. Keys are scoped to a single workflow version.
+the task twice. Keys are scoped to a workflow.
 
 ```python
 task_run = render.workflows.start_task(

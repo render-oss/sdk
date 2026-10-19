@@ -279,7 +279,7 @@ console.log("Results:", result.results);
 
 ##### Idempotency keys
 
-Pass an `idempotencyKey` to make starting a run safe to retry. Repeating a call with the same key within 24 hours returns the run the first call started instead of starting another one, so a client that retries after a timeout does not run the task twice. Keys are scoped to a single workflow version.
+Pass an `idempotencyKey` to make starting a run safe to retry. Repeating a call with the same key within 24 hours returns the run the first call started instead of starting another one, so a client that retries after a timeout does not run the task twice. Keys are scoped to a workflow.
 
 ```typescript
 const run = await render.workflows.startTask("my-workflow/charge", [orderId], {
