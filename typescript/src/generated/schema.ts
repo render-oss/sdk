@@ -4249,6 +4249,9 @@ export interface paths {
          *     name. The 409 cases above apply to the resolved snapshot.
          *
          *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         *
+         *     400 with `code: sandbox_group_limit_reached` if the owner has no default
+         *     sandbox group and is already at its sandbox group limit.
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -4266,8 +4269,7 @@ export interface paths {
         };
         /**
          * List sandbox groups
-         * @description List sandbox groups for a single workspace. Alpha guarantees at most one
-         *     group per owner, so the response is either empty or a single-item list.
+         * @description List sandbox groups for a single workspace.
          */
         get: operations["list-sandbox-groups"];
         put?: never;
@@ -5113,7 +5115,7 @@ export interface components {
             schedule: string;
         };
         servicePATCH: {
-            /** @description The ID of the Build Source to link this service to. Cannot be combined with other build-configuration changes. */
+            /** @description The ID of the Build Source to link this service to. Cannot be combined with build-configuration changes or other `serviceDetails` fields, except `startCommand`. Linking to a Build Source with a native runtime requires a start command, either in this request or already set on the service. Linking to a Build Source with a Docker or image runtime rejects a start command. */
             buildSourceId?: components["schemas"]["buildSourceId"];
             buildId?: string;
             autoDeploy?: components["schemas"]["autoDeploy"];
@@ -5406,7 +5408,7 @@ export interface components {
          * @description The machine-readable codes that can appear in the error object's "code" field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants. OpenAPI cannot deprecate individual enum values, so deprecation notes live in x-enum-descriptions.
          * @enum {string}
          */
-        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit" | "invalid_snapshot_name" | "sandbox_group_suspended";
+        errorCode: "multiple_regions" | "duplicate_saved_search_name" | "too_many_resources" | "preauth_consent_required" | "preauth_declined" | "preauth_attempt_spent" | "preauth_no_payment_method" | "preauth_unavailable" | "cursor_origin_receipt_expired" | "cursor_origin_receipt_invalid" | "sandbox_not_running" | "snapshot_creating" | "snapshot_not_available" | "snapshot_plan_mismatch" | "snapshot_not_found" | "invalid_sandbox_group_id" | "invalid_snapshot_id" | "invalid_owner_id" | "invalid_status" | "invalid_cursor" | "invalid_limit" | "invalid_snapshot_name" | "sandbox_group_suspended" | "sandbox_group_limit_reached";
         /**
          * @deprecated
          * @description This field has been deprecated. previews.generation should be used in its place.
@@ -7863,7 +7865,7 @@ export interface components {
          */
         sandboxSnapshotKind: "filesystem" | "runtime";
         sandboxSnapshotPOST: {
-            /** @default filesystem */
+            /** @default runtime */
             kind: components["schemas"]["sandboxSnapshotKind"];
             name?: components["schemas"]["sandboxSnapshotName"];
             /**

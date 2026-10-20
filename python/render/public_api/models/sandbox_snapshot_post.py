@@ -20,7 +20,7 @@ class SandboxSnapshotPOST:
             plan.
             `runtime` also captures memory and CPU state and restores only onto the
             plan of the source sandbox.
-             Default: SandboxSnapshotKind.FILESYSTEM.
+             Default: SandboxSnapshotKind.RUNTIME.
         name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
             so clients can tell a name from a snapshot ID. Several snapshots may
             share a name; the most recently available one is the one the name
@@ -31,7 +31,7 @@ class SandboxSnapshotPOST:
             Must be in the future. Omit to use Render's default snapshot lifetime.
     """
 
-    kind: Union[Unset, SandboxSnapshotKind] = SandboxSnapshotKind.FILESYSTEM
+    kind: Union[Unset, SandboxSnapshotKind] = SandboxSnapshotKind.RUNTIME
     name: Union[Unset, str] = UNSET
     expires_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)

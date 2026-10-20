@@ -116,6 +116,9 @@ def sync_detailed(
 
     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
+    400 with `code: sandbox_group_limit_reached` if the owner has no default
+    sandbox group and is already at its sandbox group limit.
+
     Args:
         body (SandboxPOST):
 
@@ -159,6 +162,9 @@ def sync(
 
     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 
+    400 with `code: sandbox_group_limit_reached` if the owner has no default
+    sandbox group and is already at its sandbox group limit.
+
     Args:
         body (SandboxPOST):
 
@@ -196,6 +202,9 @@ async def asyncio_detailed(
     name. The 409 cases above apply to the resolved snapshot.
 
     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
+    400 with `code: sandbox_group_limit_reached` if the owner has no default
+    sandbox group and is already at its sandbox group limit.
 
     Args:
         body (SandboxPOST):
@@ -237,6 +246,9 @@ async def asyncio(
     name. The 409 cases above apply to the resolved snapshot.
 
     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+
+    400 with `code: sandbox_group_limit_reached` if the owner has no default
+    sandbox group and is already at its sandbox group limit.
 
     Args:
         body (SandboxPOST):

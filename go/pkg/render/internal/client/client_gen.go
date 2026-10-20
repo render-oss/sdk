@@ -1968,8 +1968,7 @@ type ClientInterface interface {
 
 	// ListSandboxGroups List sandbox groups
 	//
-	// List sandbox groups for a single workspace. Alpha guarantees at most one
-	// group per owner, so the response is either empty or a single-item list.
+	// List sandbox groups for a single workspace.
 	//
 	// Corresponds with GET /sandbox-groups (the `ListSandboxGroups` operationId).
 	ListSandboxGroups(ctx context.Context, params *ListSandboxGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2037,6 +2036,9 @@ type ClientInterface interface {
 	//
 	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
+	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+	// sandbox group and is already at its sandbox group limit.
+	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -2057,6 +2059,9 @@ type ClientInterface interface {
 	// name. The 409 cases above apply to the resolved snapshot.
 	//
 	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
+	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+	// sandbox group and is already at its sandbox group limit.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -7083,8 +7088,7 @@ func (c *Client) UpdateRegistryCredential(ctx context.Context, registryCredentia
 
 // ListSandboxGroups List sandbox groups
 //
-// List sandbox groups for a single workspace. Alpha guarantees at most one
-// group per owner, so the response is either empty or a single-item list.
+// List sandbox groups for a single workspace.
 //
 // Corresponds with GET /sandbox-groups (the `ListSandboxGroups` operationId).
 func (c *Client) ListSandboxGroups(ctx context.Context, params *ListSandboxGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -7202,6 +7206,9 @@ func (c *Client) ListSandboxes(ctx context.Context, params *ListSandboxesParams,
 //
 // 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
+// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+// sandbox group and is already at its sandbox group limit.
+//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -7232,6 +7239,9 @@ func (c *Client) CreateSandboxWithBody(ctx context.Context, contentType string, 
 // name. The 409 cases above apply to the resolved snapshot.
 //
 // 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
+// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+// sandbox group and is already at its sandbox group limit.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -27594,8 +27604,7 @@ type ClientWithResponsesInterface interface {
 
 	// ListSandboxGroupsWithResponse List sandbox groups
 	//
-	// List sandbox groups for a single workspace. Alpha guarantees at most one
-	// group per owner, so the response is either empty or a single-item list.
+	// List sandbox groups for a single workspace.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -27673,6 +27682,9 @@ type ClientWithResponsesInterface interface {
 	//
 	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
+	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+	// sandbox group and is already at its sandbox group limit.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -27693,6 +27705,9 @@ type ClientWithResponsesInterface interface {
 	// name. The 409 cases above apply to the resolved snapshot.
 	//
 	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
+	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+	// sandbox group and is already at its sandbox group limit.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -57356,8 +57371,7 @@ func (c *ClientWithResponses) UpdateRegistryCredentialWithResponse(ctx context.C
 
 // ListSandboxGroupsWithResponse List sandbox groups
 //
-// List sandbox groups for a single workspace. Alpha guarantees at most one
-// group per owner, so the response is either empty or a single-item list.
+// List sandbox groups for a single workspace.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -57465,6 +57479,9 @@ func (c *ClientWithResponses) ListSandboxesWithResponse(ctx context.Context, par
 //
 // 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
+// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+// sandbox group and is already at its sandbox group limit.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -57491,6 +57508,9 @@ func (c *ClientWithResponses) CreateSandboxWithBodyWithResponse(ctx context.Cont
 // name. The 409 cases above apply to the resolved snapshot.
 //
 // 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
+// 400 with `code: sandbox_group_limit_reached` if the owner has no default
+// sandbox group and is already at its sandbox group limit.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //

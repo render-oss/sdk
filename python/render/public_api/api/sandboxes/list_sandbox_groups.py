@@ -101,8 +101,7 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace. Alpha guarantees at most one
-    group per owner, so the response is either empty or a single-item list.
+     List sandbox groups for a single workspace.
 
     Args:
         owner_id (str):
@@ -133,8 +132,7 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace. Alpha guarantees at most one
-    group per owner, so the response is either empty or a single-item list.
+     List sandbox groups for a single workspace.
 
     Args:
         owner_id (str):
@@ -160,8 +158,7 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace. Alpha guarantees at most one
-    group per owner, so the response is either empty or a single-item list.
+     List sandbox groups for a single workspace.
 
     Args:
         owner_id (str):
@@ -190,8 +187,7 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace. Alpha guarantees at most one
-    group per owner, so the response is either empty or a single-item list.
+     List sandbox groups for a single workspace.
 
     Args:
         owner_id (str):
