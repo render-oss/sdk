@@ -3,6 +3,7 @@
 This module provides SSE stream parsing functionality for task run events.
 """
 
+import codecs
 import json
 import logging
 from collections.abc import AsyncIterator
@@ -22,13 +23,14 @@ class SSEParser:
     """
 
     def __init__(self) -> None:
+        self._decoder = codecs.getincrementaldecoder("utf-8")(errors="ignore")
         self._buffer = ""
         self._event_data: dict[str, Any] = {}
 
     def feed(self, chunk: bytes) -> list[TaskRunDetails]:
         """Feed a chunk of bytes and return any completed events."""
         results: list[TaskRunDetails] = []
-        self._buffer += chunk.decode("utf-8", errors="ignore")
+        self._buffer += self._decoder.decode(chunk)
 
         while "\n" in self._buffer:
             line, self._buffer = self._buffer.split("\n", 1)
