@@ -391,13 +391,13 @@ class SandboxApi:
     async def create_snapshot(
         self,
         sandbox_id: str,
-        kind: str,
+        kind: str | None,
         name: str | None,
         expires_at: datetime | None,
         owner_id: str | Unset,
     ) -> Snapshot:
         body = SandboxSnapshotPOST(
-            kind=SandboxSnapshotKind(kind),
+            kind=SandboxSnapshotKind(kind) if kind is not None else UNSET,
             name=name if name is not None else UNSET,
             expires_at=expires_at if expires_at is not None else UNSET,
         )

@@ -128,7 +128,7 @@ export type SandboxSnapshotStatus = components["schemas"]["sandboxSnapshotStatus
 /** Options for capturing a snapshot of a running sandbox. */
 export type SandboxSnapshotCreateInput = {
   sandboxId: string;
-  /** The API defaults to `filesystem`. */
+  /** The API defaults to `runtime`. */
   kind?: SandboxSnapshotKind;
   /** Case-sensitive name for this snapshot. May be reused within the sandbox group. */
   name?: string;

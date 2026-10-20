@@ -81,7 +81,7 @@ def test_sandbox_client_exposes_snapshots():
 
 
 @pytest.mark.asyncio
-async def test_create_posts_kind_and_returns_creating_snapshot():
+async def test_create_omits_kind_by_default_and_returns_creating_snapshot():
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -97,7 +97,7 @@ async def test_create_posts_kind_and_returns_creating_snapshot():
     assert captured["method"] == "POST"
     assert captured["path"] == "/v1/sandboxes/sbx-abc/snapshots"
     assert captured["query"]["ownerId"] == "tea-test"
-    assert captured["body"] == {"kind": "filesystem"}
+    assert captured["body"] == {}
     assert snapshot.id == "snp-abc"
     assert snapshot.sandbox_group_id == "sbg-abc"
     assert snapshot.source_sandbox_id == "sbx-abc"
@@ -139,7 +139,7 @@ async def test_create_sends_name_and_returns_it():
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.create("sbx-abc", name="gold")
 
-    assert captured["body"] == {"kind": "filesystem", "name": "gold"}
+    assert captured["body"] == {"name": "gold"}
     assert snapshot.name == "gold"
 
 
@@ -645,6 +645,19 @@ def test_sync_create_posts_kind_and_returns_snapshot():
     assert snapshot.id == "snp-abc"
     assert snapshot.status == "creating"
     assert snapshot.name == "gold"
+
+
+def test_sync_create_omits_kind_by_default():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+
+    client = _sync_sandbox_client(handler)
+    client.snapshots.create("sbx-abc")
+
+    assert captured["body"] == {}
 
 
 def test_sync_list_by_group_returns_snapshots_and_cursor():

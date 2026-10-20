@@ -326,6 +326,44 @@ func TestSandboxNetworkPolicyCreate(t *testing.T) {
 	}
 }
 
+func TestSnapshotCreateKind(t *testing.T) {
+	tests := []struct {
+		name string
+		kind string
+		wire string
+	}{
+		{"empty omits kind", "", ""},
+		{"filesystem", "filesystem", `"filesystem"`},
+		{"runtime", "runtime", `"runtime"`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(UseLocalDev, "")
+			t.Setenv(LocalDevURL, "")
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, "/v1/sandboxes/sbx-1/snapshots", r.URL.Path)
+				require.Equal(t, http.MethodPost, r.Method)
+				var body map[string]json.RawMessage
+				require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+				if tt.wire == "" {
+					require.NotContains(t, body, "kind")
+				} else {
+					require.JSONEq(t, tt.wire, string(body["kind"]))
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusAccepted)
+				_, _ = w.Write([]byte(`{"id":"snp-1","sandboxGroupId":"sbg-1","sourceSandboxId":"sbx-1","kind":"runtime","status":"creating","plan":"starter","requestedAt":"2026-01-01T00:00:00Z","expiresAt":"2026-01-08T00:00:00Z"}`))
+			}))
+			defer server.Close()
+			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+			require.NoError(t, err)
+			snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{Kind: tt.kind})
+			require.NoError(t, err)
+			require.Equal(t, "snp-1", snapshot.ID)
+		})
+	}
+}
+
 func TestSandboxRejectsInvalidNetworkPolicy(t *testing.T) {
 	t.Setenv(UseLocalDev, "")
 	t.Setenv(LocalDevURL, "")

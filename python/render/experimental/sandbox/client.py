@@ -221,7 +221,7 @@ class SnapshotClient:
         self,
         sandbox_id: str,
         *,
-        kind: str = "filesystem",
+        kind: str | None = None,
         name: str | None = None,
         expires_at: datetime | None = None,
         owner_id: str | None = None,

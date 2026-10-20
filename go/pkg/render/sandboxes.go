@@ -186,7 +186,7 @@ type ListSandboxesOptions struct {
 
 // CreateSnapshotParams configures a new snapshot.
 type CreateSnapshotParams struct {
-	// Kind is filesystem (the default) or runtime (also memory and CPU state).
+	// Kind is filesystem or runtime (the default; also memory and CPU state).
 	Kind string
 	// Name is case sensitive and can be reused within a sandbox group.
 	Name string
@@ -556,11 +556,11 @@ func sseEvents(r io.Reader, errp *error) iter.Seq2[string, string] {
 // Create captures a snapshot of a running sandbox. The snapshot comes back
 // with status creating; poll FromID until it is available or failed.
 func (s *SnapshotClient) Create(ctx context.Context, sandboxID string, params CreateSnapshotParams) (*Snapshot, error) {
-	kind := sandboxes.SandboxSnapshotKind(params.Kind)
-	if kind == "" {
-		kind = sandboxes.Filesystem
+	body := sandboxes.SandboxSnapshotPOST{ExpiresAt: params.ExpiresAt}
+	if params.Kind != "" {
+		kind := sandboxes.SandboxSnapshotKind(params.Kind)
+		body.Kind = &kind
 	}
-	body := sandboxes.SandboxSnapshotPOST{Kind: &kind, ExpiresAt: params.ExpiresAt}
 	if params.Name != "" {
 		body.Name = &params.Name
 	}
