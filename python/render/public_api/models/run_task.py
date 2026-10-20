@@ -24,9 +24,8 @@ class RunTask:
             arguments) or an object (for named parameters).
         idempotency_key (Union[Unset, str]): A client-generated key that makes starting a task run safe to retry.
             Repeating a request with the same key within 24 hours returns the task run that the first request started
-            instead of starting another one; the repeated request's input is ignored. Keys are scoped to a single workflow
-            version, so the same key used against a different version starts a separate run. Omit the key to always start a
-            new run. Example: 6b2f1f7a-6a0e-4f6f-9d1a-2b1d0d5f6c11.
+            instead of starting another one; the repeated request's input is ignored. Keys are scoped to a workflow. Omit
+            the key to always start a new run. Example: 6b2f1f7a-6a0e-4f6f-9d1a-2b1d0d5f6c11.
     """
 
     task: str
