@@ -953,6 +953,7 @@ describe("SandboxesClient", () => {
       const client = new SandboxesClient(apiClient);
 
       const downloaded = await client.download("sbx-123", "/app/hello.txt", "tea-test");
+      expect(await new Blob([downloaded.data]).text()).toBe("hello");
 
       expect(apiClient.POST).toHaveBeenCalledWith(
         "/sandboxes/{sandboxId}/files/{operation}/token",

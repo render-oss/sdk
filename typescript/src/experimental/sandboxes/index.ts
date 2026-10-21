@@ -49,7 +49,8 @@ export type SandboxUploadOptions = {
 };
 
 export type SandboxDownload = {
-  data: Buffer;
+  /** Backed by an `ArrayBuffer`, so it passes to Web and Bun APIs that take `Uint8Array<ArrayBuffer>`. */
+  data: ReturnType<typeof Buffer.from>;
   size: number;
   contentType?: string;
 };

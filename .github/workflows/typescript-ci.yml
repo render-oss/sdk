@@ -43,7 +43,9 @@ jobs:
         with:
           node-version: 22
           cache: "npm"
-          cache-dependency-path: typescript/package-lock.json
+          cache-dependency-path: |
+            typescript/package-lock.json
+            typescript/typing-tests/bun-download/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -56,6 +58,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Check Bun download consumer types
+        working-directory: ./typescript/typing-tests/bun-download
+        run: |
+          npm ci --ignore-scripts
+          npm run typecheck
 
   test:
     name: Test Node ${{ matrix.node-version }}

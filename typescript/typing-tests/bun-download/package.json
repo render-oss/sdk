@@ -1,0 +1,14 @@
+{
+  "name": "sdk-bun-download-types",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@renderinc/sdk": "file:../.."
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.3",
+    "typescript": "7.0.2"
+  }
+}
