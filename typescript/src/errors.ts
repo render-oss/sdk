@@ -52,6 +52,24 @@ export class SandboxSnapshotNotFoundError extends ClientError {
 }
 
 /**
+ * The sandbox has ended (`terminated` or `errored`), for example because it passed its timeout.
+ * It can't run commands or transfer files, so retrying won't help.
+ */
+export class SandboxEndedError extends ClientError {
+  constructor(
+    message: string,
+    statusCode: number,
+    public sandboxStatus: "terminated" | "errored",
+    response?: any,
+    code?: string,
+  ) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxEndedError";
+    Object.setPrototypeOf(this, SandboxEndedError.prototype);
+  }
+}
+
+/**
  * The snapshot is not `available`: its capture is still in progress or has failed
  */
 export class SandboxSnapshotNotReadyError extends ClientError {

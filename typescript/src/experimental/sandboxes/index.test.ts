@@ -3,6 +3,7 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxEndedError,
   SandboxSnapshotNotFoundError,
   SandboxSnapshotNotReadyError,
   SandboxSnapshotPlanMismatchError,
@@ -1131,6 +1132,69 @@ describe("SandboxesClient", () => {
         message: "Failed to get connect token: boom",
       });
       expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    describe("when the connect token request returns 404", () => {
+      const mockTokenNotFound = (status: string): Client<paths> =>
+        ({
+          POST: vi.fn().mockResolvedValue({
+            data: undefined,
+            error: { message: "not found" },
+            response: new Response(null, { status: 404 }),
+          }),
+          GET: vi.fn().mockResolvedValue({
+            data: {
+              id: "sbx-123",
+              status,
+              plan: "starter",
+              networkPolicy: { type: "deny-all" },
+              region: "oregon",
+              timeoutSeconds: 600,
+              createdAt: "2026-10-16T09:02:00Z",
+              terminatedAt: status === "terminated" ? "2026-10-16T09:12:00Z" : null,
+            },
+            error: undefined,
+            response: new Response(null, { status: 200 }),
+          }),
+        }) as unknown as Client<paths>;
+
+      // A pool sandbox that passed its timeout failed with "not found", and callers
+      // retried it as if it were still starting.
+      it.each([
+        {
+          name: "exec",
+          call: (c: SandboxesClient) => collectOpenExec(c, "sbx-123", "echo hi", "tea-test"),
+          context: "Failed to get connect token",
+        },
+        {
+          name: "download",
+          call: (c: SandboxesClient) => c.download("sbx-123", "/tmp/out", "tea-test"),
+          context: "Failed to get file connect token",
+        },
+      ])("$name throws SandboxEndedError for a terminated sandbox", async ({ call, context }) => {
+        const client = new SandboxesClient(mockTokenNotFound("terminated"));
+
+        const error = await call(client).catch((err) => err);
+        expect(error).toBeInstanceOf(SandboxEndedError);
+        expect(error).toMatchObject({
+          statusCode: 404,
+          sandboxStatus: "terminated",
+          message: `${context}: sandbox sbx-123 was terminated at 2026-10-16T09:12:00Z`,
+        });
+      });
+
+      it("keeps the 404 for a sandbox that is still running", async () => {
+        const client = new SandboxesClient(mockTokenNotFound("running"));
+
+        const error = await collectOpenExec(client, "sbx-123", "echo hi", "tea-test").catch(
+          (err) => err,
+        );
+        expect(error).not.toBeInstanceOf(SandboxEndedError);
+        expect(error).toMatchObject({
+          statusCode: 404,
+          message: "Failed to get connect token: not found",
+        });
+      });
     });
 
     it("throws AbortError if the signal is already aborted", async () => {

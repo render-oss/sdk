@@ -5,6 +5,7 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxEndedError,
   SandboxSnapshotNotFoundError,
 } from "../../errors.js";
 import type { components, paths } from "../../generated/schema.js";
@@ -468,21 +469,26 @@ export class SandboxesClient {
     ownerId?: `tea-${string}`,
     command?: string,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
-    return unwrap(
-      await this.apiClient.POST(`/sandboxes/{sandboxId}/runs/{operation}/token`, {
-        params: {
-          path: {
-            sandboxId,
-            operation,
+    const context = "Failed to get connect token";
+    try {
+      return unwrap(
+        await this.apiClient.POST(`/sandboxes/{sandboxId}/runs/{operation}/token`, {
+          params: {
+            path: {
+              sandboxId,
+              operation,
+            },
+            query: {
+              ownerId: this.resolveOwnerId(ownerId),
+            },
           },
-          query: {
-            ownerId: this.resolveOwnerId(ownerId),
-          },
-        },
-        ...(command ? { body: { command } } : {}),
-      }),
-      "Failed to get connect token",
-    );
+          ...(command ? { body: { command } } : {}),
+        }),
+        context,
+      );
+    } catch (err) {
+      throw await this.explainEndedSandbox(err, sandboxId, ownerId, context);
+    }
   }
 
   private async getFileConnectToken(
@@ -491,17 +497,56 @@ export class SandboxesClient {
     operation: SandboxFileOperation,
     ownerId?: `tea-${string}`,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
-    return unwrap(
-      await this.apiClient.POST("/sandboxes/{sandboxId}/files/{operation}/token", {
-        params: {
-          path: { sandboxId, operation },
-          query: {
-            ownerId: this.resolveOwnerId(ownerId),
-            path,
+    const context = "Failed to get file connect token";
+    try {
+      return unwrap(
+        await this.apiClient.POST("/sandboxes/{sandboxId}/files/{operation}/token", {
+          params: {
+            path: { sandboxId, operation },
+            query: {
+              ownerId: this.resolveOwnerId(ownerId),
+              path,
+            },
           },
-        },
-      }),
-      "Failed to get file connect token",
+        }),
+        context,
+      );
+    } catch (err) {
+      throw await this.explainEndedSandbox(err, sandboxId, ownerId, context);
+    }
+  }
+
+  /**
+   * The connect token endpoint returns a bare 404 both for a sandbox that isn't ready yet and
+   * for one that has ended. Only the first is worth retrying, so look up the sandbox and name
+   * the second.
+   */
+  private async explainEndedSandbox(
+    err: unknown,
+    sandboxId: string,
+    ownerId: `tea-${string}` | undefined,
+    context: string,
+  ): Promise<unknown> {
+    if (!(err instanceof ClientError) || err.statusCode !== 404) {
+      return err;
+    }
+    let sandbox: Sandbox;
+    try {
+      sandbox = await this.get(sandboxId, ownerId);
+    } catch {
+      return err;
+    }
+    if (sandbox.status !== "terminated" && sandbox.status !== "errored") {
+      return err;
+    }
+    const ended = sandbox.status === "terminated" ? "was terminated" : "errored";
+    const at = sandbox.terminatedAt ? ` at ${sandbox.terminatedAt}` : "";
+    return new SandboxEndedError(
+      `${context}: sandbox ${sandboxId} ${ended}${at}`,
+      err.statusCode,
+      sandbox.status,
+      err.response,
+      err.code,
     );
   }
 
