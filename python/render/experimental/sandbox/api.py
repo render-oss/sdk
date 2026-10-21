@@ -179,6 +179,7 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
         network_policy=_to_network_policy(model.network_policy),
         region=model.region,
         timeout_seconds=model.timeout_seconds,
+        idle_timeout_seconds=model.idle_timeout_seconds,
         created_at=model.created_at,
         terminated_at=_set_or_none(model.terminated_at),
     )
@@ -279,6 +280,7 @@ class SandboxApi:
         owner_id: str,
         plan: str | None,
         timeout_seconds: int | None,
+        idle_timeout_seconds: int | None,
         network_policy: NetworkPolicy | str | None,
         region: str | None,
         env: dict[str, str] | None,
@@ -290,6 +292,8 @@ class SandboxApi:
             body.plan = plan
         if timeout_seconds is not None:
             body.timeout_seconds = timeout_seconds
+        if idle_timeout_seconds is not None:
+            body.idle_timeout_seconds = idle_timeout_seconds
         if region is not None:
             body.region = region
         if network_policy is not None:

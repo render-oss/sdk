@@ -34,6 +34,7 @@ from render.experimental.sandbox.tests.test_client import (
     test_copy_to_rejects_a_fifo_before_minting as test_copy_to_rejects_a_fifo_before_minting,
     test_copy_to_rejects_an_empty_remote_path as test_copy_to_rejects_an_empty_remote_path,
     test_copy_to_requires_owner_id as test_copy_to_requires_owner_id,
+    test_create_defaults_idle_timeout_for_older_api_response as test_create_defaults_idle_timeout_for_older_api_response,
     test_create_passes_a_plan_unknown_to_the_sdk_through as test_create_passes_a_plan_unknown_to_the_sdk_through,
     test_create_preserves_allow_list_rules_in_both_clients as test_create_preserves_allow_list_rules_in_both_clients,
     test_create_rejects_rules_for_other_policies_in_both_clients as test_create_rejects_rules_for_other_policies_in_both_clients,

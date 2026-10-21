@@ -41,6 +41,7 @@ class Sandbox:
     network_policy: NetworkPolicy
     region: str
     timeout_seconds: int
+    idle_timeout_seconds: int
     created_at: datetime
     terminated_at: datetime | None = None
 

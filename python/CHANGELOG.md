@@ -6,6 +6,7 @@
 
 - (Sandboxes) `sandboxes.create()` accepts `network_policy=NetworkPolicy(type="allow-list", rules=[EgressRule(domain="pypi.org")])` to restrict outbound traffic. Rules support domain names and wildcard domains such as `*.pypi.org`. `EgressRule.protocol` defaults to `"https"`. Both the sync and async clients support these rules.
 - (REST API) Generated clients include flows, flow runs, run steps, and individual build retrieval.
+- (Sandboxes) `sandboxes.create()` accepts `idle_timeout_seconds`; use `0` to disable automatic idle suspension. Returned `Sandbox` values expose the effective setting.
 
 ### Changed
 

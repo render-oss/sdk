@@ -59,6 +59,7 @@ class SyncSandboxClient:
         owner_id: str | None = None,
         plan: str | None = None,
         timeout_seconds: int | None = None,
+        idle_timeout_seconds: int | None = None,
         network_policy: NetworkPolicy | str | None = None,
         region: str | None = None,
         env: dict[str, str] | None = None,
@@ -68,8 +69,9 @@ class SyncSandboxClient:
         """Create a sandbox and return its initial state.
 
         All parameters are optional. Unspecified fields fall back to the
-        workspace defaults enforced by the API (plan starter, 7200s timeout,
-        workspace default region and network policy).
+        workspace defaults enforced by the API (plan starter, 24-hour lifetime,
+        15-minute idle timeout, workspace default region and network policy).
+        Set idle_timeout_seconds to 0 to disable automatic idle suspension.
 
         network_policy is a NetworkPolicy, or a policy type string as a
         shorthand for one without rules. To restrict outbound traffic to
@@ -92,6 +94,7 @@ class SyncSandboxClient:
             owner_id=resolved_owner_id,
             plan=plan,
             timeout_seconds=timeout_seconds,
+            idle_timeout_seconds=idle_timeout_seconds,
             network_policy=network_policy,
             region=resolved_region,
             env=env,

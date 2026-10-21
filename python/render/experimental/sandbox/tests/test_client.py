@@ -69,19 +69,36 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
         return httpx.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
-    sandbox = await client.create(plan="standard", timeout_seconds=300)
+    sandbox = await client.create(
+        plan="standard", timeout_seconds=300, idle_timeout_seconds=0
+    )
 
     assert captured["method"] == "POST"
     assert captured["path"] == "/v1/sandboxes"
     assert captured["body"]["ownerId"] == "tea-test"
     assert captured["body"]["plan"] == "standard"
     assert captured["body"]["timeoutSeconds"] == 300
+    assert captured["body"]["idleTimeoutSeconds"] == 0
     assert "env" not in captured["body"]
     assert "networkPolicy" not in captured["body"]
     assert sandbox.id == "sbx-abc"
     assert sandbox.status == "running"
     assert sandbox.network_policy == NetworkPolicy(type="deny-all")
+    assert sandbox.idle_timeout_seconds == 900
     assert sandbox.terminated_at is None
+
+
+@pytest.mark.asyncio
+async def test_create_defaults_idle_timeout_for_older_api_response():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        response = {**SANDBOX_JSON}
+        del response["idleTimeoutSeconds"]
+        return httpx.Response(201, json=response)
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create()
+
+    assert sandbox.idle_timeout_seconds == 900
 
 
 @pytest.mark.asyncio

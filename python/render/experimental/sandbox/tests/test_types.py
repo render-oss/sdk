@@ -33,11 +33,13 @@ def test_sandbox_has_expected_fields():
         network_policy=NetworkPolicy(type="deny-all"),
         region="oregon",
         timeout_seconds=7200,
+        idle_timeout_seconds=900,
         created_at=datetime(2026, 7, 17),
     )
     assert sb.id == "sbx-1"
     assert sb.network_policy.type == "deny-all"
     assert sb.network_policy.rules == []
+    assert sb.idle_timeout_seconds == 900
     assert sb.terminated_at is None
 
 
