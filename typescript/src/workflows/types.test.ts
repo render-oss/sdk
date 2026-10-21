@@ -15,6 +15,7 @@ import {
   type PutObjectInputStream,
   type PutObjectResult,
   type Region,
+  type Sandbox,
   type ScopedDeleteObjectInput,
   type ScopedGetObjectInput,
   type ScopedObjectClient,
@@ -187,6 +188,14 @@ async function testRenderClient() {
   const workflows: WorkflowsClient = render.workflows;
   const experimental: ExperimentalClient = render.experimental;
   const objects: ObjectClient = render.experimental.storage.objects;
+}
+
+// Callers annotate sandboxes they keep, e.g. a pool of warm sandboxes.
+async function testSandboxType() {
+  const render = new Render({ token: "test" });
+
+  const created: Sandbox = await render.experimental.sandboxes.create();
+  const fetched: Sandbox = await render.experimental.sandboxes.get(created.id);
 }
 
 async function testWorkflowsClient() {

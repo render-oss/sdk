@@ -27,6 +27,7 @@ export {
 } from "./object/index.js";
 // Sandbox exports
 export {
+  type Sandbox,
   type SandboxCreateInput,
   type SandboxDownload,
   type SandboxEgressRule,
