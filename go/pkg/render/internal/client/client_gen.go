@@ -30027,12 +30027,14 @@ type UpdateBlueprintResponse struct {
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
 	JSON200 *externalRef2.Blueprint
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *Error
 	// JSON401 the response for an HTTP 401 `application/json` response
 	JSON401 *N401Unauthorized
 	// JSON403 the response for an HTTP 403 `application/json` response
 	JSON403 *N403Forbidden
 	// JSON404 the response for an HTTP 404 `application/json` response
-	JSON404 *N404NotFound
+	JSON404 *Error
 	// JSON406 the response for an HTTP 406 `application/json` response
 	JSON406 *N406NotAcceptable
 	// JSON410 the response for an HTTP 410 `application/json` response
@@ -30052,6 +30054,11 @@ func (r UpdateBlueprintResponse) GetJSON200() *externalRef2.Blueprint {
 	return r.JSON200
 }
 
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r UpdateBlueprintResponse) GetJSON400() *Error {
+	return r.JSON400
+}
+
 // GetJSON401 returns the response for an HTTP 401 `application/json` response
 func (r UpdateBlueprintResponse) GetJSON401() *N401Unauthorized {
 	return r.JSON401
@@ -30063,7 +30070,7 @@ func (r UpdateBlueprintResponse) GetJSON403() *N403Forbidden {
 }
 
 // GetJSON404 returns the response for an HTTP 404 `application/json` response
-func (r UpdateBlueprintResponse) GetJSON404() *N404NotFound {
+func (r UpdateBlueprintResponse) GetJSON404() *Error {
 	return r.JSON404
 }
 
@@ -61457,6 +61464,13 @@ func ParseUpdateBlueprintResponse(rsp *http.Response) (*UpdateBlueprintResponse,
 		}
 		response.JSON200 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
 		var dest N401Unauthorized
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -61472,7 +61486,7 @@ func ParseUpdateBlueprintResponse(rsp *http.Response) (*UpdateBlueprintResponse,
 		response.JSON403 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
-		var dest N404NotFound
+		var dest Error
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

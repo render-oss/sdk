@@ -20,11 +20,16 @@ class BlueprintPATCH:
             sync has not yet been approved.
             Other conditions, such as a locked workspace, can also prevent automatic syncing even when this is true.
         path (Union[Unset, str]): Path to the Blueprint file in the repository Example: render.yaml.
+        branch (Union[Unset, str]): The Git branch to read the Blueprint file from. Requires Blueprint onboarding early
+            access.
+            The branch must contain a Blueprint file at the configured path.
+            Updating this field does not plan a sync.
     """
 
     name: Union[Unset, str] = UNSET
     auto_sync: Union[Unset, bool] = UNSET
     path: Union[Unset, str] = UNSET
+    branch: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -33,6 +38,8 @@ class BlueprintPATCH:
         auto_sync = self.auto_sync
 
         path = self.path
+
+        branch = self.branch
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -43,6 +50,8 @@ class BlueprintPATCH:
             field_dict["autoSync"] = auto_sync
         if path is not UNSET:
             field_dict["path"] = path
+        if branch is not UNSET:
+            field_dict["branch"] = branch
 
         return field_dict
 
@@ -55,10 +64,13 @@ class BlueprintPATCH:
 
         path = d.pop("path", UNSET)
 
+        branch = d.pop("branch", UNSET)
+
         blueprint_patch = cls(
             name=name,
             auto_sync=auto_sync,
             path=path,
+            branch=branch,
         )
 
         blueprint_patch.additional_properties = d

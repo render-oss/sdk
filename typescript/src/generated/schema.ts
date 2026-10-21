@@ -6320,6 +6320,12 @@ export interface components {
             name?: string;
             autoSync?: components["schemas"]["autoSync"];
             path?: components["schemas"]["blueprintPath"];
+            /**
+             * @description The Git branch to read the Blueprint file from. Requires Blueprint onboarding early access.
+             *     The branch must contain a Blueprint file at the configured path.
+             *     Updating this field does not plan a sync.
+             */
+            branch?: string;
         };
         /** @example exe-cph1rs3idesc73a2b2mg */
         syncId: string;
@@ -9001,9 +9007,33 @@ export interface operations {
                     "application/json": components["schemas"]["blueprint"];
                 };
             };
+            /**
+             * @description The request contains invalid values (such as an empty branch or path),
+             *     branch updates are not available for the workspace, or the Blueprint file
+             *     could not be read and validated after changing the branch.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
+            /**
+             * @description The Blueprint was not found, or the Blueprint file could not be found
+             *     at the requested path when the branch is unchanged.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             406: components["responses"]["406NotAcceptable"];
             410: components["responses"]["410Gone"];
             429: components["responses"]["429RateLimit"];
