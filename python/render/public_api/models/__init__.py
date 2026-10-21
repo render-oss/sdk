@@ -352,6 +352,13 @@ from .runtime import Runtime
 from .sandbox import Sandbox
 from .sandbox_connect_request import SandboxConnectRequest
 from .sandbox_connect_response import SandboxConnectResponse
+from .sandbox_credential import SandboxCredential
+from .sandbox_credential_create import SandboxCredentialCreate
+from .sandbox_credential_injection import SandboxCredentialInjection
+from .sandbox_credential_injection_type import SandboxCredentialInjectionType
+from .sandbox_credential_restore import SandboxCredentialRestore
+from .sandbox_credential_update import SandboxCredentialUpdate
+from .sandbox_credential_version import SandboxCredentialVersion
 from .sandbox_directory_listing import SandboxDirectoryListing
 from .sandbox_egress_rule import SandboxEgressRule
 from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
@@ -813,6 +820,13 @@ __all__ = (
     "Sandbox",
     "SandboxConnectRequest",
     "SandboxConnectResponse",
+    "SandboxCredential",
+    "SandboxCredentialCreate",
+    "SandboxCredentialInjection",
+    "SandboxCredentialInjectionType",
+    "SandboxCredentialRestore",
+    "SandboxCredentialUpdate",
+    "SandboxCredentialVersion",
     "SandboxDirectoryListing",
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
