@@ -122,11 +122,16 @@ describe("SandboxesClient", () => {
         context: "Failed to get sandbox",
         call: (c) => c.get("sbx-123"),
       },
-      { name: "list", method: "GET", context: "Failed to list sandboxes", call: (c) => c.list() },
+      {
+        name: "list",
+        method: "GET",
+        context: "Failed to list sandboxes in workspace tea-default",
+        call: (c) => c.list(),
+      },
       {
         name: "listGroups",
         method: "GET",
-        context: "Failed to list sandbox groups",
+        context: "Failed to list sandbox groups in workspace tea-default",
         call: (c) => c.listGroups(),
       },
       {
@@ -319,7 +324,7 @@ describe("SandboxesClient", () => {
       expect(error).toBeInstanceOf(ClientError);
       expect(error).toMatchObject({
         statusCode: 404,
-        message: "Failed to list sandbox groups: workspace not found",
+        message: "Failed to list sandbox groups in workspace tea-default: workspace not found",
       });
     });
   });
@@ -526,7 +531,7 @@ describe("SandboxesClient", () => {
         expect(error).toMatchObject({
           statusCode: status,
           code,
-          message: "Failed to create sandbox: rejected",
+          message: "Failed to create sandbox in workspace tea-default: rejected",
         });
       },
     );
@@ -544,7 +549,7 @@ describe("SandboxesClient", () => {
       expect(error.code).toBeUndefined();
       expect(error).toMatchObject({
         statusCode: 404,
-        message: "Failed to create sandbox: Not Found",
+        message: "Failed to create sandbox in workspace tea-default: Not Found",
       });
     });
   });
@@ -624,7 +629,7 @@ describe("SandboxesClient", () => {
         code: undefined,
         call: (client) => client.snapshots.list({ sandboxGroupId: "sbg-123" }),
         ErrorClass: ClientError,
-        context: "Failed to list snapshots",
+        context: "Failed to list snapshots in workspace tea-default",
       },
       {
         op: "delete",

@@ -202,6 +202,15 @@ function resolveOwnerId(
   return resolved as `tea-${string}`;
 }
 
+/**
+ * Names the workspace in errors from calls scoped to one. A wrong workspace
+ * (e.g. RENDER_WORKSPACE_ID left over in the shell) otherwise shows only as
+ * "not found".
+ */
+function inWorkspace(context: string, ownerId: string): string {
+  return `${context} in workspace ${ownerId}`;
+}
+
 function optionalOwnerIdQuery(
   ownerId: `tea-${string}` | undefined,
   defaultOwnerId: string | undefined,
@@ -264,14 +273,15 @@ export class SandboxSnapshotsClient {
     limit,
     ownerId,
   }: SandboxSnapshotListInput): Promise<SandboxSnapshotWithCursor[]> {
+    const owner = resolveOwnerId(ownerId, this.defaultOwnerId);
     return unwrap(
       await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/snapshots", {
         params: {
           path: { sandboxGroupId },
-          query: { ownerId: resolveOwnerId(ownerId, this.defaultOwnerId), status, cursor, limit },
+          query: { ownerId: owner, status, cursor, limit },
         },
       }),
-      "Failed to list snapshots",
+      inWorkspace("Failed to list snapshots", owner),
     );
   }
 
@@ -324,8 +334,9 @@ export class SandboxesClient {
 
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
     const region = input.region ?? this.defaultRegion;
+    const ownerId = this.resolveOwnerId(input.ownerId);
     const body = {
-      ownerId: this.resolveOwnerId(input.ownerId),
+      ownerId,
       ...(input.plan ? { plan: input.plan } : {}),
       ...(input.timeoutSeconds === undefined ? {} : { timeoutSeconds: input.timeoutSeconds }),
       ...(region ? { region } : {}),
@@ -334,7 +345,10 @@ export class SandboxesClient {
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
       ...(input.snapshotName === undefined ? {} : { snapshotName: input.snapshotName }),
     } as components["schemas"]["sandboxPOST"];
-    return unwrap(await this.apiClient.POST("/sandboxes", { body }), "Failed to create sandbox");
+    return unwrap(
+      await this.apiClient.POST("/sandboxes", { body }),
+      inWorkspace("Failed to create sandbox", ownerId),
+    );
   }
 
   async list({
@@ -348,31 +362,33 @@ export class SandboxesClient {
     limit?: number;
     status?: components["schemas"]["sandboxStatus"][];
   } = {}) {
+    const owner = this.resolveOwnerId(ownerId);
     return unwrap(
       await this.apiClient.GET("/sandboxes", {
         params: {
           query: {
-            ownerId: this.resolveOwnerId(ownerId),
+            ownerId: owner,
             cursor,
             limit,
             status,
           },
         },
       }),
-      "Failed to list sandboxes",
+      inWorkspace("Failed to list sandboxes", owner),
     );
   }
 
   async listGroups({ ownerId }: SandboxGroupListInput = {}): Promise<SandboxGroupWithCursor[]> {
+    const owner = this.resolveOwnerId(ownerId);
     return unwrap(
       await this.apiClient.GET("/sandbox-groups", {
         params: {
           query: {
-            ownerId: this.resolveOwnerId(ownerId),
+            ownerId: owner,
           },
         },
       }),
-      "Failed to list sandbox groups",
+      inWorkspace("Failed to list sandbox groups", owner),
     );
   }
 
