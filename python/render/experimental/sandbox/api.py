@@ -176,7 +176,7 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
     return Sandbox(
         id=model.id,
         status=model.status.value,
-        plan=model.plan.value,
+        plan=str(model.plan),
         network_policy=_to_network_policy(model.network_policy),
         region=model.region,
         timeout_seconds=model.timeout_seconds,
@@ -206,7 +206,7 @@ def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
         source_sandbox_id=model.source_sandbox_id,
         kind=model.kind.value,
         status=model.status.value,
-        plan=model.plan.value,
+        plan=str(model.plan),
         requested_at=model.requested_at,
         name=_set_or_none(model.name),
         captured_at=_set_or_none(model.captured_at),

@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -23,10 +23,11 @@ class SandboxPOST:
         network_policy (Union[Unset, SandboxNetworkPolicyPOST]): Set either `type` or its deprecated alias `default`.
             Sending both is
             only accepted when they name the same policy.
-        plan (Union[Unset, SandboxPlan]): Compute plan. Sizing matches Workflow plans of the same name. Default:
-            SandboxPlan.STARTER.
+        plan (Union[SandboxPlan, Unset, str]): Compute plan. See `sandboxPlan` for known values.
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
             Default: 86400.
+        idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
+            disable automatic idle suspension. Positive values must be at least 300. Default: 900.
         region (Union[Unset, str]): Render region. Defaults to the workspace default.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
         snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
@@ -39,8 +40,9 @@ class SandboxPOST:
 
     owner_id: str
     network_policy: Union[Unset, "SandboxNetworkPolicyPOST"] = UNSET
-    plan: Union[Unset, SandboxPlan] = SandboxPlan.STARTER
+    plan: Union[SandboxPlan, Unset, str] = UNSET
     timeout_seconds: Union[Unset, int] = 86400
+    idle_timeout_seconds: Union[Unset, int] = 900
     region: Union[Unset, str] = UNSET
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
@@ -54,11 +56,17 @@ class SandboxPOST:
         if not isinstance(self.network_policy, Unset):
             network_policy = self.network_policy.to_dict()
 
-        plan: Union[Unset, str] = UNSET
-        if not isinstance(self.plan, Unset):
+        plan: Union[Unset, str]
+        if isinstance(self.plan, Unset):
+            plan = UNSET
+        elif isinstance(self.plan, SandboxPlan):
             plan = self.plan.value
+        else:
+            plan = self.plan
 
         timeout_seconds = self.timeout_seconds
+
+        idle_timeout_seconds = self.idle_timeout_seconds
 
         region = self.region
 
@@ -83,6 +91,8 @@ class SandboxPOST:
             field_dict["plan"] = plan
         if timeout_seconds is not UNSET:
             field_dict["timeoutSeconds"] = timeout_seconds
+        if idle_timeout_seconds is not UNSET:
+            field_dict["idleTimeoutSeconds"] = idle_timeout_seconds
         if region is not UNSET:
             field_dict["region"] = region
         if env is not UNSET:
@@ -109,14 +119,24 @@ class SandboxPOST:
         else:
             network_policy = SandboxNetworkPolicyPOST.from_dict(_network_policy)
 
-        _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, SandboxPlan]
-        if isinstance(_plan, Unset):
-            plan = UNSET
-        else:
-            plan = SandboxPlan(_plan)
+        def _parse_plan(data: object) -> Union[SandboxPlan, Unset, str]:
+            if isinstance(data, Unset):
+                return data
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                plan_type_0 = SandboxPlan(data)
+
+                return plan_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[SandboxPlan, Unset, str], data)
+
+        plan = _parse_plan(d.pop("plan", UNSET))
 
         timeout_seconds = d.pop("timeoutSeconds", UNSET)
+
+        idle_timeout_seconds = d.pop("idleTimeoutSeconds", UNSET)
 
         region = d.pop("region", UNSET)
 
@@ -136,6 +156,7 @@ class SandboxPOST:
             network_policy=network_policy,
             plan=plan,
             timeout_seconds=timeout_seconds,
+            idle_timeout_seconds=idle_timeout_seconds,
             region=region,
             env=env,
             snapshot_id=snapshot_id,

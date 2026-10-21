@@ -25,7 +25,7 @@ class SandboxSnapshot:
             `runtime` also captures memory and CPU state and restores only onto the
             plan of the source sandbox.
         status (SandboxSnapshotStatus):
-        plan (SandboxPlan): Compute plan. Sizing matches Workflow plans of the same name.
+        plan (Union[SandboxPlan, str]): Plan of the source sandbox at capture time. See `sandboxPlan` for known values.
         requested_at (datetime.datetime):
         expires_at (datetime.datetime): The time after which the snapshot can no longer be retrieved or restored.
             Set by Render when the create request did not specify one.
@@ -41,7 +41,7 @@ class SandboxSnapshot:
     source_sandbox_id: str
     kind: SandboxSnapshotKind
     status: SandboxSnapshotStatus
-    plan: SandboxPlan
+    plan: Union[SandboxPlan, str]
     requested_at: datetime.datetime
     expires_at: datetime.datetime
     name: Union[None, Unset, str] = UNSET
@@ -61,7 +61,11 @@ class SandboxSnapshot:
 
         status = self.status.value
 
-        plan = self.plan.value
+        plan: str
+        if isinstance(self.plan, SandboxPlan):
+            plan = self.plan.value
+        else:
+            plan = self.plan
 
         requested_at = self.requested_at.isoformat()
 
@@ -131,7 +135,18 @@ class SandboxSnapshot:
 
         status = SandboxSnapshotStatus(d.pop("status"))
 
-        plan = SandboxPlan(d.pop("plan"))
+        def _parse_plan(data: object) -> Union[SandboxPlan, str]:
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                plan_type_0 = SandboxPlan(data)
+
+                return plan_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[SandboxPlan, str], data)
+
+        plan = _parse_plan(d.pop("plan"))
 
         requested_at = isoparse(d.pop("requestedAt"))
 

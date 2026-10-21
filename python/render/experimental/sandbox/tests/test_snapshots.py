@@ -21,6 +21,7 @@ SANDBOX_JSON = {
     "networkPolicy": {"type": "deny-all"},
     "region": "oregon",
     "timeoutSeconds": 300,
+    "idleTimeoutSeconds": 900,
     "createdAt": "2026-09-01T00:00:00Z",
     "terminatedAt": None,
 }

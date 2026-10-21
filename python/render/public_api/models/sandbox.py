@@ -23,20 +23,23 @@ class Sandbox:
     Attributes:
         id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         status (SandboxStatus):
-        plan (SandboxPlan): Compute plan. Sizing matches Workflow plans of the same name.
+        plan (Union[SandboxPlan, str]): Compute plan. See `sandboxPlan` for known values.
         network_policy (SandboxNetworkPolicy):
         region (str): Region the sandbox is running in. Example: oregon.
         timeout_seconds (int): Maximum sandbox lifetime in seconds. Example: 86400.
+        idle_timeout_seconds (int): Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle
+            suspension. Example: 900.
         created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
         terminated_at (Union[None, Unset, datetime.datetime]): When the sandbox was terminated, or null.
     """
 
     id: str
     status: SandboxStatus
-    plan: SandboxPlan
+    plan: Union[SandboxPlan, str]
     network_policy: "SandboxNetworkPolicy"
     region: str
     timeout_seconds: int
+    idle_timeout_seconds: int
     created_at: datetime.datetime
     terminated_at: Union[None, Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -46,13 +49,19 @@ class Sandbox:
 
         status = self.status.value
 
-        plan = self.plan.value
+        plan: str
+        if isinstance(self.plan, SandboxPlan):
+            plan = self.plan.value
+        else:
+            plan = self.plan
 
         network_policy = self.network_policy.to_dict()
 
         region = self.region
 
         timeout_seconds = self.timeout_seconds
+
+        idle_timeout_seconds = self.idle_timeout_seconds
 
         created_at = self.created_at.isoformat()
 
@@ -74,6 +83,7 @@ class Sandbox:
                 "networkPolicy": network_policy,
                 "region": region,
                 "timeoutSeconds": timeout_seconds,
+                "idleTimeoutSeconds": idle_timeout_seconds,
                 "createdAt": created_at,
             }
         )
@@ -91,13 +101,26 @@ class Sandbox:
 
         status = SandboxStatus(d.pop("status"))
 
-        plan = SandboxPlan(d.pop("plan"))
+        def _parse_plan(data: object) -> Union[SandboxPlan, str]:
+            try:
+                if not isinstance(data, str):
+                    raise TypeError()
+                plan_type_0 = SandboxPlan(data)
+
+                return plan_type_0
+            except:  # noqa: E722
+                pass
+            return cast(Union[SandboxPlan, str], data)
+
+        plan = _parse_plan(d.pop("plan"))
 
         network_policy = SandboxNetworkPolicy.from_dict(d.pop("networkPolicy"))
 
         region = d.pop("region")
 
         timeout_seconds = d.pop("timeoutSeconds")
+
+        idle_timeout_seconds = d.pop("idleTimeoutSeconds")
 
         created_at = isoparse(d.pop("createdAt"))
 
@@ -125,6 +148,7 @@ class Sandbox:
             network_policy=network_policy,
             region=region,
             timeout_seconds=timeout_seconds,
+            idle_timeout_seconds=idle_timeout_seconds,
             created_at=created_at,
             terminated_at=terminated_at,
         )

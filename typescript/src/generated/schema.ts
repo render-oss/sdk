@@ -7652,10 +7652,10 @@ export interface components {
         /** @example sbx-1cd4gcph1rs3idesc73a2b2mg */
         sandboxId: string;
         /**
-         * @description Compute plan. Sizing matches Workflow plans of the same name.
+         * @description The compute plan to use. `starter`, `standard` and `pro` are deprecated.
          * @enum {string}
          */
-        sandboxPlan: "starter" | "standard" | "pro";
+        sandboxPlan: "starter" | "standard" | "pro" | "1c-2g" | "2c-4g" | "4c-8g" | "8c-16g";
         /**
          * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
          *     `allow-list` (requires additional `rules`).
@@ -7699,7 +7699,8 @@ export interface components {
         sandbox: {
             id: components["schemas"]["sandboxId"];
             status: components["schemas"]["sandboxStatus"];
-            plan: components["schemas"]["sandboxPlan"];
+            /** @description Compute plan. See `sandboxPlan` for known values. */
+            plan: components["schemas"]["sandboxPlan"] | string;
             networkPolicy: components["schemas"]["sandboxNetworkPolicy"];
             /**
              * @description Region the sandbox is running in.
@@ -7711,6 +7712,11 @@ export interface components {
              * @example 86400
              */
             timeoutSeconds: number;
+            /**
+             * @description Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle suspension.
+             * @example 900
+             */
+            idleTimeoutSeconds: number;
             /**
              * Format: date-time
              * @example 2026-04-01T18:30:00Z
@@ -7760,13 +7766,18 @@ export interface components {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
             networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
-            /** @default starter */
-            plan: components["schemas"]["sandboxPlan"];
+            /** @description Compute plan. See `sandboxPlan` for known values. */
+            plan?: components["schemas"]["sandboxPlan"] | string;
             /**
              * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
              * @default 86400
              */
             timeoutSeconds: number;
+            /**
+             * @description Seconds of inactivity before the sandbox is suspended. Use 0 to disable automatic idle suspension. Positive values must be at least 300.
+             * @default 900
+             */
+            idleTimeoutSeconds: number;
             /** @description Render region. Defaults to the workspace default. */
             region?: string;
             /** @description Inline environment variables injected into the sandbox at creation. */
@@ -7886,8 +7897,8 @@ export interface components {
             name?: components["schemas"]["sandboxSnapshotName"] | null;
             kind: components["schemas"]["sandboxSnapshotKind"];
             status: components["schemas"]["sandboxSnapshotStatus"];
-            /** @description Plan of the source sandbox at capture time. */
-            plan: components["schemas"]["sandboxPlan"];
+            /** @description Plan of the source sandbox at capture time. See `sandboxPlan` for known values. */
+            plan: components["schemas"]["sandboxPlan"] | string;
             /** Format: date-time */
             requestedAt: string;
             /**
@@ -16998,7 +17009,8 @@ export interface operations {
                  *         "type": "deny-all"
                  *       },
                  *       "plan": "standard",
-                 *       "timeoutSeconds": 7200
+                 *       "timeoutSeconds": 7200,
+                 *       "idleTimeoutSeconds": 900
                  *     }
                  */
                 "application/json": components["schemas"]["sandboxPOST"];
@@ -17022,6 +17034,7 @@ export interface operations {
                      *       },
                      *       "region": "oregon",
                      *       "timeoutSeconds": 7200,
+                     *       "idleTimeoutSeconds": 900,
                      *       "createdAt": "2026-04-01T18:30:00Z",
                      *       "terminatedAt": null
                      *     }
