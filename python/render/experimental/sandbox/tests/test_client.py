@@ -119,6 +119,38 @@ def test_sync_create_sends_network_policy_type(policy):
     assert sandbox.network_policy == NetworkPolicy(type=policy)
 
 
+UNKNOWN_PLAN = "32c-64g"
+
+
+@pytest.mark.asyncio
+async def test_create_passes_a_plan_unknown_to_the_sdk_through():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json={**SANDBOX_JSON, "plan": UNKNOWN_PLAN})
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(plan=UNKNOWN_PLAN)
+
+    assert captured["body"]["plan"] == UNKNOWN_PLAN
+    assert sandbox.plan == UNKNOWN_PLAN
+
+
+def test_sync_create_passes_a_plan_unknown_to_the_sdk_through():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json={**SANDBOX_JSON, "plan": UNKNOWN_PLAN})
+
+    client = _sync_sandbox_client(handler)
+    sandbox = client.create(plan=UNKNOWN_PLAN)
+
+    assert captured["body"]["plan"] == UNKNOWN_PLAN
+    assert sandbox.plan == UNKNOWN_PLAN
+
+
 @pytest.mark.asyncio
 async def test_create_sends_env_in_post_body():
     captured = {}

@@ -39,7 +39,6 @@ from render.experimental.sandbox.api import (
     SandboxNotFoundError as SandboxNotFoundError,
     SandboxPOST as SandboxPOST,
     SandboxPOSTEnv as SandboxPOSTEnv,
-    SandboxPlan as SandboxPlan,
     SandboxSnapshotKind as SandboxSnapshotKind,
     SandboxSnapshotPOST as SandboxSnapshotPOST,
     SandboxSnapshotStatus as SandboxSnapshotStatus,

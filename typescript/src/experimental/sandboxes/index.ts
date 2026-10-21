@@ -98,7 +98,7 @@ export type SandboxNetworkPolicy =
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
 export type SandboxCreateInput = SandboxRestoreInput & {
   ownerId?: `tea-${string}`;
-  plan?: components["schemas"]["sandboxPlan"];
+  plan?: components["schemas"]["sandboxPlan"] | (string & {});
   /** Maximum sandbox lifetime in seconds. The API defaults to 7200. */
   timeoutSeconds?: number;
   /** Defaults to the client's region, then to the workspace default. */

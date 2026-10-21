@@ -96,7 +96,6 @@ from render.public_api.models.sandbox_network_policy_post import (
 from render.public_api.models.sandbox_network_policy_type import (
     SandboxNetworkPolicyType,
 )
-from render.public_api.models.sandbox_plan import SandboxPlan
 from render.public_api.models.sandbox_post import SandboxPOST
 from render.public_api.models.sandbox_post_env import SandboxPOSTEnv
 from render.public_api.models.sandbox_snapshot import (
@@ -290,7 +289,7 @@ class SyncSandboxApi:
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if plan is not None:
-            body.plan = SandboxPlan(plan)
+            body.plan = plan
         if timeout_seconds is not None:
             body.timeout_seconds = timeout_seconds
         if region is not None:

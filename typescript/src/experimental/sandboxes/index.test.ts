@@ -364,6 +364,18 @@ describe("SandboxesClient", () => {
       });
     });
 
+    it("accepts and forwards a plan unknown to the SDK", async () => {
+      expectTypeOf<{ plan: "32c-64g" }>().toExtend<SandboxCreateInput>();
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient, "tea-test");
+
+      await client.create({ plan: "32c-64g" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", plan: "32c-64g" },
+      });
+    });
+
     it("keeps snapshot ID and snapshot name mutually exclusive in the public type", () => {
       expectTypeOf<{ snapshotId: string }>().toExtend<SandboxCreateInput>();
       expectTypeOf<{ snapshotName: string }>().toExtend<SandboxCreateInput>();

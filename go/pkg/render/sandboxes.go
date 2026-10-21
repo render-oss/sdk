@@ -157,8 +157,8 @@ func (SandboxExecOutput) isSandboxExecEvent() {}
 func (SandboxExecExit) isSandboxExecEvent()   {}
 
 // CreateSandboxParams configures a new sandbox. Zero fields fall back to the
-// workspace defaults enforced by the API (plan starter, 7200s timeout,
-// workspace default region and network policy).
+// defaults enforced by the API (default plan, 7200s timeout, workspace default
+// region and network policy).
 type CreateSandboxParams struct {
 	Plan           string
 	TimeoutSeconds int

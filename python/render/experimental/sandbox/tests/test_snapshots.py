@@ -209,6 +209,31 @@ async def test_create_surfaces_invalid_name_as_a_client_error_with_code():
 
 
 @pytest.mark.asyncio
+async def test_from_id_reads_a_plan_unknown_to_the_sdk():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
+
+    client = _sandbox_client(handler)
+    snapshot = await client.snapshots.from_id(
+        sandbox_group_id="sbg-abc", snapshot_id="snp-abc"
+    )
+
+    assert snapshot.plan == "32c-64g"
+
+
+def test_sync_from_id_reads_a_plan_unknown_to_the_sdk():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
+
+    client = _sync_sandbox_client(handler)
+    snapshot = client.snapshots.from_id(
+        sandbox_group_id="sbg-abc", snapshot_id="snp-abc"
+    )
+
+    assert snapshot.plan == "32c-64g"
+
+
+@pytest.mark.asyncio
 async def test_from_id_gets_the_snapshot_from_its_group():
     captured = {}
 
