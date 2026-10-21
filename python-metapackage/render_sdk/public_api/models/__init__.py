@@ -373,8 +373,6 @@ __all__ = [
     "SandboxDirectoryListing",
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
-    "SandboxExecUpdateRequest",
-    "SandboxExecUpdateResponse",
     "SandboxFileEntry",
     "SandboxFileEntryType",
     "SandboxGroup",

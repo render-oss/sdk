@@ -362,8 +362,6 @@ from .sandbox_credential_version import SandboxCredentialVersion
 from .sandbox_directory_listing import SandboxDirectoryListing
 from .sandbox_egress_rule import SandboxEgressRule
 from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
-from .sandbox_exec_update_request import SandboxExecUpdateRequest
-from .sandbox_exec_update_response import SandboxExecUpdateResponse
 from .sandbox_file_entry import SandboxFileEntry
 from .sandbox_file_entry_type import SandboxFileEntryType
 from .sandbox_group import SandboxGroup
@@ -830,8 +828,6 @@ __all__ = (
     "SandboxDirectoryListing",
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
-    "SandboxExecUpdateRequest",
-    "SandboxExecUpdateResponse",
     "SandboxFileEntry",
     "SandboxFileEntryType",
     "SandboxGroup",

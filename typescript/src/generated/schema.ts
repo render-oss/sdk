@@ -4635,33 +4635,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/sandboxes/{sandboxId}/execs/{execId}/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description The ID of the sandbox */
-                sandboxId: components["parameters"]["sandboxId"];
-                /** @description The execution ID returned when minting the connect token. */
-                execId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Update sandbox execution
-         * @description Record the client-observed exit code for a previously minted sandbox
-         *     execution. Call after the proxy run completes (sync response or closing
-         *     SSE frame). Command text is recorded at token mint time, not here.
-         */
-        post: operations["update-sandbox-exec"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/sandboxes/{sandboxId}/logs": {
         parameters: {
             query?: never;
@@ -8225,24 +8198,6 @@ export interface components {
              * @example 2026-07-10T12:00:00Z
              */
             expiresAt: string;
-        };
-        /** @description Client-reported completion of a sandbox execution. */
-        sandboxExecUpdateRequest: {
-            /** @description Process exit code observed by the client. */
-            exitCode?: number;
-        };
-        /** @description Updated sandbox execution after a client update. */
-        sandboxExecUpdateResponse: {
-            execId: string;
-            sandboxId: string;
-            type: string;
-            operation: string;
-            command?: string;
-            /** Format: date-time */
-            startedAt: string;
-            /** Format: date-time */
-            stoppedAt?: string;
-            exitCode?: number;
         };
         /** @description A file or directory entry in a sandbox filesystem listing. */
         sandboxFileEntry: {
@@ -17982,48 +17937,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["sandboxConnectResponse"];
-                };
-            };
-            400: components["responses"]["400BadRequest"];
-            401: components["responses"]["401Unauthorized"];
-            403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            429: components["responses"]["429RateLimit"];
-            500: components["responses"]["500InternalServerError"];
-            503: components["responses"]["503ServiceUnavailable"];
-        };
-    };
-    "update-sandbox-exec": {
-        parameters: {
-            query?: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
-                ownerId?: components["parameters"]["ownerId"];
-            };
-            header?: never;
-            path: {
-                /** @description The ID of the sandbox */
-                sandboxId: components["parameters"]["sandboxId"];
-                /** @description The execution ID returned when minting the connect token. */
-                execId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["sandboxExecUpdateRequest"];
-            };
-        };
-        responses: {
-            /** @description Execution updated. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["sandboxExecUpdateResponse"];
                 };
             };
             400: components["responses"]["400BadRequest"];
