@@ -1,0 +1,21 @@
+{
+  "$comment": "REST paths the TypeScript SDK calls. Read by public-api-schema/generate-sdk.sh in renderinc/api to filter the generated schema. Keep sorted.",
+  "paths": [
+    "/key-value",
+    "/key-value/{redisId}",
+    "/key-value/{redisId}/connection-info",
+    "/objects/{ownerId}/{region}",
+    "/objects/{ownerId}/{region}/{key}",
+    "/sandbox-groups",
+    "/sandbox-groups/{sandboxGroupId}/snapshots",
+    "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}",
+    "/sandboxes",
+    "/sandboxes/{sandboxId}",
+    "/sandboxes/{sandboxId}/files/{operation}/token",
+    "/sandboxes/{sandboxId}/runs/{operation}/token",
+    "/sandboxes/{sandboxId}/snapshots",
+    "/sandboxes/{sandboxId}/terminate",
+    "/task-runs",
+    "/task-runs/{taskRunId}"
+  ]
+}
