@@ -1,12 +1,24 @@
 # Changelog
 
+## [1.4.0] - 2026-10-21
+
+### Added
+
+- (Sandboxes) `sandboxes.create()` accepts `idle_timeout_seconds`; use `0` to disable automatic idle suspension. Returned `Sandbox` values expose the effective setting.
+- (Sandboxes) `sandboxes.create()` accepts any plan string.
+
+### Changed
+
+- (Sandboxes) `snapshots.create()` no longer defaults `kind` to `"filesystem"`. When `kind` is omitted the API picks the default, which is currently `runtime`. Pass `kind="filesystem"` to keep the previous behavior.
+- (Workflows) Idempotency keys are scoped to the workflow rather than a single workflow version, so the same key resolves to the original run across deploys. This is a documentation change; the SDK sends the key as before.
+- **Breaking:** (REST API) Removed the unused `update_sandbox_exec` endpoint and its request and response models. Error codes include `sandbox_group_suspended` and `sandbox_group_limit_reached`.
+
 ## [1.3.0] - 2026-10-17
 
 ### Added
 
 - (Sandboxes) `sandboxes.create()` accepts `network_policy=NetworkPolicy(type="allow-list", rules=[EgressRule(domain="pypi.org")])` to restrict outbound traffic. Rules support domain names and wildcard domains such as `*.pypi.org`. `EgressRule.protocol` defaults to `"https"`. Both the sync and async clients support these rules.
 - (REST API) Generated clients include flows, flow runs, run steps, and individual build retrieval.
-- (Sandboxes) `sandboxes.create()` accepts `idle_timeout_seconds`; use `0` to disable automatic idle suspension. Returned `Sandbox` values expose the effective setting.
 
 ### Changed
 

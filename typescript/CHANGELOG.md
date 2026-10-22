@@ -4,6 +4,23 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-10-21
+
+### Added
+
+- (Sandbox) `sandboxes.create()` accepts any `plan` string. Returned `Sandbox` values expose `idleTimeoutSeconds`.
+- (Sandbox) `exec()`, `upload()`, and `download()` throw `SandboxEndedError` when the sandbox is `terminated` or `errored`, for example because it passed its timeout. The error names the sandbox and its status so callers can tell it apart from a sandbox that is still starting.
+
+### Changed
+
+- (Sandbox) Errors from `create()`, `list()`, `listGroups()`, and `snapshots.list()` name the workspace the SDK used, which makes a stale `RENDER_WORKSPACE_ID` easier to spot.
+- (Workflows) Idempotency keys are scoped to the workflow rather than a single workflow version, so the same key resolves to the original run across deploys. This is a documentation change; the SDK sends the key as before.
+- **Breaking:** (REST API) Removed the unused `update-sandbox-exec` operation and its request and response types. Error codes include `sandbox_group_suspended` and `sandbox_group_limit_reached`.
+
+### Fixed
+
+- (Sandbox) `SandboxDownload.data` is typed as an `ArrayBuffer`-backed buffer, so it passes to Web and Bun APIs that take `Uint8Array<ArrayBuffer>`, such as `new Blob()` or `Bun.gunzipSync()`, under TypeScript 5.7 and later.
+
 ## [1.3.0] - 2026-10-17
 
 ### Added

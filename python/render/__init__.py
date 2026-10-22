@@ -36,7 +36,7 @@ Async REST API access:
 # Must stay the first import: it records when SDK import began.
 from render import _startup
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 # Render/RenderAsync are lazy-loaded so the workflow worker path stays fast.
 from typing import TYPE_CHECKING
