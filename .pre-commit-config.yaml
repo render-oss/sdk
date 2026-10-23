@@ -40,7 +40,7 @@ repos:
         name: biome check
         entry: bash -c 'cd typescript && npx biome check --no-errors-on-unmatched --files-ignore-unknown=true'
         language: system
-        files: ^typescript/.*\.(ts|tsx|js|jsx|json)$
+        files: ^typescript/.*\.(ts|tsx|js|jsx|json|md)$
         exclude: ^typescript/src/generated/
         pass_filenames: false
 

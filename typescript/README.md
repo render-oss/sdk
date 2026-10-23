@@ -189,7 +189,6 @@ render workflows tasks start <task name> --local
 Creates a new Render SDK instance with access to all Render products.
 
 **Options:**
-
 - `token?: string` - API token (defaults to `RENDER_API_KEY` env var)
 - `baseUrl?: string` - Base URL (defaults to `https://api.render.com`)
 - `useLocalDev?: boolean` - Use local development mode
@@ -198,7 +197,6 @@ Creates a new Render SDK instance with access to all Render products.
 - `region?: string` - Default region for object storage (falls back to `RENDER_REGION` env var)
 
 **Properties:**
-
 - `workflows` - WorkflowsClient instance for managing workflow tasks
 - `experimental` - ExperimentalClient instance for object storage and other experimental APIs
 
@@ -236,7 +234,6 @@ const client = createWorkflowsClient({
 Runs a task and waits for completion.
 
 **Parameters:**
-
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signalOrOptions?: AbortSignal | StartTaskOptions` - An abort signal, or an options object with `signal` and/or `idempotencyKey`
@@ -256,7 +253,6 @@ console.log("Results:", result.results);
 Starts a task run and returns a `TaskRunResult`. Results are not streamed until you call `.get()` on the returned result. Use this when you need the task run ID, want to defer awaiting, or want fire-and-forget.
 
 **Parameters:**
-
 - `taskSlug: string` - Task slug in format "workflow-slug/task-name"
 - `inputData: any[]` - Input data as array of parameters
 - `signalOrOptions?: AbortSignal | StartTaskOptions` - An abort signal, or an options object with `signal` and/or `idempotencyKey`
@@ -292,7 +288,6 @@ const run = await render.workflows.startTask("my-workflow/charge", [orderId], {
 Streams task run events as an async iterable. Yields a `TaskRunDetails` for each terminal event (completed, failed, or canceled) received on the stream.
 
 **Parameters:**
-
 - `taskRunIds: string[]` - One or more task run IDs to subscribe to
 - `signal?: AbortSignal` - Optional abort signal for cancellation
 
@@ -320,7 +315,6 @@ for await (const event of render.workflows.taskRunEvents([...pending])) {
 Gets task run details by ID.
 
 **Parameters:**
-
 - `taskRunId: string` - Task run ID
 
 **Returns:** `Promise<TaskRunDetails>`
@@ -337,7 +331,6 @@ const details = await render.workflows.getTaskRun("task-run-id");
 Cancels a running task.
 
 **Parameters:**
-
 - `taskRunId: string` - Task run ID to cancel
 
 **Returns:** `Promise<void>`
@@ -355,7 +348,6 @@ await render.workflows.cancelTaskRun(run.taskRunId);
 Lists task runs with optional filters.
 
 **Parameters:**
-
 - `params.limit?: number` - Maximum number of results
 - `params.cursor?: string` - Pagination cursor
 - `params.ownerId?: string[]` - Filter by owner IDs
@@ -376,7 +368,6 @@ const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 Registers a function as a task.
 
 **Parameters:**
-
 - `options: RegisterTaskOptions` - Task configuration
   - `name: string` - Task name (required)
   - `retry?: RetryOptions` - Optional retry configuration
@@ -448,7 +439,6 @@ Passed to every task as its first argument.
 Runs `task` on its own compute and resolves with its result.
 
 **Parameters:**
-
 - `task: TaskDefinition` - The task to run
 - `...args` - The task's inputs, matching its signature
 
@@ -904,7 +894,6 @@ MIT
 ## Support
 
 For issues and questions, please visit:
-
 - GitHub Issues: <https://github.com/render-oss/sdk/issues>
 - Documentation: <https://render.com/docs/workflows>
 
