@@ -1783,7 +1783,11 @@ export interface operations {
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 limit?: components["parameters"]["limitParam"];
-                /** @description Filter by sandbox status. */
+                /**
+                 * @description Filter by sandbox status. If omitted, returns sandboxes in every status
+                 *     except `terminated`. To include terminated sandboxes, list `terminated`
+                 *     explicitly.
+                 */
                 status?: components["schemas"]["sandboxStatus"][];
             };
             header?: never;

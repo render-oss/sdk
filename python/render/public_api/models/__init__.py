@@ -354,6 +354,11 @@ from .route_with_cursor import RouteWithCursor
 from .run_task import RunTask
 from .runtime import Runtime
 from .sandbox import Sandbox
+from .sandbox_build import SandboxBuild
+from .sandbox_build_post import SandboxBuildPOST
+from .sandbox_build_post_registry_credential import SandboxBuildPOSTRegistryCredential
+from .sandbox_build_source import SandboxBuildSource
+from .sandbox_build_status import SandboxBuildStatus
 from .sandbox_connect_request import SandboxConnectRequest
 from .sandbox_connect_response import SandboxConnectResponse
 from .sandbox_credential import SandboxCredential
@@ -824,6 +829,11 @@ __all__ = (
     "RunTask",
     "Runtime",
     "Sandbox",
+    "SandboxBuild",
+    "SandboxBuildPOST",
+    "SandboxBuildPOSTRegistryCredential",
+    "SandboxBuildSource",
+    "SandboxBuildStatus",
     "SandboxConnectRequest",
     "SandboxConnectResponse",
     "SandboxCredential",
