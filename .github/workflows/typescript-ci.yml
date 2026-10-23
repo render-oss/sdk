@@ -46,6 +46,7 @@ jobs:
           cache-dependency-path: |
             typescript/package-lock.json
             typescript/typing-tests/bun-download/package-lock.json
+            typescript/examples/*/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -64,6 +65,12 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run typecheck
+
+      - name: Type check examples
+        run: |
+          for example in client task; do
+            (cd "examples/$example" && npm ci --ignore-scripts && npm run typecheck)
+          done
 
   test:
     name: Test Node ${{ matrix.node-version }}

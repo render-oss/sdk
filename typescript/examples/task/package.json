@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "preinstall": "cd ../../ && npm i && npm run build",
-    "start": "tsx main.ts"
+    "start": "tsx main.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@renderinc/sdk": "file:../.."
   },
   "devDependencies": {
     "@types/node": "22.20.5",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "typescript": "7.0.2"
   }
 }

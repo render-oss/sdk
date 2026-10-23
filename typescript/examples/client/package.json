@@ -4,13 +4,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "tsx main.ts"
+    "start": "tsx main.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@renderinc/sdk": "file:../.."
   },
   "devDependencies": {
     "@types/node": "22.20.5",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "typescript": "7.0.2"
   }
 }
