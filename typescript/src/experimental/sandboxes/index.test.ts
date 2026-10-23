@@ -438,6 +438,7 @@ describe("SandboxesClient", () => {
         client.create({
           plan: "pro",
           timeoutSeconds: 600,
+          idleTimeoutSeconds: 0,
           networkPolicy: { type: "deny-all" },
           env: { NODE_ENV: "test" },
         }),
@@ -447,6 +448,7 @@ describe("SandboxesClient", () => {
           ownerId: "tea-default",
           plan: "pro",
           timeoutSeconds: 600,
+          idleTimeoutSeconds: 0,
           region: "oregon",
           networkPolicy: { type: "deny-all" },
           env: { NODE_ENV: "test" },

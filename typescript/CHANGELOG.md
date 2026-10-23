@@ -4,6 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- (Sandbox) `sandboxes.create()` accepts `idleTimeoutSeconds`; use `0` to disable automatic idle suspension.
+
 ## [1.4.0] - 2026-10-21
 
 ### Added

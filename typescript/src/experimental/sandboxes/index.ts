@@ -100,8 +100,13 @@ export type SandboxNetworkPolicy =
 export type SandboxCreateInput = SandboxRestoreInput & {
   ownerId?: `tea-${string}`;
   plan?: components["schemas"]["sandboxPlan"] | (string & {});
-  /** Maximum sandbox lifetime in seconds. The API defaults to 7200. */
+  /** Maximum sandbox lifetime in seconds. The API defaults to 86400 (24 hours). */
   timeoutSeconds?: number;
+  /**
+   * Seconds of inactivity before the sandbox is suspended. Use 0 to disable automatic idle
+   * suspension; positive values must be at least 300. The API defaults to 900.
+   */
+  idleTimeoutSeconds?: number;
   /** Defaults to the client's region, then to the workspace default. */
   region?: string;
   /** The API defaults to `allow-all`. */
@@ -340,6 +345,9 @@ export class SandboxesClient {
       ownerId,
       ...(input.plan ? { plan: input.plan } : {}),
       ...(input.timeoutSeconds === undefined ? {} : { timeoutSeconds: input.timeoutSeconds }),
+      ...(input.idleTimeoutSeconds === undefined
+        ? {}
+        : { idleTimeoutSeconds: input.idleTimeoutSeconds }),
       ...(region ? { region } : {}),
       ...(input.networkPolicy ? { networkPolicy: input.networkPolicy } : {}),
       ...(input.env ? { env: input.env } : {}),
