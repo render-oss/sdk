@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "test": "vitest",
     "test:e2e": "vitest run --config vitest.config.e2e.mts",
     "typecheck": "tsc --noEmit",
