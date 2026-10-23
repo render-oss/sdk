@@ -9,6 +9,7 @@ class ErrorCode(str, Enum):
     INVALID_LIMIT = "invalid_limit"
     INVALID_OWNER_ID = "invalid_owner_id"
     INVALID_SANDBOX_GROUP_ID = "invalid_sandbox_group_id"
+    INVALID_SANDBOX_PLAN = "invalid_sandbox_plan"
     INVALID_SNAPSHOT_ID = "invalid_snapshot_id"
     INVALID_SNAPSHOT_NAME = "invalid_snapshot_name"
     INVALID_STATUS = "invalid_status"

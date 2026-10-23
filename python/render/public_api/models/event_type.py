@@ -19,6 +19,7 @@ class EventType(str, Enum):
     DEPLOY_STARTED = "deploy_started"
     DISK_CREATED = "disk_created"
     DISK_DELETED = "disk_deleted"
+    DISK_SNAPSHOT_RESTORED = "disk_snapshot_restored"
     DISK_UPDATED = "disk_updated"
     EDGE_CACHE_DISABLED = "edge_cache_disabled"
     EDGE_CACHE_ENABLED = "edge_cache_enabled"

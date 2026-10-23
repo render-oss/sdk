@@ -18,6 +18,7 @@ from render.public_api.models.service_event import (
     DeployStarted as DeployStarted,
     DiskCreated as DiskCreated,
     DiskDeleted as DiskDeleted,
+    DiskSnapshotRestored as DiskSnapshotRestored,
     DiskUpdated as DiskUpdated,
     EdgeCacheDisabled as EdgeCacheDisabled,
     EdgeCacheEnabled as EdgeCacheEnabled,

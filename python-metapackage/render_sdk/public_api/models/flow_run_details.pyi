@@ -4,6 +4,7 @@ from render.public_api.models.flow_run_details import (
     FlowInputType1 as FlowInputType1,
     FlowRunAttempt as FlowRunAttempt,
     FlowRunDetails as FlowRunDetails,
+    FlowRunErrorDetails as FlowRunErrorDetails,
     FlowRunStatus as FlowRunStatus,
     Mapping as Mapping,
     T as T,

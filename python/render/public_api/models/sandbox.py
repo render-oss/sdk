@@ -120,7 +120,8 @@ class Sandbox:
 
         timeout_seconds = d.pop("timeoutSeconds")
 
-        idle_timeout_seconds = d.pop("idleTimeoutSeconds", 900)
+        idle_timeout_seconds = d.pop("idleTimeoutSeconds")
+
         created_at = isoparse(d.pop("createdAt"))
 
         def _parse_terminated_at(data: object) -> Union[None, Unset, datetime.datetime]:

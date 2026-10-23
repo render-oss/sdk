@@ -12,6 +12,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.flow_input_type_1 import FlowInputType1
     from ..models.flow_run_attempt import FlowRunAttempt
+    from ..models.flow_run_error_details import FlowRunErrorDetails
 
 
 T = TypeVar("T", bound="FlowRunDetails")
@@ -32,6 +33,7 @@ class FlowRunDetails:
         started_at (Union[Unset, datetime.datetime]):
         completed_at (Union[Unset, datetime.datetime]):
         error (Union[Unset, str]): Error message if the flow run failed.
+        error_details (Union[Unset, FlowRunErrorDetails]):
     """
 
     id: str
@@ -43,6 +45,7 @@ class FlowRunDetails:
     started_at: Union[Unset, datetime.datetime] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     error: Union[Unset, str] = UNSET
+    error_details: Union[Unset, "FlowRunErrorDetails"] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,6 +79,10 @@ class FlowRunDetails:
 
         error = self.error
 
+        error_details: Union[Unset, dict[str, Any]] = UNSET
+        if not isinstance(self.error_details, Unset):
+            error_details = self.error_details.to_dict()
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -94,6 +101,8 @@ class FlowRunDetails:
             field_dict["completedAt"] = completed_at
         if error is not UNSET:
             field_dict["error"] = error
+        if error_details is not UNSET:
+            field_dict["errorDetails"] = error_details
 
         return field_dict
 
@@ -101,6 +110,7 @@ class FlowRunDetails:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.flow_input_type_1 import FlowInputType1
         from ..models.flow_run_attempt import FlowRunAttempt
+        from ..models.flow_run_error_details import FlowRunErrorDetails
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -151,6 +161,13 @@ class FlowRunDetails:
 
         error = d.pop("error", UNSET)
 
+        _error_details = d.pop("errorDetails", UNSET)
+        error_details: Union[Unset, FlowRunErrorDetails]
+        if isinstance(_error_details, Unset):
+            error_details = UNSET
+        else:
+            error_details = FlowRunErrorDetails.from_dict(_error_details)
+
         flow_run_details = cls(
             id=id,
             flow_id=flow_id,
@@ -161,6 +178,7 @@ class FlowRunDetails:
             started_at=started_at,
             completed_at=completed_at,
             error=error,
+            error_details=error_details,
         )
 
         flow_run_details.additional_properties = d

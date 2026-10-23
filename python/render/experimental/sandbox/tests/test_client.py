@@ -89,19 +89,6 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
 
 
 @pytest.mark.asyncio
-async def test_create_defaults_idle_timeout_for_older_api_response():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        response = {**SANDBOX_JSON}
-        del response["idleTimeoutSeconds"]
-        return httpx.Response(201, json=response)
-
-    client = _sandbox_client(handler)
-    sandbox = await client.create()
-
-    assert sandbox.idle_timeout_seconds == 900
-
-
-@pytest.mark.asyncio
 @pytest.mark.parametrize("policy", ["allow-all", "deny-all"])
 async def test_create_sends_network_policy_type(policy):
     captured = {}

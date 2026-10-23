@@ -19,6 +19,7 @@ class ServiceEventType(str, Enum):
     DEPLOY_STARTED = "deploy_started"
     DISK_CREATED = "disk_created"
     DISK_DELETED = "disk_deleted"
+    DISK_SNAPSHOT_RESTORED = "disk_snapshot_restored"
     DISK_UPDATED = "disk_updated"
     IMAGE_PULL_FAILED = "image_pull_failed"
     INITIAL_DEPLOY_HOOK_ENDED = "initial_deploy_hook_ended"

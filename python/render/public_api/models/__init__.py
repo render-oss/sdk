@@ -106,6 +106,7 @@ from .disk_details import DiskDetails
 from .disk_patch import DiskPATCH
 from .disk_post import DiskPOST
 from .disk_snapshot import DiskSnapshot
+from .disk_snapshot_restored import DiskSnapshotRestored
 from .disk_updated import DiskUpdated
 from .disk_with_cursor import DiskWithCursor
 from .docker_details import DockerDetails
@@ -150,6 +151,9 @@ from .flow_input_type_1 import FlowInputType1
 from .flow_run import FlowRun
 from .flow_run_attempt import FlowRunAttempt
 from .flow_run_details import FlowRunDetails
+from .flow_run_error_details import FlowRunErrorDetails
+from .flow_run_error_details_code import FlowRunErrorDetailsCode
+from .flow_run_error_details_kind import FlowRunErrorDetailsKind
 from .flow_run_status import FlowRunStatus
 from .flow_run_step import FlowRunStep
 from .flow_run_step_attempt import FlowRunStepAttempt
@@ -574,6 +578,7 @@ __all__ = (
     "DiskPATCH",
     "DiskPOST",
     "DiskSnapshot",
+    "DiskSnapshotRestored",
     "DiskUpdated",
     "DiskWithCursor",
     "DockerDetails",
@@ -618,6 +623,9 @@ __all__ = (
     "FlowRun",
     "FlowRunAttempt",
     "FlowRunDetails",
+    "FlowRunErrorDetails",
+    "FlowRunErrorDetailsCode",
+    "FlowRunErrorDetailsKind",
     "FlowRunStatus",
     "FlowRunStep",
     "FlowRunStepAttempt",
