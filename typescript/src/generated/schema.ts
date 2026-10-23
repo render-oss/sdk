@@ -954,6 +954,8 @@ export interface components {
          * @example gold
          */
         sandboxSnapshotName: string;
+        /** @example sbb-cph1rs3idesc73a2b2mg */
+        sandboxBuildId: string;
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
@@ -988,6 +990,19 @@ export interface components {
              *     `snapshotId`.
              */
             snapshotName?: components["schemas"]["sandboxSnapshotName"];
+            /**
+             * @description Start from this build's image instead of the base image. The build
+             *     must have succeeded and be in the sandbox's group. Mutually
+             *     exclusive with `buildName`, `snapshotId` and `snapshotName`.
+             */
+            buildId?: components["schemas"]["sandboxBuildId"];
+            /**
+             * @description Start from the newest succeeded build with this name in the
+             *     sandbox's group. 404 if the group has no build with the name, and
+             *     409 if none of them has succeeded. Mutually exclusive with
+             *     `buildId`, `snapshotId` and `snapshotName`.
+             */
+            buildName?: string;
         };
         /** @example sbg-cph1rs3idesc73a2b2mg */
         sandboxGroupId: string;

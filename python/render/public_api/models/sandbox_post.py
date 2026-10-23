@@ -36,6 +36,11 @@ class SandboxPOST:
             share a name; the most recently available one is the one the name
             resolves to.
              Example: gold.
+        build_id (Union[Unset, str]):  Example: sbb-cph1rs3idesc73a2b2mg.
+        build_name (Union[Unset, str]): Start from the newest succeeded build with this name in the
+            sandbox's group. 404 if the group has no build with the name, and
+            409 if none of them has succeeded. Mutually exclusive with
+            `buildId`, `snapshotId` and `snapshotName`.
     """
 
     owner_id: str
@@ -47,6 +52,8 @@ class SandboxPOST:
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
     snapshot_name: Union[Unset, str] = UNSET
+    build_id: Union[Unset, str] = UNSET
+    build_name: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -78,6 +85,10 @@ class SandboxPOST:
 
         snapshot_name = self.snapshot_name
 
+        build_id = self.build_id
+
+        build_name = self.build_name
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -101,6 +112,10 @@ class SandboxPOST:
             field_dict["snapshotId"] = snapshot_id
         if snapshot_name is not UNSET:
             field_dict["snapshotName"] = snapshot_name
+        if build_id is not UNSET:
+            field_dict["buildId"] = build_id
+        if build_name is not UNSET:
+            field_dict["buildName"] = build_name
 
         return field_dict
 
@@ -151,6 +166,10 @@ class SandboxPOST:
 
         snapshot_name = d.pop("snapshotName", UNSET)
 
+        build_id = d.pop("buildId", UNSET)
+
+        build_name = d.pop("buildName", UNSET)
+
         sandbox_post = cls(
             owner_id=owner_id,
             network_policy=network_policy,
@@ -161,6 +180,8 @@ class SandboxPOST:
             env=env,
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,
+            build_id=build_id,
+            build_name=build_name,
         )
 
         sandbox_post.additional_properties = d
