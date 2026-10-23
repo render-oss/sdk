@@ -20,14 +20,11 @@
     "rules": {
       "preset": "recommended",
       "performance": {
-        "noAccumulatingSpread": "error",
         "noDelete": "error",
-        "noDynamicNamespaceImportAccess": "error",
         "noNamespaceImport": "error",
         "useTopLevelRegex": "error"
       },
       "complexity": {
-        "noCommaOperator": "error",
         "noForEach": "error",
         "noUselessConstructor": "error",
         "noUselessEmptyExport": "error",
@@ -35,18 +32,36 @@
         "noUselessLabel": "error",
         "noUselessLoneBlockStatements": "error",
         "noUselessRename": "error",
+        "noUselessReturn": "error",
+        "noUselessStringConcat": "error",
         "noUselessSwitchCase": "error",
         "noUselessTypeConstraint": "error",
-        "useArrowFunction": "error",
-        "useLiteralKeys": "error"
+        "noUselessUndefined": "error",
+        "useArrayFind": "error",
+        "useArraySome": "error",
+        "useLiteralKeys": "error",
+        "useRegexpTest": "error"
       },
       "suspicious": {
-        "noExplicitAny": "off"
+        "noConstantBinaryExpressions": "error",
+        "noDuplicateTestHooks": "error",
+        "noExplicitAny": "off",
+        "noExportsInTest": "error",
+        "noFocusedTests": "error",
+        "noIdenticalTestTitle": "error",
+        "noNestedPromises": "error",
+        "noSkippedTests": "error",
+        "noUnusedExpressions": "error",
+        "noVar": "error",
+        "useErrorMessage": "error"
       },
       "style": {
+        "noCommonJs": "error",
+        "noExportedImports": "error",
         "noImplicitBoolean": "error",
+        "noInferrableTypes": "error",
         "noNegationElse": "error",
-        "noParameterAssign": "warn",
+        "noParameterAssign": "error",
         "noRestrictedGlobals": "error",
         "noRestrictedImports": {
           "level": "error",
@@ -59,15 +74,27 @@
             }
           }
         },
+        "noSubstr": "error",
+        "noYodaExpression": "error",
+        "useConsistentBuiltinInstantiation": "error",
         "useDefaultParameterLast": "error",
+        "useExplicitLengthCheck": "error",
         "useExponentiationOperator": "error",
+        "useForOf": "error",
+        "useImportsFirst": "error",
         "useNodejsImportProtocol": "error",
         "useNumberNamespace": "error",
-        "useSingleVarDeclarator": "error",
-        "noCommonJs": "error",
         "useNumericSeparators": "error",
         "useReadonlyClassProperties": "error",
+        "useShorthandAssign": "error",
+        "useSingleVarDeclarator": "error",
+        "useThrowNewError": "error",
+        "useThrowOnlyError": "error",
+        "useTrimStartEnd": "error",
         "useUnifiedTypeSignatures": "error"
+      },
+      "correctness": {
+        "noUndeclaredDependencies": "error"
       }
     }
   },
