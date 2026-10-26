@@ -38,6 +38,7 @@ export {
   type SandboxGroupListInput,
   type SandboxGroupWithCursor,
   type SandboxNetworkPolicy,
+  type SandboxPlan,
   type SandboxSnapshot,
   type SandboxSnapshotCreateInput,
   type SandboxSnapshotDeleteInput,

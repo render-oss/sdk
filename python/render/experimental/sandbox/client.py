@@ -16,6 +16,7 @@ from render.experimental.sandbox.types import (
     SandboxExecEvent,
     SandboxGroupList,
     SandboxList,
+    SandboxPlan,
     Snapshot,
     SnapshotList,
 )
@@ -55,7 +56,7 @@ class SandboxClient:
         self,
         *,
         owner_id: str | None = None,
-        plan: str | None = None,
+        plan: SandboxPlan | str | None = None,
         timeout_seconds: int | None = None,
         idle_timeout_seconds: int | None = None,
         network_policy: NetworkPolicy | str | None = None,
@@ -67,7 +68,7 @@ class SandboxClient:
         """Create a sandbox and return its initial state.
 
         All parameters are optional. Unspecified fields fall back to the
-        workspace defaults enforced by the API (plan starter, 24-hour lifetime,
+        workspace defaults enforced by the API (plan 1c-2g, 24-hour lifetime,
         15-minute idle timeout, workspace default region and network policy).
         Set idle_timeout_seconds to 0 to disable automatic idle suspension.
 

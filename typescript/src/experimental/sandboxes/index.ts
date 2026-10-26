@@ -13,6 +13,9 @@ import type { components, paths } from "../../generated/schema.js";
 
 import { getApiError } from "../../utils/http.js";
 import { getUserAgent } from "../../version.js";
+import type { SandboxPlan } from "./types.js";
+
+export type { SandboxPlan } from "./types.js";
 
 const LEADING_SPACE = /^ /;
 const TRAILING_CARRIAGE_RETURN = /\r$/;
@@ -100,7 +103,7 @@ export type SandboxNetworkPolicy =
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
 export type SandboxCreateInput = SandboxRestoreInput & {
   ownerId?: `tea-${string}`;
-  plan?: components["schemas"]["sandboxPlan"] | (string & {});
+  plan?: SandboxPlan | (string & {});
   /** Maximum sandbox lifetime in seconds. The API defaults to 86400 (24 hours). */
   timeoutSeconds?: number;
   /**

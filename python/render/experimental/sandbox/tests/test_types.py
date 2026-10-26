@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import get_args
 
 import pytest
 
@@ -20,16 +21,18 @@ from render.experimental.sandbox.types import (
     SandboxGroup,
     SandboxGroupList,
     SandboxList,
+    SandboxPlan,
     Snapshot,
     SnapshotList,
 )
+from render.public_api.models.sandbox_plan import SandboxPlan as GeneratedSandboxPlan
 
 
 def test_sandbox_has_expected_fields():
     sb = Sandbox(
         id="sbx-1",
         status="running",
-        plan="starter",
+        plan="1c-2g",
         network_policy=NetworkPolicy(type="deny-all"),
         region="oregon",
         timeout_seconds=7200,
@@ -54,7 +57,7 @@ def test_snapshot_has_expected_fields():
         source_sandbox_id="sbx-1",
         kind="filesystem",
         status="creating",
-        plan="starter",
+        plan="1c-2g",
         requested_at=datetime(2026, 9, 1),
         expires_at=datetime(2026, 9, 8),
     )
@@ -136,3 +139,13 @@ def test_snapshot_errors_are_client_errors_carrying_a_code(error_type):
     assert str(err) == "boom"
     assert err.code == "some_code"
     assert error_type("boom").code is None
+
+
+def test_sandbox_plan_matches_generated_plans():
+    """SandboxPlan is handwritten, so it has to track the generated schema.
+
+    starter, standard and pro are left out because SandboxPlan does not
+    suggest them.
+    """
+    generated = {plan.value for plan in GeneratedSandboxPlan}
+    assert set(get_args(SandboxPlan)) == generated - {"starter", "standard", "pro"}

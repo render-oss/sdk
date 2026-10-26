@@ -21,6 +21,7 @@ from render.experimental.sandbox.types import (
     SandboxGroup,
     SandboxGroupList,
     SandboxList,
+    SandboxPlan,
     Snapshot,
     SnapshotList,
 )
@@ -41,6 +42,7 @@ __all__ = [
     "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
+    "SandboxPlan",
     "Snapshot",
     "SnapshotClient",
     "SnapshotList",

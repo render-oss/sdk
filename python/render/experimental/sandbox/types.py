@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Literal
+
+# The plans the API offered when this SDK was released, for editor hints. The
+# API can add plans at any time, and create() sends any plan string as is, so a
+# newer plan works without an SDK update.
+SandboxPlan = Literal["1c-2g", "2c-4g", "4c-8g", "8c-16g"]
 
 
 @dataclass

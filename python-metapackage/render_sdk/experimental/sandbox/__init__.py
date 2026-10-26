@@ -28,6 +28,7 @@ __all__ = [
     "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
+    "SandboxPlan",
     "Snapshot",
     "SnapshotClient",
     "SnapshotList",

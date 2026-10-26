@@ -11,6 +11,7 @@ from render.experimental.sandbox.client import (
     SandboxExecEvent as SandboxExecEvent,
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
+    SandboxPlan as SandboxPlan,
     Sequence as Sequence,
     Snapshot as Snapshot,
     SnapshotClient as SnapshotClient,

@@ -26,7 +26,7 @@ from render.public_api.client import AuthenticatedClient
 SANDBOX_JSON = {
     "id": "sbx-abc",
     "status": "running",
-    "plan": "standard",
+    "plan": "2c-4g",
     "networkPolicy": {"type": "deny-all"},
     "region": "oregon",
     "timeoutSeconds": 300,
@@ -70,13 +70,13 @@ async def test_create_sends_sandbox_post_and_returns_sandbox():
 
     client = _sandbox_client(handler)
     sandbox = await client.create(
-        plan="standard", timeout_seconds=300, idle_timeout_seconds=0
+        plan="2c-4g", timeout_seconds=300, idle_timeout_seconds=0
     )
 
     assert captured["method"] == "POST"
     assert captured["path"] == "/v1/sandboxes"
     assert captured["body"]["ownerId"] == "tea-test"
-    assert captured["body"]["plan"] == "standard"
+    assert captured["body"]["plan"] == "2c-4g"
     assert captured["body"]["timeoutSeconds"] == 300
     assert captured["body"]["idleTimeoutSeconds"] == 0
     assert "env" not in captured["body"]

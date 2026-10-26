@@ -17,7 +17,7 @@ from render.public_api.client import AuthenticatedClient
 SANDBOX_JSON = {
     "id": "sbx-abc",
     "status": "creating",
-    "plan": "standard",
+    "plan": "2c-4g",
     "networkPolicy": {"type": "deny-all"},
     "region": "oregon",
     "timeoutSeconds": 300,
@@ -33,7 +33,7 @@ CREATING_SNAPSHOT_JSON = {
     "name": None,
     "kind": "filesystem",
     "status": "creating",
-    "plan": "standard",
+    "plan": "2c-4g",
     "requestedAt": "2026-09-01T00:00:00Z",
     "capturedAt": None,
     "expiresAt": "2026-09-08T00:00:00Z",
@@ -105,7 +105,7 @@ async def test_create_omits_kind_by_default_and_returns_creating_snapshot():
     assert snapshot.name is None
     assert snapshot.kind == "filesystem"
     assert snapshot.status == "creating"
-    assert snapshot.plan == "standard"
+    assert snapshot.plan == "2c-4g"
     assert snapshot.requested_at.isoformat() == "2026-09-01T00:00:00+00:00"
     assert snapshot.captured_at is None
     assert snapshot.expires_at.isoformat() == "2026-09-08T00:00:00+00:00"
@@ -436,11 +436,11 @@ def _delete(client):
 
 
 def _create_from_snapshot(client):
-    return client.create(snapshot_id="snp-abc", plan="pro")
+    return client.create(snapshot_id="snp-abc", plan="4c-8g")
 
 
 def _create_from_snapshot_name(client):
-    return client.create(snapshot_name="gold", plan="pro")
+    return client.create(snapshot_name="gold", plan="4c-8g")
 
 
 def _create_plain(client):
@@ -518,10 +518,10 @@ def _create_plain(client):
         (
             _create_from_snapshot,
             409,
-            {"message": "requires plan standard", "code": "snapshot_plan_mismatch"},
+            {"message": "requires plan 2c-4g", "code": "snapshot_plan_mismatch"},
             SnapshotPlanMismatchError,
             "snapshot_plan_mismatch",
-            "requires plan standard",
+            "requires plan 2c-4g",
         ),
         (
             _create_from_snapshot_name,
@@ -534,10 +534,10 @@ def _create_plain(client):
         (
             _create_from_snapshot_name,
             409,
-            {"message": "requires plan standard", "code": "snapshot_plan_mismatch"},
+            {"message": "requires plan 2c-4g", "code": "snapshot_plan_mismatch"},
             SnapshotPlanMismatchError,
             "snapshot_plan_mismatch",
-            "requires plan standard",
+            "requires plan 2c-4g",
         ),
         (
             _create_from_snapshot_name,

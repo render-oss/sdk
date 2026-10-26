@@ -94,7 +94,7 @@ const SNAPSHOT: SandboxSnapshot = {
   name: null,
   kind: "filesystem",
   status: "creating",
-  plan: "starter",
+  plan: "1c-2g",
   requestedAt: "2026-09-01T00:00:00Z",
   capturedAt: null,
   expiresAt: "2026-09-08T00:00:00Z",
@@ -191,7 +191,7 @@ describe("SandboxesClient", () => {
           sandbox: {
             id: "sbx-123",
             status: "running",
-            plan: "standard",
+            plan: "2c-4g",
             networkPolicy: { type: "deny-all" },
             region: "oregon",
             timeoutSeconds: 300,
@@ -436,7 +436,7 @@ describe("SandboxesClient", () => {
 
       await expect(
         client.create({
-          plan: "pro",
+          plan: "4c-8g",
           timeoutSeconds: 600,
           idleTimeoutSeconds: 0,
           networkPolicy: { type: "deny-all" },
@@ -446,7 +446,7 @@ describe("SandboxesClient", () => {
       expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
         body: {
           ownerId: "tea-default",
-          plan: "pro",
+          plan: "4c-8g",
           timeoutSeconds: 600,
           idleTimeoutSeconds: 0,
           region: "oregon",
@@ -523,7 +523,7 @@ describe("SandboxesClient", () => {
       {
         status: 409,
         code: "snapshot_plan_mismatch",
-        input: { snapshotName: "runtime", plan: "pro" },
+        input: { snapshotName: "runtime", plan: "4c-8g" },
         ErrorClass: SandboxSnapshotPlanMismatchError,
       },
       {
@@ -1215,7 +1215,7 @@ describe("SandboxesClient", () => {
             data: {
               id: "sbx-123",
               status,
-              plan: "starter",
+              plan: "1c-2g",
               networkPolicy: { type: "deny-all" },
               region: "oregon",
               timeoutSeconds: 600,
