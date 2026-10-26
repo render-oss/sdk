@@ -44,18 +44,12 @@ def run_blocking(func: Callable[..., _T], *args: Any) -> _T:
 
 
 def normalize_remote_path(path: str) -> str:
-    """Clean a remote path the way the sandbox API requires.
-
-    The API rejects any path that Go's path.Clean would change, and the CLI
-    cleans before it mints a token, so `render sandbox cp` and the SDK agree on
-    what a path means. An empty path raises rather than cleaning to ".", which
-    would quietly transfer the home directory, and matches what copy_to does.
-    """
+    """Clean a remote path the way the sandbox API requires."""
     if not path:
         raise ValueError("remote_path is required")
     cleaned = posixpath.normpath(path)
-    # normpath keeps exactly two leading slashes, which POSIX reserves; Go's
-    # path.Clean collapses them, and the API compares against path.Clean.
+    # normpath keeps exactly two leading slashes, which POSIX reserves; the API
+    # expects them collapsed to one.
     if cleaned.startswith("//") and not cleaned.startswith("///"):
         cleaned = cleaned[1:]
     return cleaned

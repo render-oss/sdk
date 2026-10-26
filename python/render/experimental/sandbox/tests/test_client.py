@@ -1032,6 +1032,56 @@ async def test_copy_to_normalizes_the_remote_path(mocker, tmp_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("remote_path", "cleaned"),
+    [
+        ("/app/dir/", "/app/dir"),
+        ("/app/./data/../data.txt", "/app/data.txt"),
+        ("//app/x", "/app/x"),
+        ("///app/x", "/app/x"),
+    ],
+)
+async def test_copy_to_cleans_the_remote_path(mocker, tmp_path, remote_path, cleaned):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+    captured = {}
+
+    client = _sandbox_client(_noop_handler)
+    mint = mocker.patch.object(
+        client.api,
+        "_mint_file_token",
+        new=mocker.AsyncMock(return_value=FILES_CONNECT_JSON),
+    )
+    _patch_proxy(mocker, _capture_upload(captured))
+
+    await client.copy_to("sbx-123", source, remote_path)
+
+    assert mint.await_args.args[3] == cleaned
+
+
+@pytest.mark.parametrize(
+    ("remote_path", "cleaned"),
+    [("/app/dir/", "/app/dir"), ("//app/x", "/app/x")],
+)
+def test_sync_copy_to_sends_a_clean_path_to_the_token_endpoint(
+    tmp_path, remote_path, cleaned
+):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["path"] = request.url.params["path"]
+        # Stop at the mint: only the path it was asked for matters here.
+        return httpx.Response(400, json={"message": "stop"})
+
+    with pytest.raises(RenderError):
+        _sync_sandbox_client(handler).copy_to("sbx-123", source, remote_path)
+
+    assert captured["path"] == cleaned
+
+
+@pytest.mark.asyncio
 async def test_copy_to_closes_the_body_when_the_request_fails(mocker, tmp_path):
     (tmp_path / "a.txt").write_text("a\n")
     closed = []

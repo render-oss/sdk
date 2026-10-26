@@ -914,6 +914,55 @@ describe("SandboxesClient", () => {
       );
     });
 
+    describe.each([
+      {
+        name: "upload",
+        call: (c: SandboxesClient, path: string) => c.upload("sbx-123", path, "hi", "tea-test"),
+      },
+      {
+        name: "download",
+        call: (c: SandboxesClient, path: string) => c.download("sbx-123", path, "tea-test"),
+      },
+    ])("$name path cleaning", ({ name, call }) => {
+      it.each([
+        ["/tmp/trailing-slash/", "/tmp/trailing-slash"],
+        ["workspace/", "workspace"],
+        ["/app/./data/../data.txt", "/app/data.txt"],
+        ["/app//x", "/app/x"],
+        ["//app/x", "/app/x"],
+        ["./", "."],
+        ["/", "/"],
+      ])("sends %j as %j", async (path, cleaned) => {
+        const apiClient = {
+          POST: vi.fn().mockResolvedValue({
+            data: CONNECT_RESPONSE,
+            error: undefined,
+            response: new Response(null, { status: 200 }),
+          }),
+        } as unknown as Client<paths>;
+        vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null));
+
+        await call(new SandboxesClient(apiClient), path);
+
+        expect(apiClient.POST).toHaveBeenCalledWith(
+          "/sandboxes/{sandboxId}/files/{operation}/token",
+          {
+            params: {
+              path: { sandboxId: "sbx-123", operation: name },
+              query: { ownerId: "tea-test", path: cleaned },
+            },
+          },
+        );
+      });
+
+      it("rejects an empty path without minting a token", async () => {
+        const apiClient = { POST: vi.fn() } as unknown as Client<paths>;
+
+        await expect(call(new SandboxesClient(apiClient), "")).rejects.toThrow("path is required");
+        expect(apiClient.POST).not.toHaveBeenCalled();
+      });
+    });
+
     it("throws AbortError when reading an upload error response is aborted", async () => {
       const apiClient = {
         POST: vi.fn().mockResolvedValue({

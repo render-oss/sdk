@@ -58,8 +58,8 @@ def _tar(entries, *, terminated=True):
     data = buf.getvalue()
     body = data.rstrip(b"\x00")
     padded = body + b"\x00" * (-len(body) % 512)
-    # Python pads to 10240 bytes; the sandbox agent's Go writer emits the two
-    # zero blocks and stops, so test against that shape.
+    # Python pads to 10240 bytes; the sandbox ends its archives after the two
+    # zero blocks, so test against that shape.
     return padded + b"\x00" * 1024 if terminated else padded
 
 

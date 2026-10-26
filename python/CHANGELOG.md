@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- (Sandboxes) Small adjustment to how `copy_to()` cleans the remote path.
+
 ## [1.4.0] - 2026-10-21
 
 ### Added

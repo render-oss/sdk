@@ -10,6 +10,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - (Sandbox) `sandboxes.create()` accepts `idleTimeoutSeconds`; use `0` to disable automatic idle suspension.
 
+### Fixed
+
+- (Sandbox) `upload()` and `download()` clean the remote path before requesting a file token.
+
 ## [1.4.0] - 2026-10-21
 
 ### Added

@@ -1,3 +1,4 @@
+import { posix } from "node:path";
 import type { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
 
@@ -215,6 +216,15 @@ function resolveOwnerId(
  */
 function inWorkspace(context: string, ownerId: string): string {
   return `${context} in workspace ${ownerId}`;
+}
+
+/** Cleans a sandbox file path the way the API requires. */
+function cleanSandboxPath(path: string): string {
+  if (!path) {
+    throw new RenderError("path is required");
+  }
+  const cleaned = posix.normalize(path);
+  return cleaned.length > 1 && cleaned.endsWith("/") ? cleaned.slice(0, -1) : cleaned;
 }
 
 function optionalOwnerIdQuery(
@@ -530,7 +540,7 @@ export class SandboxesClient {
             path: { sandboxId, operation },
             query: {
               ownerId: this.resolveOwnerId(ownerId),
-              path,
+              path: cleanSandboxPath(path),
             },
           },
         }),

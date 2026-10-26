@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-import posixpath
 import stat
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
@@ -49,6 +48,7 @@ from render.experimental.sandbox.files import (
     check_content_encoding,
     disposition_filename,
     media_type,
+    normalize_remote_path,
     parent_dir,
     prepare_extract_dir,
     resolve_file_dest,
@@ -518,13 +518,8 @@ class SandboxApi:
     ) -> None:
         source = Path(local_path)
         # The server rejects any path it would have to clean, so clean it here
-        # instead of turning a trailing slash into a 400. The CLI does the same
-        # before minting, which keeps the two clients in step. Guard the empty
-        # path first: normpath turns it into ".", which would quietly copy to
-        # the home directory instead of failing.
-        if not remote_path:
-            raise ValueError("remote_path is required")
-        remote_path = posixpath.normpath(remote_path)
+        # instead of turning a trailing slash into a 400.
+        remote_path = normalize_remote_path(remote_path)
         # stat, not lstat: a symlinked directory uploads as the directory it
         # points at. Statting before the mint also keeps a missing local path
         # from spending a token.

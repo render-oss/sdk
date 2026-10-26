@@ -116,8 +116,8 @@ def _entry(tar: tarfile.TarFile, path: Path, arcname: str) -> tarfile.TarInfo | 
     entry = tar.gettarinfo(str(path), arcname=arcname)
     if entry.islnk():
         # gettarinfo tracks inodes and emits a hardlink entry for the second and
-        # later names of a file. Go's tar.FileInfoHeader does not, so the CLI
-        # stores each name as its own regular file; match that.
+        # later names of a file. Store each name as its own regular file instead,
+        # so an extractor never has to resolve one entry against another.
         entry.type = tarfile.REGTYPE
         entry.linkname = ""
         entry.size = path.lstat().st_size

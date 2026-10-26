@@ -65,8 +65,8 @@ def test_hardlinks_are_stored_as_regular_files(tmp_path):
     raw = gzip.decompress(b"".join(iter_tar_gzip(tmp_path)))
     with tarfile.open(fileobj=io.BytesIO(raw)) as tar:
         members = {member.name: member for member in tar.getmembers()}
-        # Both names carry their own content, as the CLI's archive does: an
-        # extractor never has to resolve one entry against another.
+        # Both names carry their own content: an extractor never has to resolve
+        # one entry against another.
         assert members["one.txt"].isreg()
         assert members["two.txt"].isreg()
         assert tar.extractfile("two.txt").read() == b"shared\n"
