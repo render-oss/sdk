@@ -35,6 +35,8 @@ from render.experimental.sandbox._tar import (
     stat_path,
 )
 from render.experimental.sandbox.errors import (
+    BuildNotFoundError,
+    BuildNotReadyError,
     SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
@@ -56,8 +58,11 @@ from render.experimental.sandbox.files import (
     run_blocking,
 )
 from render.experimental.sandbox.types import (
+    Build,
+    BuildSource,
     EgressRule,
     NetworkPolicy,
+    RegistryCredential,
     Sandbox,
     SandboxExecEvent,
     SandboxExecExit,
@@ -70,17 +75,24 @@ from render.experimental.sandbox.types import (
 )
 from render.public_api.api.sandboxes import (
     create_sandbox,
+    create_sandbox_build,
     create_sandbox_snapshot,
     delete_sandbox_snapshot,
     list_sandbox_groups,
     list_sandbox_snapshots,
     list_sandboxes,
     retrieve_sandbox,
+    retrieve_sandbox_build,
     retrieve_sandbox_snapshot,
     terminate_sandbox,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
+from render.public_api.models.sandbox_build import SandboxBuild as GeneratedSandboxBuild
+from render.public_api.models.sandbox_build_post import SandboxBuildPOST
+from render.public_api.models.sandbox_build_post_registry_credential import (
+    SandboxBuildPOSTRegistryCredential,
+)
 from render.public_api.models.sandbox_egress_rule import SandboxEgressRule
 from render.public_api.models.sandbox_egress_rule_protocol import (
     SandboxEgressRuleProtocol,
@@ -120,6 +132,8 @@ _FILE_NOT_FOUND_CODE = "file_not_found"
 _SNAPSHOT_NOT_FOUND_CODE = "snapshot_not_found"
 _SNAPSHOT_NOT_READY_CODES = frozenset({"snapshot_creating", "snapshot_not_available"})
 _SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
+_BUILD_NOT_FOUND_CODE = "build_not_found"
+_BUILD_NOT_SUCCEEDED_CODE = "build_not_succeeded"
 
 # Aliased at module scope so the annotations on the _api_call methods resolve
 # the builtin list, not the SyncSandboxApi.list method that shadows it in the class body.
@@ -218,6 +232,24 @@ def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
     )
 
 
+def _to_build(model: GeneratedSandboxBuild) -> Build:
+    return Build(
+        id=model.id,
+        sandbox_group_id=model.sandbox_group_id,
+        name=model.name,
+        source=BuildSource(
+            repository=model.source.repository,
+            image=model.source.image,
+            reference=model.source.reference,
+        ),
+        source_digest=model.source_digest,
+        status=model.status.value,
+        created_at=model.created_at,
+        failure_reason=_set_or_none(model.failure_reason),
+        finished_at=_set_or_none(model.finished_at),
+    )
+
+
 def _normalize_statuses(
     status: str | Sequence[str] | None, status_type: type[_StatusEnum]
 ) -> list[_StatusEnum]:
@@ -271,6 +303,23 @@ def _handle_snapshot_api_error(
     handle_api_error(response, operation)
 
 
+def _handle_build_api_error(
+    response: Response[Any], build_ref: str, operation: str
+) -> None:
+    if response.status_code == 404:
+        code = _error_body(response.content).code
+        if code == _BUILD_NOT_FOUND_CODE:
+            raise BuildNotFoundError(f"build {build_ref} not found", code=code)
+    if response.status_code == 409:
+        error = _error_body(response.content)
+        if error.code == _BUILD_NOT_SUCCEEDED_CODE:
+            message = f"{operation} failed"
+            if error.message:
+                message = f"{message}: {error.message}"
+            raise BuildNotReadyError(message, code=error.code)
+    handle_api_error(response, operation)
+
+
 class SyncSandboxApi:
     """Typed wrapper over the generated sandbox endpoints."""
 
@@ -288,6 +337,8 @@ class SyncSandboxApi:
         env: dict[str, str] | None,
         snapshot_id: str | None,
         snapshot_name: str | None,
+        build_id: str | None = None,
+        build_name: str | None = None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if plan is not None:
@@ -306,16 +357,23 @@ class SyncSandboxApi:
             body.snapshot_id = snapshot_id
         if snapshot_name is not None:
             body.snapshot_name = snapshot_name
+        if build_id is not None:
+            body.build_id = build_id
+        if build_name is not None:
+            body.build_name = build_name
 
         with request_errors("create sandbox"):
             response = create_sandbox.sync_detailed(client=self.client, body=body)
         snapshot_ref = snapshot_id if snapshot_id is not None else snapshot_name
-        if snapshot_ref is None:
-            handle_api_error(response, "create sandbox")
-        else:
+        build_ref = build_id if build_id is not None else build_name
+        if snapshot_ref is not None:
             _handle_snapshot_api_error(
                 response, snapshot_ref, "create sandbox", path_names_snapshot=False
             )
+        elif build_ref is not None:
+            _handle_build_api_error(response, build_ref, "create sandbox")
+        else:
+            handle_api_error(response, "create sandbox")
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to create sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
@@ -472,6 +530,38 @@ class SyncSandboxApi:
                 sandbox_group_id, snapshot_id, client=self.client, owner_id=owner_id
             )
         _handle_snapshot_api_error(response, snapshot_id, "delete snapshot")
+
+    def create_build(
+        self,
+        sandbox_group_id: str,
+        name: str,
+        source_image: str,
+        registry_credential: RegistryCredential | None,
+    ) -> Build:
+        body = SandboxBuildPOST(name=name, source_image=source_image)
+        if registry_credential is not None:
+            body.registry_credential = SandboxBuildPOSTRegistryCredential(
+                username=registry_credential.username,
+                password=registry_credential.password,
+            )
+        with request_errors("create build"):
+            response = create_sandbox_build.sync_detailed(
+                sandbox_group_id, client=self.client, body=body
+            )
+        handle_api_error(response, "create build")
+        if not isinstance(response.parsed, GeneratedSandboxBuild):
+            raise RenderError("Failed to create build: unexpected response type")
+        return _to_build(response.parsed)
+
+    def get_build(self, sandbox_group_id: str, build_id: str) -> Build:
+        with request_errors("retrieve build"):
+            response = retrieve_sandbox_build.sync_detailed(
+                sandbox_group_id, build_id, client=self.client
+            )
+        _handle_build_api_error(response, build_id, "retrieve build")
+        if not isinstance(response.parsed, GeneratedSandboxBuild):
+            raise RenderError("Failed to retrieve build: unexpected response type")
+        return _to_build(response.parsed)
 
     def _mint_run_token(
         self, sandbox_id: str, owner_id: str, operation: str, command: str

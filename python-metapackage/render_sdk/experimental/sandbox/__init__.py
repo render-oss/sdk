@@ -13,8 +13,14 @@ _real = importlib.import_module("render.experimental.sandbox")
 
 __doc__ = _real.__doc__
 __all__ = [
+    "Build",
+    "BuildClient",
+    "BuildNotFoundError",
+    "BuildNotReadyError",
+    "BuildSource",
     "EgressRule",
     "NetworkPolicy",
+    "RegistryCredential",
     "Sandbox",
     "SandboxClient",
     "SandboxCreateWaitError",

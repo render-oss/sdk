@@ -1,7 +1,13 @@
 """Experimental sandbox client, accessed via ``render.experimental.sandboxes``."""
 
-from render.experimental.sandbox.client import SandboxClient, SnapshotClient
+from render.experimental.sandbox.client import (
+    BuildClient,
+    SandboxClient,
+    SnapshotClient,
+)
 from render.experimental.sandbox.errors import (
+    BuildNotFoundError,
+    BuildNotReadyError,
     SandboxCreateWaitError,
     SandboxDownloadError,
     SandboxExecError,
@@ -18,8 +24,11 @@ from render.experimental.sandbox.errors import (
     SnapshotWaitTimeoutError,
 )
 from render.experimental.sandbox.types import (
+    Build,
+    BuildSource,
     EgressRule,
     NetworkPolicy,
+    RegistryCredential,
     Sandbox,
     SandboxExecEvent,
     SandboxExecExit,
@@ -34,8 +43,14 @@ from render.experimental.sandbox.types import (
 )
 
 __all__ = [
+    "Build",
+    "BuildClient",
+    "BuildNotFoundError",
+    "BuildNotReadyError",
+    "BuildSource",
     "EgressRule",
     "NetworkPolicy",
+    "RegistryCredential",
     "Sandbox",
     "SandboxClient",
     "SandboxCreateWaitError",

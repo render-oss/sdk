@@ -31,6 +31,15 @@ class SnapshotPlanMismatchError(ClientError):
     a different plan. code is snapshot_plan_mismatch."""
 
 
+class BuildNotFoundError(ClientError):
+    """Raised when a build does not exist or belongs to another sandbox group."""
+
+
+class BuildNotReadyError(ClientError):
+    """Raised when a sandbox create names a build that has not succeeded, whether
+    still in progress or failed."""
+
+
 class SandboxDownloadError(RenderError):
     """Raised when a download cannot be written to disk safely: a truncated
     archive, an entry that escapes the destination, or a response encoding the

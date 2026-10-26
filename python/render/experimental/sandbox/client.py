@@ -18,7 +18,9 @@ from render.experimental.sandbox.errors import (
 )
 from render.experimental.sandbox.files import normalize_remote_path
 from render.experimental.sandbox.types import (
+    Build,
     NetworkPolicy,
+    RegistryCredential,
     Sandbox,
     SandboxExecEvent,
     SandboxGroupList,
@@ -46,6 +48,7 @@ class SandboxClient:
         self.client = client
         self.api = SandboxApi(client)
         self.snapshots = SnapshotClient(self)
+        self.builds = BuildClient(self)
         self._default_owner_id = default_owner_id
         self._default_region = default_region
 
@@ -72,6 +75,8 @@ class SandboxClient:
         env: dict[str, str] | None = None,
         snapshot_id: str | None = None,
         snapshot_name: str | None = None,
+        build_id: str | None = None,
+        build_name: str | None = None,
         wait: bool | SandboxWaitOptions = False,
     ) -> Sandbox:
         """Create a sandbox and return its initial state.
@@ -94,6 +99,13 @@ class SandboxClient:
         SnapshotNotReadyError if it is not available, and
         SnapshotPlanMismatchError on a runtime plan mismatch.
 
+        build_id starts the sandbox from that build's image instead of the
+        base image; build_name starts it from the newest succeeded build with
+        that name in the sandbox group. The two are mutually exclusive with
+        each other and with the snapshot parameters. Raises BuildNotFoundError
+        if the group has no build with the ID or name, and BuildNotReadyError
+        if the build has not succeeded.
+
         wait returns the sandbox only once it is running, as wait_until_running
         does. True uses the default wait; a SandboxWaitOptions sets its timeout
         and interval. The wait starts after the create request returns. If it
@@ -106,6 +118,12 @@ class SandboxClient:
         """
         if snapshot_id is not None and snapshot_name is not None:
             raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
+        if build_id is not None and build_name is not None:
+            raise ValueError("build_id and build_name are mutually exclusive")
+        if (build_id is not None or build_name is not None) and (
+            snapshot_id is not None or snapshot_name is not None
+        ):
+            raise ValueError("a build and a snapshot are mutually exclusive")
         wait_settings = _wait.resolve_create_wait(
             wait, _wait.DEFAULT_SANDBOX_TIMEOUT_SECONDS
         )
@@ -121,6 +139,8 @@ class SandboxClient:
             env=env,
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,
+            build_id=build_id,
+            build_name=build_name,
         )
         if wait_settings is None:
             return sandbox
@@ -447,3 +467,40 @@ class SnapshotClient:
         await self._sandboxes.api.delete_snapshot(
             sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
         )
+
+
+class BuildClient:
+    """Builds of sandbox base images, accessed via ``SandboxClient.builds``."""
+
+    def __init__(self, sandboxes: SandboxClient):
+        self._sandboxes = sandboxes
+
+    async def create(
+        self,
+        *,
+        sandbox_group_id: str,
+        name: str,
+        source_image: str,
+        registry_credential: RegistryCredential | None = None,
+    ) -> Build:
+        """Start converting source_image into a sandbox base image.
+
+        source_image is an image by tag or digest, like ``python:3.13``. It
+        must be linux/amd64. name identifies the image and is reused across
+        its builds. The build is returned before it finishes; poll from_id until
+        its status is succeeded or failed. A build the group already has, or
+        is running, for the same name and resolved digest is returned instead
+        of starting another. Raises RateLimitError when the group has too
+        many builds in progress.
+        """
+        return await self._sandboxes.api.create_build(
+            sandbox_group_id, name, source_image, registry_credential
+        )
+
+    async def from_id(self, *, sandbox_group_id: str, build_id: str) -> Build:
+        """Fetch a build by id.
+
+        Raises BuildNotFoundError if the build does not exist or belongs to
+        another sandbox group.
+        """
+        return await self._sandboxes.api.get_build(sandbox_group_id, build_id)

@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- (Sandboxes) `sandboxes.builds.create()` and `sandboxes.builds.from_id()` to build a sandbox base image from an OCI image and fetch the result. Private registries are supported with `registry_credential`.
+- (Sandboxes) `sandboxes.create()` accepts `build_id` or `build_name` to start a sandbox from a succeeded build.
+
 ### Fixed
 
 - (Sandboxes) Small adjustment to how `copy_to()` cleans the remote path.

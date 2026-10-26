@@ -126,6 +126,49 @@ class SnapshotList:
 
 
 @dataclass
+class BuildSource:
+    """The OCI image a build converts, as the registry resolved it.
+
+    repository is the registry host and namespace, like ``docker.io/library``,
+    image the name within it, like ``python``, and reference the tag or digest
+    the build was requested at, like ``3.13``.
+    """
+
+    repository: str
+    image: str
+    reference: str
+
+
+@dataclass
+class Build:
+    """A sandbox build, as returned by builds.create and builds.from_id.
+
+    status is ``pending``, ``running``, ``succeeded`` or ``failed``.
+    """
+
+    id: str
+    sandbox_group_id: str
+    name: str
+    source: BuildSource
+    source_digest: str
+    status: str
+    created_at: datetime
+    failure_reason: str | None = None
+    finished_at: datetime | None = None
+
+
+@dataclass
+class RegistryCredential:
+    """Credentials for pulling a build's source image from a private registry.
+
+    The API uses them for that build only and does not store them.
+    """
+
+    username: str
+    password: str = field(repr=False)
+
+
+@dataclass
 class SandboxExecOutput:
     """A chunk of stdout or stderr from an exec stream."""
 

@@ -5,6 +5,8 @@ import pytest
 
 from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.errors import (
+    BuildNotFoundError,
+    BuildNotReadyError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxNotFoundError,
@@ -13,8 +15,11 @@ from render.experimental.sandbox.errors import (
     SnapshotPlanMismatchError,
 )
 from render.experimental.sandbox.types import (
+    Build,
+    BuildSource,
     EgressRule,
     NetworkPolicy,
+    RegistryCredential,
     Sandbox,
     SandboxExecExit,
     SandboxExecOutput,
@@ -127,6 +132,38 @@ def test_exec_errors_subclass_render_error():
     assert stream_err.message == "timed out"
     assert isinstance(stream_err, RenderError)
     assert isinstance(SandboxExecError("boom"), RenderError)
+
+
+def test_build_has_expected_fields():
+    build = Build(
+        id="sbb-1",
+        sandbox_group_id="sbg-1",
+        name="python",
+        source=BuildSource(
+            repository="docker.io/library", image="python", reference="3.13"
+        ),
+        source_digest="sha256:abc",
+        status="running",
+        created_at=datetime(2026, 10, 1),
+    )
+    assert build.id == "sbb-1"
+    assert build.source.image == "python"
+    assert build.failure_reason is None
+    assert build.finished_at is None
+
+
+def test_registry_credential_hides_the_password_from_repr():
+    credential = RegistryCredential(username="bot", password="s3cret")
+    assert "bot" in repr(credential)
+    assert "s3cret" not in repr(credential)
+
+
+@pytest.mark.parametrize("error_type", [BuildNotFoundError, BuildNotReadyError])
+def test_build_errors_are_client_errors(error_type):
+    err = error_type("boom")
+    assert isinstance(err, ClientError)
+    assert str(err) == "boom"
+    assert err.code is None
 
 
 @pytest.mark.parametrize(
