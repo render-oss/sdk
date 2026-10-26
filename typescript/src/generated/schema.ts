@@ -995,15 +995,18 @@ export interface components {
             snapshotName?: components["schemas"]["sandboxSnapshotName"];
             /**
              * @description Start from this build's image instead of the base image. The build
-             *     must have succeeded and be in the sandbox's group. Mutually
-             *     exclusive with `buildName`, `snapshotId` and `snapshotName`.
+             *     must have succeeded and be in the sandbox's group: 404 with `code:
+             *     build_not_found` if it isn't in the group, and 409 with `code:
+             *     build_not_succeeded` if it hasn't succeeded. Mutually exclusive
+             *     with `buildName`, `snapshotId` and `snapshotName`.
              */
             buildId?: components["schemas"]["sandboxBuildId"];
             /**
              * @description Start from the newest succeeded build with this name in the
-             *     sandbox's group. 404 if the group has no build with the name, and
-             *     409 if none of them has succeeded. Mutually exclusive with
-             *     `buildId`, `snapshotId` and `snapshotName`.
+             *     sandbox's group. 404 with `code: build_not_found` if the group has
+             *     no build with the name, and 409 with `code: build_not_succeeded` if
+             *     none of them has succeeded. Mutually exclusive with `buildId`,
+             *     `snapshotId` and `snapshotName`.
              */
             buildName?: string;
         };

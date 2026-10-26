@@ -368,11 +368,8 @@ from .sandbox_credential_injection_type import SandboxCredentialInjectionType
 from .sandbox_credential_restore import SandboxCredentialRestore
 from .sandbox_credential_update import SandboxCredentialUpdate
 from .sandbox_credential_version import SandboxCredentialVersion
-from .sandbox_directory_listing import SandboxDirectoryListing
 from .sandbox_egress_rule import SandboxEgressRule
 from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
-from .sandbox_file_entry import SandboxFileEntry
-from .sandbox_file_entry_type import SandboxFileEntryType
 from .sandbox_group import SandboxGroup
 from .sandbox_group_with_cursor import SandboxGroupWithCursor
 from .sandbox_network_policy import SandboxNetworkPolicy
@@ -427,7 +424,6 @@ from .static_site_details import StaticSiteDetails
 from .static_site_details_patch import StaticSiteDetailsPATCH
 from .static_site_details_post import StaticSiteDetailsPOST
 from .status import Status
-from .stream_sandbox_logs_accept import StreamSandboxLogsAccept
 from .stream_task_runs_events_accept import StreamTaskRunsEventsAccept
 from .suspender_added import SuspenderAdded
 from .suspender_removed import SuspenderRemoved
@@ -843,11 +839,8 @@ __all__ = (
     "SandboxCredentialRestore",
     "SandboxCredentialUpdate",
     "SandboxCredentialVersion",
-    "SandboxDirectoryListing",
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
-    "SandboxFileEntry",
-    "SandboxFileEntryType",
     "SandboxGroup",
     "SandboxGroupWithCursor",
     "SandboxNetworkPolicy",
@@ -902,7 +895,6 @@ __all__ = (
     "StaticSiteDetailsPATCH",
     "StaticSiteDetailsPOST",
     "Status",
-    "StreamSandboxLogsAccept",
     "StreamTaskRunsEventsAccept",
     "SuspenderAdded",
     "SuspenderRemoved",

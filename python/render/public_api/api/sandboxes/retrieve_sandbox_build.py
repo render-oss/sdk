@@ -90,8 +90,8 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. A build that belongs to another sandbox group returns
-    404.
+     One build by ID. 404 with `code: build_not_found` if the build doesn't
+    exist or belongs to another sandbox group.
 
     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
@@ -129,8 +129,8 @@ def sync(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. A build that belongs to another sandbox group returns
-    404.
+     One build by ID. 404 with `code: build_not_found` if the build doesn't
+    exist or belongs to another sandbox group.
 
     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
@@ -163,8 +163,8 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. A build that belongs to another sandbox group returns
-    404.
+     One build by ID. 404 with `code: build_not_found` if the build doesn't
+    exist or belongs to another sandbox group.
 
     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
@@ -200,8 +200,8 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. A build that belongs to another sandbox group returns
-    404.
+     One build by ID. 404 with `code: build_not_found` if the build doesn't
+    exist or belongs to another sandbox group.
 
     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a

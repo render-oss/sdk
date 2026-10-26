@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class ErrorCode(str, Enum):
+    BUILD_NOT_FOUND = "build_not_found"
+    BUILD_NOT_SUCCEEDED = "build_not_succeeded"
     CURSOR_ORIGIN_RECEIPT_EXPIRED = "cursor_origin_receipt_expired"
     CURSOR_ORIGIN_RECEIPT_INVALID = "cursor_origin_receipt_invalid"
     DUPLICATE_SAVED_SEARCH_NAME = "duplicate_saved_search_name"

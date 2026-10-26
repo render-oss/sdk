@@ -38,9 +38,10 @@ class SandboxPOST:
              Example: gold.
         build_id (Union[Unset, str]):  Example: sbb-cph1rs3idesc73a2b2mg.
         build_name (Union[Unset, str]): Start from the newest succeeded build with this name in the
-            sandbox's group. 404 if the group has no build with the name, and
-            409 if none of them has succeeded. Mutually exclusive with
-            `buildId`, `snapshotId` and `snapshotName`.
+            sandbox's group. 404 with `code: build_not_found` if the group has
+            no build with the name, and 409 with `code: build_not_succeeded` if
+            none of them has succeeded. Mutually exclusive with `buildId`,
+            `snapshotId` and `snapshotName`.
     """
 
     owner_id: str
