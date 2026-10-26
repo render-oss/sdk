@@ -1,6 +1,8 @@
 import type { ErrorEvent } from "eventsource";
 import {
   ClientError,
+  SandboxBuildNotFoundError,
+  SandboxBuildNotReadyError,
   SandboxSnapshotNotFoundError,
   SandboxSnapshotNotReadyError,
   SandboxSnapshotPlanMismatchError,
@@ -32,6 +34,10 @@ const clientErrorForCode = (code?: string): typeof ClientError => {
       return SandboxSnapshotPlanMismatchError;
     case "snapshot_not_found":
       return SandboxSnapshotNotFoundError;
+    case "build_not_succeeded":
+      return SandboxBuildNotReadyError;
+    case "build_not_found":
+      return SandboxBuildNotFoundError;
     default:
       return ClientError;
   }

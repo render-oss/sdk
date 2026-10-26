@@ -92,6 +92,28 @@ export class SandboxSnapshotPlanMismatchError extends ClientError {
 }
 
 /**
+ * No build in the sandbox group has the requested ID or name
+ */
+export class SandboxBuildNotFoundError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxBuildNotFoundError";
+    Object.setPrototypeOf(this, SandboxBuildNotFoundError.prototype);
+  }
+}
+
+/**
+ * The build has not `succeeded`: it is still `pending` or `running`, or it `failed`
+ */
+export class SandboxBuildNotReadyError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxBuildNotReadyError";
+    Object.setPrototypeOf(this, SandboxBuildNotReadyError.prototype);
+  }
+}
+
+/**
  * While waiting for the sandbox to be `running`, it reached a status it can't run from:
  * `errored`, `terminated`, `suspending`, or `suspended`. The sandbox is left as it is.
  */

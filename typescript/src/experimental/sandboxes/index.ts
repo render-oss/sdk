@@ -70,7 +70,7 @@ export type SandboxExecEvent =
   | ({ type: "output" } & SandboxExecOutputEvent)
   | ({ type: "exit" } & SandboxExecExitEvent);
 
-type SandboxRestoreInput =
+type SandboxSourceInput =
   | {
       /**
        * Start from this snapshot instead of the base image. Must be `available` and in the same
@@ -78,6 +78,8 @@ type SandboxRestoreInput =
        */
       snapshotId?: string;
       snapshotName?: never;
+      buildId?: never;
+      buildName?: never;
     }
   | {
       snapshotId?: never;
@@ -86,6 +88,25 @@ type SandboxRestoreInput =
        * For a `runtime` snapshot, `plan` must match the snapshot's plan.
        */
       snapshotName?: string;
+      buildId?: never;
+      buildName?: never;
+    }
+  | {
+      snapshotId?: never;
+      snapshotName?: never;
+      /**
+       * Start from this build's image instead of the base image. The build must have `succeeded`
+       * and be in the same sandbox group.
+       */
+      buildId?: string;
+      buildName?: never;
+    }
+  | {
+      snapshotId?: never;
+      snapshotName?: never;
+      buildId?: never;
+      /** Start from the newest `succeeded` build with this name in the sandbox group. */
+      buildName?: string;
     };
 
 /** A destination a sandbox under an `allow-list` network policy may reach. */
@@ -108,7 +129,7 @@ export type SandboxNetworkPolicy =
   | { type: "allow-list"; rules: SandboxEgressRule[] };
 
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
-export type SandboxCreateInput = SandboxRestoreInput & {
+export type SandboxCreateInput = SandboxSourceInput & {
   ownerId?: `tea-${string}`;
   plan?: SandboxPlan | (string & {});
   /** Maximum sandbox lifetime in seconds. The API defaults to 86400 (24 hours). */
@@ -211,6 +232,36 @@ export type SandboxSnapshotDeleteInput = {
   snapshotId: string;
   /** Defaults to the client's owner ID. */
   ownerId?: `tea-${string}`;
+};
+
+/** A sandbox build as returned by the API. */
+export type SandboxBuild = components["schemas"]["sandboxBuild"];
+
+/** `pending` or `running` until the conversion finishes, then `succeeded` or `failed`. */
+export type SandboxBuildStatus = components["schemas"]["sandboxBuildStatus"];
+
+/** The image a build converts, as the registry resolved it. */
+export type SandboxBuildSource = SandboxBuild["source"];
+
+/** Pulls `sourceImage` from a private registry. Used for that build only and never stored. */
+export type SandboxRegistryCredential = NonNullable<
+  components["schemas"]["sandboxBuildPOST"]["registryCredential"]
+>;
+
+/** Options for converting an image into a sandbox base image. */
+export type SandboxBuildCreateInput = {
+  sandboxGroupId: string;
+  /** Names the image. Every build of an image shares it. 1 to 255 characters. */
+  name: string;
+  /** The image to convert, by tag or digest, like `python:3.13`. Must be linux/amd64. */
+  sourceImage: string;
+  registryCredential?: SandboxRegistryCredential;
+};
+
+/** Options for retrieving a build. */
+export type SandboxBuildGetInput = {
+  sandboxGroupId: string;
+  buildId: string;
 };
 
 /** A sandbox group as returned by the API. */
@@ -465,8 +516,46 @@ export class SandboxSnapshotsClient {
   }
 }
 
+export class SandboxBuildsClient {
+  constructor(private readonly apiClient: Client<paths>) {}
+
+  /**
+   * Returns once the build has started; poll `get()` for `succeeded` or `failed`. A name and
+   * digest the group already has, or is building, returns that build instead of starting another.
+   */
+  async create({
+    sandboxGroupId,
+    name,
+    sourceImage,
+    registryCredential,
+  }: SandboxBuildCreateInput): Promise<SandboxBuild> {
+    const body: components["schemas"]["sandboxBuildPOST"] = {
+      name,
+      sourceImage,
+      ...(registryCredential ? { registryCredential } : {}),
+    };
+    return unwrap(
+      await this.apiClient.POST("/sandbox-groups/{sandboxGroupId}/builds", {
+        params: { path: { sandboxGroupId } },
+        body,
+      }),
+      "Failed to create build",
+    );
+  }
+
+  async get({ sandboxGroupId, buildId }: SandboxBuildGetInput): Promise<SandboxBuild> {
+    return unwrap(
+      await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/builds/{buildId}", {
+        params: { path: { sandboxGroupId, buildId } },
+      }),
+      "Failed to get build",
+    );
+  }
+}
+
 export class SandboxesClient {
   public readonly snapshots: SandboxSnapshotsClient;
+  public readonly builds: SandboxBuildsClient;
   private readonly defaultOwnerId?: string;
   private readonly defaultRegion?: string;
 
@@ -478,6 +567,7 @@ export class SandboxesClient {
     this.defaultOwnerId = defaultOwnerId;
     this.defaultRegion = defaultRegion;
     this.snapshots = new SandboxSnapshotsClient(apiClient, defaultOwnerId);
+    this.builds = new SandboxBuildsClient(apiClient);
   }
 
   private resolveOwnerId(ownerId?: `tea-${string}`): `tea-${string}` {
@@ -536,6 +626,8 @@ export class SandboxesClient {
       ...(input.env ? { env: input.env } : {}),
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
       ...(input.snapshotName === undefined ? {} : { snapshotName: input.snapshotName }),
+      ...(input.buildId === undefined ? {} : { buildId: input.buildId }),
+      ...(input.buildName === undefined ? {} : { buildName: input.buildName }),
     } as components["schemas"]["sandboxPOST"];
     const sandbox = unwrap(
       await this.apiClient.POST("/sandboxes", { body }),

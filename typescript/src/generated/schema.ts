@@ -333,6 +333,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandbox-groups/{sandboxGroupId}/builds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create sandbox build
+         * @description Starts converting an OCI image into a sandbox image, and returns the
+         *     build without waiting for it. Poll the build until it `succeeded` or
+         *     `failed`, then pass its ID as `buildId` to create a sandbox. A request
+         *     for a name and image digest the group already has, or is building,
+         *     returns that build.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, or a message if the image is invalid or its
+         *     registry can't serve it.
+         *
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         *
+         *     429 if the group already has as many builds pending or running as its
+         *     limit allows. The message includes the limit.
+         */
+        post: operations["create-sandbox-build"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/builds/{buildId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the build */
+                buildId: components["parameters"]["buildId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve sandbox build
+         * @description One build by ID. 404 with `code: build_not_found` if the build doesn't
+         *     exist or belongs to another sandbox group.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
+         *     well-formed `sbb-` ID.
+         */
+        get: operations["retrieve-sandbox-build"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandbox-groups/{sandboxGroupId}/snapshots": {
         parameters: {
             query?: never;
@@ -1098,6 +1164,52 @@ export interface components {
             /** @description Null unless `failed`. */
             error?: string | null;
         };
+        sandboxBuildPOST: {
+            /** @description Names the image. Every build of an image shares it. */
+            name: string;
+            /**
+             * @description The image to convert, by tag or digest.
+             * @example python:3.13
+             */
+            sourceImage: string;
+            /** @description Pulls `sourceImage` from a private registry. Used for this build only and never stored. */
+            registryCredential?: {
+                username: string;
+                /** Format: password */
+                password: string;
+            };
+        };
+        /** @enum {string} */
+        sandboxBuildStatus: "pending" | "running" | "succeeded" | "failed";
+        sandboxBuild: {
+            id: components["schemas"]["sandboxBuildId"];
+            sandboxGroupId: components["schemas"]["sandboxGroupId"];
+            /** @description Names the image. Every build of an image shares it. */
+            name: string;
+            source: {
+                /** @example docker.io/library */
+                repository: string;
+                /** @example python */
+                image: string;
+                /** @example 3.13 */
+                reference: string;
+            };
+            /**
+             * @description The image digest the build converts.
+             * @example sha256:c19d4a1...
+             */
+            sourceDigest: string;
+            status: components["schemas"]["sandboxBuildStatus"];
+            /** @description Why the build failed. Null unless `failed`. */
+            failureReason?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When the build succeeded or failed.
+             */
+            finishedAt?: string | null;
+        };
         /**
          * @description Optional body when minting a run connect token. `command` is stored on
          *     the exec timeline (truncated to 4KB); the full command is still sent
@@ -1295,6 +1407,8 @@ export interface components {
         ownerId: string;
         /** @description The ID of the sandbox group */
         sandboxGroupId: components["schemas"]["sandboxGroupId"];
+        /** @description The ID of the build */
+        buildId: components["schemas"]["sandboxBuildId"];
         /** @description The ID of the snapshot */
         snapshotId: components["schemas"]["sandboxSnapshotId"];
         /**
@@ -2028,6 +2142,73 @@ export interface operations {
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-sandbox-build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sandboxBuildPOST"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxBuild"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-sandbox-build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the build */
+                buildId: components["parameters"]["buildId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxBuild"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

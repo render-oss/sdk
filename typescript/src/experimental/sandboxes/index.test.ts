@@ -3,6 +3,8 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxBuildNotFoundError,
+  SandboxBuildNotReadyError,
   SandboxCreateWaitError,
   SandboxEndedError,
   SandboxNotRunningError,
@@ -18,6 +20,7 @@ import {
 } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import {
+  type SandboxBuild,
   type SandboxCreateInput,
   type SandboxExecEvent,
   SandboxExecStreamError,
@@ -111,6 +114,24 @@ const SNAPSHOT: SandboxSnapshot = {
 
 const ITEM: SandboxSnapshotWithCursor = { snapshot: SNAPSHOT, cursor: "cursor-123" };
 
+const BUILD: SandboxBuild = {
+  id: "sbb-cph1rs3idesc73a2b2mg",
+  sandboxGroupId: "sbg-123",
+  name: "python",
+  source: { repository: "docker.io/library", image: "python", reference: "3.13" },
+  sourceDigest: "sha256:c19d4a1",
+  status: "running",
+  failureReason: null,
+  createdAt: "2026-10-01T00:00:00Z",
+  finishedAt: null,
+};
+
+const BUILD_CREATE_INPUT = {
+  sandboxGroupId: "sbg-123",
+  name: "python",
+  sourceImage: "python:3.13",
+};
+
 describe("SandboxesClient", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -164,6 +185,18 @@ describe("SandboxesClient", () => {
         method: "POST",
         context: "Failed to get connect token",
         call: (c) => c.exec("sbx-123", "echo hi").then((events) => collect(events)),
+      },
+      {
+        name: "builds.create",
+        method: "POST",
+        context: "Failed to create build",
+        call: (c) => c.builds.create(BUILD_CREATE_INPUT),
+      },
+      {
+        name: "builds.get",
+        method: "GET",
+        context: "Failed to get build",
+        call: (c) => c.builds.get({ sandboxGroupId: "sbg-123", buildId: BUILD.id }),
       },
     ];
 
@@ -392,6 +425,17 @@ describe("SandboxesClient", () => {
       }>().not.toExtend<SandboxCreateInput>();
     });
 
+    it("keeps a build mutually exclusive with every other source in the public type", () => {
+      expectTypeOf<{ buildId: string }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ buildName: string }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ buildId: string; buildName: string }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{ buildId: string; snapshotId: string }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{
+        buildName: string;
+        snapshotName: string;
+      }>().not.toExtend<SandboxCreateInput>();
+    });
+
     it("requires rules for an allow-list network policy and rejects them otherwise", () => {
       expectTypeOf<{
         networkPolicy: { type: "allow-list"; rules: [{ domain: "pypi.org" }] };
@@ -502,6 +546,39 @@ describe("SandboxesClient", () => {
       });
     });
 
+    it("forwards the build ID", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", buildId: BUILD.id });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildId: BUILD.id },
+      });
+    });
+
+    it("forwards an empty build ID instead of dropping it", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", buildId: "" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildId: "" },
+      });
+    });
+
+    it("forwards the build name", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", buildName: "python" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildName: "python" },
+      });
+    });
+
     const createErrorRows: {
       status: number;
       code: string | undefined;
@@ -537,6 +614,54 @@ describe("SandboxesClient", () => {
         status: 400,
         code: "invalid_snapshot_name",
         input: { snapshotName: "" },
+        ErrorClass: ClientError,
+      },
+      {
+        status: 404,
+        code: "build_not_found",
+        input: { buildId: "sbb-missing" },
+        ErrorClass: SandboxBuildNotFoundError,
+      },
+      {
+        status: 404,
+        code: "build_not_found",
+        input: { buildName: "missing" },
+        ErrorClass: SandboxBuildNotFoundError,
+      },
+      {
+        status: 409,
+        code: "build_not_succeeded",
+        input: { buildId: "sbb-running" },
+        ErrorClass: SandboxBuildNotReadyError,
+      },
+      {
+        status: 409,
+        code: "build_not_succeeded",
+        input: { buildName: "python" },
+        ErrorClass: SandboxBuildNotReadyError,
+      },
+      {
+        status: 404,
+        code: undefined,
+        input: { buildId: "sbb-missing" },
+        ErrorClass: ClientError,
+      },
+      {
+        status: 409,
+        code: undefined,
+        input: { buildName: "python" },
+        ErrorClass: ClientError,
+      },
+      {
+        status: 409,
+        code: "sandbox_group_suspended",
+        input: { buildName: "python" },
+        ErrorClass: ClientError,
+      },
+      {
+        status: 400,
+        code: undefined,
+        input: { buildName: "" },
         ErrorClass: ClientError,
       },
     ];
@@ -875,6 +1000,143 @@ describe("SandboxesClient", () => {
             },
           },
         );
+      });
+    });
+  });
+
+  describe("builds", () => {
+    const BUILD_PATH = "/sandbox-groups/{sandboxGroupId}/builds";
+    const BUILD_GET_PATH = "/sandbox-groups/{sandboxGroupId}/builds/{buildId}";
+    const buildGetInput = { sandboxGroupId: "sbg-123", buildId: BUILD.id };
+
+    it("exposes nullable optional failure and finish fields", () => {
+      expectTypeOf<SandboxBuild["failureReason"]>().toEqualTypeOf<string | null | undefined>();
+      expectTypeOf<SandboxBuild["finishedAt"]>().toEqualTypeOf<string | null | undefined>();
+      expectTypeOf<SandboxBuild["status"]>().toEqualTypeOf<
+        "pending" | "running" | "succeeded" | "failed"
+      >();
+    });
+
+    describe("create", () => {
+      it("starts a build and returns it without an owner query", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: BUILD });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.builds.create(BUILD_CREATE_INPUT)).resolves.toEqual(BUILD);
+        expect(apiClient.POST).toHaveBeenCalledWith(BUILD_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: { name: "python", sourceImage: "python:3.13" },
+        });
+      });
+
+      it("sends the registry credential", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: BUILD });
+        const client = new SandboxesClient(apiClient, "tea-default");
+        const registryCredential = { username: "bot", password: "s3cret" };
+
+        await client.builds.create({
+          sandboxGroupId: "sbg-123",
+          name: "internal",
+          sourceImage: "ghcr.io/acme/internal:1.0",
+          registryCredential,
+        });
+
+        expect(apiClient.POST).toHaveBeenCalledWith(BUILD_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: { name: "internal", sourceImage: "ghcr.io/acme/internal:1.0", registryCredential },
+        });
+      });
+
+      it("returns the existing build when the group already has the digest", async () => {
+        const succeeded: SandboxBuild = {
+          ...BUILD,
+          status: "succeeded",
+          finishedAt: "2026-10-01T00:00:10Z",
+        };
+        const apiClient = mockApiClient("POST", { status: 201, data: succeeded });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.builds.create(BUILD_CREATE_INPUT)).resolves.toEqual(succeeded);
+      });
+
+      const createErrorRows: {
+        status: number;
+        code: string | undefined;
+        ErrorClass: typeof ClientError;
+      }[] = [
+        { status: 400, code: undefined, ErrorClass: ClientError },
+        { status: 400, code: "invalid_sandbox_group_id", ErrorClass: ClientError },
+        { status: 404, code: undefined, ErrorClass: ClientError },
+        { status: 409, code: "sandbox_group_suspended", ErrorClass: ClientError },
+        { status: 429, code: undefined, ErrorClass: ClientError },
+      ];
+
+      it.each(createErrorRows)(
+        "maps $status with code $code to $ErrorClass.name",
+        async ({ status, code, ErrorClass }) => {
+          const apiClient = mockApiClient("POST", {
+            status,
+            error: { message: "rejected", code },
+          });
+          const client = new SandboxesClient(apiClient, "tea-default");
+
+          const error = await client.builds.create(BUILD_CREATE_INPUT).catch((err) => err);
+          expect(error.constructor).toBe(ErrorClass);
+          expect(error).toMatchObject({
+            statusCode: status,
+            code,
+            message: "Failed to create build: rejected",
+          });
+        },
+      );
+    });
+
+    describe("get", () => {
+      it("retrieves a build by group and ID", async () => {
+        const failed: SandboxBuild = {
+          ...BUILD,
+          status: "failed",
+          failureReason: "image is not linux/amd64",
+          finishedAt: "2026-10-01T00:00:10Z",
+        };
+        const apiClient = mockApiClient("GET", { status: 200, data: failed });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.builds.get(buildGetInput)).resolves.toEqual(failed);
+        expect(apiClient.GET).toHaveBeenCalledWith(BUILD_GET_PATH, {
+          params: { path: buildGetInput },
+        });
+      });
+
+      it("throws SandboxBuildNotFoundError for a missing or foreign build", async () => {
+        const apiClient = mockApiClient("GET", {
+          status: 404,
+          error: { message: "not found: build", code: "build_not_found" },
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.builds.get(buildGetInput).catch((err) => err);
+        expect(error.constructor).toBe(SandboxBuildNotFoundError);
+        expect(error).toMatchObject({
+          statusCode: 404,
+          code: "build_not_found",
+          message: "Failed to get build: not found: build",
+        });
+      });
+
+      it("keeps other errors as plain ClientError", async () => {
+        const apiClient = mockApiClient("GET", {
+          status: 400,
+          error: { message: "invalid build ID" },
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.builds.get(buildGetInput).catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({
+          statusCode: 400,
+          message: "Failed to get build: invalid build ID",
+        });
       });
     });
   });

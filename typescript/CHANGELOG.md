@@ -9,6 +9,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Added
 
 - (Sandbox) `sandboxes.create()` accepts `idleTimeoutSeconds`; use `0` to disable automatic idle suspension.
+- (Sandbox) `sandboxes.builds.create()` and `sandboxes.builds.get()` to build a sandbox base image from an OCI image and fetch the result. Private registries are supported with `registryCredential`.
+- (Sandbox) `sandboxes.create()` accepts `buildId` or `buildName` to start a sandbox from a succeeded build.
 
 ### Fixed
 

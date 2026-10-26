@@ -7,6 +7,8 @@
     "/objects/{ownerId}/{region}",
     "/objects/{ownerId}/{region}/{key}",
     "/sandbox-groups",
+    "/sandbox-groups/{sandboxGroupId}/builds",
+    "/sandbox-groups/{sandboxGroupId}/builds/{buildId}",
     "/sandbox-groups/{sandboxGroupId}/snapshots",
     "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}",
     "/sandboxes",

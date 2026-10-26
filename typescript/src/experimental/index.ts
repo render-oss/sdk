@@ -28,6 +28,12 @@ export {
 // Sandbox exports
 export {
   type Sandbox,
+  type SandboxBuild,
+  type SandboxBuildCreateInput,
+  type SandboxBuildGetInput,
+  type SandboxBuildSource,
+  type SandboxBuildStatus,
+  SandboxBuildsClient,
   type SandboxCreateInput,
   type SandboxDownload,
   type SandboxEgressRule,
@@ -39,6 +45,7 @@ export {
   type SandboxGroupWithCursor,
   type SandboxNetworkPolicy,
   type SandboxPlan,
+  type SandboxRegistryCredential,
   type SandboxSnapshot,
   type SandboxSnapshotCreateInput,
   type SandboxSnapshotDeleteInput,
