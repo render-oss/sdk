@@ -24,9 +24,9 @@ def _get_kwargs(
 def _parse_response(
     *, client: Union[AuthenticatedClient, Client], response: httpx.Response
 ) -> Optional[Union[Any, Error]]:
-    if response.status_code == 204:
-        response_204 = cast(Any, None)
-        return response_204
+    if response.status_code == 202:
+        response_202 = cast(Any, None)
+        return response_202
 
     if response.status_code == 400:
         response_400 = Error.from_dict(response.json())
@@ -93,7 +93,8 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential from the group's desired configuration.
+     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
+    Repeated deletion requests are accepted.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -130,7 +131,8 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential from the group's desired configuration.
+     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
+    Repeated deletion requests are accepted.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -162,7 +164,8 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential from the group's desired configuration.
+     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
+    Repeated deletion requests are accepted.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -197,7 +200,8 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential from the group's desired configuration.
+     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
+    Repeated deletion requests are accepted.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.

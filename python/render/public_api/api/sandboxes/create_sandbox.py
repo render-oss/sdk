@@ -119,6 +119,9 @@ def sync_detailed(
     400 with `code: sandbox_group_limit_reached` if the owner has no default
     sandbox group and is already at its sandbox group limit.
 
+    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+    accepts. The message lists the accepted plans.
+
     Args:
         body (SandboxPOST):
 
@@ -165,6 +168,9 @@ def sync(
     400 with `code: sandbox_group_limit_reached` if the owner has no default
     sandbox group and is already at its sandbox group limit.
 
+    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+    accepts. The message lists the accepted plans.
+
     Args:
         body (SandboxPOST):
 
@@ -205,6 +211,9 @@ async def asyncio_detailed(
 
     400 with `code: sandbox_group_limit_reached` if the owner has no default
     sandbox group and is already at its sandbox group limit.
+
+    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+    accepts. The message lists the accepted plans.
 
     Args:
         body (SandboxPOST):
@@ -249,6 +258,9 @@ async def asyncio(
 
     400 with `code: sandbox_group_limit_reached` if the owner has no default
     sandbox group and is already at its sandbox group limit.
+
+    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+    accepts. The message lists the accepted plans.
 
     Args:
         body (SandboxPOST):

@@ -2065,7 +2065,7 @@ type ClientInterface interface {
 
 	// DeleteSandboxGroupCredential Delete sandbox group credential
 	//
-	// Admin-only. Removes the credential from the group's desired configuration.
+	// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
 	//
 	// Corresponds with DELETE /sandbox-groups/{sandboxGroupId}/credentials/{credentialId} (the `DeleteSandboxGroupCredential` operationId).
 	DeleteSandboxGroupCredential(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, credentialId externalRef15.CredentialId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2214,6 +2214,9 @@ type ClientInterface interface {
 	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
 	// sandbox group and is already at its sandbox group limit.
 	//
+	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+	// accepts. The message lists the accepted plans.
+	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -2237,6 +2240,9 @@ type ClientInterface interface {
 	//
 	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
 	// sandbox group and is already at its sandbox group limit.
+	//
+	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+	// accepts. The message lists the accepted plans.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -7408,7 +7414,7 @@ func (c *Client) CreateSandboxGroupCredential(ctx context.Context, sandboxGroupI
 
 // DeleteSandboxGroupCredential Delete sandbox group credential
 //
-// Admin-only. Removes the credential from the group's desired configuration.
+// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
 //
 // Corresponds with DELETE /sandbox-groups/{sandboxGroupId}/credentials/{credentialId} (the `DeleteSandboxGroupCredential` operationId).
 func (c *Client) DeleteSandboxGroupCredential(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, credentialId externalRef15.CredentialId, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -7667,6 +7673,9 @@ func (c *Client) ListSandboxes(ctx context.Context, params *ListSandboxesParams,
 // 400 with `code: sandbox_group_limit_reached` if the owner has no default
 // sandbox group and is already at its sandbox group limit.
 //
+// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+// accepts. The message lists the accepted plans.
+//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -7700,6 +7709,9 @@ func (c *Client) CreateSandboxWithBody(ctx context.Context, contentType string, 
 //
 // 400 with `code: sandbox_group_limit_reached` if the owner has no default
 // sandbox group and is already at its sandbox group limit.
+//
+// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+// accepts. The message lists the accepted plans.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -28442,7 +28454,7 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteSandboxGroupCredentialWithResponse Delete sandbox group credential
 	//
-	// Admin-only. Removes the credential from the group's desired configuration.
+	// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -28605,6 +28617,9 @@ type ClientWithResponsesInterface interface {
 	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
 	// sandbox group and is already at its sandbox group limit.
 	//
+	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+	// accepts. The message lists the accepted plans.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -28628,6 +28643,9 @@ type ClientWithResponsesInterface interface {
 	//
 	// 400 with `code: sandbox_group_limit_reached` if the owner has no default
 	// sandbox group and is already at its sandbox group limit.
+	//
+	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+	// accepts. The message lists the accepted plans.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -59256,7 +59274,7 @@ func (c *ClientWithResponses) CreateSandboxGroupCredentialWithResponse(ctx conte
 
 // DeleteSandboxGroupCredentialWithResponse Delete sandbox group credential
 //
-// Admin-only. Removes the credential from the group's desired configuration.
+// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -59485,6 +59503,9 @@ func (c *ClientWithResponses) ListSandboxesWithResponse(ctx context.Context, par
 // 400 with `code: sandbox_group_limit_reached` if the owner has no default
 // sandbox group and is already at its sandbox group limit.
 //
+// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+// accepts. The message lists the accepted plans.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -59514,6 +59535,9 @@ func (c *ClientWithResponses) CreateSandboxWithBodyWithResponse(ctx context.Cont
 //
 // 400 with `code: sandbox_group_limit_reached` if the owner has no default
 // sandbox group and is already at its sandbox group limit.
+//
+// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
+// accepts. The message lists the accepted plans.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -79161,7 +79185,7 @@ func ParseDeleteSandboxGroupCredentialResponse(rsp *http.Response) (*DeleteSandb
 	}
 
 	switch {
-	case rsp.StatusCode == 204:
+	case rsp.StatusCode == 202:
 		break // No content-type
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:

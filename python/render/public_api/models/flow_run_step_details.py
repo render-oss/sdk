@@ -27,7 +27,8 @@ class FlowRunStepDetails:
             place. `detached` runs a registered task as its own task run. `sleep` is a durable sleep.
         status (FlowRunStepStatus): `running` until the step records an outcome, then `succeeded` or `failed`.
         started_at (datetime.datetime):
-        flow_run_attempt (int): The 0-indexed flow run attempt that recorded the step.
+        flow_run_attempt (int): The 0-indexed flow run attempt that completed the step, 0 until then. A hint to how many
+            flow run attempts the step took.
         attempts (list['FlowRunStepAttempt']): Failed attempts of an inline step, in attempt order. Empty for other step
             types.
         name (Union[Unset, str]): For inline steps, the function's name. For detached steps, the task's registered name.
