@@ -3,11 +3,17 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxNotRunningError,
+  SandboxSnapshotFailedError,
   SandboxSnapshotNotFoundError,
   SandboxSnapshotNotReadyError,
   SandboxSnapshotPlanMismatchError,
+  SandboxSnapshotWaitTimeoutError,
+  SandboxWaitTimeoutError,
   ServerError,
+  TimeoutError,
 } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import {
@@ -1329,6 +1335,555 @@ describe("SandboxesClient", () => {
       await expect(collect(await client.exec("sbx-123", "echo hi", "tea-test"))).resolves.toEqual([
         { type: "exit", exit_code: 0 },
       ]);
+    });
+  });
+
+  describe("waiting", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const sandboxWithStatus = (status: string) => ({
+      data: {
+        id: "sbx-123",
+        status,
+        plan: "starter",
+        networkPolicy: { type: "deny-all" },
+        region: "oregon",
+        timeoutSeconds: 600,
+        createdAt: "2026-10-20T10:00:00Z",
+        terminatedAt: null,
+      },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+    const snapshotWithStatus = (status: string, error: string | null = null) => ({
+      data: { ...SNAPSHOT, status, error },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+
+    describe.each([
+      {
+        name: "sandbox",
+        wait: (
+          client: SandboxesClient,
+          options: Parameters<SandboxesClient["waitUntilRunning"]>[1],
+        ) => client.waitUntilRunning("sbx-123", options),
+        ready: sandboxWithStatus("running"),
+        pending: sandboxWithStatus("creating"),
+      },
+      {
+        name: "snapshot",
+        wait: (
+          client: SandboxesClient,
+          options: Parameters<SandboxesClient["waitUntilRunning"]>[1],
+        ) =>
+          client.snapshots.waitUntilAvailable(
+            { sandboxGroupId: "sbg-123", snapshotId: SNAPSHOT.id },
+            options,
+          ),
+        ready: snapshotWithStatus("available"),
+        pending: snapshotWithStatus("creating"),
+      },
+    ])("$name wait limits", ({ wait, ready, pending }) => {
+      it("times out and aborts an in-flight request even if the request never settles", async () => {
+        const GET = vi.fn().mockImplementation(() => new Promise<never>(() => {}));
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+        const waiting = wait(client, { timeoutMs: 100 });
+        const assertion = expect(waiting).rejects.toBeInstanceOf(TimeoutError);
+        const requestSignal = GET.mock.calls[0][1].signal as AbortSignal;
+        expect(requestSignal.aborted).toBe(false);
+        await vi.advanceTimersByTimeAsync(100);
+        await assertion;
+        await expect(waiting).rejects.toMatchObject({ timeoutMs: 100, lastStatus: undefined });
+        expect(requestSignal.aborted).toBe(true);
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it("cancels an in-flight request and ignores its late success", async () => {
+        let resolveRequest: (value: typeof ready) => void = () => {};
+        const GET = vi.fn().mockImplementation(
+          () =>
+            new Promise<typeof ready>((resolve) => {
+              resolveRequest = resolve;
+            }),
+        );
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+        const controller = new AbortController();
+
+        const waiting = wait(client, { signal: controller.signal });
+        const assertion = expect(waiting).rejects.toBeInstanceOf(AbortError);
+        const requestSignal = GET.mock.calls[0][1].signal as AbortSignal;
+        controller.abort();
+        await assertion;
+        expect(requestSignal.aborted).toBe(true);
+        resolveRequest(ready);
+        await vi.advanceTimersByTimeAsync(1000);
+        expect(GET).toHaveBeenCalledTimes(1);
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      // Timing out here would tell create({ wait }) callers to terminate a resource that just
+      // became ready.
+      it("returns a ready response received after the deadline before the timer runs", async () => {
+        const GET = vi.fn().mockImplementation(async () => {
+          vi.setSystemTime(Date.now() + 101);
+          return ready;
+        });
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+        await expect(wait(client, { timeoutMs: 100 })).resolves.toMatchObject({
+          status: ready.data.status,
+        });
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it("times out on a pending response received after the deadline", async () => {
+        const GET = vi.fn().mockImplementation(async () => {
+          vi.setSystemTime(Date.now() + 101);
+          return pending;
+        });
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+        await expect(wait(client, { timeoutMs: 100 })).rejects.toMatchObject({
+          lastStatus: "creating",
+        });
+        expect(GET).toHaveBeenCalledTimes(1);
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it("rejects success if the caller aborts during the request", async () => {
+        const controller = new AbortController();
+        const GET = vi.fn().mockImplementation(async () => {
+          controller.abort();
+          return ready;
+        });
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+        await expect(wait(client, { signal: controller.signal })).rejects.toBeInstanceOf(
+          AbortError,
+        );
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it("waits out a timeout shorter than the polling interval", async () => {
+        const GET = vi.fn().mockResolvedValue(pending);
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+        let settled = false;
+
+        const waiting = wait(client, { timeoutMs: 100, intervalMs: 250 });
+        const assertion = expect(waiting).rejects.toBeInstanceOf(TimeoutError);
+        void waiting.catch(() => {
+          settled = true;
+        });
+        await vi.advanceTimersByTimeAsync(99);
+        expect(settled).toBe(false);
+        await vi.advanceTimersByTimeAsync(1);
+        await assertion;
+        expect(GET).toHaveBeenCalledTimes(1);
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      it("cleans up the deadline timer and caller's abort listener after success", async () => {
+        const GET = vi.fn().mockResolvedValue(ready);
+        const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+        const controller = new AbortController();
+        const remove = vi.spyOn(controller.signal, "removeEventListener");
+
+        await wait(client, { signal: controller.signal });
+        expect(vi.getTimerCount()).toBe(0);
+        expect(remove).toHaveBeenCalledWith("abort", expect.any(Function));
+      });
+    });
+
+    it.each([
+      { timeoutMs: -1 },
+      { timeoutMs: Number.NaN },
+      { timeoutMs: Number.POSITIVE_INFINITY },
+      { timeoutMs: 2_147_483_648 },
+      { intervalMs: 0 },
+      { intervalMs: -1 },
+      { intervalMs: Number.NaN },
+      { intervalMs: Number.POSITIVE_INFINITY },
+    ])("rejects invalid wait options %o without requesting", async (options) => {
+      const GET = vi.fn();
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      await expect(client.waitUntilRunning("sbx-123", options)).rejects.toBeInstanceOf(RangeError);
+      expect(GET).not.toHaveBeenCalled();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("treats a zero timeout as an immediate deadline", async () => {
+      const GET = vi.fn();
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      await expect(client.waitUntilRunning("sbx-123", { timeoutMs: 0 })).rejects.toBeInstanceOf(
+        TimeoutError,
+      );
+      expect(GET).not.toHaveBeenCalled();
+      expect(vi.getTimerCount()).toBe(0);
+    });
+
+    it("waitUntilRunning polls until the sandbox runs", async () => {
+      const GET = vi
+        .fn()
+        .mockResolvedValueOnce(sandboxWithStatus("creating"))
+        .mockResolvedValueOnce(sandboxWithStatus("creating"))
+        .mockResolvedValueOnce(sandboxWithStatus("running"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.waitUntilRunning("sbx-123");
+      await vi.advanceTimersByTimeAsync(750);
+
+      await expect(waiting).resolves.toMatchObject({ id: "sbx-123", status: "running" });
+      expect(GET).toHaveBeenCalledTimes(3);
+    });
+
+    // Doubling from 250 ms keeps short waits fast while a slow one stays
+    // under the API rate limit.
+    it("doubles the polling interval up to 2 seconds", async () => {
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("creating"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.waitUntilRunning("sbx-123", { timeoutMs: 10_000 });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxWaitTimeoutError);
+      const callsAt = async (ms: number) => {
+        await vi.advanceTimersByTimeAsync(ms - Date.now());
+        return GET.mock.calls.length;
+      };
+      const start = Date.now();
+      const counts = [];
+      for (const ms of [0, 250, 750, 1750, 3750, 5750, 7750]) {
+        counts.push(await callsAt(start + ms));
+      }
+      expect(counts).toEqual([1, 2, 3, 4, 5, 6, 7]);
+      await vi.advanceTimersByTimeAsync(10_000);
+      await assertion;
+    });
+
+    it("keeps a fixed interval longer than 2 seconds", async () => {
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("creating"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.waitUntilRunning("sbx-123", { timeoutMs: 12_000, intervalMs: 5000 });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxWaitTimeoutError);
+      await vi.advanceTimersByTimeAsync(10_000);
+      expect(GET).toHaveBeenCalledTimes(3);
+      await vi.advanceTimersByTimeAsync(2000);
+      await assertion;
+    });
+
+    // A sandbox that errored or was suspended never becomes running, so
+    // waiting out the timeout would only delay the failure.
+    it("waitUntilRunning throws as soon as the sandbox can't run", async () => {
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("errored"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.waitUntilRunning("sbx-123");
+      await expect(waiting).rejects.toBeInstanceOf(SandboxNotRunningError);
+      await expect(waiting).rejects.toMatchObject({
+        message: "Sandbox sbx-123 is errored, not running",
+        sandboxId: "sbx-123",
+        sandboxStatus: "errored",
+      });
+      expect(GET).toHaveBeenCalledTimes(1);
+    });
+
+    it("waitUntilRunning throws TimeoutError after timeoutMs", async () => {
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("creating"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.waitUntilRunning("sbx-123", { timeoutMs: 1000 });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxWaitTimeoutError);
+      await vi.advanceTimersByTimeAsync(1000);
+      await assertion;
+      await expect(waiting).rejects.toMatchObject({
+        sandboxId: "sbx-123",
+        timeoutMs: 1000,
+        lastStatus: "creating",
+      });
+    });
+
+    // Matches the CLI's `sandboxes create --wait`.
+    it.each([
+      {
+        name: "waitUntilRunning",
+        wait: (client: SandboxesClient) => client.waitUntilRunning("sbx-123"),
+      },
+      {
+        name: "create with wait",
+        wait: (client: SandboxesClient) =>
+          client.create({ wait: true }).catch((err: SandboxCreateWaitError) => {
+            throw err.cause;
+          }),
+      },
+    ])("$name times out after 60 seconds by default", async ({ wait }) => {
+      const POST = vi.fn().mockResolvedValue({
+        ...sandboxWithStatus("creating"),
+        response: new Response(null, { status: 201 }),
+      });
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("creating"));
+      const client = new SandboxesClient({ POST, GET } as unknown as Client<paths>, "tea-default");
+      let settled = false;
+
+      const waiting = wait(client);
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxWaitTimeoutError);
+      void waiting.catch(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(59_999);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await assertion;
+      await expect(waiting).rejects.toMatchObject({ sandboxId: "sbx-123", timeoutMs: 60_000 });
+    });
+
+    it("snapshots.waitUntilAvailable times out after 5 minutes by default", async () => {
+      const GET = vi.fn().mockResolvedValue(snapshotWithStatus("creating"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+      let settled = false;
+
+      const waiting = client.snapshots.waitUntilAvailable({
+        sandboxGroupId: "sbg-123",
+        snapshotId: SNAPSHOT.id,
+      });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxSnapshotWaitTimeoutError);
+      void waiting.catch(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(5 * 60_000 - 1);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await assertion;
+      await expect(waiting).rejects.toMatchObject({
+        snapshotId: SNAPSHOT.id,
+        timeoutMs: 5 * 60_000,
+        lastStatus: "creating",
+      });
+    });
+
+    it("waitUntilRunning stops when the signal aborts", async () => {
+      const GET = vi.fn().mockResolvedValue(sandboxWithStatus("creating"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+      const controller = new AbortController();
+
+      const waiting = client.waitUntilRunning("sbx-123", { signal: controller.signal });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(AbortError);
+      await vi.advanceTimersByTimeAsync(100);
+      controller.abort();
+      await assertion;
+    });
+
+    it("snapshots.waitUntilAvailable polls until the snapshot is available", async () => {
+      const GET = vi
+        .fn()
+        .mockResolvedValueOnce(snapshotWithStatus("creating"))
+        .mockResolvedValueOnce(snapshotWithStatus("available"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.snapshots.waitUntilAvailable({
+        sandboxGroupId: "sbg-123",
+        snapshotId: SNAPSHOT.id,
+      });
+      await vi.advanceTimersByTimeAsync(250);
+
+      await expect(waiting).resolves.toMatchObject({ status: "available" });
+    });
+
+    it("snapshots.waitUntilAvailable throws with the reason when capture fails", async () => {
+      const GET = vi.fn().mockResolvedValue(snapshotWithStatus("failed", "capture timed out"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.snapshots.waitUntilAvailable({
+        sandboxGroupId: "sbg-123",
+        snapshotId: SNAPSHOT.id,
+      });
+      await expect(waiting).rejects.toBeInstanceOf(SandboxSnapshotFailedError);
+      await expect(waiting).rejects.toMatchObject({
+        message: `Snapshot ${SNAPSHOT.id} failed to capture: capture timed out`,
+        snapshotId: SNAPSHOT.id,
+        snapshotError: "capture timed out",
+      });
+    });
+
+    describe("create with wait", () => {
+      const clientWith = (createdStatus: string, ...polled: string[]) => {
+        const POST = vi.fn().mockResolvedValue({
+          ...sandboxWithStatus(createdStatus),
+          response: new Response(null, { status: 201 }),
+        });
+        const GET = vi.fn();
+        for (const status of polled) GET.mockResolvedValueOnce(sandboxWithStatus(status));
+        const client = new SandboxesClient(
+          { POST, GET } as unknown as Client<paths>,
+          "tea-default",
+        );
+        return { client, POST, GET };
+      };
+
+      it("returns the created sandbox without polling when wait is unset", async () => {
+        const { client, GET } = clientWith("creating");
+
+        await expect(client.create()).resolves.toMatchObject({ status: "creating" });
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      it("polls until running and keeps wait out of the request body", async () => {
+        const { client, POST, GET } = clientWith("creating", "creating", "running");
+
+        const waiting = client.create({ ownerId: "tea-test", wait: true });
+        await vi.advanceTimersByTimeAsync(250);
+
+        await expect(waiting).resolves.toMatchObject({ status: "running" });
+        expect(POST).toHaveBeenCalledWith("/sandboxes", { body: { ownerId: "tea-test" } });
+        expect(GET).toHaveBeenCalledTimes(2);
+        expect(GET.mock.calls[0][1].params.query).toEqual({ ownerId: "tea-test" });
+      });
+
+      it("skips polling when the created sandbox is already running", async () => {
+        const { client, GET } = clientWith("running");
+
+        await expect(client.create({ wait: true })).resolves.toMatchObject({ status: "running" });
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      it("throws without polling when the created sandbox errored", async () => {
+        const { client, GET } = clientWith("errored");
+
+        const error = await client.create({ wait: true }).catch((err) => err);
+        expect(error).toBeInstanceOf(SandboxCreateWaitError);
+        expect(error).toMatchObject({
+          message:
+            "Created sandbox sbx-123, but it is not running: Sandbox sbx-123 is errored, not running",
+          sandboxId: "sbx-123",
+        });
+        expect(error.cause).toBeInstanceOf(SandboxNotRunningError);
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      // No sandbox exists yet, so these throw plainly rather than as SandboxCreateWaitError.
+      it.each([
+        { timeoutMs: -1 },
+        { timeoutMs: Number.NaN },
+        { timeoutMs: 2_147_483_648 },
+        { intervalMs: 0 },
+        { intervalMs: Number.POSITIVE_INFINITY },
+      ])("rejects wait options %o without creating a sandbox", async (wait) => {
+        const { client, POST } = clientWith("creating");
+
+        await expect(client.create({ wait })).rejects.toThrow(RangeError);
+        expect(POST).not.toHaveBeenCalled();
+      });
+
+      // The running-response shortcut used to skip the check.
+      it("rejects bad wait options even when the sandbox would come back running", async () => {
+        const { client, POST } = clientWith("running");
+
+        await expect(client.create({ wait: { intervalMs: 0 } })).rejects.toThrow(RangeError);
+        expect(POST).not.toHaveBeenCalled();
+      });
+
+      it("throws AbortError without creating a sandbox when the signal already aborted", async () => {
+        const { client, POST } = clientWith("creating");
+        const controller = new AbortController();
+        controller.abort();
+
+        const error = await client.create({ wait: { signal: controller.signal } }).catch((e) => e);
+        expect(error).toBeInstanceOf(AbortError);
+        expect(error).not.toBeInstanceOf(SandboxCreateWaitError);
+        expect(POST).not.toHaveBeenCalled();
+      });
+
+      it("returns a sandbox that runs just past the deadline", async () => {
+        const { client, GET } = clientWith("creating");
+        GET.mockImplementation(async () => {
+          vi.setSystemTime(Date.now() + 1001);
+          return sandboxWithStatus("running");
+        });
+
+        await expect(client.create({ wait: { timeoutMs: 1000 } })).resolves.toMatchObject({
+          status: "running",
+        });
+      });
+
+      it("passes wait options through", async () => {
+        const { client, GET } = clientWith("creating");
+        GET.mockResolvedValue(sandboxWithStatus("creating"));
+
+        const waiting = client.create({ wait: { timeoutMs: 1000 } }).catch((err) => err);
+        await vi.advanceTimersByTimeAsync(1000);
+        const error = await waiting;
+        expect(error).toBeInstanceOf(SandboxCreateWaitError);
+        expect(error.cause).toBeInstanceOf(SandboxWaitTimeoutError);
+        expect(error.cause).toMatchObject({ sandboxId: "sbx-123", timeoutMs: 1000 });
+      });
+
+      // Without the ID, the caller can't terminate a sandbox it is billed for.
+      it.each([
+        {
+          name: "the caller aborts",
+          poll: (GET: ReturnType<typeof vi.fn>) =>
+            GET.mockResolvedValue(sandboxWithStatus("creating")),
+          abort: true,
+          cause: AbortError,
+        },
+        {
+          name: "a status check gets a 5xx",
+          poll: (GET: ReturnType<typeof vi.fn>) =>
+            GET.mockResolvedValue({
+              data: undefined,
+              error: { message: "unavailable" },
+              response: new Response(null, { status: 503 }),
+            }),
+          abort: false,
+          cause: ServerError,
+        },
+        {
+          name: "a status check gets a 4xx",
+          poll: (GET: ReturnType<typeof vi.fn>) =>
+            GET.mockResolvedValue({
+              data: undefined,
+              error: { message: "forbidden" },
+              response: new Response(null, { status: 403 }),
+            }),
+          abort: false,
+          cause: ClientError,
+        },
+        {
+          name: "the fetch fails",
+          poll: (GET: ReturnType<typeof vi.fn>) =>
+            GET.mockRejectedValue(new TypeError("fetch failed")),
+          abort: false,
+          cause: TypeError,
+        },
+        {
+          name: "a response body doesn't parse",
+          poll: (GET: ReturnType<typeof vi.fn>) =>
+            GET.mockRejectedValue(new SyntaxError("Unexpected end of JSON input")),
+          abort: false,
+          cause: SyntaxError,
+        },
+      ])("gives the sandbox ID when $name", async ({ poll, abort, cause }) => {
+        const { client, GET } = clientWith("creating");
+        poll(GET);
+        const controller = new AbortController();
+
+        const waiting = client.create({ wait: { signal: controller.signal } }).catch((err) => err);
+        await vi.advanceTimersByTimeAsync(0);
+        if (abort) controller.abort();
+        const error = await waiting;
+
+        expect(error).toBeInstanceOf(SandboxCreateWaitError);
+        expect(error.sandboxId).toBe("sbx-123");
+        expect(error.cause).toBeInstanceOf(cause);
+        expect(vi.getTimerCount()).toBe(0);
+      });
     });
   });
 });

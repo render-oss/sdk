@@ -92,6 +92,37 @@ export class SandboxSnapshotPlanMismatchError extends ClientError {
 }
 
 /**
+ * While waiting for the sandbox to be `running`, it reached a status it can't run from:
+ * `errored`, `terminated`, `suspending`, or `suspended`. The sandbox is left as it is.
+ */
+export class SandboxNotRunningError extends RenderError {
+  constructor(
+    message: string,
+    public sandboxId: string,
+    public sandboxStatus: string,
+  ) {
+    super(message);
+    this.name = "SandboxNotRunningError";
+    Object.setPrototypeOf(this, SandboxNotRunningError.prototype);
+  }
+}
+
+/**
+ * While waiting for the snapshot to be `available`, its capture failed
+ */
+export class SandboxSnapshotFailedError extends RenderError {
+  constructor(
+    message: string,
+    public snapshotId: string,
+    public snapshotError?: string,
+  ) {
+    super(message);
+    this.name = "SandboxSnapshotFailedError";
+    Object.setPrototypeOf(this, SandboxSnapshotFailedError.prototype);
+  }
+}
+
+/**
  * Error for HTTP server errors (5xx)
  */
 export class ServerError extends RenderError {
@@ -114,6 +145,58 @@ export class TimeoutError extends RenderError {
     super(message);
     this.name = "TimeoutError";
     Object.setPrototypeOf(this, TimeoutError.prototype);
+  }
+}
+
+/**
+ * The sandbox was not `running` before the wait timed out. The sandbox is left as it is and may
+ * still become `running`. `lastStatus` is unset if no status check finished in time.
+ */
+export class SandboxWaitTimeoutError extends TimeoutError {
+  constructor(
+    message: string,
+    public sandboxId: string,
+    public timeoutMs: number,
+    public lastStatus?: string,
+  ) {
+    super(message);
+    this.name = "SandboxWaitTimeoutError";
+    Object.setPrototypeOf(this, SandboxWaitTimeoutError.prototype);
+  }
+}
+
+/**
+ * The snapshot was not `available` before the wait timed out. It may still become `available`.
+ * `lastStatus` is unset if no status check finished in time.
+ */
+export class SandboxSnapshotWaitTimeoutError extends TimeoutError {
+  constructor(
+    message: string,
+    public snapshotId: string,
+    public timeoutMs: number,
+    public lastStatus?: string,
+  ) {
+    super(message);
+    this.name = "SandboxSnapshotWaitTimeoutError";
+    Object.setPrototypeOf(this, SandboxSnapshotWaitTimeoutError.prototype);
+  }
+}
+
+/**
+ * `create({ wait })` created the sandbox, but the wait for it to be `running` failed. The sandbox
+ * still exists and is billed until it ends, so call `terminate(sandboxId)` if you don't want it.
+ * `cause` is the error the wait threw, such as `SandboxNotRunningError`,
+ * `SandboxWaitTimeoutError`, `AbortError`, or a request error.
+ */
+export class SandboxCreateWaitError extends RenderError {
+  constructor(
+    message: string,
+    public sandboxId: string,
+    public cause: unknown,
+  ) {
+    super(message);
+    this.name = "SandboxCreateWaitError";
+    Object.setPrototypeOf(this, SandboxCreateWaitError.prototype);
   }
 }
 

@@ -6,12 +6,18 @@ import {
   AbortError,
   ClientError,
   RenderError,
+  SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxNotRunningError,
+  SandboxSnapshotFailedError,
   SandboxSnapshotNotFoundError,
+  SandboxSnapshotWaitTimeoutError,
+  SandboxWaitTimeoutError,
 } from "../../errors.js";
 import type { components, paths } from "../../generated/schema.js";
 
 import { getApiError } from "../../utils/http.js";
+import { pollUntil, validateOptions } from "../../utils/poll-until.js";
 import { getUserAgent } from "../../version.js";
 import type { SandboxPlan } from "./types.js";
 
@@ -117,9 +123,32 @@ export type SandboxCreateInput = SandboxRestoreInput & {
   networkPolicy?: SandboxNetworkPolicy;
   /** Environment variables injected into the sandbox at creation. */
   env?: Record<string, string>;
+  /**
+   * Resolve only once the sandbox is `running`, as `waitUntilRunning` does. `true` uses the
+   * default wait options. Bad options throw `RangeError`, and an already-aborted signal throws
+   * `AbortError`, before the create request, so neither creates a sandbox. The wait starts after
+   * the create request returns. If the wait fails, `create()` throws `SandboxCreateWaitError` with
+   * the new sandbox's ID, so you can terminate it.
+   */
+  wait?: boolean | SandboxWaitOptions;
 };
 
 export type Sandbox = components["schemas"]["sandbox"];
+
+/** Options for `waitUntilRunning` and `snapshots.waitUntilAvailable`. */
+export type SandboxWaitOptions = {
+  /**
+   * Overall timeout, including requests. Defaults to 60 seconds for a sandbox, 5 minutes for a
+   * snapshot.
+   */
+  timeoutMs?: number;
+  /**
+   * The first delay between status checks. It doubles after each check, up to 2 seconds or
+   * `intervalMs`, whichever is longer. @default 250
+   */
+  intervalMs?: number;
+  signal?: AbortSignal;
+};
 
 /** A sandbox snapshot as returned by the API. */
 export type SandboxSnapshot = components["schemas"]["sandboxSnapshot"];
@@ -238,6 +267,30 @@ function optionalOwnerIdQuery(
   return resolved ? { query: { ownerId: resolved } } : {};
 }
 
+const DEFAULT_WAIT_INTERVAL_MS = 250;
+const DEFAULT_SANDBOX_WAIT_TIMEOUT_MS = 60_000;
+const DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS = 5 * 60_000;
+
+/**
+ * Returns the sandbox if it is `running`, or `undefined` if it may still become `running`.
+ * Throws `SandboxNotRunningError` if it can't.
+ */
+function runningSandbox(sandbox: Sandbox): Sandbox | undefined {
+  switch (sandbox.status) {
+    case "running":
+      return sandbox;
+    case "creating":
+    case "resuming":
+      return undefined;
+    default:
+      throw new SandboxNotRunningError(
+        `Sandbox ${sandbox.id} is ${sandbox.status}, not running`,
+        sandbox.id,
+        sandbox.status,
+      );
+  }
+}
+
 export class SandboxSnapshotsClient {
   constructor(
     private readonly apiClient: Client<paths>,
@@ -268,20 +321,56 @@ export class SandboxSnapshotsClient {
     );
   }
 
-  async get({
-    sandboxGroupId,
-    snapshotId,
-    ownerId,
-  }: SandboxSnapshotGetInput): Promise<SandboxSnapshot> {
+  async get(
+    { sandboxGroupId, snapshotId, ownerId }: SandboxSnapshotGetInput,
+    signal?: AbortSignal,
+  ): Promise<SandboxSnapshot> {
     return unwrap(
       await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}", {
         params: {
           path: { sandboxGroupId, snapshotId },
           ...optionalOwnerIdQuery(ownerId, this.defaultOwnerId),
         },
+        ...(signal ? { signal } : {}),
       }),
       "Failed to get snapshot",
       getSnapshotApiError,
+    );
+  }
+
+  /**
+   * Waits until the snapshot is `available`, so new sandboxes can start from it. Throws
+   * `SandboxSnapshotFailedError` if it fails to capture, or `SandboxSnapshotWaitTimeoutError`
+   * after `timeoutMs`.
+   */
+  async waitUntilAvailable(
+    input: SandboxSnapshotGetInput,
+    options: SandboxWaitOptions = {},
+  ): Promise<SandboxSnapshot> {
+    return pollUntil(
+      (signal) => this.get(input, signal),
+      (snapshot) => {
+        if (snapshot.status === "available") return snapshot;
+        if (snapshot.status === "failed") {
+          throw new SandboxSnapshotFailedError(
+            `Snapshot ${snapshot.id} failed to capture${snapshot.error ? `: ${snapshot.error}` : ""}`,
+            snapshot.id,
+            snapshot.error ?? undefined,
+          );
+        }
+      },
+      {
+        timeoutMs: options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
+        intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+        signal: options.signal,
+        timeoutError: (last) =>
+          new SandboxSnapshotWaitTimeoutError(
+            `Timed out waiting for snapshot ${input.snapshotId} to be available`,
+            input.snapshotId,
+            options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
+            last?.status,
+          ),
+      },
     );
   }
 
@@ -339,19 +428,56 @@ export class SandboxesClient {
     return resolveOwnerId(ownerId, this.defaultOwnerId);
   }
 
-  async get(sandboxId: string, ownerId?: `tea-${string}`) {
+  /**
+   * Waits until the sandbox is `running`, so it can run commands. Throws
+   * `SandboxNotRunningError` if it ends or is suspended first, or `SandboxWaitTimeoutError`
+   * after `timeoutMs`. Neither error terminates the sandbox.
+   */
+  async waitUntilRunning(
+    sandboxId: string,
+    options: SandboxWaitOptions & { ownerId?: `tea-${string}` } = {},
+  ): Promise<Sandbox> {
+    return pollUntil((signal) => this.get(sandboxId, options.ownerId, signal), runningSandbox, {
+      timeoutMs: options.timeoutMs ?? DEFAULT_SANDBOX_WAIT_TIMEOUT_MS,
+      intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+      signal: options.signal,
+      timeoutError: (last) =>
+        new SandboxWaitTimeoutError(
+          `Timed out waiting for sandbox ${sandboxId} to be running`,
+          sandboxId,
+          options.timeoutMs ?? DEFAULT_SANDBOX_WAIT_TIMEOUT_MS,
+          last?.status,
+        ),
+    });
+  }
+
+  async get(sandboxId: string, ownerId?: `tea-${string}`, signal?: AbortSignal) {
     return unwrap(
       await this.apiClient.GET("/sandboxes/{sandboxId}", {
         params: {
           path: { sandboxId },
           query: { ownerId: this.resolveOwnerId(ownerId) },
         },
+        ...(signal ? { signal } : {}),
       }),
       "Failed to get sandbox",
     );
   }
 
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
+    const waitOptions = input.wait === true ? {} : input.wait || undefined;
+    const wait = waitOptions && {
+      ...waitOptions,
+      timeoutMs: waitOptions.timeoutMs ?? DEFAULT_SANDBOX_WAIT_TIMEOUT_MS,
+      intervalMs: waitOptions.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+    };
+    // Check before the sandbox exists, so bad options or an early abort create nothing.
+    if (wait) {
+      validateOptions(wait);
+      if (wait.signal?.aborted) {
+        throw new AbortError();
+      }
+    }
     const region = input.region ?? this.defaultRegion;
     const ownerId = this.resolveOwnerId(input.ownerId);
     const body = {
@@ -367,10 +493,26 @@ export class SandboxesClient {
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
       ...(input.snapshotName === undefined ? {} : { snapshotName: input.snapshotName }),
     } as components["schemas"]["sandboxPOST"];
-    return unwrap(
+    const sandbox = unwrap(
       await this.apiClient.POST("/sandboxes", { body }),
       inWorkspace("Failed to create sandbox", ownerId),
     );
+    if (!wait) {
+      return sandbox;
+    }
+    // The sandbox exists from here on, so every failure must give the caller its ID.
+    try {
+      return (
+        runningSandbox(sandbox) ?? (await this.waitUntilRunning(sandbox.id, { ...wait, ownerId }))
+      );
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new SandboxCreateWaitError(
+        `Created sandbox ${sandbox.id}, but it is not running: ${reason}`,
+        sandbox.id,
+        err,
+      );
+    }
   }
 
   async list({

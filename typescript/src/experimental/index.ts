@@ -51,6 +51,7 @@ export {
   type SandboxUploadContentType,
   type SandboxUploadData,
   type SandboxUploadOptions,
+  type SandboxWaitOptions,
 } from "./sandboxes/index.js";
 
 markImportFinished();
