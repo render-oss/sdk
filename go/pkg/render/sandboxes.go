@@ -260,13 +260,6 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 			return nil, err
 		}
 	}
-	region := params.Region
-	if region == "" {
-		region = s.client.defaultRegion()
-	}
-	if region != "" {
-		body.Region = &region
-	}
 	if params.Env != nil {
 		body.Env = &params.Env
 	}

@@ -42,7 +42,7 @@ func newSandboxTestClient(t *testing.T, proxy http.HandlerFunc) *SandboxClient {
 	mux.HandleFunc("POST /v1/sandboxes/sbx-1/files/{op}/token", mint)
 	mux.HandleFunc("POST /v1/sandboxes", func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
-		require.JSONEq(t, `{"ownerId":"tea-1","region":"ohio","plan":"pro"}`, string(body))
+		require.JSONEq(t, `{"ownerId":"tea-1","plan":"pro"}`, string(body))
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_, _ = w.Write([]byte(sandboxJSON))

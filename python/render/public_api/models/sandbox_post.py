@@ -20,6 +20,7 @@ class SandboxPOST:
     """
     Attributes:
         owner_id (str): The ID of the workspace the sandbox belongs to.
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         network_policy (Union[Unset, SandboxNetworkPolicyPOST]): Set either `type` or its deprecated alias `default`.
             Sending both is
             only accepted when they name the same policy.
@@ -28,7 +29,6 @@ class SandboxPOST:
             Default: 86400.
         idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
             disable automatic idle suspension. Positive values must be at least 300. Default: 900.
-        region (Union[Unset, str]): Render region. Defaults to the workspace default.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
         snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
         snapshot_name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
@@ -45,11 +45,11 @@ class SandboxPOST:
     """
 
     owner_id: str
+    sandbox_group_id: Union[Unset, str] = UNSET
     network_policy: Union[Unset, "SandboxNetworkPolicyPOST"] = UNSET
     plan: Union[SandboxPlan, Unset, str] = UNSET
     timeout_seconds: Union[Unset, int] = 86400
     idle_timeout_seconds: Union[Unset, int] = 900
-    region: Union[Unset, str] = UNSET
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
     snapshot_name: Union[Unset, str] = UNSET
@@ -59,6 +59,8 @@ class SandboxPOST:
 
     def to_dict(self) -> dict[str, Any]:
         owner_id = self.owner_id
+
+        sandbox_group_id = self.sandbox_group_id
 
         network_policy: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.network_policy, Unset):
@@ -75,8 +77,6 @@ class SandboxPOST:
         timeout_seconds = self.timeout_seconds
 
         idle_timeout_seconds = self.idle_timeout_seconds
-
-        region = self.region
 
         env: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.env, Unset):
@@ -97,6 +97,8 @@ class SandboxPOST:
                 "ownerId": owner_id,
             }
         )
+        if sandbox_group_id is not UNSET:
+            field_dict["sandboxGroupId"] = sandbox_group_id
         if network_policy is not UNSET:
             field_dict["networkPolicy"] = network_policy
         if plan is not UNSET:
@@ -105,8 +107,6 @@ class SandboxPOST:
             field_dict["timeoutSeconds"] = timeout_seconds
         if idle_timeout_seconds is not UNSET:
             field_dict["idleTimeoutSeconds"] = idle_timeout_seconds
-        if region is not UNSET:
-            field_dict["region"] = region
         if env is not UNSET:
             field_dict["env"] = env
         if snapshot_id is not UNSET:
@@ -127,6 +127,8 @@ class SandboxPOST:
 
         d = dict(src_dict)
         owner_id = d.pop("ownerId")
+
+        sandbox_group_id = d.pop("sandboxGroupId", UNSET)
 
         _network_policy = d.pop("networkPolicy", UNSET)
         network_policy: Union[Unset, SandboxNetworkPolicyPOST]
@@ -154,8 +156,6 @@ class SandboxPOST:
 
         idle_timeout_seconds = d.pop("idleTimeoutSeconds", UNSET)
 
-        region = d.pop("region", UNSET)
-
         _env = d.pop("env", UNSET)
         env: Union[Unset, SandboxPOSTEnv]
         if isinstance(_env, Unset):
@@ -173,11 +173,11 @@ class SandboxPOST:
 
         sandbox_post = cls(
             owner_id=owner_id,
+            sandbox_group_id=sandbox_group_id,
             network_policy=network_policy,
             plan=plan,
             timeout_seconds=timeout_seconds,
             idle_timeout_seconds=idle_timeout_seconds,
-            region=region,
             env=env,
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,

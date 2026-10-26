@@ -19,10 +19,10 @@ class SandboxGroup:
         owner_id (str): The ID of the workspace this group belongs to. Example: tea-cph1rs3idesc73a2b2mg.
         name (str): Human-friendly name for the group. Example: Default.
         region (str): Render region the group operates in. Example: oregon.
-        is_default (bool): Whether this is the workspace's default group. Exactly one group per workspace is the
-            default.
-        concurrency_limit (int): Effective maximum number of concurrently active (non-terminated) sandboxes allowed in
-            this group.
+        is_default (bool): Whether this is the workspace's default group. Sandboxes are created
+            here unless a group is given.
+        concurrency_limit (int): The effective limit on active sandboxes in this group, capped by Render's limit for
+            this workspace.
         created_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
         updated_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
         environment_id (Union[None, Unset, str]): Environment this group is bound to.

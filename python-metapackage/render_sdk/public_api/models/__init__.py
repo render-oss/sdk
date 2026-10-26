@@ -382,6 +382,8 @@ __all__ = [
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
     "SandboxGroup",
+    "SandboxGroupPATCH",
+    "SandboxGroupPOST",
     "SandboxGroupWithCursor",
     "SandboxNetworkPolicy",
     "SandboxNetworkPolicyPOST",

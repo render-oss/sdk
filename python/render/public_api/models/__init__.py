@@ -371,6 +371,8 @@ from .sandbox_credential_version import SandboxCredentialVersion
 from .sandbox_egress_rule import SandboxEgressRule
 from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
 from .sandbox_group import SandboxGroup
+from .sandbox_group_patch import SandboxGroupPATCH
+from .sandbox_group_post import SandboxGroupPOST
 from .sandbox_group_with_cursor import SandboxGroupWithCursor
 from .sandbox_network_policy import SandboxNetworkPolicy
 from .sandbox_network_policy_post import SandboxNetworkPolicyPOST
@@ -842,6 +844,8 @@ __all__ = (
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
     "SandboxGroup",
+    "SandboxGroupPATCH",
+    "SandboxGroupPOST",
     "SandboxGroupWithCursor",
     "SandboxNetworkPolicy",
     "SandboxNetworkPolicyPOST",

@@ -30,6 +30,7 @@ class Sandbox:
         idle_timeout_seconds (int): Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle
             suspension. Example: 900.
         created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         terminated_at (Union[None, Unset, datetime.datetime]): When the sandbox was terminated, or null.
     """
 
@@ -41,6 +42,7 @@ class Sandbox:
     timeout_seconds: int
     idle_timeout_seconds: int
     created_at: datetime.datetime
+    sandbox_group_id: Union[Unset, str] = UNSET
     terminated_at: Union[None, Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -65,6 +67,8 @@ class Sandbox:
 
         created_at = self.created_at.isoformat()
 
+        sandbox_group_id = self.sandbox_group_id
+
         terminated_at: Union[None, Unset, str]
         if isinstance(self.terminated_at, Unset):
             terminated_at = UNSET
@@ -87,6 +91,8 @@ class Sandbox:
                 "createdAt": created_at,
             }
         )
+        if sandbox_group_id is not UNSET:
+            field_dict["sandboxGroupId"] = sandbox_group_id
         if terminated_at is not UNSET:
             field_dict["terminatedAt"] = terminated_at
 
@@ -120,9 +126,11 @@ class Sandbox:
 
         timeout_seconds = d.pop("timeoutSeconds")
 
-        idle_timeout_seconds = d.pop("idleTimeoutSeconds")
+        idle_timeout_seconds = d.pop("idleTimeoutSeconds", 900)
 
         created_at = isoparse(d.pop("createdAt"))
+
+        sandbox_group_id = d.pop("sandboxGroupId", UNSET)
 
         def _parse_terminated_at(data: object) -> Union[None, Unset, datetime.datetime]:
             if data is None:
@@ -150,6 +158,7 @@ class Sandbox:
             timeout_seconds=timeout_seconds,
             idle_timeout_seconds=idle_timeout_seconds,
             created_at=created_at,
+            sandbox_group_id=sandbox_group_id,
             terminated_at=terminated_at,
         )
 

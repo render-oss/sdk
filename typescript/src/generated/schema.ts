@@ -245,11 +245,18 @@ export interface paths {
         };
         /**
          * List sandbox groups
-         * @description List sandbox groups for a single workspace.
+         * @description List sandbox groups for a single workspace, newest first. The default
+         *     page size is 20 and the maximum is 100.
+         *     Use the last item's cursor to fetch the next page, until it is empty.
          */
         get: operations["list-sandbox-groups"];
         put?: never;
-        post?: never;
+        /**
+         * Create sandbox group
+         * @description Create a sandbox group. The workspace's first group becomes its default.
+         *     Returns 409 if the `name` is taken.
+         */
+        post: operations["create-sandbox-group"];
         delete?: never;
         options?: never;
         head?: never;
@@ -908,6 +915,8 @@ export interface components {
              */
             maxSizeBytes: number;
         };
+        /** @example sbg-cph1rs3idesc73a2b2mg */
+        sandboxGroupId: string;
         /** @enum {string} */
         sandboxStatus: "creating" | "running" | "suspending" | "suspended" | "resuming" | "errored" | "terminated";
         /** @example sbx-1cd4gcph1rs3idesc73a2b2mg */
@@ -959,6 +968,8 @@ export interface components {
         };
         sandbox: {
             id: components["schemas"]["sandboxId"];
+            /** @description The sandbox group this sandbox belongs to. */
+            sandboxGroupId?: components["schemas"]["sandboxGroupId"];
             status: components["schemas"]["sandboxStatus"];
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan: components["schemas"]["sandboxPlan"] | string;
@@ -1028,6 +1039,8 @@ export interface components {
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
+            /** @description Group to create the sandbox in; defaults to the workspace's default group. */
+            sandboxGroupId?: components["schemas"]["sandboxGroupId"];
             networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
@@ -1041,8 +1054,6 @@ export interface components {
              * @default 900
              */
             idleTimeoutSeconds: number;
-            /** @description Render region. Defaults to the workspace default. */
-            region?: string;
             /** @description Inline environment variables injected into the sandbox at creation. */
             env?: {
                 [key: string]: string;
@@ -1076,8 +1087,6 @@ export interface components {
              */
             buildName?: string;
         };
-        /** @example sbg-cph1rs3idesc73a2b2mg */
-        sandboxGroupId: string;
         sandboxGroup: {
             id: components["schemas"]["sandboxGroupId"];
             /**
@@ -1095,11 +1104,14 @@ export interface components {
              * @example oregon
              */
             region: string;
-            /** @description Whether this is the workspace's default group. Exactly one group per workspace is the default. */
+            /**
+             * @description Whether this is the workspace's default group. Sandboxes are created
+             *     here unless a group is given.
+             */
             isDefault: boolean;
             /** @description Environment this group is bound to. */
             environmentId?: string | null;
-            /** @description Effective maximum number of concurrently active (non-terminated) sandboxes allowed in this group. */
+            /** @description The effective limit on active sandboxes in this group, capped by Render's limit for this workspace. */
             concurrencyLimit: number;
             /**
              * Format: date-time
@@ -1111,6 +1123,24 @@ export interface components {
              * @example 2026-07-02T18:30:00Z
              */
             updatedAt: string;
+        };
+        sandboxGroupPOST: {
+            /**
+             * @description Workspace ID.
+             * @example tea-cph1rs3idesc73a2b2mg
+             */
+            ownerId: string;
+            /**
+             * @description Name, unique within the workspace.
+             * @example CI agents
+             */
+            name: string;
+            /**
+             * @description Region for the group's sandboxes. Defaults to Render's default sandbox region.
+             * @default oregon
+             * @example oregon
+             */
+            region: string;
         };
         /**
          * @description `filesystem` captures the writable filesystem and restores onto any plan.
@@ -1914,6 +1944,8 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace whose sandboxes to return. */
                 ownerId: string;
+                /** @description Return only sandboxes in this group. The group must belong to ownerId. */
+                sandboxGroupId?: components["schemas"]["sandboxGroupId"];
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
@@ -2013,6 +2045,10 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace whose sandbox groups to return. */
                 ownerId: string;
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description Maximum groups to return. */
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -2033,6 +2069,57 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-sandbox-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "ownerId": "tea-cph1rs3idesc73a2b2mg",
+                 *       "name": "CI agents"
+                 *     }
+                 */
+                "application/json": components["schemas"]["sandboxGroupPOST"];
+            };
+        };
+        responses: {
+            /** @description Sandbox group created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "id": "sbg-cph1rs3idesc73a2b2mg",
+                     *       "ownerId": "tea-cph1rs3idesc73a2b2mg",
+                     *       "name": "CI agents",
+                     *       "region": "oregon",
+                     *       "isDefault": false,
+                     *       "environmentId": null,
+                     *       "concurrencyLimit": 10,
+                     *       "createdAt": "2026-07-02T18:30:00Z",
+                     *       "updatedAt": "2026-07-02T18:30:00Z"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["sandboxGroup"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

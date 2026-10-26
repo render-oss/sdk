@@ -14,6 +14,7 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     *,
     owner_id: str,
+    sandbox_group_id: Union[Unset, str] = UNSET,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
@@ -21,6 +22,8 @@ def _get_kwargs(
     params: dict[str, Any] = {}
 
     params["ownerId"] = owner_id
+
+    params["sandboxGroupId"] = sandbox_group_id
 
     params["cursor"] = cursor
 
@@ -115,6 +118,7 @@ def sync_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    sandbox_group_id: Union[Unset, str] = UNSET,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
@@ -126,6 +130,7 @@ def sync_detailed(
 
     Args:
         owner_id (str):
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -140,6 +145,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         owner_id=owner_id,
+        sandbox_group_id=sandbox_group_id,
         cursor=cursor,
         limit=limit,
         status=status,
@@ -156,6 +162,7 @@ def sync(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    sandbox_group_id: Union[Unset, str] = UNSET,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
@@ -167,6 +174,7 @@ def sync(
 
     Args:
         owner_id (str):
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -182,6 +190,7 @@ def sync(
     return sync_detailed(
         client=client,
         owner_id=owner_id,
+        sandbox_group_id=sandbox_group_id,
         cursor=cursor,
         limit=limit,
         status=status,
@@ -192,6 +201,7 @@ async def asyncio_detailed(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    sandbox_group_id: Union[Unset, str] = UNSET,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
@@ -203,6 +213,7 @@ async def asyncio_detailed(
 
     Args:
         owner_id (str):
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -217,6 +228,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         owner_id=owner_id,
+        sandbox_group_id=sandbox_group_id,
         cursor=cursor,
         limit=limit,
         status=status,
@@ -231,6 +243,7 @@ async def asyncio(
     *,
     client: Union[AuthenticatedClient, Client],
     owner_id: str,
+    sandbox_group_id: Union[Unset, str] = UNSET,
     cursor: Union[Unset, str] = UNSET,
     limit: Union[Unset, int] = 20,
     status: Union[Unset, list[SandboxStatus]] = UNSET,
@@ -242,6 +255,7 @@ async def asyncio(
 
     Args:
         owner_id (str):
+        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         status (Union[Unset, list[SandboxStatus]]):
@@ -258,6 +272,7 @@ async def asyncio(
         await asyncio_detailed(
             client=client,
             owner_id=owner_id,
+            sandbox_group_id=sandbox_group_id,
             cursor=cursor,
             limit=limit,
             status=status,

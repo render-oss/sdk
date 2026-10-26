@@ -71,13 +71,6 @@ func (c *Client) defaultOwnerID() string {
 	return os.Getenv("RENDER_WORKSPACE_ID")
 }
 
-func (c *Client) defaultRegion() string {
-	if c.region != "" {
-		return c.region
-	}
-	return os.Getenv("RENDER_REGION")
-}
-
 // NewClient creates a new Render API client
 func NewClient(options ...ClientOption) (*Client, error) {
 	// Create a temporary client to apply options

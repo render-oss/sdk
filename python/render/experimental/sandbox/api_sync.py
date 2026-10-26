@@ -347,8 +347,6 @@ class SyncSandboxApi:
             body.timeout_seconds = timeout_seconds
         if idle_timeout_seconds is not None:
             body.idle_timeout_seconds = idle_timeout_seconds
-        if region is not None:
-            body.region = region
         if network_policy is not None:
             body.network_policy = _to_network_policy_post(network_policy)
         if env is not None:
