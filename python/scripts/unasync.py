@@ -51,6 +51,7 @@ SYNTAX_REPLACEMENTS = [
     ("aclose_content", "close_content"),
     ("astat_path", "stat_path"),
     ("arun_blocking", "run_blocking"),
+    ("_wait.apoll_until", "_wait.poll_until"),
     ("get_async_httpx_client", "get_httpx_client"),
     ("aiter_lines", "iter_lines"),
     ("aread", "read"),

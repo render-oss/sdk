@@ -2,14 +2,19 @@
 
 from render.experimental.sandbox.client import SandboxClient, SnapshotClient
 from render.experimental.sandbox.errors import (
+    SandboxCreateWaitError,
     SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxFileNotFoundError,
     SandboxNotFoundError,
+    SandboxNotRunningError,
+    SandboxWaitTimeoutError,
+    SnapshotFailedError,
     SnapshotNotFoundError,
     SnapshotNotReadyError,
     SnapshotPlanMismatchError,
+    SnapshotWaitTimeoutError,
 )
 from render.experimental.sandbox.types import (
     EgressRule,
@@ -22,6 +27,7 @@ from render.experimental.sandbox.types import (
     SandboxGroupList,
     SandboxList,
     SandboxPlan,
+    SandboxWaitOptions,
     Snapshot,
     SnapshotList,
 )
@@ -31,6 +37,7 @@ __all__ = [
     "NetworkPolicy",
     "Sandbox",
     "SandboxClient",
+    "SandboxCreateWaitError",
     "SandboxDownloadError",
     "SandboxExecError",
     "SandboxExecEvent",
@@ -42,11 +49,16 @@ __all__ = [
     "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
+    "SandboxNotRunningError",
     "SandboxPlan",
+    "SandboxWaitOptions",
+    "SandboxWaitTimeoutError",
     "Snapshot",
     "SnapshotClient",
+    "SnapshotFailedError",
     "SnapshotList",
     "SnapshotNotFoundError",
     "SnapshotNotReadyError",
     "SnapshotPlanMismatchError",
+    "SnapshotWaitTimeoutError",
 ]

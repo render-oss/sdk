@@ -58,43 +58,20 @@ def sandboxes():
 
 
 async def _wait_until_running(sandboxes, sandbox_id, owner_id, timeout_s=180.0):
-    """Poll from_id until the sandbox is running, or fail on timeout/error."""
-    deadline = time.monotonic() + timeout_s
-    while True:
-        sandbox = await sandboxes.from_id(sandbox_id, owner_id=owner_id)
-        if sandbox.status == "running":
-            return sandbox
-        if sandbox.status in ("errored", "terminated"):
-            raise AssertionError(
-                f"sandbox {sandbox_id} reached terminal status {sandbox.status!r}"
-            )
-        if time.monotonic() > deadline:
-            raise AssertionError(
-                f"sandbox {sandbox_id} still {sandbox.status!r} after {timeout_s}s"
-            )
-        await asyncio.sleep(3.0)
+    return await sandboxes.wait_until_running(
+        sandbox_id, owner_id=owner_id, timeout_seconds=timeout_s
+    )
 
 
 async def _wait_until_snapshot_available(
     sandboxes, snapshot, owner_id, timeout_s=180.0
 ):
-    """Poll a snapshot until it is available, or fail on timeout/error."""
-    deadline = time.monotonic() + timeout_s
-    while True:
-        current = await sandboxes.snapshots.from_id(
-            sandbox_group_id=snapshot.sandbox_group_id,
-            snapshot_id=snapshot.id,
-            owner_id=owner_id,
-        )
-        if current.status == "available":
-            return current
-        if current.status == "failed":
-            raise AssertionError(f"snapshot {snapshot.id} failed: {current.error}")
-        if time.monotonic() > deadline:
-            raise AssertionError(
-                f"snapshot {snapshot.id} still {current.status!r} after {timeout_s}s"
-            )
-        await asyncio.sleep(3.0)
+    return await sandboxes.snapshots.wait_until_available(
+        sandbox_group_id=snapshot.sandbox_group_id,
+        snapshot_id=snapshot.id,
+        owner_id=owner_id,
+        timeout_seconds=timeout_s,
+    )
 
 
 async def _exec_output(sandboxes, sandbox_id, owner_id, command):

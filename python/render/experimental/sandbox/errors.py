@@ -1,6 +1,7 @@
 """Sandbox-specific exceptions."""
 
 from render.client.errors import ClientError, RenderError
+from render.client.errors import TimeoutError as RenderTimeoutError
 
 
 class SandboxNotFoundError(ClientError):
@@ -51,3 +52,90 @@ class SandboxExecStreamError(RenderError):
         super().__init__(message)
         self.status = status
         self.message = message
+
+
+class SandboxNotRunningError(RenderError):
+    """Raised while waiting for a sandbox to be running when it reaches a status
+    it can't run from: errored, terminated, suspending, or suspended. The
+    sandbox is left as it is."""
+
+    def __init__(self, message: str, *, sandbox_id: str, sandbox_status: str) -> None:
+        super().__init__(message)
+        self.sandbox_id = sandbox_id
+        self.sandbox_status = sandbox_status
+
+
+class SnapshotFailedError(RenderError):
+    """Raised while waiting for a snapshot to be available when its capture
+    fails. snapshot_error is the reason the API reports, if any."""
+
+    def __init__(
+        self, message: str, *, snapshot_id: str, snapshot_error: str | None
+    ) -> None:
+        super().__init__(message)
+        self.snapshot_id = snapshot_id
+        self.snapshot_error = snapshot_error
+
+
+class SandboxWaitTimeoutError(RenderTimeoutError):
+    """Raised when a sandbox is not running before the wait times out.
+
+    The sandbox is left as it is and may still become running. last_status is
+    None if no status check finished in time.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        sandbox_id: str,
+        timeout_seconds: float,
+        last_status: str | None,
+    ) -> None:
+        super().__init__(message)
+        self.sandbox_id = sandbox_id
+        self.timeout_seconds = timeout_seconds
+        self.last_status = last_status
+
+
+class SnapshotWaitTimeoutError(RenderTimeoutError):
+    """Raised when a snapshot is not available before the wait times out.
+
+    It may still become available. last_status is None if no status check
+    finished in time.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        snapshot_id: str,
+        timeout_seconds: float,
+        last_status: str | None,
+    ) -> None:
+        super().__init__(message)
+        self.snapshot_id = snapshot_id
+        self.timeout_seconds = timeout_seconds
+        self.last_status = last_status
+
+
+class SandboxCreateWaitError(RenderError):
+    """Raised by create(wait=...) when it created the sandbox but the wait for it
+    to be running failed.
+
+    The sandbox still exists and is billed until it ends, so call
+    terminate(sandbox_id) if you don't want it. cause, also set as __cause__, is
+    the error the wait raised, such as SandboxNotRunningError,
+    SandboxWaitTimeoutError, or a request error.
+
+    Cancelling the task or interrupting the process is not wrapped, because
+    that would break cancellation. That includes the timeout of
+    asyncio.wait_for, so bound the wait with
+    SandboxWaitOptions(timeout_seconds=...) instead. To keep the id through a
+    cancel, call create without wait and then wait_until_running.
+    """
+
+    def __init__(self, message: str, *, sandbox_id: str, cause: Exception) -> None:
+        super().__init__(message)
+        self.sandbox_id = sandbox_id
+        self.cause = cause

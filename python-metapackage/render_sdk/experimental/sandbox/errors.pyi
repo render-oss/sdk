@@ -2,12 +2,18 @@
 from render.experimental.sandbox.errors import (
     ClientError as ClientError,
     RenderError as RenderError,
+    RenderTimeoutError as RenderTimeoutError,
+    SandboxCreateWaitError as SandboxCreateWaitError,
     SandboxDownloadError as SandboxDownloadError,
     SandboxExecError as SandboxExecError,
     SandboxExecStreamError as SandboxExecStreamError,
     SandboxFileNotFoundError as SandboxFileNotFoundError,
     SandboxNotFoundError as SandboxNotFoundError,
+    SandboxNotRunningError as SandboxNotRunningError,
+    SandboxWaitTimeoutError as SandboxWaitTimeoutError,
+    SnapshotFailedError as SnapshotFailedError,
     SnapshotNotFoundError as SnapshotNotFoundError,
     SnapshotNotReadyError as SnapshotNotReadyError,
     SnapshotPlanMismatchError as SnapshotPlanMismatchError,
+    SnapshotWaitTimeoutError as SnapshotWaitTimeoutError,
 )

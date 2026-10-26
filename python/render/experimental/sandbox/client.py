@@ -8,7 +8,13 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 from render.client.errors import RenderError
+from render.experimental.sandbox import _wait
 from render.experimental.sandbox.api import SandboxApi
+from render.experimental.sandbox.errors import (
+    SandboxCreateWaitError,
+    SandboxWaitTimeoutError,
+    SnapshotWaitTimeoutError,
+)
 from render.experimental.sandbox.files import normalize_remote_path
 from render.experimental.sandbox.types import (
     NetworkPolicy,
@@ -17,6 +23,7 @@ from render.experimental.sandbox.types import (
     SandboxGroupList,
     SandboxList,
     SandboxPlan,
+    SandboxWaitOptions,
     Snapshot,
     SnapshotList,
 )
@@ -64,6 +71,7 @@ class SandboxClient:
         env: dict[str, str] | None = None,
         snapshot_id: str | None = None,
         snapshot_name: str | None = None,
+        wait: bool | SandboxWaitOptions = False,
     ) -> Sandbox:
         """Create a sandbox and return its initial state.
 
@@ -84,12 +92,28 @@ class SandboxClient:
         SnapshotNotFoundError if the snapshot ID or name does not resolve,
         SnapshotNotReadyError if it is not available, and
         SnapshotPlanMismatchError on a runtime plan mismatch.
+
+        wait returns the sandbox only once it is running, as wait_until_running
+        does. True uses the default wait; a SandboxWaitOptions sets its timeout
+        and interval. The wait starts after the create request returns. If it
+        fails, create raises SandboxCreateWaitError with the new sandbox's id,
+        so you can terminate it.
+
+        To bound the wait, set SandboxWaitOptions(timeout_seconds=...). Don't
+        wrap create(wait=...) in asyncio.wait_for: its timeout cancels the task,
+        and a cancelled create loses the new sandbox's id.
         """
         if snapshot_id is not None and snapshot_name is not None:
             raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
+        wait_options = wait if isinstance(wait, SandboxWaitOptions) else None
+        if wait and wait_options is None:
+            wait_options = SandboxWaitOptions()
+        if wait_options is not None:
+            # Check before the sandbox exists, so bad options can't strand it.
+            _wait.validate(wait_options.timeout_seconds, wait_options.interval_seconds)
         resolved_owner_id = self._resolve_owner_id(owner_id)
         resolved_region = region or self._default_region
-        return await self.api.create(
+        sandbox = await self.api.create(
             owner_id=resolved_owner_id,
             plan=plan,
             timeout_seconds=timeout_seconds,
@@ -99,6 +123,59 @@ class SandboxClient:
             env=env,
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,
+        )
+        if wait_options is None:
+            return sandbox
+        # The sandbox exists from here on, so every failure must give the
+        # caller its id.
+        try:
+            return _wait.running_sandbox(sandbox) or await self.wait_until_running(
+                sandbox.id,
+                timeout_seconds=wait_options.timeout_seconds,
+                interval_seconds=wait_options.interval_seconds,
+                owner_id=resolved_owner_id,
+            )
+        except Exception as exc:
+            raise SandboxCreateWaitError(
+                f"created sandbox {sandbox.id}, but it is not running: {exc}",
+                sandbox_id=sandbox.id,
+                cause=exc,
+            ) from exc
+
+    async def wait_until_running(
+        self,
+        sandbox_id: str,
+        *,
+        timeout_seconds: float = _wait.DEFAULT_SANDBOX_TIMEOUT_SECONDS,
+        interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
+        owner_id: str | None = None,
+    ) -> Sandbox:
+        """Wait until the sandbox is running, so it can run commands, and return it.
+
+        Checks the status every interval_seconds, doubling the delay after each
+        check up to 2 seconds. timeout_seconds bounds the whole wait, including
+        status checks. Raises SandboxNotRunningError as soon as the sandbox is
+        errored, terminated, suspending, or suspended, and
+        SandboxWaitTimeoutError after timeout_seconds. Neither terminates the
+        sandbox. Errors from a status check, such as SandboxNotFoundError,
+        propagate unchanged.
+        """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+
+        def timeout_error(last: Sandbox | None) -> SandboxWaitTimeoutError:
+            return SandboxWaitTimeoutError(
+                f"timed out waiting for sandbox {sandbox_id} to be running",
+                sandbox_id=sandbox_id,
+                timeout_seconds=timeout_seconds,
+                last_status=last.status if last else None,
+            )
+
+        return await _wait.apoll_until(
+            lambda: self.api.get(sandbox_id, resolved_owner_id),
+            _wait.running_sandbox,
+            timeout_seconds=timeout_seconds,
+            interval_seconds=interval_seconds,
+            timeout_error=timeout_error,
         )
 
     async def from_id(self, sandbox_id: str, *, owner_id: str | None = None) -> Sandbox:
@@ -236,7 +313,7 @@ class SnapshotClient:
         CPU state). name is case sensitive and can be reused within a sandbox
         group. expires_at must be in the future; omit it for Render's default
         snapshot lifetime. The snapshot is returned in
-        status creating; poll from_id until it is available or failed. Raises
+        status creating; call wait_until_available to wait for it. Raises
         SandboxNotFoundError if the sandbox does not exist, and a ClientError
         with code sandbox_not_running if it is not running.
         """
@@ -262,6 +339,44 @@ class SnapshotClient:
         """
         return await self._sandboxes.api.get_snapshot(
             sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
+        )
+
+    async def wait_until_available(
+        self,
+        *,
+        sandbox_group_id: str,
+        snapshot_id: str,
+        timeout_seconds: float = _wait.DEFAULT_SNAPSHOT_TIMEOUT_SECONDS,
+        interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
+        owner_id: str | None = None,
+    ) -> Snapshot:
+        """Wait until the snapshot is available, so sandboxes can start from it.
+
+        Checks the status every interval_seconds, doubling the delay after each
+        check up to 2 seconds. timeout_seconds bounds the whole wait, including
+        status checks. Raises SnapshotFailedError, with the API's reason, as
+        soon as the capture fails, and SnapshotWaitTimeoutError after
+        timeout_seconds. Errors from a status check, such as
+        SnapshotNotFoundError, propagate unchanged.
+        """
+        resolved_owner_id = self._sandboxes._optional_owner_id(owner_id)
+
+        def timeout_error(last: Snapshot | None) -> SnapshotWaitTimeoutError:
+            return SnapshotWaitTimeoutError(
+                f"timed out waiting for snapshot {snapshot_id} to be available",
+                snapshot_id=snapshot_id,
+                timeout_seconds=timeout_seconds,
+                last_status=last.status if last else None,
+            )
+
+        return await _wait.apoll_until(
+            lambda: self._sandboxes.api.get_snapshot(
+                sandbox_group_id, snapshot_id, resolved_owner_id
+            ),
+            _wait.available_snapshot,
+            timeout_seconds=timeout_seconds,
+            interval_seconds=interval_seconds,
+            timeout_error=timeout_error,
         )
 
     async def list(

@@ -17,6 +17,7 @@ __all__ = [
     "NetworkPolicy",
     "Sandbox",
     "SandboxClient",
+    "SandboxCreateWaitError",
     "SandboxDownloadError",
     "SandboxExecError",
     "SandboxExecEvent",
@@ -28,13 +29,18 @@ __all__ = [
     "SandboxGroupList",
     "SandboxList",
     "SandboxNotFoundError",
+    "SandboxNotRunningError",
     "SandboxPlan",
+    "SandboxWaitOptions",
+    "SandboxWaitTimeoutError",
     "Snapshot",
     "SnapshotClient",
+    "SnapshotFailedError",
     "SnapshotList",
     "SnapshotNotFoundError",
     "SnapshotNotReadyError",
     "SnapshotPlanMismatchError",
+    "SnapshotWaitTimeoutError",
 ]
 
 

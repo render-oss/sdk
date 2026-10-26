@@ -6,6 +6,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
+from render.experimental.sandbox._wait import (
+    DEFAULT_INTERVAL_SECONDS,
+    DEFAULT_SANDBOX_TIMEOUT_SECONDS,
+)
+
 # The plans the API offered when this SDK was released, for editor hints. The
 # API can add plans at any time, and create() sends any plan string as is, so a
 # newer plan works without an SDK update.
@@ -50,6 +55,19 @@ class Sandbox:
     idle_timeout_seconds: int
     created_at: datetime
     terminated_at: datetime | None = None
+
+
+@dataclass
+class SandboxWaitOptions:
+    """How create(wait=...) waits for the sandbox to be running.
+
+    timeout_seconds bounds the whole wait, including status checks.
+    interval_seconds is the first delay between checks. It doubles after each
+    check, up to 2 seconds or interval_seconds, whichever is longer.
+    """
+
+    timeout_seconds: float = DEFAULT_SANDBOX_TIMEOUT_SECONDS
+    interval_seconds: float = DEFAULT_INTERVAL_SECONDS
 
 
 @dataclass

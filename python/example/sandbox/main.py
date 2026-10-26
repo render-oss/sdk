@@ -24,7 +24,8 @@ async def main() -> None:
     render = RenderAsync()
     sandboxes = render.experimental.sandboxes
 
-    sandbox = await sandboxes.create()
+    # wait=True returns once the sandbox is running and can run commands.
+    sandbox = await sandboxes.create(wait=True)
     print(f"created {sandbox.id} ({sandbox.status})")
     try:
         await run(sandboxes, sandbox.id, "echo hello from render")
