@@ -200,6 +200,26 @@ export class SandboxCreateWaitError extends RenderError {
   }
 }
 
+/**
+ * `snapshots.create({ wait })` created the snapshot, but the wait for it to be `available`
+ * failed. The snapshot still exists, so delete it with `sandboxGroupId` and `snapshotId` if you
+ * don't want it. Deleting fails with `SandboxSnapshotNotReadyError` while the capture is still
+ * running. `cause` is the error the wait threw, such as `SandboxSnapshotFailedError`,
+ * `SandboxSnapshotWaitTimeoutError`, `AbortError`, or a request error.
+ */
+export class SandboxSnapshotCreateWaitError extends RenderError {
+  constructor(
+    message: string,
+    public snapshotId: string,
+    public sandboxGroupId: string,
+    public cause: unknown,
+  ) {
+    super(message);
+    this.name = "SandboxSnapshotCreateWaitError";
+    Object.setPrototypeOf(this, SandboxSnapshotCreateWaitError.prototype);
+  }
+}
+
 export class AbortError extends Error {
   constructor() {
     super("The operation was aborted.");

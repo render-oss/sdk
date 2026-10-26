@@ -6,6 +6,7 @@ import {
   SandboxCreateWaitError,
   SandboxEndedError,
   SandboxNotRunningError,
+  SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
   SandboxSnapshotNotFoundError,
   SandboxSnapshotNotReadyError,
@@ -1883,6 +1884,151 @@ describe("SandboxesClient", () => {
         expect(error.sandboxId).toBe("sbx-123");
         expect(error.cause).toBeInstanceOf(cause);
         expect(vi.getTimerCount()).toBe(0);
+      });
+    });
+
+    describe("snapshots.create with wait", () => {
+      const clientWith = (created: ReturnType<typeof snapshotWithStatus>, ...polled: string[]) => {
+        const POST = vi.fn().mockResolvedValue({
+          ...created,
+          response: new Response(null, { status: 202 }),
+        });
+        const GET = vi.fn();
+        for (const status of polled) GET.mockResolvedValueOnce(snapshotWithStatus(status));
+        const client = new SandboxesClient(
+          { POST, GET } as unknown as Client<paths>,
+          "tea-default",
+        );
+        return { client, POST, GET };
+      };
+
+      it("returns the created snapshot without polling when wait is unset", async () => {
+        const { client, GET } = clientWith(snapshotWithStatus("creating"));
+
+        await expect(client.snapshots.create({ sandboxId: "sbx-123" })).resolves.toMatchObject({
+          status: "creating",
+        });
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      it("polls the new snapshot until available and keeps wait out of the request", async () => {
+        const { client, POST, GET } = clientWith(
+          snapshotWithStatus("creating"),
+          "creating",
+          "available",
+        );
+
+        const waiting = client.snapshots.create({
+          sandboxId: "sbx-123",
+          ownerId: "tea-test",
+          wait: true,
+        });
+        await vi.advanceTimersByTimeAsync(250);
+
+        await expect(waiting).resolves.toMatchObject({ status: "available" });
+        expect(POST.mock.calls[0][1]).not.toHaveProperty("body");
+        expect(GET).toHaveBeenCalledTimes(2);
+        expect(GET.mock.calls[0][0]).toBe(
+          "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}",
+        );
+        expect(GET.mock.calls[0][1].params).toEqual({
+          path: { sandboxGroupId: "sbg-123", snapshotId: SNAPSHOT.id },
+          query: { ownerId: "tea-test" },
+        });
+      });
+
+      it("skips polling when the created snapshot is already available", async () => {
+        const { client, GET } = clientWith(snapshotWithStatus("available"));
+
+        await expect(
+          client.snapshots.create({ sandboxId: "sbx-123", wait: true }),
+        ).resolves.toMatchObject({ status: "available" });
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      // Matches the CLI's `sandboxes snapshots create --wait`.
+      it("times out after 5 minutes by default", async () => {
+        const { client, GET } = clientWith(snapshotWithStatus("creating"));
+        GET.mockResolvedValue(snapshotWithStatus("creating"));
+
+        const waiting = client.snapshots
+          .create({ sandboxId: "sbx-123", wait: true })
+          .catch((err) => err);
+        await vi.advanceTimersByTimeAsync(5 * 60_000);
+        const error = await waiting;
+
+        expect(error).toBeInstanceOf(SandboxSnapshotCreateWaitError);
+        expect(error.cause).toBeInstanceOf(SandboxSnapshotWaitTimeoutError);
+        expect(error.cause).toMatchObject({ timeoutMs: 5 * 60_000, lastStatus: "creating" });
+      });
+
+      it("gives both IDs when the capture fails", async () => {
+        const { client, GET } = clientWith(snapshotWithStatus("failed", "capture timed out"));
+
+        const error = await client.snapshots
+          .create({ sandboxId: "sbx-123", wait: true })
+          .catch((err) => err);
+
+        expect(error).toBeInstanceOf(SandboxSnapshotCreateWaitError);
+        expect(error).toMatchObject({
+          message: `Created snapshot ${SNAPSHOT.id}, but it is not available: Snapshot ${SNAPSHOT.id} failed to capture: capture timed out`,
+          snapshotId: SNAPSHOT.id,
+          sandboxGroupId: "sbg-123",
+        });
+        expect(error.cause).toBeInstanceOf(SandboxSnapshotFailedError);
+        expect(GET).not.toHaveBeenCalled();
+      });
+
+      // Without the IDs, the caller can't delete a snapshot it didn't want.
+      it.each([
+        { name: "the caller aborts", abort: true, poll: undefined, cause: AbortError },
+        {
+          name: "a status check gets a 5xx",
+          abort: false,
+          poll: {
+            data: undefined,
+            error: { message: "unavailable" },
+            response: new Response(null, { status: 503 }),
+          },
+          cause: ServerError,
+        },
+        {
+          name: "the fetch fails",
+          abort: false,
+          poll: new TypeError("fetch failed"),
+          cause: TypeError,
+        },
+      ])("gives both IDs when $name", async ({ abort, poll, cause }) => {
+        const { client, GET } = clientWith(snapshotWithStatus("creating"));
+        if (poll instanceof Error) GET.mockRejectedValue(poll);
+        else GET.mockResolvedValue(poll ?? snapshotWithStatus("creating"));
+        const controller = new AbortController();
+
+        const waiting = client.snapshots
+          .create({ sandboxId: "sbx-123", wait: { signal: controller.signal } })
+          .catch((err) => err);
+        await vi.advanceTimersByTimeAsync(0);
+        if (abort) controller.abort();
+        const error = await waiting;
+
+        expect(error).toBeInstanceOf(SandboxSnapshotCreateWaitError);
+        expect(error).toMatchObject({ snapshotId: SNAPSHOT.id, sandboxGroupId: "sbg-123" });
+        expect(error.cause).toBeInstanceOf(cause);
+        expect(vi.getTimerCount()).toBe(0);
+      });
+
+      // No snapshot exists yet, so these throw plainly.
+      it.each([
+        { wait: { timeoutMs: -1 }, error: RangeError },
+        { wait: { intervalMs: 0 }, error: RangeError },
+        { wait: { signal: AbortSignal.abort() }, error: AbortError },
+      ])("rejects $wait without creating a snapshot", async ({ wait, error }) => {
+        const { client, POST } = clientWith(snapshotWithStatus("available"));
+
+        await expect(client.snapshots.create({ sandboxId: "sbx-123", wait })).rejects.toThrow(
+          error,
+        );
+        expect(POST).not.toHaveBeenCalled();
       });
     });
   });

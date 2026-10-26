@@ -9,6 +9,7 @@ import {
   SandboxCreateWaitError,
   SandboxEndedError,
   SandboxNotRunningError,
+  SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
   SandboxSnapshotNotFoundError,
   SandboxSnapshotWaitTimeoutError,
@@ -176,6 +177,13 @@ export type SandboxSnapshotCreateInput = {
   expiresAt?: string;
   /** Defaults to the client's owner ID. */
   ownerId?: `tea-${string}`;
+  /**
+   * Resolve only once the snapshot is `available`, as `waitUntilAvailable` does. `true` uses the
+   * default wait options. Bad options throw `RangeError`, and an already-aborted signal throws
+   * `AbortError`, before the create request, so neither creates a snapshot. If the wait fails,
+   * `create()` throws `SandboxSnapshotCreateWaitError` with the new snapshot's IDs.
+   */
+  wait?: boolean | SandboxWaitOptions;
 };
 
 /** Options for retrieving a snapshot. */
@@ -291,6 +299,44 @@ function runningSandbox(sandbox: Sandbox): Sandbox | undefined {
   }
 }
 
+/**
+ * Returns the snapshot if it is `available`, or `undefined` if it is still capturing.
+ * Throws `SandboxSnapshotFailedError` if the capture failed.
+ */
+function availableSnapshot(snapshot: SandboxSnapshot): SandboxSnapshot | undefined {
+  if (snapshot.status === "available") return snapshot;
+  if (snapshot.status === "failed") {
+    throw new SandboxSnapshotFailedError(
+      `Snapshot ${snapshot.id} failed to capture${snapshot.error ? `: ${snapshot.error}` : ""}`,
+      snapshot.id,
+      snapshot.error ?? undefined,
+    );
+  }
+  return undefined;
+}
+
+/**
+ * Fills in the defaults for a `create({ wait })` and checks them before the create request, so
+ * bad options or an early abort create nothing. Returns `undefined` when not waiting.
+ */
+function resolveCreateWait(
+  wait: boolean | SandboxWaitOptions | undefined,
+  defaultTimeoutMs: number,
+): (SandboxWaitOptions & { timeoutMs: number; intervalMs: number }) | undefined {
+  const options = wait === true ? {} : wait || undefined;
+  if (!options) return undefined;
+  const resolved = {
+    ...options,
+    timeoutMs: options.timeoutMs ?? defaultTimeoutMs,
+    intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+  };
+  validateOptions(resolved);
+  if (resolved.signal?.aborted) {
+    throw new AbortError();
+  }
+  return resolved;
+}
+
 export class SandboxSnapshotsClient {
   constructor(
     private readonly apiClient: Client<paths>,
@@ -303,13 +349,15 @@ export class SandboxSnapshotsClient {
     name,
     expiresAt,
     ownerId,
+    wait: waitInput,
   }: SandboxSnapshotCreateInput): Promise<SandboxSnapshot> {
+    const wait = resolveCreateWait(waitInput, DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS);
     const body = {
       ...(kind ? { kind } : {}),
       ...(name === undefined ? {} : { name }),
       ...(expiresAt ? { expiresAt } : {}),
     } as components["schemas"]["sandboxSnapshotPOST"];
-    return unwrap(
+    const snapshot = unwrap(
       await this.apiClient.POST("/sandboxes/{sandboxId}/snapshots", {
         params: {
           path: { sandboxId },
@@ -319,6 +367,27 @@ export class SandboxSnapshotsClient {
       }),
       "Failed to create snapshot",
     );
+    if (!wait) {
+      return snapshot;
+    }
+    // The snapshot exists from here on, so every failure must give the caller its IDs.
+    try {
+      return (
+        availableSnapshot(snapshot) ??
+        (await this.waitUntilAvailable(
+          { sandboxGroupId: snapshot.sandboxGroupId, snapshotId: snapshot.id, ownerId },
+          wait,
+        ))
+      );
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new SandboxSnapshotCreateWaitError(
+        `Created snapshot ${snapshot.id}, but it is not available: ${reason}`,
+        snapshot.id,
+        snapshot.sandboxGroupId,
+        err,
+      );
+    }
   }
 
   async get(
@@ -347,31 +416,18 @@ export class SandboxSnapshotsClient {
     input: SandboxSnapshotGetInput,
     options: SandboxWaitOptions = {},
   ): Promise<SandboxSnapshot> {
-    return pollUntil(
-      (signal) => this.get(input, signal),
-      (snapshot) => {
-        if (snapshot.status === "available") return snapshot;
-        if (snapshot.status === "failed") {
-          throw new SandboxSnapshotFailedError(
-            `Snapshot ${snapshot.id} failed to capture${snapshot.error ? `: ${snapshot.error}` : ""}`,
-            snapshot.id,
-            snapshot.error ?? undefined,
-          );
-        }
-      },
-      {
-        timeoutMs: options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
-        intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
-        signal: options.signal,
-        timeoutError: (last) =>
-          new SandboxSnapshotWaitTimeoutError(
-            `Timed out waiting for snapshot ${input.snapshotId} to be available`,
-            input.snapshotId,
-            options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
-            last?.status,
-          ),
-      },
-    );
+    return pollUntil((signal) => this.get(input, signal), availableSnapshot, {
+      timeoutMs: options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
+      intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+      signal: options.signal,
+      timeoutError: (last) =>
+        new SandboxSnapshotWaitTimeoutError(
+          `Timed out waiting for snapshot ${input.snapshotId} to be available`,
+          input.snapshotId,
+          options.timeoutMs ?? DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS,
+          last?.status,
+        ),
+    });
   }
 
   async list({
@@ -465,19 +521,7 @@ export class SandboxesClient {
   }
 
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
-    const waitOptions = input.wait === true ? {} : input.wait || undefined;
-    const wait = waitOptions && {
-      ...waitOptions,
-      timeoutMs: waitOptions.timeoutMs ?? DEFAULT_SANDBOX_WAIT_TIMEOUT_MS,
-      intervalMs: waitOptions.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
-    };
-    // Check before the sandbox exists, so bad options or an early abort create nothing.
-    if (wait) {
-      validateOptions(wait);
-      if (wait.signal?.aborted) {
-        throw new AbortError();
-      }
-    }
+    const wait = resolveCreateWait(input.wait, DEFAULT_SANDBOX_WAIT_TIMEOUT_MS);
     const region = input.region ?? this.defaultRegion;
     const ownerId = this.resolveOwnerId(input.ownerId);
     const body = {
