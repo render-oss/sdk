@@ -11,6 +11,7 @@ from render.experimental.sandbox.errors import (
     SandboxNotFoundError as SandboxNotFoundError,
     SandboxNotRunningError as SandboxNotRunningError,
     SandboxWaitTimeoutError as SandboxWaitTimeoutError,
+    SnapshotCreateWaitError as SnapshotCreateWaitError,
     SnapshotFailedError as SnapshotFailedError,
     SnapshotNotFoundError as SnapshotNotFoundError,
     SnapshotNotReadyError as SnapshotNotReadyError,

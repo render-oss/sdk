@@ -14,6 +14,7 @@ from render.experimental.sandbox.errors import (
     SandboxNotFoundError,
     SandboxNotRunningError,
     SandboxWaitTimeoutError,
+    SnapshotCreateWaitError,
     SnapshotFailedError,
     SnapshotWaitTimeoutError,
 )
@@ -70,6 +71,8 @@ class _Api:
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         self.requests.append(request)
+        if request.method == "POST" and self.snapshot:
+            return httpx.Response(202, json=_snapshot_json(*self.created))
         if request.method == "POST":
             return httpx.Response(201, json=_sandbox_json(self.created))
         status = self.polled.pop(0) if len(self.polled) > 1 else self.polled[0]
@@ -516,3 +519,142 @@ async def test_create_with_wait_lets_cancellation_through():
 
     with pytest.raises(asyncio.CancelledError):
         await task
+
+
+@pytest.mark.asyncio
+async def test_a_wait_options_timeout_of_none_uses_the_sandbox_default(
+    make_client, clock
+):
+    client = make_client(_Api("creating"))
+
+    with pytest.raises(SandboxCreateWaitError) as excinfo:
+        await _resolve(client.create(wait=SandboxWaitOptions(interval_seconds=1)))
+
+    assert excinfo.value.cause.timeout_seconds == 60
+    assert clock.now == pytest.approx(60)
+
+
+def _snapshot_api(*polled, created=("creating",)):
+    return _Api(*polled, created=created, snapshot=True)
+
+
+@pytest.mark.asyncio
+async def test_snapshot_create_without_wait_returns_without_polling(make_client):
+    api = _snapshot_api(("available",))
+    client = make_client(api)
+
+    snapshot = await _resolve(client.snapshots.create("sbx-abc"))
+
+    assert snapshot.status == "creating"
+    assert api.gets == []
+
+
+@pytest.mark.asyncio
+async def test_snapshot_create_with_wait_polls_the_new_snapshot(make_client, clock):
+    api = _snapshot_api(("creating",), ("available",))
+    client = make_client(api)
+
+    snapshot = await _resolve(
+        client.snapshots.create("sbx-abc", name="gold", owner_id="tea-x", wait=True)
+    )
+
+    assert snapshot.status == "available"
+    body = json.loads(api.requests[0].content)
+    assert not any("wait" in key.lower() for key in body)
+    assert len(api.gets) == 2
+    assert api.gets[0].url.path == "/v1/sandbox-groups/sbg-abc/snapshots/snp-abc"
+    assert api.gets[0].url.params["ownerId"] == "tea-x"
+
+
+@pytest.mark.asyncio
+async def test_snapshot_create_with_wait_skips_polling_when_already_available(
+    make_client,
+):
+    api = _snapshot_api(("available",), created=("available",))
+    client = make_client(api)
+
+    snapshot = await _resolve(client.snapshots.create("sbx-abc", wait=True))
+
+    assert snapshot.status == "available"
+    assert api.gets == []
+
+
+# Matches the CLI's `sandboxes snapshots create --wait`.
+@pytest.mark.asyncio
+async def test_snapshot_create_with_wait_times_out_after_5_minutes_by_default(
+    make_client, clock
+):
+    client = make_client(_snapshot_api(("creating",)))
+
+    with pytest.raises(SnapshotCreateWaitError) as excinfo:
+        await _resolve(client.snapshots.create("sbx-abc", wait=True))
+
+    cause = excinfo.value.cause
+    assert isinstance(cause, SnapshotWaitTimeoutError)
+    assert cause.timeout_seconds == 300
+    assert cause.last_status == "creating"
+    assert clock.now == pytest.approx(300)
+
+
+@pytest.mark.asyncio
+async def test_snapshot_create_with_wait_gives_both_ids_when_the_capture_fails(
+    make_client,
+):
+    api = _snapshot_api(("available",), created=("failed", "capture timed out"))
+    client = make_client(api)
+
+    with pytest.raises(SnapshotCreateWaitError) as excinfo:
+        await _resolve(client.snapshots.create("sbx-abc", wait=True))
+
+    error = excinfo.value
+    assert str(error) == (
+        "created snapshot snp-abc, but it is not available: "
+        "snapshot snp-abc failed to capture: capture timed out"
+    )
+    assert error.snapshot_id == "snp-abc"
+    assert error.sandbox_group_id == "sbg-abc"
+    assert isinstance(error.cause, SnapshotFailedError)
+    assert error.__cause__ is error.cause
+    assert api.gets == []
+
+
+# Without the ids, the caller can't delete a snapshot it didn't want.
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("polled", "cause"),
+    [
+        (lambda: httpx.Response(503, json={"message": "unavailable"}), ServerError),
+        (lambda: httpx.ConnectError("connection refused"), RenderError),
+    ],
+    ids=["5xx", "connection"],
+)
+async def test_snapshot_create_with_wait_gives_both_ids_when_the_wait_fails(
+    make_client, clock, polled, cause
+):
+    client = make_client(_snapshot_api(polled()))
+
+    with pytest.raises(SnapshotCreateWaitError) as excinfo:
+        await _resolve(client.snapshots.create("sbx-abc", wait=True))
+
+    assert excinfo.value.snapshot_id == "snp-abc"
+    assert excinfo.value.sandbox_group_id == "sbg-abc"
+    assert isinstance(excinfo.value.cause, cause)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "options",
+    [{"timeout_seconds": -1}, {"interval_seconds": 0}],
+)
+async def test_snapshot_create_rejects_bad_wait_options_without_a_request(
+    make_client, options
+):
+    api = _snapshot_api(("available",), created=("available",))
+    client = make_client(api)
+
+    with pytest.raises(ValueError):
+        await _resolve(
+            client.snapshots.create("sbx-abc", wait=SandboxWaitOptions(**options))
+        )
+
+    assert api.requests == []

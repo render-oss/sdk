@@ -15,6 +15,7 @@ from render.experimental.sandbox.client_sync import (
     SandboxWaitTimeoutError as SandboxWaitTimeoutError,
     Sequence as Sequence,
     Snapshot as Snapshot,
+    SnapshotCreateWaitError as SnapshotCreateWaitError,
     SnapshotList as SnapshotList,
     SnapshotWaitTimeoutError as SnapshotWaitTimeoutError,
     SyncSandboxApi as SyncSandboxApi,

@@ -6,10 +6,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Literal
 
-from render.experimental.sandbox._wait import (
-    DEFAULT_INTERVAL_SECONDS,
-    DEFAULT_SANDBOX_TIMEOUT_SECONDS,
-)
+from render.experimental.sandbox._wait import DEFAULT_INTERVAL_SECONDS
 
 # The plans the API offered when this SDK was released, for editor hints. The
 # API can add plans at any time, and create() sends any plan string as is, so a
@@ -59,14 +56,15 @@ class Sandbox:
 
 @dataclass
 class SandboxWaitOptions:
-    """How create(wait=...) waits for the sandbox to be running.
+    """How create(wait=...) and snapshots.create(wait=...) wait for the result.
 
-    timeout_seconds bounds the whole wait, including status checks.
+    timeout_seconds bounds the whole wait, including status checks. None uses
+    the default: 60 seconds for a sandbox, 5 minutes for a snapshot.
     interval_seconds is the first delay between checks. It doubles after each
     check, up to 2 seconds or interval_seconds, whichever is longer.
     """
 
-    timeout_seconds: float = DEFAULT_SANDBOX_TIMEOUT_SECONDS
+    timeout_seconds: float | None = None
     interval_seconds: float = DEFAULT_INTERVAL_SECONDS
 
 

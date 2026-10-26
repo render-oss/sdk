@@ -13,6 +13,7 @@ from render.experimental.sandbox.api import SandboxApi
 from render.experimental.sandbox.errors import (
     SandboxCreateWaitError,
     SandboxWaitTimeoutError,
+    SnapshotCreateWaitError,
     SnapshotWaitTimeoutError,
 )
 from render.experimental.sandbox.files import normalize_remote_path
@@ -105,12 +106,9 @@ class SandboxClient:
         """
         if snapshot_id is not None and snapshot_name is not None:
             raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
-        wait_options = wait if isinstance(wait, SandboxWaitOptions) else None
-        if wait and wait_options is None:
-            wait_options = SandboxWaitOptions()
-        if wait_options is not None:
-            # Check before the sandbox exists, so bad options can't strand it.
-            _wait.validate(wait_options.timeout_seconds, wait_options.interval_seconds)
+        wait_settings = _wait.resolve_create_wait(
+            wait, _wait.DEFAULT_SANDBOX_TIMEOUT_SECONDS
+        )
         resolved_owner_id = self._resolve_owner_id(owner_id)
         resolved_region = region or self._default_region
         sandbox = await self.api.create(
@@ -124,15 +122,15 @@ class SandboxClient:
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,
         )
-        if wait_options is None:
+        if wait_settings is None:
             return sandbox
         # The sandbox exists from here on, so every failure must give the
         # caller its id.
         try:
             return _wait.running_sandbox(sandbox) or await self.wait_until_running(
                 sandbox.id,
-                timeout_seconds=wait_options.timeout_seconds,
-                interval_seconds=wait_options.interval_seconds,
+                timeout_seconds=wait_settings.timeout_seconds,
+                interval_seconds=wait_settings.interval_seconds,
                 owner_id=resolved_owner_id,
             )
         except Exception as exc:
@@ -306,6 +304,7 @@ class SnapshotClient:
         name: str | None = None,
         expires_at: datetime | None = None,
         owner_id: str | None = None,
+        wait: bool | SandboxWaitOptions = False,
     ) -> Snapshot:
         """Capture a snapshot of a running sandbox.
 
@@ -316,14 +315,47 @@ class SnapshotClient:
         status creating; call wait_until_available to wait for it. Raises
         SandboxNotFoundError if the sandbox does not exist, and a ClientError
         with code sandbox_not_running if it is not running.
+
+        wait returns the snapshot only once it is available, as
+        wait_until_available does. True uses the default wait; a
+        SandboxWaitOptions sets its timeout and interval. Bad options raise
+        ValueError before the create request. If the wait fails, create raises
+        SnapshotCreateWaitError with the new snapshot's ids.
+
+        To bound the wait, set SandboxWaitOptions(timeout_seconds=...). Don't
+        wrap create(wait=...) in asyncio.wait_for: its timeout cancels the task,
+        and a cancelled create loses the new snapshot's ids.
         """
-        return await self._sandboxes.api.create_snapshot(
+        wait_settings = _wait.resolve_create_wait(
+            wait, _wait.DEFAULT_SNAPSHOT_TIMEOUT_SECONDS
+        )
+        snapshot = await self._sandboxes.api.create_snapshot(
             sandbox_id,
             kind,
             name,
             expires_at,
             self._sandboxes._optional_owner_id(owner_id),
         )
+        if wait_settings is None:
+            return snapshot
+        # The snapshot exists from here on, so every failure must give the
+        # caller its ids.
+        try:
+            available = _wait.available_snapshot(snapshot)
+            return available or await self.wait_until_available(
+                sandbox_group_id=snapshot.sandbox_group_id,
+                snapshot_id=snapshot.id,
+                timeout_seconds=wait_settings.timeout_seconds,
+                interval_seconds=wait_settings.interval_seconds,
+                owner_id=owner_id,
+            )
+        except Exception as exc:
+            raise SnapshotCreateWaitError(
+                f"created snapshot {snapshot.id}, but it is not available: {exc}",
+                snapshot_id=snapshot.id,
+                sandbox_group_id=snapshot.sandbox_group_id,
+                cause=exc,
+            ) from exc
 
     async def from_id(
         self,

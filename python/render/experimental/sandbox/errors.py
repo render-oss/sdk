@@ -139,3 +139,31 @@ class SandboxCreateWaitError(RenderError):
         super().__init__(message)
         self.sandbox_id = sandbox_id
         self.cause = cause
+
+
+class SnapshotCreateWaitError(RenderError):
+    """Raised by snapshots.create(wait=...) when it created the snapshot but the
+    wait for it to be available failed.
+
+    The snapshot still exists, so delete it with snapshot_id and
+    sandbox_group_id if you don't want it. Deleting raises SnapshotNotReadyError
+    while the capture is still running. cause, also set as __cause__, is the
+    error the wait raised, such as SnapshotFailedError,
+    SnapshotWaitTimeoutError, or a request error. Cancelling the task or
+    interrupting the process is not wrapped, and that includes the timeout of
+    asyncio.wait_for, so bound the wait with
+    SandboxWaitOptions(timeout_seconds=...) instead.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        snapshot_id: str,
+        sandbox_group_id: str,
+        cause: Exception,
+    ) -> None:
+        super().__init__(message)
+        self.snapshot_id = snapshot_id
+        self.sandbox_group_id = sandbox_group_id
+        self.cause = cause

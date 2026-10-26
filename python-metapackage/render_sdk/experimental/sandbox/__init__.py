@@ -35,6 +35,7 @@ __all__ = [
     "SandboxWaitTimeoutError",
     "Snapshot",
     "SnapshotClient",
+    "SnapshotCreateWaitError",
     "SnapshotFailedError",
     "SnapshotList",
     "SnapshotNotFoundError",

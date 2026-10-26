@@ -11,7 +11,7 @@ import asyncio
 import math
 import time
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING, NamedTuple, TypeVar
 
 from render.experimental.sandbox.errors import (
     SandboxNotRunningError,
@@ -19,7 +19,11 @@ from render.experimental.sandbox.errors import (
 )
 
 if TYPE_CHECKING:
-    from render.experimental.sandbox.types import Sandbox, Snapshot
+    from render.experimental.sandbox.types import (
+        Sandbox,
+        SandboxWaitOptions,
+        Snapshot,
+    )
 
 # Matches the CLI's `sandboxes create --wait`.
 DEFAULT_SANDBOX_TIMEOUT_SECONDS = 60.0
@@ -49,6 +53,31 @@ def validate(timeout_seconds: float, interval_seconds: float) -> None:
         raise ValueError("timeout_seconds must be a finite number of at least 0")
     if not math.isfinite(interval_seconds) or interval_seconds <= 0:
         raise ValueError("interval_seconds must be a positive finite number")
+
+
+class WaitSettings(NamedTuple):
+    timeout_seconds: float
+    interval_seconds: float
+
+
+def resolve_create_wait(
+    wait: bool | SandboxWaitOptions, default_timeout_seconds: float
+) -> WaitSettings | None:
+    """Fill in the defaults for a create(wait=...), or return None if not waiting.
+
+    Raise ValueError for bad options. Call it before the create request, so bad
+    options create nothing.
+    """
+    if wait is False:
+        return None
+    timeout_seconds = default_timeout_seconds
+    interval_seconds = DEFAULT_INTERVAL_SECONDS
+    if wait is not True:
+        if wait.timeout_seconds is not None:
+            timeout_seconds = wait.timeout_seconds
+        interval_seconds = wait.interval_seconds
+    validate(timeout_seconds, interval_seconds)
+    return WaitSettings(timeout_seconds, interval_seconds)
 
 
 def running_sandbox(sandbox: Sandbox) -> Sandbox | None:

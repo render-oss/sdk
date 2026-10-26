@@ -18,6 +18,7 @@ from render.experimental.sandbox.client import (
     Sequence as Sequence,
     Snapshot as Snapshot,
     SnapshotClient as SnapshotClient,
+    SnapshotCreateWaitError as SnapshotCreateWaitError,
     SnapshotList as SnapshotList,
     SnapshotWaitTimeoutError as SnapshotWaitTimeoutError,
     TYPE_CHECKING as TYPE_CHECKING,
