@@ -76,6 +76,7 @@ from render.experimental.sandbox.types import (
 from render.public_api.api.sandboxes import (
     create_sandbox,
     create_sandbox_build,
+    create_sandbox_group,
     create_sandbox_snapshot,
     delete_sandbox_snapshot,
     list_sandbox_groups,
@@ -83,8 +84,10 @@ from render.public_api.api.sandboxes import (
     list_sandboxes,
     retrieve_sandbox,
     retrieve_sandbox_build,
+    retrieve_sandbox_group,
     retrieve_sandbox_snapshot,
     terminate_sandbox,
+    update_sandbox_group,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
@@ -98,6 +101,8 @@ from render.public_api.models.sandbox_egress_rule_protocol import (
     SandboxEgressRuleProtocol,
 )
 from render.public_api.models.sandbox_group import SandboxGroup as GeneratedSandboxGroup
+from render.public_api.models.sandbox_group_patch import SandboxGroupPATCH
+from render.public_api.models.sandbox_group_post import SandboxGroupPOST
 from render.public_api.models.sandbox_group_with_cursor import SandboxGroupWithCursor
 from render.public_api.models.sandbox_network_policy import (
     SandboxNetworkPolicy as GeneratedNetworkPolicy,
@@ -190,6 +195,7 @@ def _to_network_policy_post(policy: NetworkPolicy | str) -> SandboxNetworkPolicy
 def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
     return Sandbox(
         id=model.id,
+        sandbox_group_id=_set_or_none(model.sandbox_group_id),
         status=model.status.value,
         plan=str(model.plan),
         network_policy=_to_network_policy(model.network_policy),
@@ -339,8 +345,11 @@ class SyncSandboxApi:
         snapshot_name: str | None,
         build_id: str | None = None,
         build_name: str | None = None,
+        sandbox_group_id: str | None = None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
+        if sandbox_group_id is not None:
+            body.sandbox_group_id = sandbox_group_id
         if plan is not None:
             body.plan = plan
         if timeout_seconds is not None:
@@ -394,9 +403,12 @@ class SyncSandboxApi:
         status: str | Sequence[str] | None,
         cursor: str | None,
         limit: int | None,
+        sandbox_group_id: str | None = None,
     ) -> SandboxList:
         statuses = _normalize_statuses(status, SandboxStatus)
-        response = self._list_api_call(owner_id, statuses, cursor, limit)
+        response = self._list_api_call(
+            owner_id, statuses, cursor, limit, sandbox_group_id
+        )
         parsed = response.parsed
         if not isinstance(parsed, list):
             raise RenderError("Failed to list sandboxes: unexpected response type")
@@ -411,17 +423,23 @@ class SyncSandboxApi:
         statuses: _SandboxStatusList,
         cursor: str | None,
         limit: int | None,
+        sandbox_group_id: str | None = None,
     ) -> Response[Error | _SandboxWithCursorList]:
         return list_sandboxes.sync_detailed(
             client=self.client,
             owner_id=owner_id,
             status=statuses or UNSET,
+            sandbox_group_id=sandbox_group_id
+            if sandbox_group_id is not None
+            else UNSET,
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
         )
 
-    def list_groups(self, owner_id: str) -> SandboxGroupList:
-        response = self._list_groups_api_call(owner_id)
+    def list_groups(
+        self, owner_id: str, cursor: str | None = None, limit: int | None = None
+    ) -> SandboxGroupList:
+        response = self._list_groups_api_call(owner_id, cursor, limit)
         parsed = response.parsed
         if not isinstance(parsed, list):
             raise RenderError("Failed to list sandbox groups: unexpected response type")
@@ -431,12 +449,57 @@ class SyncSandboxApi:
 
     @handle_http_errors("list sandbox groups")
     def _list_groups_api_call(
-        self, owner_id: str
+        self, owner_id: str, cursor: str | None = None, limit: int | None = None
     ) -> Response[Error | _SandboxGroupWithCursorList]:
         return list_sandbox_groups.sync_detailed(
             client=self.client,
             owner_id=owner_id,
+            cursor=cursor if cursor is not None else UNSET,
+            limit=limit if limit is not None else UNSET,
         )
+
+    def create_group(
+        self, owner_id: str, name: str, region: str | None
+    ) -> SandboxGroup:
+        body = SandboxGroupPOST(
+            owner_id=owner_id, name=name, region=region if region is not None else UNSET
+        )
+        with request_errors("create sandbox group"):
+            response = create_sandbox_group.sync_detailed(client=self.client, body=body)
+        handle_api_error(response, "create sandbox group")
+        if not isinstance(response.parsed, GeneratedSandboxGroup):
+            raise RenderError(
+                "Failed to create sandbox group: unexpected response type"
+            )
+        return _to_sandbox_group(response.parsed)
+
+    def get_group(self, sandbox_group_id: str) -> SandboxGroup:
+        with request_errors("retrieve sandbox group"):
+            response = retrieve_sandbox_group.sync_detailed(
+                sandbox_group_id, client=self.client
+            )
+        handle_api_error(response, "retrieve sandbox group")
+        if not isinstance(response.parsed, GeneratedSandboxGroup):
+            raise RenderError(
+                "Failed to retrieve sandbox group: unexpected response type"
+            )
+        return _to_sandbox_group(response.parsed)
+
+    def update_group(
+        self, sandbox_group_id: str, concurrency_limit: int
+    ) -> SandboxGroup:
+        with request_errors("update sandbox group"):
+            response = update_sandbox_group.sync_detailed(
+                sandbox_group_id,
+                client=self.client,
+                body=SandboxGroupPATCH(concurrency_limit=concurrency_limit),
+            )
+        handle_api_error(response, "update sandbox group")
+        if not isinstance(response.parsed, GeneratedSandboxGroup):
+            raise RenderError(
+                "Failed to update sandbox group: unexpected response type"
+            )
+        return _to_sandbox_group(response.parsed)
 
     def terminate(self, sandbox_id: str, owner_id: str) -> None:
         with request_errors("terminate sandbox"):

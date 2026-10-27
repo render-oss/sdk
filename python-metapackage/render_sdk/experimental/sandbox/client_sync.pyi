@@ -10,6 +10,7 @@ from render.experimental.sandbox.client_sync import (
     Sandbox as Sandbox,
     SandboxCreateWaitError as SandboxCreateWaitError,
     SandboxExecEvent as SandboxExecEvent,
+    SandboxGroup as SandboxGroup,
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     SandboxPlan as SandboxPlan,

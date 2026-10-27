@@ -1177,3 +1177,67 @@ async def test_create_rejects_rules_for_other_policies_in_both_clients(policy_ty
         await _sandbox_client(handler).create(network_policy=policy)
     with pytest.raises(ValueError, match="rules are only allowed"):
         _sync_sandbox_client(handler).create(network_policy=policy)
+
+
+@pytest.mark.asyncio
+async def test_group_selection_and_pagination():
+    captured = []
+
+    async def handler(request):
+        captured.append(request)
+        if request.method == "POST":
+            return httpx.Response(
+                201, json={**SANDBOX_JSON, "sandboxGroupId": "sbg-other"}
+            )
+        return httpx.Response(200, json=[])
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(sandbox_group_id="sbg-other")
+    assert sandbox.sandbox_group_id == "sbg-other"
+    assert json.loads(captured[-1].content)["sandboxGroupId"] == "sbg-other"
+    await client.list(sandbox_group_id="sbg-other", cursor="s1", limit=3)
+    assert captured[-1].url.params["sandboxGroupId"] == "sbg-other"
+    assert captured[-1].url.params["cursor"] == "s1"
+    await client.list_groups(cursor="g1", limit=2)
+    assert captured[-1].url.params["cursor"] == "g1"
+    assert captured[-1].url.params["limit"] == "2"
+
+
+@pytest.mark.asyncio
+async def test_group_management_returns_effective_limit():
+    captured = []
+
+    async def handler(request):
+        captured.append(request)
+        return httpx.Response(
+            201 if request.method == "POST" else 200, json=SANDBOX_GROUP_JSON
+        )
+
+    client = _sandbox_client(handler)
+    group = await client.create_group("agents")
+    assert group.id == "sbg-abc"
+    assert json.loads(captured[-1].content)["name"] == "agents"
+    assert json.loads(captured[-1].content)["ownerId"] == "tea-test"
+    assert (await client.get_group(group.id)).id == group.id
+    assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc"
+    updated = await client.update_group(group.id, concurrency_limit=200)
+    assert json.loads(captured[-1].content) == {"concurrencyLimit": 200}
+    assert updated.concurrency_limit == 10
+
+
+def test_sync_group_selection_and_management():
+    def handler(request):
+        if request.url.path == "/v1/sandboxes":
+            assert json.loads(request.content)["sandboxGroupId"] == "sbg-abc"
+            return httpx.Response(
+                201, json={**SANDBOX_JSON, "sandboxGroupId": "sbg-abc"}
+            )
+        return httpx.Response(
+            201 if request.method == "POST" else 200, json=SANDBOX_GROUP_JSON
+        )
+
+    client = _sync_sandbox_client(handler)
+    group = client.create_group("agents")
+    assert client.create(sandbox_group_id=group.id).sandbox_group_id == group.id
+    assert client.get_group(group.id).id == group.id
+    assert client.update_group(group.id, concurrency_limit=200).concurrency_limit == 10

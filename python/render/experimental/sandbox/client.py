@@ -23,6 +23,7 @@ from render.experimental.sandbox.types import (
     RegistryCredential,
     Sandbox,
     SandboxExecEvent,
+    SandboxGroup,
     SandboxGroupList,
     SandboxList,
     SandboxPlan,
@@ -77,6 +78,7 @@ class SandboxClient:
         snapshot_name: str | None = None,
         build_id: str | None = None,
         build_name: str | None = None,
+        sandbox_group_id: str | None = None,
         wait: bool | SandboxWaitOptions = False,
     ) -> Sandbox:
         """Create a sandbox and return its initial state.
@@ -85,6 +87,8 @@ class SandboxClient:
         workspace defaults enforced by the API (plan 1c-2g, 24-hour lifetime,
         15-minute idle timeout, workspace default region and network policy).
         Set idle_timeout_seconds to 0 to disable automatic idle suspension.
+        sandbox_group_id defaults to the workspace's default group. The group
+        determines placement; region is accepted for compatibility and ignored.
 
         network_policy is a NetworkPolicy, or a policy type string as a
         shorthand for one without rules. To restrict outbound traffic to
@@ -141,6 +145,7 @@ class SandboxClient:
             snapshot_name=snapshot_name,
             build_id=build_id,
             build_name=build_name,
+            sandbox_group_id=sandbox_group_id,
         )
         if wait_settings is None:
             return sandbox
@@ -212,6 +217,7 @@ class SandboxClient:
         status: str | Sequence[str] | None = None,
         cursor: str | None = None,
         limit: int | None = None,
+        sandbox_group_id: str | None = None,
     ) -> SandboxList:
         """List sandboxes for a workspace.
 
@@ -220,17 +226,43 @@ class SandboxClient:
         is capped at 100 by the API.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
-        return await self.api.list(resolved_owner_id, status, cursor, limit)
+        return await self.api.list(
+            resolved_owner_id, status, cursor, limit, sandbox_group_id
+        )
 
-    async def list_groups(self, *, owner_id: str | None = None) -> SandboxGroupList:
+    async def list_groups(
+        self,
+        *,
+        owner_id: str | None = None,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> SandboxGroupList:
         """List the sandbox groups a workspace owns.
 
-        Alpha guarantees at most one group per workspace, so the page holds
-        zero or one group. next_cursor carries the cursor of the last entry,
+        Omit cursor and limit to return all groups. When paging, continue
+        until the page is empty. next_cursor carries the last entry's cursor,
         or None when the page is empty.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
-        return await self.api.list_groups(resolved_owner_id)
+        return await self.api.list_groups(resolved_owner_id, cursor, limit)
+
+    async def create_group(
+        self, name: str, *, owner_id: str | None = None, region: str | None = None
+    ) -> SandboxGroup:
+        """Create a group within the workspace's configured group count limit."""
+        return await self.api.create_group(
+            self._resolve_owner_id(owner_id), name, region
+        )
+
+    async def get_group(self, sandbox_group_id: str) -> SandboxGroup:
+        """Retrieve a sandbox group by ID."""
+        return await self.api.get_group(sandbox_group_id)
+
+    async def update_group(
+        self, sandbox_group_id: str, *, concurrency_limit: int
+    ) -> SandboxGroup:
+        """Set concurrency and return the effective limit after Render's cap."""
+        return await self.api.update_group(sandbox_group_id, concurrency_limit)
 
     async def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
         """Terminate a sandbox.

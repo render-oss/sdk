@@ -418,3 +418,65 @@ func TestSandboxNetworkPolicyRead(t *testing.T) {
 	require.Len(t, page.Sandboxes, 1)
 	require.Equal(t, want, page.Sandboxes[0].NetworkPolicy)
 }
+
+func TestSandboxGroupSelectionAndManagement(t *testing.T) {
+	groupJSON := `{"id":"sbg-1","ownerId":"tea-1","name":"agents","region":"oregon","isDefault":false,"concurrencyLimit":10,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z"}`
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /v1/sandbox-groups", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		require.JSONEq(t, `{"ownerId":"tea-1","name":"agents"}`, string(body))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(groupJSON))
+	})
+	mux.HandleFunc("GET /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(groupJSON))
+	})
+	mux.HandleFunc("PATCH /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		require.JSONEq(t, `{"concurrencyLimit":200}`, string(body))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(groupJSON))
+	})
+	mux.HandleFunc("GET /v1/sandbox-groups", func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "g1", r.URL.Query().Get("cursor"))
+		require.Equal(t, "2", r.URL.Query().Get("limit"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = fmt.Fprintf(w, `[{"sandboxGroup":%s,"cursor":"g2"}]`, groupJSON)
+	})
+	mux.HandleFunc("POST /v1/sandboxes", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		require.JSONEq(t, `{"ownerId":"tea-1","sandboxGroupId":"sbg-1"}`, string(body))
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, _ = w.Write([]byte(strings.Replace(sandboxJSON, `"id":`, `"sandboxGroupId":"sbg-1","id":`, 1)))
+	})
+	mux.HandleFunc("GET /v1/sandboxes", func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "sbg-1", r.URL.Query().Get("sandboxGroupId"))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`[]`))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+	s := c.Experimental.Sandboxes
+	ctx := context.Background()
+	g, err := s.CreateGroup(ctx, CreateSandboxGroupParams{Name: "agents"})
+	require.NoError(t, err)
+	require.Equal(t, "sbg-1", g.ID)
+	_, err = s.GetGroup(ctx, g.ID)
+	require.NoError(t, err)
+	g, err = s.UpdateGroup(ctx, g.ID, 200)
+	require.NoError(t, err)
+	require.Equal(t, 10, g.ConcurrencyLimit)
+	page, err := s.ListGroupsPage(ctx, &ListSandboxGroupsOptions{Cursor: "g1", Limit: 2})
+	require.NoError(t, err)
+	require.Equal(t, "g2", *page.NextCursor)
+	sb, err := s.Create(ctx, CreateSandboxParams{SandboxGroupID: g.ID})
+	require.NoError(t, err)
+	require.Equal(t, g.ID, sb.SandboxGroupID)
+	_, err = s.List(ctx, &ListSandboxesOptions{SandboxGroupID: g.ID})
+	require.NoError(t, err)
+}

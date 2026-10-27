@@ -13,6 +13,7 @@ from render.experimental.sandbox.client import (
     SandboxClient as SandboxClient,
     SandboxCreateWaitError as SandboxCreateWaitError,
     SandboxExecEvent as SandboxExecEvent,
+    SandboxGroup as SandboxGroup,
     SandboxGroupList as SandboxGroupList,
     SandboxList as SandboxList,
     SandboxPlan as SandboxPlan,

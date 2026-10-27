@@ -85,7 +85,7 @@ type MockResult = {
 };
 
 function mockApiClient(
-  method: "GET" | "POST" | "DELETE",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   { status, statusText, error, data }: MockResult,
 ): Client<paths> {
   return {
@@ -474,7 +474,7 @@ describe("SandboxesClient", () => {
       });
     });
 
-    it("passes caller-supplied options and falls back to the client region", async () => {
+    it("passes caller-supplied options", async () => {
       const sandbox = { id: "sbx-123" };
       const apiClient = {
         POST: vi.fn().mockResolvedValue({
@@ -500,7 +500,6 @@ describe("SandboxesClient", () => {
           plan: "4c-8g",
           timeoutSeconds: 600,
           idleTimeoutSeconds: 0,
-          region: "oregon",
           networkPolicy: { type: "deny-all" },
           env: { NODE_ENV: "test" },
         },
@@ -2292,6 +2291,52 @@ describe("SandboxesClient", () => {
         );
         expect(POST).not.toHaveBeenCalled();
       });
+    });
+  });
+});
+
+describe("sandbox group selection", () => {
+  it("passes group selection on create and preserves the returned group", async () => {
+    const result = { id: "sbx-123", sandboxGroupId: "sbg-other" };
+    const api = mockApiClient("POST", { status: 201, data: result });
+    const client = new SandboxesClient(api, "tea-default");
+    expect(await client.create({ sandboxGroupId: "sbg-other" })).toEqual(result);
+    expect(api.POST).toHaveBeenCalledWith("/sandboxes", {
+      body: { ownerId: "tea-default", sandboxGroupId: "sbg-other" },
+    });
+  });
+
+  it("filters sandboxes and pages groups independently", async () => {
+    const api = mockApiClient("GET", { status: 200, data: [] });
+    const client = new SandboxesClient(api, "tea-default");
+    await client.list({ sandboxGroupId: "sbg-other", cursor: "c1", limit: 5 });
+    expect(api.GET).toHaveBeenLastCalledWith("/sandboxes", {
+      params: {
+        query: expect.objectContaining({ sandboxGroupId: "sbg-other", cursor: "c1", limit: 5 }),
+      },
+    });
+    await client.listGroups({ cursor: "g1", limit: 2 });
+    expect(api.GET).toHaveBeenLastCalledWith("/sandbox-groups", {
+      params: { query: { ownerId: "tea-default", cursor: "g1", limit: 2 } },
+    });
+  });
+
+  it("creates, retrieves, and updates groups with the effective limit returned by the API", async () => {
+    const group = { id: "sbg-1", concurrencyLimit: 100 };
+    const post = mockApiClient("POST", { status: 201, data: group });
+    await expect(
+      new SandboxesClient(post, "tea-default").createGroup({ name: "agents" }),
+    ).resolves.toEqual(group);
+    expect(post.POST).toHaveBeenCalledWith("/sandbox-groups", {
+      body: { ownerId: "tea-default", name: "agents", region: "oregon" },
+    });
+    const get = mockApiClient("GET", { status: 200, data: group });
+    await expect(new SandboxesClient(get).getGroup("sbg-1")).resolves.toEqual(group);
+    const patch = mockApiClient("PATCH", { status: 200, data: group });
+    await expect(new SandboxesClient(patch).updateGroup("sbg-1", 200)).resolves.toEqual(group);
+    expect(patch.PATCH).toHaveBeenCalledWith("/sandbox-groups/{sandboxGroupId}", {
+      params: { path: { sandboxGroupId: "sbg-1" } },
+      body: { concurrencyLimit: 200 },
     });
   });
 });

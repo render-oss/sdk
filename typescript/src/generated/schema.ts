@@ -263,6 +263,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandbox-groups/{sandboxGroupId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve sandbox group
+         * @description Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+         */
+        get: operations["retrieve-sandbox-group"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update sandbox group
+         * @description Update a sandbox group's concurrency limit. Returns 400 for a malformed
+         *     ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
+         *     below 1. The response returns the effective limit after applying Render's cap.
+         */
+        patch: operations["update-sandbox-group"];
+        trace?: never;
+    };
     "/sandboxes/{sandboxId}": {
         parameters: {
             query?: never;
@@ -1141,6 +1170,15 @@ export interface components {
              * @example oregon
              */
             region: string;
+        };
+        sandboxGroupPATCH: {
+            /**
+             * @description Maximum active sandboxes in the group. The configured value is capped
+             *     by Render's limit for this workspace. Responses return the effective limit.
+             *     Lowering the limit does not stop existing sandboxes.
+             * @example 10
+             */
+            concurrencyLimit: number;
         };
         /**
          * @description `filesystem` captures the writable filesystem and restores onto any plan.
@@ -2112,6 +2150,76 @@ export interface operations {
                      *       "updatedAt": "2026-07-02T18:30:00Z"
                      *     }
                      */
+                    "application/json": components["schemas"]["sandboxGroup"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-sandbox-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxGroup"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "update-sandbox-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                /**
+                 * @example {
+                 *       "concurrencyLimit": 10
+                 *     }
+                 */
+                "application/json": components["schemas"]["sandboxGroupPATCH"];
+            };
+        };
+        responses: {
+            /** @description Sandbox group updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": components["schemas"]["sandboxGroup"];
                 };
             };

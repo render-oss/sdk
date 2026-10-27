@@ -82,6 +82,7 @@ type NetworkPolicy struct {
 
 // Sandbox is a sandbox as returned by Create, FromID, and List.
 type Sandbox struct {
+	SandboxGroupID string
 	ID             string
 	Status         string
 	Plan           string
@@ -157,14 +158,15 @@ func (SandboxExecOutput) isSandboxExecEvent() {}
 func (SandboxExecExit) isSandboxExecEvent()   {}
 
 // CreateSandboxParams configures a new sandbox. Zero fields fall back to the
-// defaults enforced by the API (default plan, 7200s timeout, workspace default
-// region and network policy).
+// defaults enforced by the API (default plan, 7200s timeout, and network policy).
 type CreateSandboxParams struct {
+	// SandboxGroupID defaults to the workspace's default group.
+	SandboxGroupID string
 	Plan           string
 	TimeoutSeconds int
 	// NetworkPolicy nil uses the API default.
 	NetworkPolicy *NetworkPolicy
-	// Region defaults to the client's region.
+	// Deprecated: Region is ignored by the API; the group determines placement.
 	Region string
 	Env    map[string]string
 	// SnapshotID starts the sandbox from that snapshot. SnapshotName starts it
@@ -176,6 +178,7 @@ type CreateSandboxParams struct {
 
 // ListSandboxesOptions filters and pages ListSandboxes.
 type ListSandboxesOptions struct {
+	SandboxGroupID string
 	// Status filters by sandbox status (creating, running, suspended,
 	// resuming, errored, terminated).
 	Status []string
@@ -247,6 +250,9 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 	}
 
 	body := sandboxes.SandboxPOST{OwnerId: ownerID}
+	if params.SandboxGroupID != "" {
+		body.SandboxGroupId = &params.SandboxGroupID
+	}
 	if params.Plan != "" {
 		plan := sandboxes.SandboxPlan(params.Plan)
 		body.Plan = &plan
@@ -322,6 +328,9 @@ func (s *SandboxClient) List(ctx context.Context, opts *ListSandboxesOptions) (*
 	params := &client.ListSandboxesParams{OwnerId: ownerID}
 	if opts != nil {
 		params.Cursor, params.Limit = page(opts.Cursor, opts.Limit)
+		if opts.SandboxGroupID != "" {
+			params.SandboxGroupId = &opts.SandboxGroupID
+		}
 		if len(opts.Status) > 0 {
 			statuses := make([]sandboxes.SandboxStatus, len(opts.Status))
 			for i, status := range opts.Status {
@@ -353,14 +362,29 @@ func (s *SandboxClient) List(ctx context.Context, opts *ListSandboxesOptions) (*
 	return list, nil
 }
 
-// ListGroups lists the sandbox groups the workspace owns. Alpha guarantees at
-// most one group per workspace, so the page holds zero or one group.
+// ListGroups returns all sandbox groups the workspace owns.
 func (s *SandboxClient) ListGroups(ctx context.Context) (*SandboxGroupList, error) {
+	return s.ListGroupsPage(ctx, nil)
+}
+
+// ListSandboxGroupsOptions opts into server-side pagination.
+type ListSandboxGroupsOptions struct {
+	Cursor string
+	Limit  int
+}
+
+// ListGroupsPage lists groups newest first. With nil options it returns all groups.
+// Continue with the last entry's cursor until a page is empty.
+func (s *SandboxClient) ListGroupsPage(ctx context.Context, opts *ListSandboxGroupsOptions) (*SandboxGroupList, error) {
 	ownerID, err := s.ownerID()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := s.client.internal.ListSandboxGroupsWithResponse(ctx, &client.ListSandboxGroupsParams{OwnerId: ownerID})
+	params := &client.ListSandboxGroupsParams{OwnerId: ownerID}
+	if opts != nil {
+		params.Cursor, params.Limit = page(opts.Cursor, opts.Limit)
+	}
+	resp, err := s.client.internal.ListSandboxGroupsWithResponse(ctx, params)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make list sandbox groups request: %w", err)
 	}
@@ -374,18 +398,7 @@ func (s *SandboxClient) ListGroups(ctx context.Context) (*SandboxGroupList, erro
 	items := *resp.JSON200
 	list := &SandboxGroupList{Groups: make([]SandboxGroup, len(items))}
 	for i, item := range items {
-		g := item.SandboxGroup
-		list.Groups[i] = SandboxGroup{
-			ID:               g.Id,
-			OwnerID:          g.OwnerId,
-			Name:             g.Name,
-			Region:           g.Region,
-			IsDefault:        g.IsDefault,
-			ConcurrencyLimit: g.ConcurrencyLimit,
-			CreatedAt:        g.CreatedAt,
-			UpdatedAt:        g.UpdatedAt,
-			EnvironmentID:    g.EnvironmentId,
-		}
+		list.Groups[i] = *toSandboxGroup(item.SandboxGroup)
 	}
 	if len(items) > 0 {
 		list.NextCursor = &items[len(items)-1].Cursor
@@ -688,7 +701,12 @@ func toNetworkPolicy(model sandboxes.SandboxNetworkPolicy) NetworkPolicy {
 }
 
 func toSandbox(m sandboxes.Sandbox) *Sandbox {
+	groupID := ""
+	if m.SandboxGroupId != nil {
+		groupID = *m.SandboxGroupId
+	}
 	return &Sandbox{
+		SandboxGroupID: groupID,
 		ID:             m.Id,
 		Status:         string(m.Status),
 		Plan:           string(m.Plan),
@@ -814,4 +832,70 @@ func idleError(ctx context.Context, err error) error {
 		return ErrSandboxIdleTimeout
 	}
 	return err
+}
+
+// CreateSandboxGroupParams names a new group. Region defaults to Oregon.
+type CreateSandboxGroupParams struct {
+	Name   string
+	Region string
+}
+
+// CreateGroup creates a group within the workspace's configured group count limit.
+func (s *SandboxClient) CreateGroup(ctx context.Context, params CreateSandboxGroupParams) (*SandboxGroup, error) {
+	ownerID, err := s.ownerID()
+	if err != nil {
+		return nil, err
+	}
+	body := sandboxes.SandboxGroupPOST{OwnerId: ownerID, Name: params.Name}
+	if params.Region != "" {
+		body.Region = &params.Region
+	}
+	resp, err := s.client.internal.CreateSandboxGroupWithResponse(ctx, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create sandbox group: %w", err)
+	}
+	if resp.StatusCode() != 201 {
+		return nil, apiError("create sandbox group", resp.StatusCode(), resp.Body)
+	}
+	if resp.JSON201 == nil {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+	return toSandboxGroup(*resp.JSON201), nil
+}
+
+// GetGroup retrieves a sandbox group by ID.
+func (s *SandboxClient) GetGroup(ctx context.Context, groupID string) (*SandboxGroup, error) {
+	resp, err := s.client.internal.RetrieveSandboxGroupWithResponse(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve sandbox group: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, apiError("retrieve sandbox group", resp.StatusCode(), resp.Body)
+	}
+	if resp.JSON200 == nil {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+	return toSandboxGroup(*resp.JSON200), nil
+}
+
+// UpdateGroup changes a group's concurrency limit. The response reports the
+// effective limit after applying Render's cap for the workspace.
+func (s *SandboxClient) UpdateGroup(ctx context.Context, groupID string, concurrencyLimit int) (*SandboxGroup, error) {
+	resp, err := s.client.internal.UpdateSandboxGroupWithResponse(ctx, groupID, sandboxes.SandboxGroupPATCH{ConcurrencyLimit: concurrencyLimit})
+	if err != nil {
+		return nil, fmt.Errorf("failed to update sandbox group: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, apiError("update sandbox group", resp.StatusCode(), resp.Body)
+	}
+	if resp.JSON200 == nil {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+	return toSandboxGroup(*resp.JSON200), nil
+}
+
+func toSandboxGroup(g sandboxes.SandboxGroup) *SandboxGroup {
+	return &SandboxGroup{ID: g.Id, OwnerID: g.OwnerId, Name: g.Name, Region: g.Region,
+		IsDefault: g.IsDefault, ConcurrencyLimit: g.ConcurrencyLimit,
+		CreatedAt: g.CreatedAt, UpdatedAt: g.UpdatedAt, EnvironmentID: g.EnvironmentId}
 }

@@ -130,6 +130,8 @@ export type SandboxNetworkPolicy =
 
 /** Options for creating a sandbox. Unset fields fall back to the API's defaults. */
 export type SandboxCreateInput = SandboxSourceInput & {
+  /** Omit to use the workspace's default group. */
+  sandboxGroupId?: string;
   ownerId?: `tea-${string}`;
   plan?: SandboxPlan | (string & {});
   /** Maximum sandbox lifetime in seconds. The API defaults to 86400 (24 hours). */
@@ -139,7 +141,7 @@ export type SandboxCreateInput = SandboxSourceInput & {
    * suspension; positive values must be at least 300. The API defaults to 900.
    */
   idleTimeoutSeconds?: number;
-  /** Defaults to the client's region, then to the workspace default. */
+  /** @deprecated The API uses the sandbox group's region. */
   region?: string;
   /** The API defaults to `allow-all`. */
   networkPolicy?: SandboxNetworkPolicy;
@@ -272,6 +274,8 @@ export type SandboxGroupWithCursor = components["schemas"]["sandboxGroupWithCurs
 
 /** Options for listing sandbox groups. */
 export type SandboxGroupListInput = {
+  cursor?: string;
+  limit?: number;
   /** Defaults to the client's owner ID. */
   ownerId?: `tea-${string}`;
 };
@@ -612,16 +616,15 @@ export class SandboxesClient {
 
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
     const wait = resolveCreateWait(input.wait, DEFAULT_SANDBOX_WAIT_TIMEOUT_MS);
-    const region = input.region ?? this.defaultRegion;
     const ownerId = this.resolveOwnerId(input.ownerId);
     const body = {
       ownerId,
       ...(input.plan ? { plan: input.plan } : {}),
+      ...(input.sandboxGroupId === undefined ? {} : { sandboxGroupId: input.sandboxGroupId }),
       ...(input.timeoutSeconds === undefined ? {} : { timeoutSeconds: input.timeoutSeconds }),
       ...(input.idleTimeoutSeconds === undefined
         ? {}
         : { idleTimeoutSeconds: input.idleTimeoutSeconds }),
-      ...(region ? { region } : {}),
       ...(input.networkPolicy ? { networkPolicy: input.networkPolicy } : {}),
       ...(input.env ? { env: input.env } : {}),
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
@@ -656,10 +659,12 @@ export class SandboxesClient {
     cursor,
     limit,
     status,
+    sandboxGroupId,
   }: {
     ownerId?: `tea-${string}`;
     cursor?: string;
     limit?: number;
+    sandboxGroupId?: string;
     status?: components["schemas"]["sandboxStatus"][];
   } = {}) {
     const owner = this.resolveOwnerId(ownerId);
@@ -671,6 +676,7 @@ export class SandboxesClient {
             cursor,
             limit,
             status,
+            sandboxGroupId,
           },
         },
       }),
@@ -678,17 +684,57 @@ export class SandboxesClient {
     );
   }
 
-  async listGroups({ ownerId }: SandboxGroupListInput = {}): Promise<SandboxGroupWithCursor[]> {
+  async listGroups({
+    ownerId,
+    cursor,
+    limit,
+  }: SandboxGroupListInput = {}): Promise<SandboxGroupWithCursor[]> {
     const owner = this.resolveOwnerId(ownerId);
     return unwrap(
       await this.apiClient.GET("/sandbox-groups", {
         params: {
           query: {
             ownerId: owner,
+            cursor,
+            limit,
           },
         },
       }),
       inWorkspace("Failed to list sandbox groups", owner),
+    );
+  }
+
+  async createGroup(input: {
+    name: string;
+    region?: string;
+    ownerId?: `tea-${string}`;
+  }): Promise<SandboxGroup> {
+    const ownerId = this.resolveOwnerId(input.ownerId);
+    return unwrap(
+      await this.apiClient.POST("/sandbox-groups", {
+        body: { ...input, ownerId, region: input.region ?? this.defaultRegion ?? "oregon" },
+      }),
+      inWorkspace("Failed to create sandbox group", ownerId),
+    );
+  }
+
+  async getGroup(sandboxGroupId: string): Promise<SandboxGroup> {
+    return unwrap(
+      await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}", {
+        params: { path: { sandboxGroupId } },
+      }),
+      "Failed to get sandbox group",
+    );
+  }
+
+  /** Returns the effective limit after applying Render's cap. */
+  async updateGroup(sandboxGroupId: string, concurrencyLimit: number): Promise<SandboxGroup> {
+    return unwrap(
+      await this.apiClient.PATCH("/sandbox-groups/{sandboxGroupId}", {
+        params: { path: { sandboxGroupId } },
+        body: { concurrencyLimit },
+      }),
+      "Failed to update sandbox group",
     );
   }
 

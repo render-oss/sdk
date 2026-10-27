@@ -52,6 +52,7 @@ class Sandbox:
     idle_timeout_seconds: int
     created_at: datetime
     terminated_at: datetime | None = None
+    sandbox_group_id: str | None = None
 
 
 @dataclass
