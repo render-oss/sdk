@@ -2268,6 +2268,10 @@ type ClientInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+	// workspaces.
+	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -2294,6 +2298,10 @@ type ClientInterface interface {
 	//
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
+	//
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+	// workspaces.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -7809,6 +7817,10 @@ func (c *Client) ListSandboxes(ctx context.Context, params *ListSandboxesParams,
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+// workspaces.
+//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -7845,6 +7857,10 @@ func (c *Client) CreateSandboxWithBody(ctx context.Context, contentType string, 
 //
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
+//
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+// workspaces.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -28755,6 +28771,10 @@ type ClientWithResponsesInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+	// workspaces.
+	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -28781,6 +28801,10 @@ type ClientWithResponsesInterface interface {
 	//
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
+	//
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+	// workspaces.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -59814,6 +59838,10 @@ func (c *ClientWithResponses) ListSandboxesWithResponse(ctx context.Context, par
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+// workspaces.
+//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with POST /sandboxes (the `CreateSandbox` operationId).
@@ -59846,6 +59874,10 @@ func (c *ClientWithResponses) CreateSandboxWithBodyWithResponse(ctx context.Cont
 //
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
+//
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
+// workspaces.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //

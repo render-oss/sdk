@@ -15,6 +15,7 @@ class ErrorCode(str, Enum):
     INVALID_SNAPSHOT_ID = "invalid_snapshot_id"
     INVALID_SNAPSHOT_NAME = "invalid_snapshot_name"
     INVALID_STATUS = "invalid_status"
+    INVALID_TIMEOUT_SECONDS = "invalid_timeout_seconds"
     MULTIPLE_REGIONS = "multiple_regions"
     PREAUTH_ATTEMPT_SPENT = "preauth_attempt_spent"
     PREAUTH_CONSENT_REQUIRED = "preauth_consent_required"
