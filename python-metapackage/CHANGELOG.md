@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.0] - 2026-10-27
+
+Released in lockstep with `render` 1.5.0. This package requires that version and exports
+its public names. See [the `render` changelog](../python/CHANGELOG.md) for
+the release notes.
+
 ## [1.4.0] - 2026-10-21
 
 Released in lockstep with `render` 1.4.0. This package requires that version and exports

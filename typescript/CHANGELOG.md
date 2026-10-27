@@ -4,17 +4,25 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.5.0] - 2026-10-27
 
 ### Added
 
-- (Sandbox) `sandboxes.create()` accepts `idleTimeoutSeconds`; use `0` to disable automatic idle suspension.
-- (Sandbox) `sandboxes.builds.create()` and `sandboxes.builds.get()` to build a sandbox base image from an OCI image and fetch the result. Private registries are supported with `registryCredential`.
-- (Sandbox) `sandboxes.create()` accepts `buildId` or `buildName` to start a sandbox from a succeeded build.
+- (Sandboxes) Sandboxes are out of experimental: use `render.sandboxes` and import from `@renderinc/sdk`.
+- (Sandboxes) Sandbox groups: `createGroup()`, `getGroup()`, `updateGroup()`, and `sandboxGroupId` on `create()` and `list()`. `listGroups()` accepts `cursor` and `limit`.
+- (Sandboxes) `waitUntilRunning()`, `snapshots.waitUntilAvailable()`, and a `wait` option on `create()` and `snapshots.create()`.
+- (Sandboxes) `sandboxes.create()` accepts `idleTimeoutSeconds`.
+- (Sandboxes) `SandboxPlan` hints the known plans; any plan string still works.
+
+### Changed
+
+- **Breaking:** (Sandboxes) Removed `render.experimental.sandboxes` and the sandbox exports from `@renderinc/sdk/experimental`.
+- (Sandboxes) `SandboxCreateInput.region` is deprecated and ignored.
 
 ### Fixed
 
-- (Sandbox) `upload()` and `download()` clean the remote path before requesting a file token.
+- (Sandboxes) `upload()` and `download()` clean the remote path before requesting a file token.
+- The npm package no longer ships stale build output.
 
 ## [1.4.0] - 2026-10-21
 

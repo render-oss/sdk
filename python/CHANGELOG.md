@@ -1,15 +1,22 @@
 # Changelog
 
-## [Unreleased]
+## [1.5.0] - 2026-10-27
 
 ### Added
 
-- (Sandboxes) `sandboxes.builds.create()` and `sandboxes.builds.from_id()` to build a sandbox base image from an OCI image and fetch the result. Private registries are supported with `registry_credential`.
-- (Sandboxes) `sandboxes.create()` accepts `build_id` or `build_name` to start a sandbox from a succeeded build.
+- (Sandboxes) Sandboxes are out of experimental: use `render.sandboxes` and import from `render.sandbox`.
+- (Sandboxes) Sandbox groups: `create_group()`, `get_group()`, `update_group()`, and `sandbox_group_id` on `create()` and `list()`. `list_groups()` accepts `cursor` and `limit`.
+- (Sandboxes) `wait_until_running()`, `snapshots.wait_until_available()`, and a `wait` option on `create()` and `snapshots.create()`.
+- (Sandboxes) `SandboxPlan` hints the known plans; any plan string still works.
+
+### Changed
+
+- **Breaking:** (Sandboxes) Removed `render.experimental.sandboxes`; use `render.sandboxes`.
+(Sandboxes) `sandboxes.create()` `region` is deprecated and ignored.
 
 ### Fixed
 
-- (Sandboxes) Small adjustment to how `copy_to()` cleans the remote path.
+- (Sandboxes) `copy_to()` cleans the remote path the same way as downloads.
 
 ## [1.4.0] - 2026-10-21
 
