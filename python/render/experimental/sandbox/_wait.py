@@ -1,4 +1,4 @@
-"""Polling a sandbox or snapshot until it is ready.
+"""Polling a sandbox, snapshot, or image until it is ready.
 
 The async and sync clients share this module, and unasync leaves it alone.
 apoll_until and poll_until live here for the same reason as
@@ -14,12 +14,14 @@ from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, NamedTuple, TypeVar
 
 from render.experimental.sandbox.errors import (
+    ImageFailedError,
     SandboxNotRunningError,
     SnapshotFailedError,
 )
 
 if TYPE_CHECKING:
     from render.experimental.sandbox.types import (
+        Image,
         Sandbox,
         SandboxWaitOptions,
         Snapshot,
@@ -28,6 +30,8 @@ if TYPE_CHECKING:
 # Matches the CLI's `sandboxes create --wait`.
 DEFAULT_SANDBOX_TIMEOUT_SECONDS = 60.0
 DEFAULT_SNAPSHOT_TIMEOUT_SECONDS = 300.0
+# Matches the CLI's `sandbox-groups images import --wait`.
+DEFAULT_IMAGE_TIMEOUT_SECONDS = 600.0
 DEFAULT_INTERVAL_SECONDS = 0.25
 # The longest delay between checks once the backoff has grown.
 MAX_BACKOFF_INTERVAL_SECONDS = 2.0
@@ -109,6 +113,23 @@ def available_snapshot(snapshot: Snapshot) -> Snapshot | None:
             f"snapshot {snapshot.id} failed to capture{reason}",
             snapshot_id=snapshot.id,
             snapshot_error=snapshot.error,
+        )
+    return None
+
+
+def ready_image(image: Image) -> Image | None:
+    """Return the image if it has succeeded, or None if its import is pending or running.
+
+    Raise ImageFailedError if the import failed.
+    """
+    if image.status == "succeeded":
+        return image
+    if image.status == "failed":
+        reason = f": {image.failure_reason}" if image.failure_reason else ""
+        raise ImageFailedError(
+            f"image {image.id} failed to import{reason}",
+            image_id=image.id,
+            failure_reason=image.failure_reason,
         )
     return None
 

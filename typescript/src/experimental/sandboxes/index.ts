@@ -8,6 +8,8 @@ import {
   RenderError,
   SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxImageFailedError,
+  SandboxImageWaitTimeoutError,
   SandboxNotRunningError,
   SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
@@ -78,6 +80,7 @@ type SandboxSourceInput =
        */
       snapshotId?: string;
       snapshotName?: never;
+      image?: never;
       buildId?: never;
       buildName?: never;
     }
@@ -88,6 +91,7 @@ type SandboxSourceInput =
        * For a `runtime` snapshot, `plan` must match the snapshot's plan.
        */
       snapshotName?: string;
+      image?: never;
       buildId?: never;
       buildName?: never;
     }
@@ -95,17 +99,29 @@ type SandboxSourceInput =
       snapshotId?: never;
       snapshotName?: never;
       /**
-       * Start from this build's image instead of the base image. The build must have `succeeded`
-       * and be in the same sandbox group.
+       * Start from an image imported with `images.import()` instead of the base image. An image ID
+       * (`sbb-` and 20 characters, like `sbb-cph1rs3idesc73a2b2mg`) pins that version; any other
+       * value is a name and uses the newest `succeeded` version with that name in the sandbox
+       * group.
        */
+      image?: string;
+      buildId?: never;
+      buildName?: never;
+    }
+  | {
+      snapshotId?: never;
+      snapshotName?: never;
+      image?: never;
+      /** @deprecated Use `image` with the image ID. */
       buildId?: string;
       buildName?: never;
     }
   | {
       snapshotId?: never;
       snapshotName?: never;
+      image?: never;
       buildId?: never;
-      /** Start from the newest `succeeded` build with this name in the sandbox group. */
+      /** @deprecated Use `image` with the image name. */
       buildName?: string;
     };
 
@@ -236,31 +252,60 @@ export type SandboxSnapshotDeleteInput = {
   ownerId?: `tea-${string}`;
 };
 
-/** A sandbox build as returned by the API. */
-export type SandboxBuild = components["schemas"]["sandboxBuild"];
+/** A sandbox image as returned by the API. */
+export type SandboxImage = components["schemas"]["sandboxBuild"];
 
-/** `pending` or `running` until the conversion finishes, then `succeeded` or `failed`. */
-export type SandboxBuildStatus = components["schemas"]["sandboxBuildStatus"];
+/** `pending` or `running` until the import finishes, then `succeeded` or `failed`. */
+export type SandboxImageStatus = components["schemas"]["sandboxBuildStatus"];
 
-/** The image a build converts, as the registry resolved it. */
-export type SandboxBuildSource = SandboxBuild["source"];
+/** The OCI image an import converts, as the registry resolved it. */
+export type SandboxImageSource = SandboxImage["source"];
 
-/** Pulls `sourceImage` from a private registry. Used for that build only and never stored. */
-export type SandboxRegistryCredential = NonNullable<
+/** Pulls `source` from a private registry. Used for that import only and never stored. */
+export type SandboxRegistryCredentials = NonNullable<
   components["schemas"]["sandboxBuildPOST"]["registryCredential"]
 >;
 
-/** Options for converting an image into a sandbox base image. */
-export type SandboxBuildCreateInput = {
+/** Options for importing an OCI image so sandboxes can start from it. */
+export type SandboxImageImportInput = {
   sandboxGroupId: string;
-  /** Names the image. Every build of an image shares it. 1 to 255 characters. */
+  /**
+   * Names the image. Every version of an image shares it, and `create({ image: name })` starts
+   * from the newest one that succeeded. 1 to 255 characters.
+   */
   name: string;
-  /** The image to convert, by tag or digest, like `python:3.13`. Must be linux/amd64. */
-  sourceImage: string;
-  registryCredential?: SandboxRegistryCredential;
+  /** The image to import, by tag or digest, like `ghcr.io/acme/agent-runtime:v1`. Must be linux/amd64. */
+  source: string;
+  registryCredentials?: SandboxRegistryCredentials;
 };
 
-/** Options for retrieving a build. */
+/** Options for retrieving an image. */
+export type SandboxImageGetInput = {
+  sandboxGroupId: string;
+  imageId: string;
+};
+
+/** @deprecated Use `SandboxImage`. */
+export type SandboxBuild = SandboxImage;
+
+/** @deprecated Use `SandboxImageStatus`. */
+export type SandboxBuildStatus = SandboxImageStatus;
+
+/** @deprecated Use `SandboxImageSource`. */
+export type SandboxBuildSource = SandboxImageSource;
+
+/** @deprecated Use `SandboxRegistryCredentials`. */
+export type SandboxRegistryCredential = SandboxRegistryCredentials;
+
+/** @deprecated Use `SandboxImageImportInput` with `images.import()`. */
+export type SandboxBuildCreateInput = {
+  sandboxGroupId: string;
+  name: string;
+  sourceImage: string;
+  registryCredential?: SandboxRegistryCredentials;
+};
+
+/** @deprecated Use `SandboxImageGetInput` with `images.get()`. */
 export type SandboxBuildGetInput = {
   sandboxGroupId: string;
   buildId: string;
@@ -333,6 +378,11 @@ function optionalOwnerIdQuery(
 const DEFAULT_WAIT_INTERVAL_MS = 250;
 const DEFAULT_SANDBOX_WAIT_TIMEOUT_MS = 60_000;
 const DEFAULT_SNAPSHOT_WAIT_TIMEOUT_MS = 5 * 60_000;
+/** Matches the CLI's `sandbox-groups images import --wait`. */
+const DEFAULT_IMAGE_WAIT_TIMEOUT_MS = 10 * 60_000;
+
+/** The format of an image ID; `create({ image })` treats anything else as a name. */
+const IMAGE_ID_PATTERN = /^sbb-[0-9a-v]{20}$/;
 
 /**
  * Returns the sandbox if it is `running`, or `undefined` if it may still become `running`.
@@ -365,6 +415,23 @@ function availableSnapshot(snapshot: SandboxSnapshot): SandboxSnapshot | undefin
       `Snapshot ${snapshot.id} failed to capture${snapshot.error ? `: ${snapshot.error}` : ""}`,
       snapshot.id,
       snapshot.error ?? undefined,
+    );
+  }
+  return undefined;
+}
+
+/**
+ * Returns the image if it has `succeeded`, or `undefined` if its import is still `pending` or
+ * `running`.
+ * Throws `SandboxImageFailedError` if the import failed.
+ */
+function readyImage(image: SandboxImage): SandboxImage | undefined {
+  if (image.status === "succeeded") return image;
+  if (image.status === "failed") {
+    throw new SandboxImageFailedError(
+      `Image ${image.id} failed to import${image.failureReason ? `: ${image.failureReason}` : ""}`,
+      image.id,
+      image.failureReason ?? undefined,
     );
   }
   return undefined;
@@ -520,45 +587,104 @@ export class SandboxSnapshotsClient {
   }
 }
 
-export class SandboxBuildsClient {
+export class SandboxImagesClient {
   constructor(private readonly apiClient: Client<paths>) {}
 
   /**
-   * Returns once the build has started; poll `get()` for `succeeded` or `failed`. A name and
-   * digest the group already has, or is building, returns that build instead of starting another.
+   * Starts importing an OCI image so sandboxes can start from it. Returns once the import has
+   * started; call `waitUntilReady()` to wait for it to succeed. A name and digest the group
+   * already has, or is importing, returns that image instead of starting another.
    */
-  async create({
+  async import({
     sandboxGroupId,
     name,
-    sourceImage,
-    registryCredential,
-  }: SandboxBuildCreateInput): Promise<SandboxBuild> {
+    source,
+    registryCredentials,
+  }: SandboxImageImportInput): Promise<SandboxImage> {
     const body: components["schemas"]["sandboxBuildPOST"] = {
       name,
-      sourceImage,
-      ...(registryCredential ? { registryCredential } : {}),
+      sourceImage: source,
+      ...(registryCredentials ? { registryCredential: registryCredentials } : {}),
     };
     return unwrap(
       await this.apiClient.POST("/sandbox-groups/{sandboxGroupId}/builds", {
         params: { path: { sandboxGroupId } },
         body,
       }),
-      "Failed to create build",
+      "Failed to import image",
     );
   }
 
-  async get({ sandboxGroupId, buildId }: SandboxBuildGetInput): Promise<SandboxBuild> {
+  async get(
+    { sandboxGroupId, imageId }: SandboxImageGetInput,
+    signal?: AbortSignal,
+  ): Promise<SandboxImage> {
     return unwrap(
       await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/builds/{buildId}", {
-        params: { path: { sandboxGroupId, buildId } },
+        params: { path: { sandboxGroupId, buildId: imageId } },
+        ...(signal ? { signal } : {}),
       }),
-      "Failed to get build",
+      "Failed to get image",
     );
+  }
+
+  /**
+   * Waits until the image has `succeeded`, so sandboxes can start from it. Throws
+   * `SandboxImageFailedError` if the import fails, or `SandboxImageWaitTimeoutError` after
+   * `timeoutMs` (10 minutes by default).
+   */
+  async waitUntilReady(
+    input: SandboxImageGetInput,
+    options: SandboxWaitOptions = {},
+  ): Promise<SandboxImage> {
+    return pollUntil((signal) => this.get(input, signal), readyImage, {
+      timeoutMs: options.timeoutMs ?? DEFAULT_IMAGE_WAIT_TIMEOUT_MS,
+      intervalMs: options.intervalMs ?? DEFAULT_WAIT_INTERVAL_MS,
+      signal: options.signal,
+      timeoutError: (last) =>
+        new SandboxImageWaitTimeoutError(
+          `Timed out waiting for image ${input.imageId} to be ready`,
+          input.imageId,
+          options.timeoutMs ?? DEFAULT_IMAGE_WAIT_TIMEOUT_MS,
+          last?.status,
+        ),
+    });
+  }
+}
+
+/** @deprecated Use `SandboxImagesClient`, via `sandboxes.images`. */
+export class SandboxBuildsClient {
+  private readonly images: SandboxImagesClient;
+
+  constructor(apiClient: Client<paths>) {
+    this.images = new SandboxImagesClient(apiClient);
+  }
+
+  /** @deprecated Use `images.import()`. */
+  async create({
+    sandboxGroupId,
+    name,
+    sourceImage,
+    registryCredential,
+  }: SandboxBuildCreateInput): Promise<SandboxImage> {
+    return this.images.import({
+      sandboxGroupId,
+      name,
+      source: sourceImage,
+      ...(registryCredential ? { registryCredentials: registryCredential } : {}),
+    });
+  }
+
+  /** @deprecated Use `images.get()`. */
+  async get({ sandboxGroupId, buildId }: SandboxBuildGetInput): Promise<SandboxImage> {
+    return this.images.get({ sandboxGroupId, imageId: buildId });
   }
 }
 
 export class SandboxesClient {
   public readonly snapshots: SandboxSnapshotsClient;
+  public readonly images: SandboxImagesClient;
+  /** @deprecated Use `images`. */
   public readonly builds: SandboxBuildsClient;
   private readonly defaultOwnerId?: string;
   private readonly defaultRegion?: string;
@@ -571,6 +697,7 @@ export class SandboxesClient {
     this.defaultOwnerId = defaultOwnerId;
     this.defaultRegion = defaultRegion;
     this.snapshots = new SandboxSnapshotsClient(apiClient, defaultOwnerId);
+    this.images = new SandboxImagesClient(apiClient);
     this.builds = new SandboxBuildsClient(apiClient);
   }
 
@@ -629,6 +756,11 @@ export class SandboxesClient {
       ...(input.env ? { env: input.env } : {}),
       ...(input.snapshotId ? { snapshotId: input.snapshotId } : {}),
       ...(input.snapshotName === undefined ? {} : { snapshotName: input.snapshotName }),
+      ...(input.image === undefined
+        ? {}
+        : IMAGE_ID_PATTERN.test(input.image)
+          ? { buildId: input.image }
+          : { buildName: input.image }),
       ...(input.buildId === undefined ? {} : { buildId: input.buildId }),
       ...(input.buildName === undefined ? {} : { buildName: input.buildName }),
     } as components["schemas"]["sandboxPOST"];

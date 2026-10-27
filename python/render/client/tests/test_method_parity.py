@@ -27,11 +27,13 @@ from render.experimental.sandbox.api import SandboxApi
 from render.experimental.sandbox.api_sync import SyncSandboxApi
 from render.experimental.sandbox.client import (
     BuildClient,
+    ImageClient,
     SandboxClient,
     SnapshotClient,
 )
 from render.experimental.sandbox.client_sync import (
     SyncBuildClient,
+    SyncImageClient,
     SyncSandboxClient,
     SyncSnapshotClient,
 )
@@ -47,6 +49,7 @@ ASYNC_SYNC_PAIRS = [
     (SandboxApi, SyncSandboxApi),
     (SandboxClient, SyncSandboxClient),
     (SnapshotClient, SyncSnapshotClient),
+    (ImageClient, SyncImageClient),
     (BuildClient, SyncBuildClient),
 ]
 

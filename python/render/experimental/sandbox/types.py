@@ -127,12 +127,12 @@ class SnapshotList:
 
 
 @dataclass
-class BuildSource:
-    """The OCI image a build converts, as the registry resolved it.
+class ImageSource:
+    """The OCI image an import converts, as the registry resolved it.
 
     repository is the registry host and namespace, like ``docker.io/library``,
     image the name within it, like ``python``, and reference the tag or digest
-    the build was requested at, like ``3.13``.
+    the image was imported at, like ``3.13``.
     """
 
     repository: str
@@ -141,16 +141,17 @@ class BuildSource:
 
 
 @dataclass
-class Build:
-    """A sandbox build, as returned by builds.create and builds.from_id.
+class Image:
+    """A sandbox image, as returned by images.import_, from_id and wait_until_ready.
 
-    status is ``pending``, ``running``, ``succeeded`` or ``failed``.
+    status is ``pending``, ``running``, ``succeeded`` or ``failed``. Sandboxes
+    can start from the image once it has ``succeeded``.
     """
 
     id: str
     sandbox_group_id: str
     name: str
-    source: BuildSource
+    source: ImageSource
     source_digest: str
     status: str
     created_at: datetime
@@ -159,14 +160,20 @@ class Build:
 
 
 @dataclass
-class RegistryCredential:
-    """Credentials for pulling a build's source image from a private registry.
+class RegistryCredentials:
+    """Credentials for pulling an image from a private registry.
 
-    The API uses them for that build only and does not store them.
+    The API uses them for that import only and does not store them.
     """
 
     username: str
     password: str = field(repr=False)
+
+
+# Deprecated aliases from when images were called builds.
+Build = Image
+BuildSource = ImageSource
+RegistryCredential = RegistryCredentials
 
 
 @dataclass

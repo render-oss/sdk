@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import stat
-from collections.abc import AsyncIterator, Sequence
+from collections.abc import AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -33,8 +33,8 @@ from render.experimental.sandbox._tar import (
     astat_path,
 )
 from render.experimental.sandbox.errors import (
-    BuildNotFoundError,
-    BuildNotReadyError,
+    ImageNotFoundError,
+    ImageNotReadyError,
     SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
@@ -56,11 +56,11 @@ from render.experimental.sandbox.files import (
     resolve_file_dest,
 )
 from render.experimental.sandbox.types import (
-    Build,
-    BuildSource,
     EgressRule,
+    Image,
+    ImageSource,
     NetworkPolicy,
-    RegistryCredential,
+    RegistryCredentials,
     Sandbox,
     SandboxExecEvent,
     SandboxExecExit,
@@ -135,8 +135,9 @@ _FILE_NOT_FOUND_CODE = "file_not_found"
 _SNAPSHOT_NOT_FOUND_CODE = "snapshot_not_found"
 _SNAPSHOT_NOT_READY_CODES = frozenset({"snapshot_creating", "snapshot_not_available"})
 _SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
-_BUILD_NOT_FOUND_CODE = "build_not_found"
-_BUILD_NOT_SUCCEEDED_CODE = "build_not_succeeded"
+# The API still calls images builds, in its paths and error codes.
+_IMAGE_NOT_FOUND_CODE = "build_not_found"
+_IMAGE_NOT_SUCCEEDED_CODE = "build_not_succeeded"
 
 # Aliased at module scope so the annotations on the _api_call methods resolve
 # the builtin list, not the SandboxApi.list method that shadows it in the class body.
@@ -236,12 +237,12 @@ def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
     )
 
 
-def _to_build(model: GeneratedSandboxBuild) -> Build:
-    return Build(
+def _to_image(model: GeneratedSandboxBuild) -> Image:
+    return Image(
         id=model.id,
         sandbox_group_id=model.sandbox_group_id,
         name=model.name,
-        source=BuildSource(
+        source=ImageSource(
             repository=model.source.repository,
             image=model.source.image,
             reference=model.source.reference,
@@ -307,20 +308,20 @@ def _handle_snapshot_api_error(
     handle_api_error(response, operation)
 
 
-def _handle_build_api_error(
-    response: Response[Any], build_ref: str, operation: str
+def _handle_image_api_error(
+    response: Response[Any], image_ref: str, operation: str
 ) -> None:
     if response.status_code == 404:
         code = _error_body(response.content).code
-        if code == _BUILD_NOT_FOUND_CODE:
-            raise BuildNotFoundError(f"build {build_ref} not found", code=code)
+        if code == _IMAGE_NOT_FOUND_CODE:
+            raise ImageNotFoundError(f"image {image_ref} not found", code=code)
     if response.status_code == 409:
         error = _error_body(response.content)
-        if error.code == _BUILD_NOT_SUCCEEDED_CODE:
+        if error.code == _IMAGE_NOT_SUCCEEDED_CODE:
             message = f"{operation} failed"
             if error.message:
                 message = f"{message}: {error.message}"
-            raise BuildNotReadyError(message, code=error.code)
+            raise ImageNotReadyError(message, code=error.code)
     handle_api_error(response, operation)
 
 
@@ -341,8 +342,8 @@ class SandboxApi:
         env: dict[str, str] | None,
         snapshot_id: str | None,
         snapshot_name: str | None,
-        build_id: str | None = None,
-        build_name: str | None = None,
+        image_id: str | None = None,
+        image_name: str | None = None,
         sandbox_group_id: str | None = None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
@@ -362,23 +363,23 @@ class SandboxApi:
             body.snapshot_id = snapshot_id
         if snapshot_name is not None:
             body.snapshot_name = snapshot_name
-        if build_id is not None:
-            body.build_id = build_id
-        if build_name is not None:
-            body.build_name = build_name
+        if image_id is not None:
+            body.build_id = image_id
+        if image_name is not None:
+            body.build_name = image_name
 
         with request_errors("create sandbox"):
             response = await create_sandbox.asyncio_detailed(
                 client=self.client, body=body
             )
         snapshot_ref = snapshot_id if snapshot_id is not None else snapshot_name
-        build_ref = build_id if build_id is not None else build_name
+        image_ref = image_id if image_id is not None else image_name
         if snapshot_ref is not None:
             _handle_snapshot_api_error(
                 response, snapshot_ref, "create sandbox", path_names_snapshot=False
             )
-        elif build_ref is not None:
-            _handle_build_api_error(response, build_ref, "create sandbox")
+        elif image_ref is not None:
+            _handle_image_api_error(response, image_ref, "create sandbox")
         else:
             handle_api_error(response, "create sandbox")
         if not isinstance(response.parsed, GeneratedSandbox):
@@ -594,37 +595,42 @@ class SandboxApi:
             )
         _handle_snapshot_api_error(response, snapshot_id, "delete snapshot")
 
-    async def create_build(
+    async def import_image(
         self,
         sandbox_group_id: str,
         name: str,
-        source_image: str,
-        registry_credential: RegistryCredential | None,
-    ) -> Build:
-        body = SandboxBuildPOST(name=name, source_image=source_image)
-        if registry_credential is not None:
+        source: str,
+        registry_credentials: RegistryCredentials | Mapping[str, str] | None,
+    ) -> Image:
+        body = SandboxBuildPOST(name=name, source_image=source)
+        if registry_credentials is not None:
+            if isinstance(registry_credentials, Mapping):
+                registry_credentials = RegistryCredentials(
+                    username=registry_credentials["username"],
+                    password=registry_credentials["password"],
+                )
             body.registry_credential = SandboxBuildPOSTRegistryCredential(
-                username=registry_credential.username,
-                password=registry_credential.password,
+                username=registry_credentials.username,
+                password=registry_credentials.password,
             )
-        with request_errors("create build"):
+        with request_errors("import image"):
             response = await create_sandbox_build.asyncio_detailed(
                 sandbox_group_id, client=self.client, body=body
             )
-        handle_api_error(response, "create build")
+        handle_api_error(response, "import image")
         if not isinstance(response.parsed, GeneratedSandboxBuild):
-            raise RenderError("Failed to create build: unexpected response type")
-        return _to_build(response.parsed)
+            raise RenderError("Failed to import image: unexpected response type")
+        return _to_image(response.parsed)
 
-    async def get_build(self, sandbox_group_id: str, build_id: str) -> Build:
-        with request_errors("retrieve build"):
+    async def get_image(self, sandbox_group_id: str, image_id: str) -> Image:
+        with request_errors("retrieve image"):
             response = await retrieve_sandbox_build.asyncio_detailed(
-                sandbox_group_id, build_id, client=self.client
+                sandbox_group_id, image_id, client=self.client
             )
-        _handle_build_api_error(response, build_id, "retrieve build")
+        _handle_image_api_error(response, image_id, "retrieve image")
         if not isinstance(response.parsed, GeneratedSandboxBuild):
-            raise RenderError("Failed to retrieve build: unexpected response type")
-        return _to_build(response.parsed)
+            raise RenderError("Failed to retrieve image: unexpected response type")
+        return _to_image(response.parsed)
 
     async def _mint_run_token(
         self, sandbox_id: str, owner_id: str, operation: str, command: str

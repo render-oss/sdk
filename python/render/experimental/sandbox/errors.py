@@ -31,13 +31,18 @@ class SnapshotPlanMismatchError(ClientError):
     a different plan. code is snapshot_plan_mismatch."""
 
 
-class BuildNotFoundError(ClientError):
-    """Raised when a build does not exist or belongs to another sandbox group."""
+class ImageNotFoundError(ClientError):
+    """Raised when an image does not exist or belongs to another sandbox group."""
 
 
-class BuildNotReadyError(ClientError):
-    """Raised when a sandbox create names a build that has not succeeded, whether
+class ImageNotReadyError(ClientError):
+    """Raised when a sandbox create names an image that has not succeeded, whether
     still in progress or failed."""
+
+
+# Deprecated aliases from when images were called builds.
+BuildNotFoundError = ImageNotFoundError
+BuildNotReadyError = ImageNotReadyError
 
 
 class SandboxDownloadError(RenderError):
@@ -86,6 +91,18 @@ class SnapshotFailedError(RenderError):
         self.snapshot_error = snapshot_error
 
 
+class ImageFailedError(RenderError):
+    """Raised while waiting for an image to be ready when its import fails.
+    failure_reason is the reason the API reports, if any."""
+
+    def __init__(
+        self, message: str, *, image_id: str, failure_reason: str | None
+    ) -> None:
+        super().__init__(message)
+        self.image_id = image_id
+        self.failure_reason = failure_reason
+
+
 class SandboxWaitTimeoutError(RenderTimeoutError):
     """Raised when a sandbox is not running before the wait times out.
 
@@ -124,6 +141,27 @@ class SnapshotWaitTimeoutError(RenderTimeoutError):
     ) -> None:
         super().__init__(message)
         self.snapshot_id = snapshot_id
+        self.timeout_seconds = timeout_seconds
+        self.last_status = last_status
+
+
+class ImageWaitTimeoutError(RenderTimeoutError):
+    """Raised when an image is not ready before the wait times out.
+
+    The import keeps running and may still succeed. last_status is None if no
+    status check finished in time.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        image_id: str,
+        timeout_seconds: float,
+        last_status: str | None,
+    ) -> None:
+        super().__init__(message)
+        self.image_id = image_id
         self.timeout_seconds = timeout_seconds
         self.last_status = last_status
 

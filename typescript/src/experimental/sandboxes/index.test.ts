@@ -7,6 +7,10 @@ import {
   SandboxBuildNotReadyError,
   SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxImageFailedError,
+  SandboxImageNotFoundError,
+  SandboxImageNotReadyError,
+  SandboxImageWaitTimeoutError,
   SandboxNotRunningError,
   SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
@@ -25,6 +29,7 @@ import {
   type SandboxExecEvent,
   SandboxExecStreamError,
   SandboxesClient,
+  type SandboxImage,
   type SandboxSnapshot,
   type SandboxSnapshotWithCursor,
 } from "./index.js";
@@ -114,7 +119,7 @@ const SNAPSHOT: SandboxSnapshot = {
 
 const ITEM: SandboxSnapshotWithCursor = { snapshot: SNAPSHOT, cursor: "cursor-123" };
 
-const BUILD: SandboxBuild = {
+const IMAGE: SandboxImage = {
   id: "sbb-cph1rs3idesc73a2b2mg",
   sandboxGroupId: "sbg-123",
   name: "python",
@@ -126,10 +131,10 @@ const BUILD: SandboxBuild = {
   finishedAt: null,
 };
 
-const BUILD_CREATE_INPUT = {
+const IMAGE_IMPORT_INPUT = {
   sandboxGroupId: "sbg-123",
   name: "python",
-  sourceImage: "python:3.13",
+  source: "python:3.13",
 };
 
 describe("SandboxesClient", () => {
@@ -187,16 +192,16 @@ describe("SandboxesClient", () => {
         call: (c) => c.exec("sbx-123", "echo hi").then((events) => collect(events)),
       },
       {
-        name: "builds.create",
+        name: "images.import",
         method: "POST",
-        context: "Failed to create build",
-        call: (c) => c.builds.create(BUILD_CREATE_INPUT),
+        context: "Failed to import image",
+        call: (c) => c.images.import(IMAGE_IMPORT_INPUT),
       },
       {
-        name: "builds.get",
+        name: "images.get",
         method: "GET",
-        context: "Failed to get build",
-        call: (c) => c.builds.get({ sandboxGroupId: "sbg-123", buildId: BUILD.id }),
+        context: "Failed to get image",
+        call: (c) => c.images.get({ sandboxGroupId: "sbg-123", imageId: IMAGE.id }),
       },
     ];
 
@@ -425,7 +430,15 @@ describe("SandboxesClient", () => {
       }>().not.toExtend<SandboxCreateInput>();
     });
 
-    it("keeps a build mutually exclusive with every other source in the public type", () => {
+    it("keeps an image mutually exclusive with every other source in the public type", () => {
+      expectTypeOf<{ image: string }>().toExtend<SandboxCreateInput>();
+      expectTypeOf<{ image: string; snapshotId: string }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{ image: string; snapshotName: string }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{ image: string; buildId: string }>().not.toExtend<SandboxCreateInput>();
+      expectTypeOf<{ image: string; buildName: string }>().not.toExtend<SandboxCreateInput>();
+    });
+
+    it("keeps a deprecated build mutually exclusive with every other source", () => {
       expectTypeOf<{ buildId: string }>().toExtend<SandboxCreateInput>();
       expectTypeOf<{ buildName: string }>().toExtend<SandboxCreateInput>();
       expectTypeOf<{ buildId: string; buildName: string }>().not.toExtend<SandboxCreateInput>();
@@ -545,14 +558,61 @@ describe("SandboxesClient", () => {
       });
     });
 
-    it("forwards the build ID", async () => {
+    it("sends an image ID as the build ID", async () => {
       const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
       const client = new SandboxesClient(apiClient);
 
-      await client.create({ ownerId: "tea-test", buildId: BUILD.id });
+      await client.create({ ownerId: "tea-test", image: IMAGE.id });
 
       expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
-        body: { ownerId: "tea-test", buildId: BUILD.id },
+        body: { ownerId: "tea-test", buildId: IMAGE.id },
+      });
+    });
+
+    it("sends an image name as the build name", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", image: "agent-runtime" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildName: "agent-runtime" },
+      });
+    });
+
+    it.each(["sbb-runtime", "sbb-abc", `${IMAGE.id}x`])(
+      "sends %s, which is not in the image ID format, as a name",
+      async (image) => {
+        const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+        const client = new SandboxesClient(apiClient);
+
+        await client.create({ ownerId: "tea-test", image });
+
+        expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+          body: { ownerId: "tea-test", buildName: image },
+        });
+      },
+    );
+
+    it("forwards an empty image as a name instead of dropping it", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", image: "" });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildName: "" },
+      });
+    });
+
+    it("forwards the deprecated build ID", async () => {
+      const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
+      const client = new SandboxesClient(apiClient);
+
+      await client.create({ ownerId: "tea-test", buildId: IMAGE.id });
+
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", buildId: IMAGE.id },
       });
     });
 
@@ -567,7 +627,7 @@ describe("SandboxesClient", () => {
       });
     });
 
-    it("forwards the build name", async () => {
+    it("forwards the deprecated build name", async () => {
       const apiClient = mockApiClient("POST", { status: 201, data: { id: "sbx-123" } });
       const client = new SandboxesClient(apiClient);
 
@@ -618,49 +678,55 @@ describe("SandboxesClient", () => {
       {
         status: 404,
         code: "build_not_found",
-        input: { buildId: "sbb-missing" },
-        ErrorClass: SandboxBuildNotFoundError,
+        input: { image: "sbb-missing" },
+        ErrorClass: SandboxImageNotFoundError,
       },
       {
         status: 404,
         code: "build_not_found",
-        input: { buildName: "missing" },
-        ErrorClass: SandboxBuildNotFoundError,
+        input: { image: "missing" },
+        ErrorClass: SandboxImageNotFoundError,
       },
       {
         status: 409,
         code: "build_not_succeeded",
-        input: { buildId: "sbb-running" },
-        ErrorClass: SandboxBuildNotReadyError,
+        input: { image: "sbb-running" },
+        ErrorClass: SandboxImageNotReadyError,
+      },
+      {
+        status: 409,
+        code: "build_not_succeeded",
+        input: { image: "python" },
+        ErrorClass: SandboxImageNotReadyError,
       },
       {
         status: 409,
         code: "build_not_succeeded",
         input: { buildName: "python" },
-        ErrorClass: SandboxBuildNotReadyError,
+        ErrorClass: SandboxImageNotReadyError,
       },
       {
         status: 404,
         code: undefined,
-        input: { buildId: "sbb-missing" },
+        input: { image: "sbb-missing" },
         ErrorClass: ClientError,
       },
       {
         status: 409,
         code: undefined,
-        input: { buildName: "python" },
+        input: { image: "python" },
         ErrorClass: ClientError,
       },
       {
         status: 409,
         code: "sandbox_group_suspended",
-        input: { buildName: "python" },
+        input: { image: "python" },
         ErrorClass: ClientError,
       },
       {
         status: 400,
         code: undefined,
-        input: { buildName: "" },
+        input: { image: "" },
         ErrorClass: ClientError,
       },
     ];
@@ -1003,62 +1069,78 @@ describe("SandboxesClient", () => {
     });
   });
 
-  describe("builds", () => {
-    const BUILD_PATH = "/sandbox-groups/{sandboxGroupId}/builds";
-    const BUILD_GET_PATH = "/sandbox-groups/{sandboxGroupId}/builds/{buildId}";
-    const buildGetInput = { sandboxGroupId: "sbg-123", buildId: BUILD.id };
+  describe("images", () => {
+    const IMAGE_PATH = "/sandbox-groups/{sandboxGroupId}/builds";
+    const IMAGE_GET_PATH = "/sandbox-groups/{sandboxGroupId}/builds/{buildId}";
+    const imageGetInput = { sandboxGroupId: "sbg-123", imageId: IMAGE.id };
 
     it("exposes nullable optional failure and finish fields", () => {
-      expectTypeOf<SandboxBuild["failureReason"]>().toEqualTypeOf<string | null | undefined>();
-      expectTypeOf<SandboxBuild["finishedAt"]>().toEqualTypeOf<string | null | undefined>();
-      expectTypeOf<SandboxBuild["status"]>().toEqualTypeOf<
+      expectTypeOf<SandboxImage["failureReason"]>().toEqualTypeOf<string | null | undefined>();
+      expectTypeOf<SandboxImage["finishedAt"]>().toEqualTypeOf<string | null | undefined>();
+      expectTypeOf<SandboxImage["status"]>().toEqualTypeOf<
         "pending" | "running" | "succeeded" | "failed"
       >();
     });
 
-    describe("create", () => {
-      it("starts a build and returns it without an owner query", async () => {
-        const apiClient = mockApiClient("POST", { status: 201, data: BUILD });
+    describe("import", () => {
+      it("starts an import and returns it without an owner query", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: IMAGE });
         const client = new SandboxesClient(apiClient, "tea-default");
 
-        await expect(client.builds.create(BUILD_CREATE_INPUT)).resolves.toEqual(BUILD);
-        expect(apiClient.POST).toHaveBeenCalledWith(BUILD_PATH, {
+        await expect(client.images.import(IMAGE_IMPORT_INPUT)).resolves.toEqual(IMAGE);
+        expect(apiClient.POST).toHaveBeenCalledWith(IMAGE_PATH, {
           params: { path: { sandboxGroupId: "sbg-123" } },
           body: { name: "python", sourceImage: "python:3.13" },
         });
       });
 
-      it("sends the registry credential", async () => {
-        const apiClient = mockApiClient("POST", { status: 201, data: BUILD });
+      it("sends the registry credentials", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: IMAGE });
         const client = new SandboxesClient(apiClient, "tea-default");
-        const registryCredential = { username: "bot", password: "s3cret" };
+        const registryCredentials = { username: "bot", password: "s3cret" };
 
-        await client.builds.create({
+        await client.images.import({
           sandboxGroupId: "sbg-123",
           name: "internal",
-          sourceImage: "ghcr.io/acme/internal:1.0",
-          registryCredential,
+          source: "ghcr.io/acme/internal:1.0",
+          registryCredentials,
         });
 
-        expect(apiClient.POST).toHaveBeenCalledWith(BUILD_PATH, {
+        expect(apiClient.POST).toHaveBeenCalledWith(IMAGE_PATH, {
           params: { path: { sandboxGroupId: "sbg-123" } },
-          body: { name: "internal", sourceImage: "ghcr.io/acme/internal:1.0", registryCredential },
+          body: {
+            name: "internal",
+            sourceImage: "ghcr.io/acme/internal:1.0",
+            registryCredential: registryCredentials,
+          },
         });
       });
 
-      it("returns the existing build when the group already has the digest", async () => {
-        const succeeded: SandboxBuild = {
-          ...BUILD,
+      it("accepts a name with the image ID prefix", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: IMAGE });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.images.import({ ...IMAGE_IMPORT_INPUT, name: "sbb-runtime" });
+
+        expect(apiClient.POST).toHaveBeenCalledWith(
+          "/sandbox-groups/{sandboxGroupId}/builds",
+          expect.objectContaining({ body: expect.objectContaining({ name: "sbb-runtime" }) }),
+        );
+      });
+
+      it("returns the existing image when the group already has the digest", async () => {
+        const succeeded: SandboxImage = {
+          ...IMAGE,
           status: "succeeded",
           finishedAt: "2026-10-01T00:00:10Z",
         };
         const apiClient = mockApiClient("POST", { status: 201, data: succeeded });
         const client = new SandboxesClient(apiClient, "tea-default");
 
-        await expect(client.builds.create(BUILD_CREATE_INPUT)).resolves.toEqual(succeeded);
+        await expect(client.images.import(IMAGE_IMPORT_INPUT)).resolves.toEqual(succeeded);
       });
 
-      const createErrorRows: {
+      const importErrorRows: {
         status: number;
         code: string | undefined;
         ErrorClass: typeof ClientError;
@@ -1070,7 +1152,7 @@ describe("SandboxesClient", () => {
         { status: 429, code: undefined, ErrorClass: ClientError },
       ];
 
-      it.each(createErrorRows)(
+      it.each(importErrorRows)(
         "maps $status with code $code to $ErrorClass.name",
         async ({ status, code, ErrorClass }) => {
           const apiClient = mockApiClient("POST", {
@@ -1079,21 +1161,21 @@ describe("SandboxesClient", () => {
           });
           const client = new SandboxesClient(apiClient, "tea-default");
 
-          const error = await client.builds.create(BUILD_CREATE_INPUT).catch((err) => err);
+          const error = await client.images.import(IMAGE_IMPORT_INPUT).catch((err) => err);
           expect(error.constructor).toBe(ErrorClass);
           expect(error).toMatchObject({
             statusCode: status,
             code,
-            message: "Failed to create build: rejected",
+            message: "Failed to import image: rejected",
           });
         },
       );
     });
 
     describe("get", () => {
-      it("retrieves a build by group and ID", async () => {
-        const failed: SandboxBuild = {
-          ...BUILD,
+      it("retrieves an image by group and ID", async () => {
+        const failed: SandboxImage = {
+          ...IMAGE,
           status: "failed",
           failureReason: "image is not linux/amd64",
           finishedAt: "2026-10-01T00:00:10Z",
@@ -1101,25 +1183,25 @@ describe("SandboxesClient", () => {
         const apiClient = mockApiClient("GET", { status: 200, data: failed });
         const client = new SandboxesClient(apiClient, "tea-default");
 
-        await expect(client.builds.get(buildGetInput)).resolves.toEqual(failed);
-        expect(apiClient.GET).toHaveBeenCalledWith(BUILD_GET_PATH, {
-          params: { path: buildGetInput },
+        await expect(client.images.get(imageGetInput)).resolves.toEqual(failed);
+        expect(apiClient.GET).toHaveBeenCalledWith(IMAGE_GET_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123", buildId: IMAGE.id } },
         });
       });
 
-      it("throws SandboxBuildNotFoundError for a missing or foreign build", async () => {
+      it("throws SandboxImageNotFoundError for a missing or foreign image", async () => {
         const apiClient = mockApiClient("GET", {
           status: 404,
           error: { message: "not found: build", code: "build_not_found" },
         });
         const client = new SandboxesClient(apiClient, "tea-default");
 
-        const error = await client.builds.get(buildGetInput).catch((err) => err);
-        expect(error.constructor).toBe(SandboxBuildNotFoundError);
+        const error = await client.images.get(imageGetInput).catch((err) => err);
+        expect(error.constructor).toBe(SandboxImageNotFoundError);
         expect(error).toMatchObject({
           statusCode: 404,
           code: "build_not_found",
-          message: "Failed to get build: not found: build",
+          message: "Failed to get image: not found: build",
         });
       });
 
@@ -1130,11 +1212,66 @@ describe("SandboxesClient", () => {
         });
         const client = new SandboxesClient(apiClient, "tea-default");
 
-        const error = await client.builds.get(buildGetInput).catch((err) => err);
+        const error = await client.images.get(imageGetInput).catch((err) => err);
         expect(error.constructor).toBe(ClientError);
         expect(error).toMatchObject({
           statusCode: 400,
-          message: "Failed to get build: invalid build ID",
+          message: "Failed to get image: invalid build ID",
+        });
+      });
+    });
+
+    describe("deprecated builds", () => {
+      it("keeps the build types and errors as aliases of the image ones", () => {
+        expectTypeOf<SandboxBuild>().toEqualTypeOf<SandboxImage>();
+        expect(SandboxBuildNotFoundError).toBe(SandboxImageNotFoundError);
+        expect(SandboxBuildNotReadyError).toBe(SandboxImageNotReadyError);
+      });
+
+      it("builds.create imports the image", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: IMAGE });
+        const client = new SandboxesClient(apiClient, "tea-default");
+        const registryCredential = { username: "bot", password: "s3cret" };
+
+        await expect(
+          client.builds.create({
+            sandboxGroupId: "sbg-123",
+            name: "python",
+            sourceImage: "python:3.13",
+            registryCredential,
+          }),
+        ).resolves.toEqual(IMAGE);
+        expect(apiClient.POST).toHaveBeenCalledWith(IMAGE_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: { name: "python", sourceImage: "python:3.13", registryCredential },
+        });
+      });
+
+      it("builds.create still sends a name starting with sbb-", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: IMAGE });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.builds.create({
+          sandboxGroupId: "sbg-123",
+          name: "sbb-runtime",
+          sourceImage: "python:3.13",
+        });
+
+        expect(apiClient.POST).toHaveBeenCalledWith(IMAGE_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: { name: "sbb-runtime", sourceImage: "python:3.13" },
+        });
+      });
+
+      it("builds.get gets the image", async () => {
+        const apiClient = mockApiClient("GET", { status: 200, data: IMAGE });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(
+          client.builds.get({ sandboxGroupId: "sbg-123", buildId: IMAGE.id }),
+        ).resolves.toEqual(IMAGE);
+        expect(apiClient.GET).toHaveBeenCalledWith(IMAGE_GET_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123", buildId: IMAGE.id } },
         });
       });
     });
@@ -1927,6 +2064,76 @@ describe("SandboxesClient", () => {
         snapshotId: SNAPSHOT.id,
         timeoutMs: 5 * 60_000,
         lastStatus: "creating",
+      });
+    });
+
+    const imageWithStatus = (status: string, failureReason: string | null = null) => ({
+      data: { ...IMAGE, status, failureReason },
+      error: undefined,
+      response: new Response(null, { status: 200 }),
+    });
+
+    it("images.waitUntilReady polls until the image succeeds", async () => {
+      const GET = vi
+        .fn()
+        .mockResolvedValueOnce(imageWithStatus("pending"))
+        .mockResolvedValueOnce(imageWithStatus("running"))
+        .mockResolvedValueOnce(imageWithStatus("succeeded"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.images.waitUntilReady({
+        sandboxGroupId: "sbg-123",
+        imageId: IMAGE.id,
+      });
+      await vi.advanceTimersByTimeAsync(250 + 500);
+
+      await expect(waiting).resolves.toMatchObject({ status: "succeeded" });
+      expect(GET).toHaveBeenCalledTimes(3);
+      expect(GET).toHaveBeenCalledWith(
+        "/sandbox-groups/{sandboxGroupId}/builds/{buildId}",
+        expect.objectContaining({
+          params: { path: { sandboxGroupId: "sbg-123", buildId: IMAGE.id } },
+        }),
+      );
+    });
+
+    it("images.waitUntilReady throws with the reason when the import fails", async () => {
+      const GET = vi.fn().mockResolvedValue(imageWithStatus("failed", "image is not linux/amd64"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+
+      const waiting = client.images.waitUntilReady({
+        sandboxGroupId: "sbg-123",
+        imageId: IMAGE.id,
+      });
+      await expect(waiting).rejects.toBeInstanceOf(SandboxImageFailedError);
+      await expect(waiting).rejects.toMatchObject({
+        message: `Image ${IMAGE.id} failed to import: image is not linux/amd64`,
+        imageId: IMAGE.id,
+        failureReason: "image is not linux/amd64",
+      });
+    });
+
+    it("images.waitUntilReady times out after 10 minutes by default", async () => {
+      const GET = vi.fn().mockResolvedValue(imageWithStatus("running"));
+      const client = new SandboxesClient({ GET } as unknown as Client<paths>, "tea-default");
+      let settled = false;
+
+      const waiting = client.images.waitUntilReady({
+        sandboxGroupId: "sbg-123",
+        imageId: IMAGE.id,
+      });
+      const assertion = expect(waiting).rejects.toBeInstanceOf(SandboxImageWaitTimeoutError);
+      void waiting.catch(() => {
+        settled = true;
+      });
+      await vi.advanceTimersByTimeAsync(10 * 60_000 - 1);
+      expect(settled).toBe(false);
+      await vi.advanceTimersByTimeAsync(1);
+      await assertion;
+      await expect(waiting).rejects.toMatchObject({
+        imageId: IMAGE.id,
+        timeoutMs: 10 * 60_000,
+        lastStatus: "running",
       });
     });
 

@@ -92,26 +92,36 @@ export class SandboxSnapshotPlanMismatchError extends ClientError {
 }
 
 /**
- * No build in the sandbox group has the requested ID or name
+ * No image in the sandbox group has the requested ID or name
  */
-export class SandboxBuildNotFoundError extends ClientError {
+export class SandboxImageNotFoundError extends ClientError {
   constructor(message: string, statusCode: number, response?: any, code?: string) {
     super(message, statusCode, response, code);
-    this.name = "SandboxBuildNotFoundError";
-    Object.setPrototypeOf(this, SandboxBuildNotFoundError.prototype);
+    this.name = "SandboxImageNotFoundError";
+    Object.setPrototypeOf(this, SandboxImageNotFoundError.prototype);
   }
 }
 
 /**
- * The build has not `succeeded`: it is still `pending` or `running`, or it `failed`
+ * The image has not `succeeded`: it is still `pending` or `running`, or it `failed`
  */
-export class SandboxBuildNotReadyError extends ClientError {
+export class SandboxImageNotReadyError extends ClientError {
   constructor(message: string, statusCode: number, response?: any, code?: string) {
     super(message, statusCode, response, code);
-    this.name = "SandboxBuildNotReadyError";
-    Object.setPrototypeOf(this, SandboxBuildNotReadyError.prototype);
+    this.name = "SandboxImageNotReadyError";
+    Object.setPrototypeOf(this, SandboxImageNotReadyError.prototype);
   }
 }
+
+/** @deprecated Use `SandboxImageNotFoundError`. */
+export const SandboxBuildNotFoundError = SandboxImageNotFoundError;
+/** @deprecated Use `SandboxImageNotFoundError`. */
+export type SandboxBuildNotFoundError = SandboxImageNotFoundError;
+
+/** @deprecated Use `SandboxImageNotReadyError`. */
+export const SandboxBuildNotReadyError = SandboxImageNotReadyError;
+/** @deprecated Use `SandboxImageNotReadyError`. */
+export type SandboxBuildNotReadyError = SandboxImageNotReadyError;
 
 /**
  * While waiting for the sandbox to be `running`, it reached a status it can't run from:
@@ -147,6 +157,22 @@ export class SandboxSnapshotFailedError extends RenderError {
 /**
  * Error for HTTP server errors (5xx)
  */
+/**
+ * While waiting for the image to be ready, its import failed. `failureReason` is the reason the
+ * API reports, if any.
+ */
+export class SandboxImageFailedError extends RenderError {
+  constructor(
+    message: string,
+    public imageId: string,
+    public failureReason?: string,
+  ) {
+    super(message);
+    this.name = "SandboxImageFailedError";
+    Object.setPrototypeOf(this, SandboxImageFailedError.prototype);
+  }
+}
+
 export class ServerError extends RenderError {
   constructor(
     message: string,
@@ -184,6 +210,23 @@ export class SandboxWaitTimeoutError extends TimeoutError {
     super(message);
     this.name = "SandboxWaitTimeoutError";
     Object.setPrototypeOf(this, SandboxWaitTimeoutError.prototype);
+  }
+}
+
+/**
+ * The image did not succeed before the wait timed out. The import keeps running and may still
+ * succeed. `lastStatus` is unset if no status check finished in time.
+ */
+export class SandboxImageWaitTimeoutError extends TimeoutError {
+  constructor(
+    message: string,
+    public imageId: string,
+    public timeoutMs: number,
+    public lastStatus?: string,
+  ) {
+    super(message);
+    this.name = "SandboxImageWaitTimeoutError";
+    Object.setPrototypeOf(this, SandboxImageWaitTimeoutError.prototype);
   }
 }
 

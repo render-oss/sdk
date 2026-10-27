@@ -7,6 +7,10 @@ from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.errors import (
     BuildNotFoundError,
     BuildNotReadyError,
+    ImageFailedError,
+    ImageNotFoundError,
+    ImageNotReadyError,
+    ImageWaitTimeoutError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxNotFoundError,
@@ -18,8 +22,11 @@ from render.experimental.sandbox.types import (
     Build,
     BuildSource,
     EgressRule,
+    Image,
+    ImageSource,
     NetworkPolicy,
     RegistryCredential,
+    RegistryCredentials,
     Sandbox,
     SandboxExecExit,
     SandboxExecOutput,
@@ -134,32 +141,59 @@ def test_exec_errors_subclass_render_error():
     assert isinstance(SandboxExecError("boom"), RenderError)
 
 
-def test_build_has_expected_fields():
-    build = Build(
+def test_image_has_expected_fields():
+    image = Image(
         id="sbb-1",
         sandbox_group_id="sbg-1",
         name="python",
-        source=BuildSource(
+        source=ImageSource(
             repository="docker.io/library", image="python", reference="3.13"
         ),
         source_digest="sha256:abc",
         status="running",
         created_at=datetime(2026, 10, 1),
     )
-    assert build.id == "sbb-1"
-    assert build.source.image == "python"
-    assert build.failure_reason is None
-    assert build.finished_at is None
+    assert image.id == "sbb-1"
+    assert image.source.image == "python"
+    assert image.failure_reason is None
+    assert image.finished_at is None
 
 
-def test_registry_credential_hides_the_password_from_repr():
-    credential = RegistryCredential(username="bot", password="s3cret")
-    assert "bot" in repr(credential)
-    assert "s3cret" not in repr(credential)
+def test_registry_credentials_hide_the_password_from_repr():
+    credentials = RegistryCredentials(username="bot", password="s3cret")
+    assert "bot" in repr(credentials)
+    assert "s3cret" not in repr(credentials)
 
 
-@pytest.mark.parametrize("error_type", [BuildNotFoundError, BuildNotReadyError])
-def test_build_errors_are_client_errors(error_type):
+@pytest.mark.parametrize(
+    ("alias", "current"),
+    [
+        (Build, Image),
+        (BuildSource, ImageSource),
+        (RegistryCredential, RegistryCredentials),
+        (BuildNotFoundError, ImageNotFoundError),
+        (BuildNotReadyError, ImageNotReadyError),
+    ],
+)
+def test_build_names_alias_the_image_names(alias, current):
+    assert alias is current
+
+
+def test_image_wait_errors_carry_the_image_id():
+    failed = ImageFailedError("boom", image_id="sbb-1", failure_reason="bad arch")
+    assert isinstance(failed, RenderError)
+    assert failed.image_id == "sbb-1"
+    assert failed.failure_reason == "bad arch"
+    timed_out = ImageWaitTimeoutError(
+        "slow", image_id="sbb-1", timeout_seconds=600, last_status="running"
+    )
+    assert isinstance(timed_out, RenderError)
+    assert timed_out.image_id == "sbb-1"
+    assert timed_out.last_status == "running"
+
+
+@pytest.mark.parametrize("error_type", [ImageNotFoundError, ImageNotReadyError])
+def test_image_errors_are_client_errors(error_type):
     err = error_type("boom")
     assert isinstance(err, ClientError)
     assert str(err) == "boom"

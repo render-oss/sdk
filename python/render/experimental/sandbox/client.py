@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator, Sequence
+import re
+import warnings
+from collections.abc import AsyncIterator, Mapping, Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -11,6 +13,7 @@ from render.client.errors import RenderError
 from render.experimental.sandbox import _wait
 from render.experimental.sandbox.api import SandboxApi
 from render.experimental.sandbox.errors import (
+    ImageWaitTimeoutError,
     SandboxCreateWaitError,
     SandboxWaitTimeoutError,
     SnapshotCreateWaitError,
@@ -18,9 +21,9 @@ from render.experimental.sandbox.errors import (
 )
 from render.experimental.sandbox.files import normalize_remote_path
 from render.experimental.sandbox.types import (
-    Build,
+    Image,
     NetworkPolicy,
-    RegistryCredential,
+    RegistryCredentials,
     Sandbox,
     SandboxExecEvent,
     SandboxGroup,
@@ -36,6 +39,9 @@ from render.public_api.types import UNSET, Unset
 if TYPE_CHECKING:
     from render.public_api.client import AuthenticatedClient, Client
 
+# The format of an image ID; create(image=...) treats anything else as a name.
+_IMAGE_ID_PATTERN = re.compile(r"sbb-[0-9a-v]{20}")
+
 
 class SandboxClient:
     """High-level client for creating and operating Render sandboxes."""
@@ -49,6 +55,7 @@ class SandboxClient:
         self.client = client
         self.api = SandboxApi(client)
         self.snapshots = SnapshotClient(self)
+        self.images = ImageClient(self)
         self.builds = BuildClient(self)
         self._default_owner_id = default_owner_id
         self._default_region = default_region
@@ -76,6 +83,7 @@ class SandboxClient:
         env: dict[str, str] | None = None,
         snapshot_id: str | None = None,
         snapshot_name: str | None = None,
+        image: str | None = None,
         build_id: str | None = None,
         build_name: str | None = None,
         sandbox_group_id: str | None = None,
@@ -103,12 +111,14 @@ class SandboxClient:
         SnapshotNotReadyError if it is not available, and
         SnapshotPlanMismatchError on a runtime plan mismatch.
 
-        build_id starts the sandbox from that build's image instead of the
-        base image; build_name starts it from the newest succeeded build with
-        that name in the sandbox group. The two are mutually exclusive with
-        each other and with the snapshot parameters. Raises BuildNotFoundError
-        if the group has no build with the ID or name, and BuildNotReadyError
-        if the build has not succeeded.
+        image starts the sandbox from an image imported with images.import_
+        instead of the base image. An image ID (``sbb-`` and 20 characters,
+        like ``sbb-cph1rs3idesc73a2b2mg``) pins that version; any other value
+        is a name and uses the newest succeeded version with that name in the
+        sandbox group. image is mutually exclusive with the snapshot
+        parameters. Raises ImageNotFoundError if the group has no image with
+        the ID or name, and ImageNotReadyError if it has not succeeded.
+        build_id and build_name are deprecated aliases for image.
 
         wait returns the sandbox only once it is running, as wait_until_running
         does. True uses the default wait; a SandboxWaitOptions sets its timeout
@@ -122,12 +132,24 @@ class SandboxClient:
         """
         if snapshot_id is not None and snapshot_name is not None:
             raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
-        if build_id is not None and build_name is not None:
-            raise ValueError("build_id and build_name are mutually exclusive")
-        if (build_id is not None or build_name is not None) and (
-            snapshot_id is not None or snapshot_name is not None
-        ):
-            raise ValueError("a build and a snapshot are mutually exclusive")
+        if build_id is not None or build_name is not None:
+            warnings.warn(
+                "build_id and build_name are deprecated; use image",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        image_refs = [ref for ref in (image, build_id, build_name) if ref is not None]
+        if len(image_refs) > 1:
+            raise ValueError("image, build_id and build_name are mutually exclusive")
+        if image_refs and (snapshot_id is not None or snapshot_name is not None):
+            raise ValueError("an image and a snapshot are mutually exclusive")
+        image_id = build_id
+        image_name = build_name
+        if image is not None:
+            if _IMAGE_ID_PATTERN.fullmatch(image):
+                image_id = image
+            else:
+                image_name = image
         wait_settings = _wait.resolve_create_wait(
             wait, _wait.DEFAULT_SANDBOX_TIMEOUT_SECONDS
         )
@@ -143,8 +165,8 @@ class SandboxClient:
             env=env,
             snapshot_id=snapshot_id,
             snapshot_name=snapshot_name,
-            build_id=build_id,
-            build_name=build_name,
+            image_id=image_id,
+            image_name=image_name,
             sandbox_group_id=sandbox_group_id,
         )
         if wait_settings is None:
@@ -501,8 +523,84 @@ class SnapshotClient:
         )
 
 
+class ImageClient:
+    """Images that sandboxes start from, accessed via ``SandboxClient.images``."""
+
+    def __init__(self, sandboxes: SandboxClient):
+        self._sandboxes = sandboxes
+
+    async def import_(
+        self,
+        *,
+        sandbox_group_id: str,
+        name: str,
+        source: str,
+        registry_credentials: RegistryCredentials | Mapping[str, str] | None = None,
+    ) -> Image:
+        """Start importing an OCI image so sandboxes can start from it.
+
+        source is an image by tag or digest, like
+        ``ghcr.io/acme/agent-runtime:v1``. It must be linux/amd64. name
+        identifies the image and is reused across its versions, so a sandbox
+        created with image=name starts from the newest one that succeeded.
+        registry_credentials pulls source from a private registry, as a
+        RegistryCredentials or a mapping with username and password keys.
+
+        The image is returned before the import finishes; call
+        wait_until_ready to wait for it. Importing a name and digest the group
+        already has, or is importing, returns that image instead of starting
+        another. Raises RateLimitError when the group has too many imports in
+        progress.
+        """
+        return await self._sandboxes.api.import_image(
+            sandbox_group_id, name, source, registry_credentials
+        )
+
+    async def from_id(self, *, sandbox_group_id: str, image_id: str) -> Image:
+        """Fetch an image by id.
+
+        Raises ImageNotFoundError if the image does not exist or belongs to
+        another sandbox group.
+        """
+        return await self._sandboxes.api.get_image(sandbox_group_id, image_id)
+
+    async def wait_until_ready(
+        self,
+        *,
+        sandbox_group_id: str,
+        image_id: str,
+        timeout_seconds: float = _wait.DEFAULT_IMAGE_TIMEOUT_SECONDS,
+        interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
+    ) -> Image:
+        """Wait until the image has succeeded, so sandboxes can start from it.
+
+        Checks the status every interval_seconds, doubling the delay after each
+        check up to 2 seconds. timeout_seconds bounds the whole wait, including
+        status checks. Raises ImageFailedError, with the API's reason, as soon
+        as the import fails, and ImageWaitTimeoutError after timeout_seconds.
+        Errors from a status check, such as ImageNotFoundError, propagate
+        unchanged.
+        """
+
+        def timeout_error(last: Image | None) -> ImageWaitTimeoutError:
+            return ImageWaitTimeoutError(
+                f"timed out waiting for image {image_id} to be ready",
+                image_id=image_id,
+                timeout_seconds=timeout_seconds,
+                last_status=last.status if last else None,
+            )
+
+        return await _wait.apoll_until(
+            lambda: self._sandboxes.api.get_image(sandbox_group_id, image_id),
+            _wait.ready_image,
+            timeout_seconds=timeout_seconds,
+            interval_seconds=interval_seconds,
+            timeout_error=timeout_error,
+        )
+
+
 class BuildClient:
-    """Builds of sandbox base images, accessed via ``SandboxClient.builds``."""
+    """Deprecated: use ``SandboxClient.images``."""
 
     def __init__(self, sandboxes: SandboxClient):
         self._sandboxes = sandboxes
@@ -513,26 +611,23 @@ class BuildClient:
         sandbox_group_id: str,
         name: str,
         source_image: str,
-        registry_credential: RegistryCredential | None = None,
-    ) -> Build:
-        """Start converting source_image into a sandbox base image.
-
-        source_image is an image by tag or digest, like ``python:3.13``. It
-        must be linux/amd64. name identifies the image and is reused across
-        its builds. The build is returned before it finishes; poll from_id until
-        its status is succeeded or failed. A build the group already has, or
-        is running, for the same name and resolved digest is returned instead
-        of starting another. Raises RateLimitError when the group has too
-        many builds in progress.
-        """
-        return await self._sandboxes.api.create_build(
+        registry_credential: RegistryCredentials | None = None,
+    ) -> Image:
+        """Deprecated: use images.import_."""
+        warnings.warn(
+            "builds.create is deprecated; use images.import_",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self._sandboxes.api.import_image(
             sandbox_group_id, name, source_image, registry_credential
         )
 
-    async def from_id(self, *, sandbox_group_id: str, build_id: str) -> Build:
-        """Fetch a build by id.
-
-        Raises BuildNotFoundError if the build does not exist or belongs to
-        another sandbox group.
-        """
-        return await self._sandboxes.api.get_build(sandbox_group_id, build_id)
+    async def from_id(self, *, sandbox_group_id: str, build_id: str) -> Image:
+        """Deprecated: use images.from_id."""
+        warnings.warn(
+            "builds.from_id is deprecated; use images.from_id",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return await self._sandboxes.api.get_image(sandbox_group_id, build_id)
