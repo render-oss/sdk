@@ -3,17 +3,27 @@
 
 import datetime
 import json
+from typing import Any
 
 import pytest
 
-from render.client import Client, ListTaskRunsParams, WorkflowsService
+from render.client import (
+    Client,
+    ListFlowRunsParams,
+    ListTaskRunsParams,
+    WorkflowsService,
+)
 from render.client.errors import ClientError, ServerError
 from render.client.workflows import AwaitableTaskRun
 from render.public_api.models.error import Error
+from render.public_api.models.flow_run import FlowRun
+from render.public_api.models.flow_run_details import FlowRunDetails
+from render.public_api.models.flow_run_status import FlowRunStatus
+from render.public_api.models.flow_run_with_cursor import FlowRunWithCursor
 from render.public_api.models.task_run import TaskRun
 from render.public_api.models.task_run_details import TaskRunDetails
 from render.public_api.models.task_run_status import TaskRunStatus
-from render.public_api.types import Response
+from render.public_api.types import UNSET, Response
 
 
 # Fixtures
@@ -433,3 +443,163 @@ async def test_task_run_events_raises_on_http_error(
     with pytest.raises(ServerError):
         async for _ in workflows_service.task_run_events(["trn-test123"]):
             pass
+
+
+# Flow runs
+
+
+def new_flow_run(**overrides) -> FlowRun:
+    """Build a FlowRun, overriding only the fields a test cares about."""
+    fields: dict[str, Any] = {
+        "id": "frn-test123",
+        "flow_id": "flw-test123",
+        "status": FlowRunStatus.PENDING,
+    }
+    fields.update(overrides)
+    return FlowRun(**fields)
+
+
+def new_flow_run_details(**overrides) -> FlowRunDetails:
+    """Build a FlowRunDetails, overriding only the fields a test cares about."""
+    fields: dict[str, Any] = {
+        "id": "frn-test123",
+        "flow_id": "flw-test123",
+        "status": FlowRunStatus.SUCCEEDED,
+        "input_": [42],
+        "results": [84],
+        "attempts": [],
+    }
+    fields.update(overrides)
+    return FlowRunDetails(**fields)
+
+
+def ok(parsed, status_code=200) -> Response:
+    return Response(status_code=status_code, content=b"", headers={}, parsed=parsed)
+
+
+@pytest.fixture
+def mock_start_flow_run_asyncio(mocker):
+    return mocker.patch(
+        "render.public_api.api.workflow_flows.start_flow_run.asyncio_detailed"
+    )
+
+
+@pytest.fixture
+def mock_get_flow_run_asyncio(mocker):
+    return mocker.patch(
+        "render.public_api.api.workflow_flows.get_flow_run.asyncio_detailed"
+    )
+
+
+@pytest.fixture
+def mock_cancel_flow_run_asyncio(mocker):
+    return mocker.patch(
+        "render.public_api.api.workflow_flows.cancel_flow_run.asyncio_detailed"
+    )
+
+
+@pytest.fixture
+def mock_list_flow_runs_asyncio(mocker):
+    return mocker.patch(
+        "render.public_api.api.workflow_flows.list_flow_runs.asyncio_detailed"
+    )
+
+
+@pytest.mark.asyncio
+async def test_start_flow_success(mock_start_flow_run_asyncio, workflows_service):
+    mock_start_flow_run_asyncio.return_value = ok(new_flow_run(), status_code=202)
+
+    result = await workflows_service.start_flow(
+        "wf/flow", [42], idempotency_key="order-42"
+    )
+
+    assert result.id == "frn-test123"
+    body = mock_start_flow_run_asyncio.call_args.kwargs["body"]
+    assert body.to_dict() == {
+        "flow": "wf/flow",
+        "input": [42],
+        "idempotencyKey": "order-42",
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_flow_run_success(mock_get_flow_run_asyncio, workflows_service):
+    mock_get_flow_run_asyncio.return_value = ok(new_flow_run_details())
+
+    result = await workflows_service.get_flow_run("frn-test123")
+
+    assert result.id == "frn-test123"
+    mock_get_flow_run_asyncio.assert_called_once_with(
+        client=workflows_service.client.internal, flow_run_id="frn-test123"
+    )
+
+
+@pytest.mark.asyncio
+async def test_cancel_flow_run_success(mock_cancel_flow_run_asyncio, workflows_service):
+    mock_cancel_flow_run_asyncio.return_value = ok(None, status_code=204)
+
+    await workflows_service.cancel_flow_run("frn-test123")
+
+    mock_cancel_flow_run_asyncio.assert_called_once_with(
+        client=workflows_service.client.internal, flow_run_id="frn-test123"
+    )
+
+
+@pytest.mark.asyncio
+async def test_list_flow_runs_success(mock_list_flow_runs_asyncio, workflows_service):
+    mock_list_flow_runs_asyncio.return_value = ok(
+        [FlowRunWithCursor(flow_run=new_flow_run(), cursor="c1")]
+    )
+
+    result = await workflows_service.list_flow_runs(
+        ListFlowRunsParams(limit=5, status=["running"])
+    )
+
+    assert [r.flow_run.id for r in result] == ["frn-test123"]
+    mock_list_flow_runs_asyncio.assert_called_once_with(
+        client=workflows_service.client.internal,
+        limit=5,
+        cursor=UNSET,
+        flow_slug=UNSET,
+        flow_id=UNSET,
+        status=[FlowRunStatus.RUNNING],
+        owner_id=UNSET,
+        workflow_version_id=UNSET,
+        workflow_id=UNSET,
+    )
+
+
+@pytest.mark.parametrize(
+    "endpoint,call,message",
+    [
+        (
+            "start_flow_run",
+            lambda svc: svc.start_flow("wf/flow", [42]),
+            "start flow run failed: nope",
+        ),
+        (
+            "get_flow_run",
+            lambda svc: svc.get_flow_run("frn-test123"),
+            "get flow run failed: nope",
+        ),
+        (
+            "cancel_flow_run",
+            lambda svc: svc.cancel_flow_run("frn-test123"),
+            "cancel flow run failed: nope",
+        ),
+        (
+            "list_flow_runs",
+            lambda svc: svc.list_flow_runs(),
+            "list flow runs failed: nope",
+        ),
+    ],
+)
+@pytest.mark.asyncio
+async def test_flow_run_api_errors(mocker, workflows_service, endpoint, call, message):
+    mocker.patch(
+        f"render.public_api.api.workflow_flows.{endpoint}.asyncio_detailed",
+        return_value=ok(Error(message="nope"), status_code=400),
+    )
+
+    with pytest.raises(ClientError, match=message):
+        await call(workflows_service)
