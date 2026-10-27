@@ -32,6 +32,7 @@ class AuditLogEvent(str, Enum):
     CREATESSOCONNECTIONEVENT = "CreateSSOConnectionEvent"
     CREATEWEBHOOKEVENT = "CreateWebhookEvent"
     CREATEWORKSPACEEVENT = "CreateWorkspaceEvent"
+    DELETEBUILDSOURCEEVENT = "DeleteBuildSourceEvent"
     DELETECRONJOBEVENT = "DeleteCronJobEvent"
     DELETEENVGROUPEVENT = "DeleteEnvGroupEvent"
     DELETEENVIRONMENTEVENT = "DeleteEnvironmentEvent"
