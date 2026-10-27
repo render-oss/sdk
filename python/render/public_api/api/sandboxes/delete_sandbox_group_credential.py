@@ -93,8 +93,9 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
-    Repeated deletion requests are accepted.
+     Admin-only. Removes the credential if present and synchronizes the
+    group's gateway configuration. Repeated deletion requests are accepted.
+    A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -131,8 +132,9 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
-    Repeated deletion requests are accepted.
+     Admin-only. Removes the credential if present and synchronizes the
+    group's gateway configuration. Repeated deletion requests are accepted.
+    A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -164,8 +166,9 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
-    Repeated deletion requests are accepted.
+     Admin-only. Removes the credential if present and synchronizes the
+    group's gateway configuration. Repeated deletion requests are accepted.
+    A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -200,8 +203,9 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group credential
 
-     Admin-only. Removes the credential if present and synchronizes the group's gateway configuration.
-    Repeated deletion requests are accepted.
+     Admin-only. Removes the credential if present and synchronizes the
+    group's gateway configuration. Repeated deletion requests are accepted.
+    A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.

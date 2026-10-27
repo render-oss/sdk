@@ -106,13 +106,14 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Update sandbox group credential
 
-     Admins may update configuration. Developers may update injection, method/path
-    filters, and enabled state; destination or value changes require an admin.
-    Assigning a value creates a new version; omitting it preserves the value.
-    Other omitted fields are preserved; empty methods or paths arrays clear their
-    filters. The group's serialized current credentials must
-    remain within 200 KiB (204800 bytes). A successful response means desired
-    state was saved; runtime reconciliation may still be pending.
+     Admins may update configuration. Developers may update injection,
+    method/path filters, and enabled state; destination or value changes
+    require an admin. Assigning a value creates a new version; omitting it
+    preserves the value. Other omitted fields are preserved; empty methods
+    or paths arrays clear their filters. The group's serialized current
+    credentials must remain within 200 KiB (204800 bytes). A successful
+    response means desired state was saved; runtime reconciliation may still
+    be pending. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -159,13 +160,14 @@ def sync(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Update sandbox group credential
 
-     Admins may update configuration. Developers may update injection, method/path
-    filters, and enabled state; destination or value changes require an admin.
-    Assigning a value creates a new version; omitting it preserves the value.
-    Other omitted fields are preserved; empty methods or paths arrays clear their
-    filters. The group's serialized current credentials must
-    remain within 200 KiB (204800 bytes). A successful response means desired
-    state was saved; runtime reconciliation may still be pending.
+     Admins may update configuration. Developers may update injection,
+    method/path filters, and enabled state; destination or value changes
+    require an admin. Assigning a value creates a new version; omitting it
+    preserves the value. Other omitted fields are preserved; empty methods
+    or paths arrays clear their filters. The group's serialized current
+    credentials must remain within 200 KiB (204800 bytes). A successful
+    response means desired state was saved; runtime reconciliation may still
+    be pending. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -207,13 +209,14 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Update sandbox group credential
 
-     Admins may update configuration. Developers may update injection, method/path
-    filters, and enabled state; destination or value changes require an admin.
-    Assigning a value creates a new version; omitting it preserves the value.
-    Other omitted fields are preserved; empty methods or paths arrays clear their
-    filters. The group's serialized current credentials must
-    remain within 200 KiB (204800 bytes). A successful response means desired
-    state was saved; runtime reconciliation may still be pending.
+     Admins may update configuration. Developers may update injection,
+    method/path filters, and enabled state; destination or value changes
+    require an admin. Assigning a value creates a new version; omitting it
+    preserves the value. Other omitted fields are preserved; empty methods
+    or paths arrays clear their filters. The group's serialized current
+    credentials must remain within 200 KiB (204800 bytes). A successful
+    response means desired state was saved; runtime reconciliation may still
+    be pending. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -258,13 +261,14 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Update sandbox group credential
 
-     Admins may update configuration. Developers may update injection, method/path
-    filters, and enabled state; destination or value changes require an admin.
-    Assigning a value creates a new version; omitting it preserves the value.
-    Other omitted fields are preserved; empty methods or paths arrays clear their
-    filters. The group's serialized current credentials must
-    remain within 200 KiB (204800 bytes). A successful response means desired
-    state was saved; runtime reconciliation may still be pending.
+     Admins may update configuration. Developers may update injection,
+    method/path filters, and enabled state; destination or value changes
+    require an admin. Assigning a value creates a new version; omitting it
+    preserves the value. Other omitted fields are preserved; empty methods
+    or paths arrays clear their filters. The group's serialized current
+    credentials must remain within 200 KiB (204800 bytes). A successful
+    response means desired state was saved; runtime reconciliation may still
+    be pending. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.

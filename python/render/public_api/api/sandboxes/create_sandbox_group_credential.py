@@ -105,11 +105,12 @@ def sync_detailed(
     """Create sandbox group credential
 
      Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-    of serialized current credentials, including configuration and values. Three
-    distinct prior configurations per credential are retained by fingerprint, with
-    a 1 MiB total storage limit including version metadata and configurations. Limits are checked before
-    saving.
+    Each sandbox group supports at most 25 credentials and 200 KiB (204800
+    bytes) of serialized current credentials, including configuration and
+    values. Three distinct prior configurations per credential are retained
+    by fingerprint, with a 1 MiB total storage limit including version
+    metadata and configurations. Limits are checked before saving. A
+    temporary synchronization conflicts return 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -144,11 +145,12 @@ def sync(
     """Create sandbox group credential
 
      Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-    of serialized current credentials, including configuration and values. Three
-    distinct prior configurations per credential are retained by fingerprint, with
-    a 1 MiB total storage limit including version metadata and configurations. Limits are checked before
-    saving.
+    Each sandbox group supports at most 25 credentials and 200 KiB (204800
+    bytes) of serialized current credentials, including configuration and
+    values. Three distinct prior configurations per credential are retained
+    by fingerprint, with a 1 MiB total storage limit including version
+    metadata and configurations. Limits are checked before saving. A
+    temporary synchronization conflicts return 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -178,11 +180,12 @@ async def asyncio_detailed(
     """Create sandbox group credential
 
      Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-    of serialized current credentials, including configuration and values. Three
-    distinct prior configurations per credential are retained by fingerprint, with
-    a 1 MiB total storage limit including version metadata and configurations. Limits are checked before
-    saving.
+    Each sandbox group supports at most 25 credentials and 200 KiB (204800
+    bytes) of serialized current credentials, including configuration and
+    values. Three distinct prior configurations per credential are retained
+    by fingerprint, with a 1 MiB total storage limit including version
+    metadata and configurations. Limits are checked before saving. A
+    temporary synchronization conflicts return 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -215,11 +218,12 @@ async def asyncio(
     """Create sandbox group credential
 
      Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-    of serialized current credentials, including configuration and values. Three
-    distinct prior configurations per credential are retained by fingerprint, with
-    a 1 MiB total storage limit including version metadata and configurations. Limits are checked before
-    saving.
+    Each sandbox group supports at most 25 credentials and 200 KiB (204800
+    bytes) of serialized current credentials, including configuration and
+    values. Three distinct prior configurations per credential are retained
+    by fingerprint, with a 1 MiB total storage limit including version
+    metadata and configurations. Limits are checked before saving. A
+    temporary synchronization conflicts return 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.

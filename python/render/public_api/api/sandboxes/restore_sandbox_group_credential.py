@@ -106,13 +106,15 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing configuration,
-    injection configuration, and secret value of a retained version. The new revision
-    has an increasing version ID, the restoring identity and timestamp, the same
-    fingerprint as the source, and restoredFromVersionId identifying the source.
-    Each distinct configuration is stored once by fingerprint. The current and three
-    most recently active prior configurations are retained. Evicting a configuration
-    removes all version metadata referring to it. Values are never returned.
+     Admin-only. Creates a new current revision from the routing
+    configuration, injection configuration, and secret value of a retained
+    version. The new revision has an increasing version ID, the restoring
+    identity and timestamp, the same fingerprint as the source, and
+    restoredFromVersionId identifying the source. Each distinct
+    configuration is stored once by fingerprint. The current and three most
+    recently active prior configurations are retained. Evicting a
+    configuration removes all version metadata referring to it. Values are
+    never returned. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -152,13 +154,15 @@ def sync(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing configuration,
-    injection configuration, and secret value of a retained version. The new revision
-    has an increasing version ID, the restoring identity and timestamp, the same
-    fingerprint as the source, and restoredFromVersionId identifying the source.
-    Each distinct configuration is stored once by fingerprint. The current and three
-    most recently active prior configurations are retained. Evicting a configuration
-    removes all version metadata referring to it. Values are never returned.
+     Admin-only. Creates a new current revision from the routing
+    configuration, injection configuration, and secret value of a retained
+    version. The new revision has an increasing version ID, the restoring
+    identity and timestamp, the same fingerprint as the source, and
+    restoredFromVersionId identifying the source. Each distinct
+    configuration is stored once by fingerprint. The current and three most
+    recently active prior configurations are retained. Evicting a
+    configuration removes all version metadata referring to it. Values are
+    never returned. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -193,13 +197,15 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing configuration,
-    injection configuration, and secret value of a retained version. The new revision
-    has an increasing version ID, the restoring identity and timestamp, the same
-    fingerprint as the source, and restoredFromVersionId identifying the source.
-    Each distinct configuration is stored once by fingerprint. The current and three
-    most recently active prior configurations are retained. Evicting a configuration
-    removes all version metadata referring to it. Values are never returned.
+     Admin-only. Creates a new current revision from the routing
+    configuration, injection configuration, and secret value of a retained
+    version. The new revision has an increasing version ID, the restoring
+    identity and timestamp, the same fingerprint as the source, and
+    restoredFromVersionId identifying the source. Each distinct
+    configuration is stored once by fingerprint. The current and three most
+    recently active prior configurations are retained. Evicting a
+    configuration removes all version metadata referring to it. Values are
+    never returned. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
@@ -237,13 +243,15 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing configuration,
-    injection configuration, and secret value of a retained version. The new revision
-    has an increasing version ID, the restoring identity and timestamp, the same
-    fingerprint as the source, and restoredFromVersionId identifying the source.
-    Each distinct configuration is stored once by fingerprint. The current and three
-    most recently active prior configurations are retained. Evicting a configuration
-    removes all version metadata referring to it. Values are never returned.
+     Admin-only. Creates a new current revision from the routing
+    configuration, injection configuration, and secret value of a retained
+    version. The new revision has an increasing version ID, the restoring
+    identity and timestamp, the same fingerprint as the source, and
+    restoredFromVersionId identifying the source. Each distinct
+    configuration is stored once by fingerprint. The current and three most
+    recently active prior configurations are retained. Evicting a
+    configuration removes all version metadata referring to it. Values are
+    never returned. A temporary synchronization conflict returns 429.
 
     Args:
         sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.

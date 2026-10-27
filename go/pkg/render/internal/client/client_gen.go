@@ -2091,10 +2091,12 @@ type ClientInterface interface {
 	// CreateSandboxGroupCredentialWithBody Create sandbox group credential
 	//
 	// Admin-only. Creates an independent credential with a caller-supplied ID.
-	// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-	// of serialized current credentials, including configuration and values. Three
-	// distinct prior configurations per credential are retained by fingerprint, with
-	// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+	// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+	// bytes) of serialized current credentials, including configuration and
+	// values. Three distinct prior configurations per credential are retained
+	// by fingerprint, with a 1 MiB total storage limit including version
+	// metadata and configurations. Limits are checked before saving. A
+	// temporary synchronization conflicts return 429.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2104,10 +2106,12 @@ type ClientInterface interface {
 	// CreateSandboxGroupCredential Create sandbox group credential
 	//
 	// Admin-only. Creates an independent credential with a caller-supplied ID.
-	// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-	// of serialized current credentials, including configuration and values. Three
-	// distinct prior configurations per credential are retained by fingerprint, with
-	// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+	// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+	// bytes) of serialized current credentials, including configuration and
+	// values. Three distinct prior configurations per credential are retained
+	// by fingerprint, with a 1 MiB total storage limit including version
+	// metadata and configurations. Limits are checked before saving. A
+	// temporary synchronization conflicts return 429.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -2116,7 +2120,9 @@ type ClientInterface interface {
 
 	// DeleteSandboxGroupCredential Delete sandbox group credential
 	//
-	// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
+	// Admin-only. Removes the credential if present and synchronizes the
+	// group's gateway configuration. Repeated deletion requests are accepted.
+	// A temporary synchronization conflict returns 429.
 	//
 	// Corresponds with DELETE /sandbox-groups/{sandboxGroupId}/credentials/{credentialId} (the `DeleteSandboxGroupCredential` operationId).
 	DeleteSandboxGroupCredential(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, credentialId externalRef15.CredentialId, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2131,13 +2137,14 @@ type ClientInterface interface {
 
 	// UpdateSandboxGroupCredentialWithBody Update sandbox group credential
 	//
-	// Admins may update configuration. Developers may update injection, method/path
-	// filters, and enabled state; destination or value changes require an admin.
-	// Assigning a value creates a new version; omitting it preserves the value.
-	// Other omitted fields are preserved; empty methods or paths arrays clear their
-	// filters. The group's serialized current credentials must
-	// remain within 200 KiB (204800 bytes). A successful response means desired
-	// state was saved; runtime reconciliation may still be pending.
+	// Admins may update configuration. Developers may update injection,
+	// method/path filters, and enabled state; destination or value changes
+	// require an admin. Assigning a value creates a new version; omitting it
+	// preserves the value. Other omitted fields are preserved; empty methods
+	// or paths arrays clear their filters. The group's serialized current
+	// credentials must remain within 200 KiB (204800 bytes). A successful
+	// response means desired state was saved; runtime reconciliation may still
+	// be pending. A temporary synchronization conflict returns 429.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2146,13 +2153,14 @@ type ClientInterface interface {
 
 	// UpdateSandboxGroupCredential Update sandbox group credential
 	//
-	// Admins may update configuration. Developers may update injection, method/path
-	// filters, and enabled state; destination or value changes require an admin.
-	// Assigning a value creates a new version; omitting it preserves the value.
-	// Other omitted fields are preserved; empty methods or paths arrays clear their
-	// filters. The group's serialized current credentials must
-	// remain within 200 KiB (204800 bytes). A successful response means desired
-	// state was saved; runtime reconciliation may still be pending.
+	// Admins may update configuration. Developers may update injection,
+	// method/path filters, and enabled state; destination or value changes
+	// require an admin. Assigning a value creates a new version; omitting it
+	// preserves the value. Other omitted fields are preserved; empty methods
+	// or paths arrays clear their filters. The group's serialized current
+	// credentials must remain within 200 KiB (204800 bytes). A successful
+	// response means desired state was saved; runtime reconciliation may still
+	// be pending. A temporary synchronization conflict returns 429.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -2161,13 +2169,15 @@ type ClientInterface interface {
 
 	// RestoreSandboxGroupCredentialWithBody Restore sandbox credential configuration
 	//
-	// Admin-only. Creates a new current revision from the routing configuration,
-	// injection configuration, and secret value of a retained version. The new revision
-	// has an increasing version ID, the restoring identity and timestamp, the same
-	// fingerprint as the source, and restoredFromVersionId identifying the source.
-	// Each distinct configuration is stored once by fingerprint. The current and three
-	// most recently active prior configurations are retained. Evicting a configuration
-	// removes all version metadata referring to it. Values are never returned.
+	// Admin-only. Creates a new current revision from the routing
+	// configuration, injection configuration, and secret value of a retained
+	// version. The new revision has an increasing version ID, the restoring
+	// identity and timestamp, the same fingerprint as the source, and
+	// restoredFromVersionId identifying the source. Each distinct
+	// configuration is stored once by fingerprint. The current and three most
+	// recently active prior configurations are retained. Evicting a
+	// configuration removes all version metadata referring to it. Values are
+	// never returned. A temporary synchronization conflict returns 429.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2176,13 +2186,15 @@ type ClientInterface interface {
 
 	// RestoreSandboxGroupCredential Restore sandbox credential configuration
 	//
-	// Admin-only. Creates a new current revision from the routing configuration,
-	// injection configuration, and secret value of a retained version. The new revision
-	// has an increasing version ID, the restoring identity and timestamp, the same
-	// fingerprint as the source, and restoredFromVersionId identifying the source.
-	// Each distinct configuration is stored once by fingerprint. The current and three
-	// most recently active prior configurations are retained. Evicting a configuration
-	// removes all version metadata referring to it. Values are never returned.
+	// Admin-only. Creates a new current revision from the routing
+	// configuration, injection configuration, and secret value of a retained
+	// version. The new revision has an increasing version ID, the restoring
+	// identity and timestamp, the same fingerprint as the source, and
+	// restoredFromVersionId identifying the source. Each distinct
+	// configuration is stored once by fingerprint. The current and three most
+	// recently active prior configurations are retained. Evicting a
+	// configuration removes all version metadata referring to it. Values are
+	// never returned. A temporary synchronization conflict returns 429.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -7510,10 +7522,12 @@ func (c *Client) ListSandboxGroupCredentials(ctx context.Context, sandboxGroupId
 // CreateSandboxGroupCredentialWithBody Create sandbox group credential
 //
 // Admin-only. Creates an independent credential with a caller-supplied ID.
-// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-// of serialized current credentials, including configuration and values. Three
-// distinct prior configurations per credential are retained by fingerprint, with
-// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+// bytes) of serialized current credentials, including configuration and
+// values. Three distinct prior configurations per credential are retained
+// by fingerprint, with a 1 MiB total storage limit including version
+// metadata and configurations. Limits are checked before saving. A
+// temporary synchronization conflicts return 429.
 //
 // Takes any type of body and a specified content type.
 //
@@ -7533,10 +7547,12 @@ func (c *Client) CreateSandboxGroupCredentialWithBody(ctx context.Context, sandb
 // CreateSandboxGroupCredential Create sandbox group credential
 //
 // Admin-only. Creates an independent credential with a caller-supplied ID.
-// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-// of serialized current credentials, including configuration and values. Three
-// distinct prior configurations per credential are retained by fingerprint, with
-// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+// bytes) of serialized current credentials, including configuration and
+// values. Three distinct prior configurations per credential are retained
+// by fingerprint, with a 1 MiB total storage limit including version
+// metadata and configurations. Limits are checked before saving. A
+// temporary synchronization conflicts return 429.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -7555,7 +7571,9 @@ func (c *Client) CreateSandboxGroupCredential(ctx context.Context, sandboxGroupI
 
 // DeleteSandboxGroupCredential Delete sandbox group credential
 //
-// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
+// Admin-only. Removes the credential if present and synchronizes the
+// group's gateway configuration. Repeated deletion requests are accepted.
+// A temporary synchronization conflict returns 429.
 //
 // Corresponds with DELETE /sandbox-groups/{sandboxGroupId}/credentials/{credentialId} (the `DeleteSandboxGroupCredential` operationId).
 func (c *Client) DeleteSandboxGroupCredential(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, credentialId externalRef15.CredentialId, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -7590,13 +7608,14 @@ func (c *Client) RetrieveSandboxGroupCredential(ctx context.Context, sandboxGrou
 
 // UpdateSandboxGroupCredentialWithBody Update sandbox group credential
 //
-// Admins may update configuration. Developers may update injection, method/path
-// filters, and enabled state; destination or value changes require an admin.
-// Assigning a value creates a new version; omitting it preserves the value.
-// Other omitted fields are preserved; empty methods or paths arrays clear their
-// filters. The group's serialized current credentials must
-// remain within 200 KiB (204800 bytes). A successful response means desired
-// state was saved; runtime reconciliation may still be pending.
+// Admins may update configuration. Developers may update injection,
+// method/path filters, and enabled state; destination or value changes
+// require an admin. Assigning a value creates a new version; omitting it
+// preserves the value. Other omitted fields are preserved; empty methods
+// or paths arrays clear their filters. The group's serialized current
+// credentials must remain within 200 KiB (204800 bytes). A successful
+// response means desired state was saved; runtime reconciliation may still
+// be pending. A temporary synchronization conflict returns 429.
 //
 // Takes any type of body and a specified content type.
 //
@@ -7615,13 +7634,14 @@ func (c *Client) UpdateSandboxGroupCredentialWithBody(ctx context.Context, sandb
 
 // UpdateSandboxGroupCredential Update sandbox group credential
 //
-// Admins may update configuration. Developers may update injection, method/path
-// filters, and enabled state; destination or value changes require an admin.
-// Assigning a value creates a new version; omitting it preserves the value.
-// Other omitted fields are preserved; empty methods or paths arrays clear their
-// filters. The group's serialized current credentials must
-// remain within 200 KiB (204800 bytes). A successful response means desired
-// state was saved; runtime reconciliation may still be pending.
+// Admins may update configuration. Developers may update injection,
+// method/path filters, and enabled state; destination or value changes
+// require an admin. Assigning a value creates a new version; omitting it
+// preserves the value. Other omitted fields are preserved; empty methods
+// or paths arrays clear their filters. The group's serialized current
+// credentials must remain within 200 KiB (204800 bytes). A successful
+// response means desired state was saved; runtime reconciliation may still
+// be pending. A temporary synchronization conflict returns 429.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -7640,13 +7660,15 @@ func (c *Client) UpdateSandboxGroupCredential(ctx context.Context, sandboxGroupI
 
 // RestoreSandboxGroupCredentialWithBody Restore sandbox credential configuration
 //
-// Admin-only. Creates a new current revision from the routing configuration,
-// injection configuration, and secret value of a retained version. The new revision
-// has an increasing version ID, the restoring identity and timestamp, the same
-// fingerprint as the source, and restoredFromVersionId identifying the source.
-// Each distinct configuration is stored once by fingerprint. The current and three
-// most recently active prior configurations are retained. Evicting a configuration
-// removes all version metadata referring to it. Values are never returned.
+// Admin-only. Creates a new current revision from the routing
+// configuration, injection configuration, and secret value of a retained
+// version. The new revision has an increasing version ID, the restoring
+// identity and timestamp, the same fingerprint as the source, and
+// restoredFromVersionId identifying the source. Each distinct
+// configuration is stored once by fingerprint. The current and three most
+// recently active prior configurations are retained. Evicting a
+// configuration removes all version metadata referring to it. Values are
+// never returned. A temporary synchronization conflict returns 429.
 //
 // Takes any type of body and a specified content type.
 //
@@ -7665,13 +7687,15 @@ func (c *Client) RestoreSandboxGroupCredentialWithBody(ctx context.Context, sand
 
 // RestoreSandboxGroupCredential Restore sandbox credential configuration
 //
-// Admin-only. Creates a new current revision from the routing configuration,
-// injection configuration, and secret value of a retained version. The new revision
-// has an increasing version ID, the restoring identity and timestamp, the same
-// fingerprint as the source, and restoredFromVersionId identifying the source.
-// Each distinct configuration is stored once by fingerprint. The current and three
-// most recently active prior configurations are retained. Evicting a configuration
-// removes all version metadata referring to it. Values are never returned.
+// Admin-only. Creates a new current revision from the routing
+// configuration, injection configuration, and secret value of a retained
+// version. The new revision has an increasing version ID, the restoring
+// identity and timestamp, the same fingerprint as the source, and
+// restoredFromVersionId identifying the source. Each distinct
+// configuration is stored once by fingerprint. The current and three most
+// recently active prior configurations are retained. Evicting a
+// configuration removes all version metadata referring to it. Values are
+// never returned. A temporary synchronization conflict returns 429.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -28580,10 +28604,12 @@ type ClientWithResponsesInterface interface {
 	// CreateSandboxGroupCredentialWithBodyWithResponse Create sandbox group credential
 	//
 	// Admin-only. Creates an independent credential with a caller-supplied ID.
-	// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-	// of serialized current credentials, including configuration and values. Three
-	// distinct prior configurations per credential are retained by fingerprint, with
-	// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+	// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+	// bytes) of serialized current credentials, including configuration and
+	// values. Three distinct prior configurations per credential are retained
+	// by fingerprint, with a 1 MiB total storage limit including version
+	// metadata and configurations. Limits are checked before saving. A
+	// temporary synchronization conflicts return 429.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -28593,10 +28619,12 @@ type ClientWithResponsesInterface interface {
 	// CreateSandboxGroupCredentialWithResponse Create sandbox group credential
 	//
 	// Admin-only. Creates an independent credential with a caller-supplied ID.
-	// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-	// of serialized current credentials, including configuration and values. Three
-	// distinct prior configurations per credential are retained by fingerprint, with
-	// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+	// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+	// bytes) of serialized current credentials, including configuration and
+	// values. Three distinct prior configurations per credential are retained
+	// by fingerprint, with a 1 MiB total storage limit including version
+	// metadata and configurations. Limits are checked before saving. A
+	// temporary synchronization conflicts return 429.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -28605,7 +28633,9 @@ type ClientWithResponsesInterface interface {
 
 	// DeleteSandboxGroupCredentialWithResponse Delete sandbox group credential
 	//
-	// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
+	// Admin-only. Removes the credential if present and synchronizes the
+	// group's gateway configuration. Repeated deletion requests are accepted.
+	// A temporary synchronization conflict returns 429.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -28624,13 +28654,14 @@ type ClientWithResponsesInterface interface {
 
 	// UpdateSandboxGroupCredentialWithBodyWithResponse Update sandbox group credential
 	//
-	// Admins may update configuration. Developers may update injection, method/path
-	// filters, and enabled state; destination or value changes require an admin.
-	// Assigning a value creates a new version; omitting it preserves the value.
-	// Other omitted fields are preserved; empty methods or paths arrays clear their
-	// filters. The group's serialized current credentials must
-	// remain within 200 KiB (204800 bytes). A successful response means desired
-	// state was saved; runtime reconciliation may still be pending.
+	// Admins may update configuration. Developers may update injection,
+	// method/path filters, and enabled state; destination or value changes
+	// require an admin. Assigning a value creates a new version; omitting it
+	// preserves the value. Other omitted fields are preserved; empty methods
+	// or paths arrays clear their filters. The group's serialized current
+	// credentials must remain within 200 KiB (204800 bytes). A successful
+	// response means desired state was saved; runtime reconciliation may still
+	// be pending. A temporary synchronization conflict returns 429.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -28639,13 +28670,14 @@ type ClientWithResponsesInterface interface {
 
 	// UpdateSandboxGroupCredentialWithResponse Update sandbox group credential
 	//
-	// Admins may update configuration. Developers may update injection, method/path
-	// filters, and enabled state; destination or value changes require an admin.
-	// Assigning a value creates a new version; omitting it preserves the value.
-	// Other omitted fields are preserved; empty methods or paths arrays clear their
-	// filters. The group's serialized current credentials must
-	// remain within 200 KiB (204800 bytes). A successful response means desired
-	// state was saved; runtime reconciliation may still be pending.
+	// Admins may update configuration. Developers may update injection,
+	// method/path filters, and enabled state; destination or value changes
+	// require an admin. Assigning a value creates a new version; omitting it
+	// preserves the value. Other omitted fields are preserved; empty methods
+	// or paths arrays clear their filters. The group's serialized current
+	// credentials must remain within 200 KiB (204800 bytes). A successful
+	// response means desired state was saved; runtime reconciliation may still
+	// be pending. A temporary synchronization conflict returns 429.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -28654,13 +28686,15 @@ type ClientWithResponsesInterface interface {
 
 	// RestoreSandboxGroupCredentialWithBodyWithResponse Restore sandbox credential configuration
 	//
-	// Admin-only. Creates a new current revision from the routing configuration,
-	// injection configuration, and secret value of a retained version. The new revision
-	// has an increasing version ID, the restoring identity and timestamp, the same
-	// fingerprint as the source, and restoredFromVersionId identifying the source.
-	// Each distinct configuration is stored once by fingerprint. The current and three
-	// most recently active prior configurations are retained. Evicting a configuration
-	// removes all version metadata referring to it. Values are never returned.
+	// Admin-only. Creates a new current revision from the routing
+	// configuration, injection configuration, and secret value of a retained
+	// version. The new revision has an increasing version ID, the restoring
+	// identity and timestamp, the same fingerprint as the source, and
+	// restoredFromVersionId identifying the source. Each distinct
+	// configuration is stored once by fingerprint. The current and three most
+	// recently active prior configurations are retained. Evicting a
+	// configuration removes all version metadata referring to it. Values are
+	// never returned. A temporary synchronization conflict returns 429.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -28669,13 +28703,15 @@ type ClientWithResponsesInterface interface {
 
 	// RestoreSandboxGroupCredentialWithResponse Restore sandbox credential configuration
 	//
-	// Admin-only. Creates a new current revision from the routing configuration,
-	// injection configuration, and secret value of a retained version. The new revision
-	// has an increasing version ID, the restoring identity and timestamp, the same
-	// fingerprint as the source, and restoredFromVersionId identifying the source.
-	// Each distinct configuration is stored once by fingerprint. The current and three
-	// most recently active prior configurations are retained. Evicting a configuration
-	// removes all version metadata referring to it. Values are never returned.
+	// Admin-only. Creates a new current revision from the routing
+	// configuration, injection configuration, and secret value of a retained
+	// version. The new revision has an increasing version ID, the restoring
+	// identity and timestamp, the same fingerprint as the source, and
+	// restoredFromVersionId identifying the source. Each distinct
+	// configuration is stored once by fingerprint. The current and three most
+	// recently active prior configurations are retained. Evicting a
+	// configuration removes all version metadata referring to it. Values are
+	// never returned. A temporary synchronization conflict returns 429.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -59569,10 +59605,12 @@ func (c *ClientWithResponses) ListSandboxGroupCredentialsWithResponse(ctx contex
 // CreateSandboxGroupCredentialWithBodyWithResponse Create sandbox group credential
 //
 // Admin-only. Creates an independent credential with a caller-supplied ID.
-// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-// of serialized current credentials, including configuration and values. Three
-// distinct prior configurations per credential are retained by fingerprint, with
-// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+// bytes) of serialized current credentials, including configuration and
+// values. Three distinct prior configurations per credential are retained
+// by fingerprint, with a 1 MiB total storage limit including version
+// metadata and configurations. Limits are checked before saving. A
+// temporary synchronization conflicts return 429.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -59588,10 +59626,12 @@ func (c *ClientWithResponses) CreateSandboxGroupCredentialWithBodyWithResponse(c
 // CreateSandboxGroupCredentialWithResponse Create sandbox group credential
 //
 // Admin-only. Creates an independent credential with a caller-supplied ID.
-// Each sandbox group supports at most 25 credentials and 200 KiB (204800 bytes)
-// of serialized current credentials, including configuration and values. Three
-// distinct prior configurations per credential are retained by fingerprint, with
-// a 1 MiB total storage limit including version metadata and configurations. Limits are checked before saving.
+// Each sandbox group supports at most 25 credentials and 200 KiB (204800
+// bytes) of serialized current credentials, including configuration and
+// values. Three distinct prior configurations per credential are retained
+// by fingerprint, with a 1 MiB total storage limit including version
+// metadata and configurations. Limits are checked before saving. A
+// temporary synchronization conflicts return 429.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -59606,7 +59646,9 @@ func (c *ClientWithResponses) CreateSandboxGroupCredentialWithResponse(ctx conte
 
 // DeleteSandboxGroupCredentialWithResponse Delete sandbox group credential
 //
-// Admin-only. Removes the credential if present and synchronizes the group's gateway configuration. Repeated deletion requests are accepted.
+// Admin-only. Removes the credential if present and synchronizes the
+// group's gateway configuration. Repeated deletion requests are accepted.
+// A temporary synchronization conflict returns 429.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -59637,13 +59679,14 @@ func (c *ClientWithResponses) RetrieveSandboxGroupCredentialWithResponse(ctx con
 
 // UpdateSandboxGroupCredentialWithBodyWithResponse Update sandbox group credential
 //
-// Admins may update configuration. Developers may update injection, method/path
-// filters, and enabled state; destination or value changes require an admin.
-// Assigning a value creates a new version; omitting it preserves the value.
-// Other omitted fields are preserved; empty methods or paths arrays clear their
-// filters. The group's serialized current credentials must
-// remain within 200 KiB (204800 bytes). A successful response means desired
-// state was saved; runtime reconciliation may still be pending.
+// Admins may update configuration. Developers may update injection,
+// method/path filters, and enabled state; destination or value changes
+// require an admin. Assigning a value creates a new version; omitting it
+// preserves the value. Other omitted fields are preserved; empty methods
+// or paths arrays clear their filters. The group's serialized current
+// credentials must remain within 200 KiB (204800 bytes). A successful
+// response means desired state was saved; runtime reconciliation may still
+// be pending. A temporary synchronization conflict returns 429.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -59658,13 +59701,14 @@ func (c *ClientWithResponses) UpdateSandboxGroupCredentialWithBodyWithResponse(c
 
 // UpdateSandboxGroupCredentialWithResponse Update sandbox group credential
 //
-// Admins may update configuration. Developers may update injection, method/path
-// filters, and enabled state; destination or value changes require an admin.
-// Assigning a value creates a new version; omitting it preserves the value.
-// Other omitted fields are preserved; empty methods or paths arrays clear their
-// filters. The group's serialized current credentials must
-// remain within 200 KiB (204800 bytes). A successful response means desired
-// state was saved; runtime reconciliation may still be pending.
+// Admins may update configuration. Developers may update injection,
+// method/path filters, and enabled state; destination or value changes
+// require an admin. Assigning a value creates a new version; omitting it
+// preserves the value. Other omitted fields are preserved; empty methods
+// or paths arrays clear their filters. The group's serialized current
+// credentials must remain within 200 KiB (204800 bytes). A successful
+// response means desired state was saved; runtime reconciliation may still
+// be pending. A temporary synchronization conflict returns 429.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -59679,13 +59723,15 @@ func (c *ClientWithResponses) UpdateSandboxGroupCredentialWithResponse(ctx conte
 
 // RestoreSandboxGroupCredentialWithBodyWithResponse Restore sandbox credential configuration
 //
-// Admin-only. Creates a new current revision from the routing configuration,
-// injection configuration, and secret value of a retained version. The new revision
-// has an increasing version ID, the restoring identity and timestamp, the same
-// fingerprint as the source, and restoredFromVersionId identifying the source.
-// Each distinct configuration is stored once by fingerprint. The current and three
-// most recently active prior configurations are retained. Evicting a configuration
-// removes all version metadata referring to it. Values are never returned.
+// Admin-only. Creates a new current revision from the routing
+// configuration, injection configuration, and secret value of a retained
+// version. The new revision has an increasing version ID, the restoring
+// identity and timestamp, the same fingerprint as the source, and
+// restoredFromVersionId identifying the source. Each distinct
+// configuration is stored once by fingerprint. The current and three most
+// recently active prior configurations are retained. Evicting a
+// configuration removes all version metadata referring to it. Values are
+// never returned. A temporary synchronization conflict returns 429.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -59700,13 +59746,15 @@ func (c *ClientWithResponses) RestoreSandboxGroupCredentialWithBodyWithResponse(
 
 // RestoreSandboxGroupCredentialWithResponse Restore sandbox credential configuration
 //
-// Admin-only. Creates a new current revision from the routing configuration,
-// injection configuration, and secret value of a retained version. The new revision
-// has an increasing version ID, the restoring identity and timestamp, the same
-// fingerprint as the source, and restoredFromVersionId identifying the source.
-// Each distinct configuration is stored once by fingerprint. The current and three
-// most recently active prior configurations are retained. Evicting a configuration
-// removes all version metadata referring to it. Values are never returned.
+// Admin-only. Creates a new current revision from the routing
+// configuration, injection configuration, and secret value of a retained
+// version. The new revision has an increasing version ID, the restoring
+// identity and timestamp, the same fingerprint as the source, and
+// restoredFromVersionId identifying the source. Each distinct
+// configuration is stored once by fingerprint. The current and three most
+// recently active prior configurations are retained. Evicting a
+// configuration removes all version metadata referring to it. Values are
+// never returned. A temporary synchronization conflict returns 429.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
