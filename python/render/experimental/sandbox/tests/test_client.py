@@ -750,7 +750,7 @@ async def test_exec_requires_owner_id():
         await _collect(client.exec("sbx-123", "hi"))
 
 
-def test_experimental_service_exposes_sandboxes(monkeypatch):
+def test_client_exposes_sandboxes(monkeypatch):
     monkeypatch.setenv("RENDER_API_KEY", "test-token")
     monkeypatch.setenv("RENDER_WORKSPACE_ID", "tea-default")
     monkeypatch.setenv("RENDER_REGION", "oregon")
@@ -758,13 +758,13 @@ def test_experimental_service_exposes_sandboxes(monkeypatch):
     from render.client.client import Client
 
     client = Client()
-    sandboxes = client.experimental.sandboxes
+    sandboxes = client.sandboxes
     assert isinstance(sandboxes, SandboxClient)
     assert sandboxes._default_owner_id == "tea-default"
     assert sandboxes._default_region == "oregon"
 
 
-def test_sync_experimental_service_exposes_sandboxes(monkeypatch):
+def test_sync_render_exposes_sandboxes(monkeypatch):
     monkeypatch.setenv("RENDER_API_KEY", "test-token")
     monkeypatch.setenv("RENDER_WORKSPACE_ID", "tea-default")
 
@@ -772,7 +772,7 @@ def test_sync_experimental_service_exposes_sandboxes(monkeypatch):
     from render.experimental.sandbox.client_sync import SyncSandboxClient
 
     render = Render()
-    sandboxes = render.experimental.sandboxes
+    sandboxes = render.sandboxes
     assert isinstance(sandboxes, SyncSandboxClient)
     assert sandboxes._default_owner_id == "tea-default"
 
@@ -811,7 +811,7 @@ def test_render_async_exposes_sandboxes():
     from render import RenderAsync
 
     render = RenderAsync(token="test")
-    assert isinstance(render.experimental.sandboxes, SandboxClient)
+    assert isinstance(render.sandboxes, SandboxClient)
 
 
 FILES_CONNECT_JSON = {

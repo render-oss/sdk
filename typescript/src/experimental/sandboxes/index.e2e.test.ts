@@ -19,7 +19,7 @@ function isTransientExecError(err: unknown): boolean {
 }
 
 async function openExecWithRetry(
-  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxes: Render["sandboxes"],
   sandboxId: string,
   command: string,
   ownerId: `tea-${string}`,
@@ -41,7 +41,7 @@ async function openExecWithRetry(
 }
 
 async function waitUntilSandboxRunning(
-  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxes: Render["sandboxes"],
   sandboxId: string,
   ownerId: `tea-${string}`,
 ): Promise<void> {
@@ -57,7 +57,7 @@ async function waitUntilSandboxRunning(
 }
 
 async function waitUntilSnapshotAvailable(
-  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxes: Render["sandboxes"],
   snapshot: SandboxSnapshot,
   ownerId: `tea-${string}`,
 ): Promise<SandboxSnapshot> {
@@ -77,7 +77,7 @@ async function waitUntilSnapshotAvailable(
 }
 
 async function execOutput(
-  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxes: Render["sandboxes"],
   sandboxId: string,
   command: string,
   ownerId: `tea-${string}`,
@@ -94,7 +94,7 @@ async function execOutput(
 }
 
 async function execExitCode(
-  sandboxes: Render["experimental"]["sandboxes"],
+  sandboxes: Render["sandboxes"],
   sandboxId: string,
   command: string,
   ownerId: `tea-${string}`,
@@ -120,7 +120,7 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
 
   describe("groups", () => {
     it("lists the workspace's sandbox groups", async () => {
-      const groups = await render.experimental.sandboxes.listGroups({ ownerId });
+      const groups = await render.sandboxes.listGroups({ ownerId });
 
       expect(groups.length).toBeGreaterThan(0);
       for (const { sandboxGroup, cursor } of groups) {
@@ -136,7 +136,7 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
 
   describe("sandboxes", () => {
     it("creates, lists, uses, and terminates a sandbox", async () => {
-      const sandboxes = render.experimental.sandboxes;
+      const sandboxes = render.sandboxes;
       const sandbox = await sandboxes.create({ ownerId });
       try {
         expect(sandbox.id).toMatch(sbxIdRegex);
@@ -179,7 +179,7 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
     it.each([{ domains: ["example.com"] }, { domains: [] }])(
       "handles allow-list domains $domains",
       async ({ domains }) => {
-        const sandboxes = render.experimental.sandboxes;
+        const sandboxes = render.sandboxes;
         if (domains.length === 0) {
           // The API requires a rule despite the schema omitting minItems.
           await expect(
@@ -222,7 +222,7 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
   });
   describe("snapshots", () => {
     it("creates a filesystem snapshot", async () => {
-      const sandboxes = render.experimental.sandboxes;
+      const sandboxes = render.sandboxes;
       const sandbox = await sandboxes.create({ ownerId });
       let snapshot: SandboxSnapshot | null = null;
       try {
@@ -245,7 +245,7 @@ describe.skipIf(!process.env.RENDER_E2E_OWNER_ID)("SandboxesClient E2E", () => {
       }
     });
     it("restores a sandbox from a named snapshot", async () => {
-      const sandboxes = render.experimental.sandboxes;
+      const sandboxes = render.sandboxes;
       const sandbox = await sandboxes.create({ ownerId });
       const name = `sdk-e2e-${randomUUID()}`;
       const marker = `marker-${randomUUID()}`;

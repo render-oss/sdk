@@ -54,7 +54,7 @@ def sandboxes():
     render = RenderAsync(
         base_url=os.environ.get("RENDER_BASE_URL") or "https://api.render.com"
     )
-    return render.experimental.sandboxes
+    return render.sandboxes
 
 
 async def _wait_until_running(sandboxes, sandbox_id, owner_id, timeout_s=180.0):
@@ -385,7 +385,7 @@ def test_sync_allow_list_network_policy_limits_egress(domains):
 
     sandboxes = Render(
         base_url=os.environ.get("RENDER_BASE_URL") or "https://api.render.com"
-    ).experimental.sandboxes
+    ).sandboxes
     policy = NetworkPolicy(
         type="allow-list", rules=[EgressRule(domain=d) for d in domains]
     )

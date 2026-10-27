@@ -1,6 +1,7 @@
 import type { Client } from "openapi-fetch";
 import { RenderError } from "./errors.js";
 import { ExperimentalClient } from "./experimental/experimental.js";
+import { SandboxesClient } from "./experimental/sandboxes/index.js";
 import type { paths } from "./generated/schema.js";
 import { createApiClient } from "./utils/create-api-client.js";
 import { getBaseUrl } from "./utils/get-base-url.js";
@@ -13,6 +14,7 @@ import type { ClientOptions } from "./workflows/client/types.js";
  */
 export class Render {
   public readonly workflows: WorkflowsClient;
+  public readonly sandboxes: SandboxesClient;
   public readonly experimental: ExperimentalClient;
 
   private readonly apiClient: Client<paths>;
@@ -34,6 +36,7 @@ export class Render {
 
     const defaultOwnerId = options?.ownerId || process.env.RENDER_WORKSPACE_ID || undefined;
     const defaultRegion = options?.region || process.env.RENDER_REGION || undefined;
+    this.sandboxes = new SandboxesClient(this.apiClient, defaultOwnerId, defaultRegion);
     this.experimental = new ExperimentalClient(this.apiClient, defaultOwnerId, defaultRegion);
   }
 }

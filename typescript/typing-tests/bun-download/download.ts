@@ -1,4 +1,4 @@
-import type { SandboxDownload } from "@renderinc/sdk/experimental";
+import type { SandboxDownload } from "@renderinc/sdk";
 
 declare const downloaded: SandboxDownload;
 

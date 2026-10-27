@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from render.client import Client
     from render.client.workflows import WorkflowsService
     from render.experimental import ExperimentalService
+    from render.experimental.sandbox.client import SandboxClient
 
 
 class RenderAsync:
@@ -73,6 +74,11 @@ class RenderAsync:
     def workflows(self) -> WorkflowsService:
         """REST API for workflow operations (run tasks, get status)."""
         return self._client.workflows
+
+    @property
+    def sandboxes(self) -> SandboxClient:
+        """API for creating and managing sandboxes."""
+        return self._client.sandboxes
 
     @property
     def experimental(self) -> ExperimentalService:

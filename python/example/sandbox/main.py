@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 from render import RenderAsync
-from render.experimental.sandbox import SandboxClient, SandboxExecOutput
+from render.sandbox import SandboxClient, SandboxExecOutput
 
 
 async def run(sandboxes: SandboxClient, sandbox_id: str, command: str) -> None:
@@ -22,7 +22,7 @@ async def run(sandboxes: SandboxClient, sandbox_id: str, command: str) -> None:
 
 async def main() -> None:
     render = RenderAsync()
-    sandboxes = render.experimental.sandboxes
+    sandboxes = render.sandboxes
 
     # wait=True returns once the sandbox is running and can run commands.
     sandbox = await sandboxes.create(wait=True)

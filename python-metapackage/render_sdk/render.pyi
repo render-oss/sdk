@@ -3,6 +3,7 @@ from render.render import (
     Client as Client,
     Render as Render,
     SyncExperimentalService as SyncExperimentalService,
+    SyncSandboxClient as SyncSandboxClient,
     SyncWorkflowsService as SyncWorkflowsService,
     TYPE_CHECKING as TYPE_CHECKING,
 )

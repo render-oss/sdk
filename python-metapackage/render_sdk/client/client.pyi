@@ -4,6 +4,7 @@ from render.client.client import (
     Client as Client,
     ExperimentalService as ExperimentalService,
     PublicApiClient as PublicApiClient,
+    SandboxClient as SandboxClient,
     WorkflowsService as WorkflowsService,
     get_user_agent as get_user_agent,
 )

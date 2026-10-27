@@ -1,4 +1,4 @@
-"""Experimental sandbox client, accessed via ``render.experimental.sandboxes``."""
+"""Sandbox client implementation, accessed via ``render.sandboxes``."""
 
 from render.experimental.sandbox.client import (
     BuildClient,

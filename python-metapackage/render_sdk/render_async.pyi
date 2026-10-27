@@ -3,6 +3,7 @@ from render.render_async import (
     Client as Client,
     ExperimentalService as ExperimentalService,
     RenderAsync as RenderAsync,
+    SandboxClient as SandboxClient,
     TYPE_CHECKING as TYPE_CHECKING,
     WorkflowsService as WorkflowsService,
 )

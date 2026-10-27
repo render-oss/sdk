@@ -5,7 +5,6 @@ from render.experimental.experimental import (
     KeyValueApi as KeyValueApi,
     KeyValueProvider as KeyValueProvider,
     ObjectClient as ObjectClient,
-    SandboxClient as SandboxClient,
     StorageService as StorageService,
     TYPE_CHECKING as TYPE_CHECKING,
 )

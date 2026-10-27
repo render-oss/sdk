@@ -7,6 +7,7 @@ import os
 
 from render.client.workflows import WorkflowsService
 from render.experimental.experimental import ExperimentalService
+from render.experimental.sandbox.client import SandboxClient
 from render.public_api.client import AuthenticatedClient
 from render.public_api.client import Client as PublicApiClient
 from render.version import get_user_agent
@@ -23,6 +24,7 @@ class Client:
         token: The authentication token
         base_url: The API base URL
         workflows: Service client for workflow operations
+        sandboxes: Client for sandbox operations
         experimental: Service client for experimental features
     """
 
@@ -107,4 +109,9 @@ class Client:
 
         # Initialize service clients
         self.workflows = WorkflowsService(self)
+        self.sandboxes = SandboxClient(
+            self.internal,
+            default_owner_id=self.owner_id,
+            default_region=self.region,
+        )
         self.experimental = ExperimentalService(self)

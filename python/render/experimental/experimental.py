@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from render.experimental.key_value.api import KeyValueApi
 from render.experimental.key_value.provider import KeyValueProvider
 from render.experimental.object.client import ObjectClient
-from render.experimental.sandbox.client import SandboxClient
 
 if TYPE_CHECKING:
     from render.client.client import Client
@@ -85,9 +84,4 @@ class ExperimentalService:
         self.key_value = KeyValueProvider(
             KeyValueApi(client.internal),
             default_owner_id=client.owner_id,
-        )
-        self.sandboxes = SandboxClient(
-            client.internal,
-            default_owner_id=client.owner_id,
-            default_region=client.region,
         )

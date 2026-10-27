@@ -18,7 +18,7 @@ With the following features
 | -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | Workflows      | [REST API](https://api-docs.render.com/reference/listworkflows) | [Released](./python/render/client/workflows.py)                          | [Released](./typescript/src/workflows/client/client.ts)                    |
 | Object Storage | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/object/client.py)  | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts)   |
-| Sandboxes      | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/sandbox/client.py) | [⚠️ Early Access client](./typescript/src/experimental/sandboxes/index.ts) |
+| Sandboxes      | Soon                                                            | [Client](./python/render/sandbox/__init__.py)                         | [Client](./typescript/src/index.ts)                                    |
 
 # Quickstart
 

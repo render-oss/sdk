@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from render.client import Client
     from render.client.workflows_sync import SyncWorkflowsService
     from render.experimental.experimental_sync import SyncExperimentalService
+    from render.experimental.sandbox.client_sync import SyncSandboxClient
 
 
 class Render:
@@ -54,11 +55,17 @@ class Render:
         from render.client import Client
         from render.client.workflows_sync import SyncWorkflowsService
         from render.experimental.experimental_sync import SyncExperimentalService
+        from render.experimental.sandbox.client_sync import SyncSandboxClient
 
         self._client = Client(
             token=token, base_url=base_url, owner_id=owner_id, region=region
         )
         self._workflows = SyncWorkflowsService(self._client)
+        self._sandboxes = SyncSandboxClient(
+            self._client.internal,
+            default_owner_id=self._client.owner_id,
+            default_region=self._client.region,
+        )
         self._experimental = SyncExperimentalService(self._client)
 
     @property
@@ -74,6 +81,11 @@ class Render:
     def workflows(self) -> SyncWorkflowsService:
         """REST API for workflow operations (run tasks, get status)."""
         return self._workflows
+
+    @property
+    def sandboxes(self) -> SyncSandboxClient:
+        """API for creating and managing sandboxes."""
+        return self._sandboxes
 
     @property
     def experimental(self) -> SyncExperimentalService:

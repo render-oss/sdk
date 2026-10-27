@@ -15,7 +15,6 @@ import {
   type PutObjectInputStream,
   type PutObjectResult,
   type Region,
-  type Sandbox,
   type ScopedDeleteObjectInput,
   type ScopedGetObjectInput,
   type ScopedObjectClient,
@@ -28,6 +27,7 @@ import {
   getUserAgent,
   Render,
   RenderError,
+  type Sandbox,
   ServerError,
   TaskRunError,
   TimeoutError,
@@ -194,8 +194,8 @@ async function testRenderClient() {
 async function testSandboxType() {
   const render = new Render({ token: "test" });
 
-  const created: Sandbox = await render.experimental.sandboxes.create();
-  const fetched: Sandbox = await render.experimental.sandboxes.get(created.id);
+  const created: Sandbox = await render.sandboxes.create();
+  const fetched: Sandbox = await render.sandboxes.get(created.id);
 }
 
 async function testWorkflowsClient() {

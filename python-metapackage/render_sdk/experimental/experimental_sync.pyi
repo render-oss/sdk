@@ -3,7 +3,6 @@ from render.experimental.experimental_sync import (
     Client as Client,
     SyncExperimentalService as SyncExperimentalService,
     SyncObjectClient as SyncObjectClient,
-    SyncSandboxClient as SyncSandboxClient,
     SyncStorageService as SyncStorageService,
     TYPE_CHECKING as TYPE_CHECKING,
 )
