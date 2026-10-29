@@ -96,6 +96,7 @@ class SyncSandboxClient:
         All parameters are optional. Unspecified fields fall back to the
         workspace defaults enforced by the API (plan 1c-2g, 24-hour lifetime,
         15-minute idle timeout, workspace default region and network policy).
+        Set timeout_seconds to 0 to disable the lifetime limit.
         Set idle_timeout_seconds to 0 to disable automatic idle suspension.
         sandbox_group_id defaults to the workspace's default group. The group
         determines placement; region is accepted for compatibility and ignored.

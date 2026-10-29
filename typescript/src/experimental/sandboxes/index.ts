@@ -150,7 +150,7 @@ export type SandboxCreateInput = SandboxSourceInput & {
   sandboxGroupId?: string;
   ownerId?: `tea-${string}`;
   plan?: SandboxPlan | (string & {});
-  /** Maximum sandbox lifetime in seconds. The API defaults to 86400 (24 hours). */
+  /** Maximum sandbox lifetime in seconds. 0 disables the lifetime limit. The API defaults to 86400 (24 hours). */
   timeoutSeconds?: number;
   /**
    * Seconds of inactivity before the sandbox is suspended. Use 0 to disable automatic idle
