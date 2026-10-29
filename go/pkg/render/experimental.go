@@ -11,5 +11,6 @@ type ExperimentalService struct {
 func newExperimentalService(c *Client) *ExperimentalService {
 	sandboxes := &SandboxClient{client: c}
 	sandboxes.Snapshots = &SnapshotClient{sandboxes: sandboxes}
+	sandboxes.Images = &ImageClient{sandboxes: sandboxes}
 	return &ExperimentalService{Objects: &ObjectAPI{client: c}, Sandboxes: sandboxes}
 }

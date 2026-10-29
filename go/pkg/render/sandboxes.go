@@ -174,6 +174,12 @@ type CreateSandboxParams struct {
 	// sandbox group. They are mutually exclusive.
 	SnapshotID   string
 	SnapshotName string
+	// Image starts the sandbox from an image imported with Images.Import. An
+	// image ID ("sbb-" and 20 characters, like sbb-cph1rs3idesc73a2b2mg) pins
+	// that version; any other value is a name and uses the newest succeeded
+	// version with that name in the sandbox group. Mutually exclusive with the
+	// snapshot fields.
+	Image string
 }
 
 // ListSandboxesOptions filters and pages ListSandboxes.
@@ -213,6 +219,7 @@ type ListSnapshotsOptions struct {
 type SandboxClient struct {
 	client    *Client
 	Snapshots *SnapshotClient
+	Images    *ImageClient
 }
 
 // SnapshotClient manages sandbox snapshots, via SandboxClient.Snapshots.
@@ -240,9 +247,14 @@ func (s *SandboxClient) optionalOwnerID() *string {
 // For a runtime snapshot, Plan must match the snapshot's plan. Returns
 // ErrSnapshotNotFound if the snapshot does not resolve, ErrSnapshotNotReady if
 // it is not available, and ErrSnapshotPlanMismatch on a runtime plan mismatch.
+// With Image, returns ErrImageNotFound if the group has no such image and
+// ErrImageNotReady if it has not succeeded.
 func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) (*Sandbox, error) {
 	if params.SnapshotID != "" && params.SnapshotName != "" {
 		return nil, fmt.Errorf("SnapshotID and SnapshotName are mutually exclusive")
+	}
+	if params.Image != "" && (params.SnapshotID != "" || params.SnapshotName != "") {
+		return nil, fmt.Errorf("Image and a snapshot are mutually exclusive")
 	}
 	ownerID, err := s.ownerID()
 	if err != nil {
@@ -275,6 +287,11 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 	if params.SnapshotName != "" {
 		body.SnapshotName = &params.SnapshotName
 	}
+	if imageIDPattern.MatchString(params.Image) {
+		body.BuildId = &params.Image
+	} else if params.Image != "" {
+		body.BuildName = &params.Image
+	}
 
 	resp, err := s.client.internal.CreateSandboxWithResponse(ctx, body)
 	if err != nil {
@@ -284,6 +301,9 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 		snapshotRef := params.SnapshotID
 		if snapshotRef == "" {
 			snapshotRef = params.SnapshotName
+		}
+		if snapshotRef == "" && params.Image != "" {
+			return nil, imageError("create sandbox", params.Image, resp.StatusCode(), resp.Body)
 		}
 		if snapshotRef == "" {
 			return nil, apiError("create sandbox", resp.StatusCode(), resp.Body)
