@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.6.0] - 2026-10-29
+
+### Added
+
+- (Sandboxes) Sandbox images: `sandboxes.images.import_()` imports an OCI image so sandboxes can start from it, `images.from_id()` fetches an image, and `images.wait_until_ready()` waits for the import to succeed. Private registries are supported with `registry_credentials`.
+- (Sandboxes) `sandboxes.create()` accepts `image`, an image ID or name.
+- (Workflows) Flow runs: `start_flow()`, `get_flow_run()`, `cancel_flow_run()`, and `list_flow_runs()` on `render.workflows` and the sync client.
+- `ErrorCode.INSUFFICIENT_TOKEN_SCOPE` for the `insufficient_token_scope` API error code.
+
+### Changed
+
+- (Sandboxes) The `sandboxes.create()` docs state that a `timeout_seconds` of `0` disables the sandbox lifetime limit. This is a documentation change; the SDK sends the value as before.
+
+### Deprecated
+
+- (Sandboxes) `sandboxes.builds`, `Build`, `BuildSource`, `RegistryCredential`, `BuildNotFoundError`, and `BuildNotReadyError`. Use `sandboxes.images`, `Image`, `ImageSource`, `RegistryCredentials`, `ImageNotFoundError`, and `ImageNotReadyError`.
+- (Sandboxes) The `build_id` and `build_name` arguments of `sandboxes.create()`. Use `image`.
+
+### Fixed
+
+- `AuditLogEvent` accepts `DeleteBuildSourceEvent`, `LinkBuildSourceEnvGroupEvent`, and `UnlinkBuildSourceEnvGroupEvent`. Before, the client raised `ValueError` on audit logs that contain these events.
+
 ## [1.5.0] - 2026-10-27
 
 ### Added

@@ -4,6 +4,23 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-10-29
+
+### Added
+
+- (Sandboxes) Sandbox images: `sandboxes.images.import()` imports an OCI image so sandboxes can start from it, `images.get()` fetches an image, and `images.waitUntilReady()` waits for the import to succeed. Private registries are supported with `registryCredentials`.
+- (Sandboxes) `sandboxes.create()` accepts `image`, an image ID or name.
+
+### Changed
+
+- (Sandboxes) The `SandboxCreateInput.timeoutSeconds` docs state that `0` disables the sandbox lifetime limit. This is a documentation change; the SDK sends the value as before.
+
+### Deprecated
+
+- (Sandboxes) `sandboxes.builds`, `SandboxBuildsClient`, `SandboxBuildCreateInput`, and `SandboxBuildGetInput`. Use `sandboxes.images`, `SandboxImagesClient`, `SandboxImageImportInput`, and `SandboxImageGetInput`.
+- (Sandboxes) `SandboxBuild`, `SandboxBuildStatus`, `SandboxBuildSource`, `SandboxRegistryCredential`, `SandboxBuildNotFoundError`, and `SandboxBuildNotReadyError`. Use `SandboxImage`, `SandboxImageStatus`, `SandboxImageSource`, `SandboxRegistryCredentials`, `SandboxImageNotFoundError`, and `SandboxImageNotReadyError`.
+- (Sandboxes) The `buildId` and `buildName` options of `sandboxes.create()`. Use `image`.
+
 ## [1.5.0] - 2026-10-27
 
 ### Added
