@@ -2280,7 +2280,7 @@ type ClientInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
-	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 	// workspaces.
 	//
@@ -2311,7 +2311,7 @@ type ClientInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
-	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 	// workspaces.
 	//
@@ -7841,7 +7841,7 @@ func (c *Client) ListSandboxes(ctx context.Context, params *ListSandboxesParams,
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
-// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 // above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 // workspaces.
 //
@@ -7882,7 +7882,7 @@ func (c *Client) CreateSandboxWithBody(ctx context.Context, contentType string, 
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
-// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 // above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 // workspaces.
 //
@@ -28807,7 +28807,7 @@ type ClientWithResponsesInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
-	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 	// workspaces.
 	//
@@ -28838,7 +28838,7 @@ type ClientWithResponsesInterface interface {
 	// 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 	// accepts. The message lists the accepted plans.
 	//
-	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+	// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 	// above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 	// workspaces.
 	//
@@ -59886,7 +59886,7 @@ func (c *ClientWithResponses) ListSandboxesWithResponse(ctx context.Context, par
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
-// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 // above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 // workspaces.
 //
@@ -59923,7 +59923,7 @@ func (c *ClientWithResponses) CreateSandboxWithBodyWithResponse(ctx context.Cont
 // 400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
 // accepts. The message lists the accepted plans.
 //
-// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+// 400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
 // above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
 // workspaces.
 //

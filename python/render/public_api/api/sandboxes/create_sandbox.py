@@ -122,7 +122,7 @@ def sync_detailed(
     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
     accepts. The message lists the accepted plans.
 
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
     workspaces.
 
@@ -175,7 +175,7 @@ def sync(
     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
     accepts. The message lists the accepted plans.
 
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
     workspaces.
 
@@ -223,7 +223,7 @@ async def asyncio_detailed(
     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
     accepts. The message lists the accepted plans.
 
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
     workspaces.
 
@@ -274,7 +274,7 @@ async def asyncio(
     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
     accepts. The message lists the accepted plans.
 
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
     workspaces.
 

@@ -229,7 +229,7 @@ export interface paths {
          *     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
          *     accepts. The message lists the accepted plans.
          *
-         *     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 1 or
+         *     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
          *     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
          *     workspaces.
          */
@@ -1013,7 +1013,7 @@ export interface components {
              */
             region: string;
             /**
-             * @description Maximum sandbox lifetime in seconds.
+             * @description Maximum sandbox lifetime in seconds. 0 means the sandbox has no timeout.
              * @example 86400
              */
             timeoutSeconds: number;
@@ -1078,7 +1078,7 @@ export interface components {
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
             /**
-             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
+             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached. Use 0 for no timeout.
              * @default 86400
              */
             timeoutSeconds: number;
@@ -1342,7 +1342,7 @@ export interface components {
                 "application/json": components["schemas"]["error"];
             };
         };
-        /** @description You do not have permissions for the requested resource. */
+        /** @description You do not have permissions for the requested resource. If a scoped API token does not satisfy the endpoint's minimum scope requirements, the response has code insufficient_token_scope and its message lists all minimum required scopes. Broader scopes that include their permissions also satisfy the requirements. Passing this check does not guarantee access to the requested resource or to conditional operations. */
         "403Forbidden": {
             headers: {
                 [name: string]: unknown;

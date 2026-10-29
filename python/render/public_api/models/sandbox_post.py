@@ -26,7 +26,7 @@ class SandboxPOST:
             only accepted when they name the same policy.
         plan (Union[SandboxPlan, Unset, str]): Compute plan. See `sandboxPlan` for known values.
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-            Default: 86400.
+            Use 0 for no timeout. Default: 86400.
         idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
             disable automatic idle suspension. Positive values must be at least 300. Default: 900.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.

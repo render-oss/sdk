@@ -7,6 +7,7 @@ class ErrorCode(str, Enum):
     CURSOR_ORIGIN_RECEIPT_EXPIRED = "cursor_origin_receipt_expired"
     CURSOR_ORIGIN_RECEIPT_INVALID = "cursor_origin_receipt_invalid"
     DUPLICATE_SAVED_SEARCH_NAME = "duplicate_saved_search_name"
+    INSUFFICIENT_TOKEN_SCOPE = "insufficient_token_scope"
     INVALID_CURSOR = "invalid_cursor"
     INVALID_LIMIT = "invalid_limit"
     INVALID_OWNER_ID = "invalid_owner_id"

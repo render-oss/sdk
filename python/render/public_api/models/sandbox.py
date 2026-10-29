@@ -26,7 +26,7 @@ class Sandbox:
         plan (Union[SandboxPlan, str]): Compute plan. See `sandboxPlan` for known values.
         network_policy (SandboxNetworkPolicy):
         region (str): Region the sandbox is running in. Example: oregon.
-        timeout_seconds (int): Maximum sandbox lifetime in seconds. Example: 86400.
+        timeout_seconds (int): Maximum sandbox lifetime in seconds. 0 means the sandbox has no timeout. Example: 86400.
         idle_timeout_seconds (int): Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle
             suspension. Example: 900.
         created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
