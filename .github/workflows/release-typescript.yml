@@ -103,7 +103,8 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       # A re-run after a partial release skips a version that is already on
-      # npm.
+      # npm. The tarball path starts with ./ because npm reads dist/<name> as
+      # a GitHub repository.
       - name: Publish
         env:
           TAG: ${{ github.ref_name }}
@@ -113,7 +114,7 @@ jobs:
           if npm view "@renderinc/sdk@$version" version > /dev/null 2>&1; then
             echo "@renderinc/sdk@$version is already on npm."
           else
-            npm publish "dist/renderinc-sdk-$version.tgz" --access public
+            npm publish "./dist/renderinc-sdk-$version.tgz" --access public
           fi
 
   release:
