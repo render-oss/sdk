@@ -121,6 +121,9 @@ def sync_detailed(
 
      Update the service with the provided ID.
 
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
+
     Args:
         service_id (str):
         body (ServicePATCH):
@@ -155,6 +158,9 @@ def sync(
 
      Update the service with the provided ID.
 
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
+
     Args:
         service_id (str):
         body (ServicePATCH):
@@ -183,6 +189,9 @@ async def asyncio_detailed(
     """Update service
 
      Update the service with the provided ID.
+
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
 
     Args:
         service_id (str):
@@ -215,6 +224,9 @@ async def asyncio(
     """Update service
 
      Update the service with the provided ID.
+
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
 
     Args:
         service_id (str):

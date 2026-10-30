@@ -109,6 +109,9 @@ def sync_detailed(
 
      Creates a new Render service in the specified workspace with the specified configuration.
 
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
+
     Args:
         body (ServicePOST):
 
@@ -140,6 +143,9 @@ def sync(
 
      Creates a new Render service in the specified workspace with the specified configuration.
 
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
+
     Args:
         body (ServicePOST):
 
@@ -165,6 +171,9 @@ async def asyncio_detailed(
     """Create service
 
      Creates a new Render service in the specified workspace with the specified configuration.
+
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
 
     Args:
         body (ServicePOST):
@@ -194,6 +203,9 @@ async def asyncio(
     """Create service
 
      Creates a new Render service in the specified workspace with the specified configuration.
+
+    400 with `code: build_source_region_mismatch` if `buildSourceId` names a git-backed
+    Build Source in a different region than the service.
 
     Args:
         body (ServicePOST):
