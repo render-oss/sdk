@@ -76,6 +76,7 @@ class AuditLogEvent(str, Enum):
     SUSPENDPOSTGRESEVENT = "SuspendPostgresEvent"
     SUSPENDSERVICEEVENT = "SuspendServiceEvent"
     UNLINKBUILDSOURCEENVGROUPEVENT = "UnlinkBuildSourceEnvGroupEvent"
+    UPDATEBUILDSOURCEEVENT = "UpdateBuildSourceEvent"
     UPDATEENVVARSEVENT = "UpdateEnvVarsEvent"
     UPDATEIPALLOWLISTEVENT = "UpdateIPAllowListEvent"
     UPDATEORGPAYMENTMETHODEVENT = "UpdateOrgPaymentMethodEvent"

@@ -21,6 +21,7 @@ class BlueprintDetail:
     """
     Attributes:
         id (str):  Example: exs-cph1rs3idesc73a2b2mg.
+        owner_id (str): ID of the workspace that owns this Blueprint.
         name (str):
         status (Status): A Blueprint has status `created` until its first Sync is approved.
         auto_sync (bool): Configuration value that controls whether or not this blueprint will be re-synced on each git
@@ -36,6 +37,7 @@ class BlueprintDetail:
     """
 
     id: str
+    owner_id: str
     name: str
     status: Status
     auto_sync: bool
@@ -48,6 +50,8 @@ class BlueprintDetail:
 
     def to_dict(self) -> dict[str, Any]:
         id = self.id
+
+        owner_id = self.owner_id
 
         name = self.name
 
@@ -75,6 +79,7 @@ class BlueprintDetail:
         field_dict.update(
             {
                 "id": id,
+                "ownerId": owner_id,
                 "name": name,
                 "status": status,
                 "autoSync": auto_sync,
@@ -95,6 +100,8 @@ class BlueprintDetail:
 
         d = dict(src_dict)
         id = d.pop("id")
+
+        owner_id = d.pop("ownerId")
 
         name = d.pop("name")
 
@@ -124,6 +131,7 @@ class BlueprintDetail:
 
         blueprint_detail = cls(
             id=id,
+            owner_id=owner_id,
             name=name,
             status=status,
             auto_sync=auto_sync,

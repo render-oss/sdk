@@ -125,6 +125,7 @@ const (
 	SuspendPostgresEvent               AuditLogEvent = "SuspendPostgresEvent"
 	SuspendServiceEvent                AuditLogEvent = "SuspendServiceEvent"
 	UnlinkBuildSourceEnvGroupEvent     AuditLogEvent = "UnlinkBuildSourceEnvGroupEvent"
+	UpdateBuildSourceEvent             AuditLogEvent = "UpdateBuildSourceEvent"
 	UpdateEnvVarsEvent                 AuditLogEvent = "UpdateEnvVarsEvent"
 	UpdateIPAllowListEvent             AuditLogEvent = "UpdateIPAllowListEvent"
 	UpdateOrgPaymentMethodEvent        AuditLogEvent = "UpdateOrgPaymentMethodEvent"
@@ -288,6 +289,8 @@ func (e AuditLogEvent) Valid() bool {
 	case SuspendServiceEvent:
 		return true
 	case UnlinkBuildSourceEnvGroupEvent:
+		return true
+	case UpdateBuildSourceEvent:
 		return true
 	case UpdateEnvVarsEvent:
 		return true

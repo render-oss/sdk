@@ -129,6 +129,9 @@ type Blueprint struct {
 	LastSync *time.Time  `json:"lastSync,omitempty"`
 	Name     string      `json:"name"`
 
+	// OwnerId ID of the workspace that owns this Blueprint.
+	OwnerId string `json:"ownerId"`
+
 	// Path Path to the Blueprint file in the repository
 	//
 	// Example: render.yaml
@@ -151,6 +154,9 @@ type BlueprintDetail struct {
 	Id       BlueprintId `json:"id"`
 	LastSync *time.Time  `json:"lastSync,omitempty"`
 	Name     string      `json:"name"`
+
+	// OwnerId ID of the workspace that owns this Blueprint.
+	OwnerId string `json:"ownerId"`
 
 	// Path Path to the Blueprint file in the repository
 	//
