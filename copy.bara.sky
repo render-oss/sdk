@@ -26,6 +26,7 @@ DESTINATION_FILES_EXCLUDE = [
   ".github/workflows/typescript-canary.yml",
   ".github/workflows/pr-test-instructions.yml",
   ".github/workflows/generated-client-staleness.yml",
+  ".github/workflows/tag-release.yml",
 ]
 
 DEFAULT_COMITTER = "Render Engineering <dev-public@render.com>"

@@ -1,7 +1,8 @@
 name: Release TypeScript SDK
 
-# Publishes @renderinc/sdk to npm when a typescript/vX.Y.Z tag is pushed to
-# render-oss/sdk, then creates the GitHub release.
+# Publishes @renderinc/sdk to npm when a new version reaches main in
+# render-oss/sdk, then tags the release commit and creates the GitHub release.
+# A version is new when it has no GitHub release yet.
 #
 # npm trusts this workflow through trusted publishing, so no npm token is
 # stored, and npm adds a provenance attestation. Only the publish job can get
@@ -10,43 +11,81 @@ name: Release TypeScript SDK
 
 on:
   push:
-    tags:
-      - "typescript/v*"
+    branches: [main]
+    paths:
+      - typescript/package.json
+  # Starts the release again, for example after a fix to this workflow.
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
 
 jobs:
+  plan:
+    name: Find the release
+    # renderinc/sdk has this workflow too, but only the public mirror
+    # publishes, and only from main.
+    if: github.repository == 'render-oss/sdk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.find.outputs.release }}
+      tag: ${{ steps.find.outputs.tag }}
+      sha: ${{ steps.find.outputs.sha }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          # The history finds the commit that set the version.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Find the version and its commit
+        id: find
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o errexit -o nounset -o pipefail
+          version="$(node -p "require('./typescript/package.json').version")"
+          tag="typescript/v$version"
+          # Copybara can push more than one commit at a time, so the commit
+          # that set the version can be before the head of main. Release that
+          # commit, so that a later change does not go into this version.
+          sha="$(git log -n 1 --format=%H -G '"version":' -- typescript/package.json)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "$tag has a GitHub release. Nothing to do."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            # If the tag exists, gh release create ignores --target and
+            # releases the commit of the tag. Stop if that is another commit.
+            tag_sha="$(git rev-parse -q --verify "refs/tags/$tag^{commit}" || true)"
+            if [[ -n "$tag_sha" && "$tag_sha" != "$sha" ]]; then
+              echo "::error::$tag is on $tag_sha, not on $sha, the commit that set the version."
+              exit 1
+            fi
+            echo "Releasing $tag from $sha."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
   build:
     name: Build
-    # renderinc/sdk has release tags too, but only the public mirror publishes.
-    if: github.repository == 'render-oss/sdk'
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
         with:
-          # The release notes compare this tag with the previous tag.
+          ref: ${{ needs.plan.outputs.sha }}
+          # The release notes compare this version with the previous tag.
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Check the tag against the package version
-        env:
-          TAG: ${{ github.ref_name }}
-        run: |
-          set -o errexit -o nounset -o pipefail
-          version="${TAG#typescript/v}"
-          found="$(node -p "require('./typescript/package.json').version")"
-          if [[ "$found" != "$version" ]]; then
-            echo "::error::typescript/package.json has version $found, but the tag is $TAG."
-            exit 1
-          fi
-
       - name: Write the release notes
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.plan.outputs.tag }}
         run: .github/scripts/release-notes.sh "$TAG" > release-notes.md
 
       # npm trusted publishing needs npm 11.5.1 or later. Node.js 24.22.1
@@ -84,7 +123,7 @@ jobs:
 
   publish:
     name: Publish to npm
-    needs: build
+    needs: [plan, build]
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -107,7 +146,7 @@ jobs:
       # a GitHub repository.
       - name: Publish
         env:
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.plan.outputs.tag }}
         run: |
           set -o errexit -o nounset -o pipefail
           version="${TAG#typescript/v}"
@@ -119,7 +158,7 @@ jobs:
 
   release:
     name: Create the GitHub release
-    needs: publish
+    needs: [plan, publish]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -128,13 +167,15 @@ jobs:
         with:
           name: release
 
+      # Creates the tag on the commit that set the version.
       - name: Create the release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ needs.plan.outputs.tag }}
+          SHA: ${{ needs.plan.outputs.sha }}
         run: |
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --verify-tag \
+            --target "$SHA" \
             --title "TypeScript SDK ${TAG#typescript/}" \
             --notes-file release-notes.md

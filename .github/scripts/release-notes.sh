@@ -6,7 +6,8 @@
 # Usage: release-notes.sh <tag>
 #
 # Fails if the changelog has no section for the version. Run it from the
-# repository root, with all tags fetched.
+# repository root, with all tags fetched. The tag itself does not have to
+# exist yet.
 set -o errexit -o nounset -o pipefail
 
 tag="$1"
@@ -31,8 +32,9 @@ fi
 printf '%s\n' "$notes"
 
 # The tag before this one in version order. It is empty for the first
-# release.
-previous="$(git tag --list "$language/v[0-9]*" | sort -V | grep -F -x -B1 "$tag" | grep -F -x -v "$tag" || true)"
+# release. The tag is added to the list because the release workflows create
+# it after they write the notes.
+previous="$({ git tag --list "$language/v[0-9]*"; echo "$tag"; } | sort -V -u | grep -F -x -B1 "$tag" | grep -F -x -v "$tag" || true)"
 if [[ -n "$previous" ]]; then
   printf '\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n' \
     "$GITHUB_REPOSITORY" "$previous" "$tag"
