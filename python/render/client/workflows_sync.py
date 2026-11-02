@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
+from render.client import _flow_wait
 from render.client._requests import (
     list_flow_runs_query,
     run_task_body,
@@ -355,6 +356,47 @@ class SyncWorkflowsService:
         return self._start_flow_run_api_call(
             flow_slug, input_data, idempotency_key=idempotency_key
         ).parsed
+
+    def run_flow(
+        self,
+        flow_slug: FlowSlug,
+        input_data: FlowData,
+        *,
+        idempotency_key: str | None = None,
+    ) -> FlowRunDetails:
+        """Start a flow and wait for it to finish, returning the result.
+
+        This is a convenience wrapper around start_flow() that additionally
+        polls get_flow_run() until the flow run succeeds, fails, or is
+        canceled. The delay between checks starts at 1 second and doubles
+        after each check, up to 60 seconds. A paused flow run keeps
+        being polled until it resumes and finishes. A check that fails with a
+        server error, rate limit, or request timeout is retried, up to 5 in a
+        row.
+
+        Args:
+            flow_slug: The flow slug (workflow-slug/flow-name). Append :version
+                to run a specific version; otherwise the latest version runs.
+            input_data: The input data for the flow. Can be either:
+                - A list for positional arguments: [arg1, arg2, arg3]
+                - A dict for named parameters: {"param1": value1, "param2": value2}
+            idempotency_key: Optional client-generated key that makes this call safe
+                to retry. Repeating a call with the same key within 24 hours returns
+                the flow run the first call started instead of starting another one.
+
+        Returns:
+            FlowRunDetails: The details of the succeeded flow run
+
+        Raises:
+            FlowRunError: If the flow run fails or is canceled
+            ClientError: For 4xx client errors (invalid flow, malformed input, etc.)
+            ServerError: For 5xx server errors and network failures
+            TimeoutError: If a request times out
+        """
+        flow_run = self.start_flow(
+            flow_slug, input_data, idempotency_key=idempotency_key
+        )
+        return _flow_wait.wait_flow_run(lambda: self.get_flow_run(flow_run.id))
 
     @handle_http_errors("start flow run")
     def _start_flow_run_api_call(

@@ -81,9 +81,9 @@ def handle_http_error(response: httpx.Response, operation: str) -> None:
         )
 
         if response.status_code == 429:
-            raise RateLimitError(full_message)
+            raise RateLimitError(full_message, status_code=429)
         if 400 <= response.status_code < 500:
-            raise ClientError(full_message)
+            raise ClientError(full_message, status_code=response.status_code)
         elif response.status_code >= 500:
             raise ServerError(full_message)
 
@@ -141,9 +141,9 @@ def handle_storage_http_error(response: httpx.Response, operation: str) -> None:
         )
 
         if response.status_code == 429:
-            raise RateLimitError(full_message)
+            raise RateLimitError(full_message, status_code=429)
         if 400 <= response.status_code < 500:
-            raise ClientError(full_message)
+            raise ClientError(full_message, status_code=response.status_code)
         elif response.status_code >= 500:
             raise ServerError(full_message)
 
@@ -232,9 +232,9 @@ def handle_api_error(
 
     if response.status_code:
         if response.status_code == 429:
-            raise RateLimitError(full_message, code=code)
+            raise RateLimitError(full_message, code=code, status_code=429)
         if response.status_code >= 400 and response.status_code < 500:
-            raise ClientError(full_message, code=code)
+            raise ClientError(full_message, code=code, status_code=response.status_code)
         elif response.status_code >= 500:
             raise ServerError(full_message)
     else:

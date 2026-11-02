@@ -12,8 +12,9 @@ from render.client import (
     ListFlowRunsParams,
     ListTaskRunsParams,
     WorkflowsService,
+    _flow_wait,
 )
-from render.client.errors import ClientError, ServerError
+from render.client.errors import ClientError, FlowRunError, ServerError
 from render.client.workflows import AwaitableTaskRun
 from render.public_api.models.error import Error
 from render.public_api.models.flow_run import FlowRun
@@ -520,6 +521,49 @@ async def test_start_flow_success(mock_start_flow_run_asyncio, workflows_service
         "input": [42],
         "idempotencyKey": "order-42",
     }
+
+
+@pytest.mark.asyncio
+async def test_run_flow_polls_until_the_run_finishes(
+    monkeypatch,
+    mock_start_flow_run_asyncio,
+    mock_get_flow_run_asyncio,
+    workflows_service,
+):
+    monkeypatch.setattr(_flow_wait, "INITIAL_INTERVAL_SECONDS", 0)
+    mock_start_flow_run_asyncio.return_value = ok(new_flow_run(), status_code=202)
+    mock_get_flow_run_asyncio.side_effect = [
+        ok(new_flow_run_details(status=FlowRunStatus.RUNNING)),
+        ok(new_flow_run_details(status=FlowRunStatus.SUCCEEDED)),
+    ]
+
+    result = await workflows_service.run_flow(
+        "wf/flow", [42], idempotency_key="order-42"
+    )
+
+    assert result.status == FlowRunStatus.SUCCEEDED
+    assert result.results == [84]
+    body = mock_start_flow_run_asyncio.call_args.kwargs["body"]
+    assert body.to_dict()["idempotencyKey"] == "order-42"
+    assert mock_get_flow_run_asyncio.call_count == 2
+    mock_get_flow_run_asyncio.assert_called_with(
+        client=workflows_service.client.internal, flow_run_id="frn-test123"
+    )
+
+
+@pytest.mark.asyncio
+async def test_run_flow_raises_when_the_run_fails(
+    mock_start_flow_run_asyncio, mock_get_flow_run_asyncio, workflows_service
+):
+    mock_start_flow_run_asyncio.return_value = ok(new_flow_run(), status_code=202)
+    mock_get_flow_run_asyncio.return_value = ok(
+        new_flow_run_details(status=FlowRunStatus.FAILED, error="boom")
+    )
+
+    with pytest.raises(FlowRunError, match="failed: boom") as exc_info:
+        await workflows_service.run_flow("wf/flow", [42])
+
+    assert exc_info.value.flow_run_id == "frn-test123"
 
 
 @pytest.mark.asyncio

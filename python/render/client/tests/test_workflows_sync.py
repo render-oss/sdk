@@ -7,8 +7,8 @@ from typing import Any
 
 import pytest
 
-from render.client import Client, ListFlowRunsParams, ListTaskRunsParams
-from render.client.errors import ClientError, ServerError
+from render.client import Client, ListFlowRunsParams, ListTaskRunsParams, _flow_wait
+from render.client.errors import ClientError, FlowRunError, ServerError
 from render.client.workflows_sync import SyncWorkflowsService
 from render.public_api.models.error import Error
 from render.public_api.models.flow_run import FlowRun
@@ -444,6 +444,45 @@ def test_start_flow_success(mock_start_flow_run_sync, sync_workflows_service):
         "input": {"a": 1},
         "idempotencyKey": "order-42",
     }
+
+
+def test_run_flow_polls_until_the_run_finishes(
+    monkeypatch,
+    mock_start_flow_run_sync,
+    mock_get_flow_run_sync,
+    sync_workflows_service,
+):
+    monkeypatch.setattr(_flow_wait, "INITIAL_INTERVAL_SECONDS", 0)
+    mock_get_flow_run_sync.side_effect = [
+        ok(new_flow_run_details(status=FlowRunStatus.PAUSED)),
+        ok(new_flow_run_details(status=FlowRunStatus.SUCCEEDED)),
+    ]
+
+    result = sync_workflows_service.run_flow(
+        "wf/flow", [42], idempotency_key="order-42"
+    )
+
+    assert result.status == FlowRunStatus.SUCCEEDED
+    assert result.results == [84]
+    body = mock_start_flow_run_sync.call_args.kwargs["body"]
+    assert body.to_dict()["idempotencyKey"] == "order-42"
+    assert mock_get_flow_run_sync.call_count == 2
+    mock_get_flow_run_sync.assert_called_with(
+        client=sync_workflows_service.client.internal, flow_run_id="frn-test123"
+    )
+
+
+def test_run_flow_raises_when_the_run_fails(
+    mock_start_flow_run_sync, mock_get_flow_run_sync, sync_workflows_service
+):
+    mock_get_flow_run_sync.return_value = ok(
+        new_flow_run_details(status=FlowRunStatus.FAILED, error="boom")
+    )
+
+    with pytest.raises(FlowRunError, match="failed: boom") as exc_info:
+        sync_workflows_service.run_flow("wf/flow", [42])
+
+    assert exc_info.value.flow_run_id == "frn-test123"
 
 
 def test_get_flow_run_success(mock_get_flow_run_sync, sync_workflows_service):

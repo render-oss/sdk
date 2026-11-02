@@ -91,6 +91,26 @@ def test_handle_http_error_4xx():
         handle_http_error(response, "API request")
 
 
+@pytest.mark.parametrize("status_code", [404, 408, 429])
+def test_error_handlers_set_the_status_code_on_client_errors(status_code):
+    httpx_response = httpx.Response(status_code=status_code, text="error")
+    api_response = Response(
+        status_code=status_code,
+        content=b"",
+        headers={},
+        parsed=Error(message="error"),
+    )
+
+    for raise_error in (
+        lambda: handle_http_error(httpx_response, "API request"),
+        lambda: handle_storage_http_error(httpx_response, "upload"),
+        lambda: handle_api_error(api_response, "API request"),
+    ):
+        with pytest.raises(ClientError) as excinfo:
+            raise_error()
+        assert excinfo.value.status_code == status_code
+
+
 def test_handle_http_error_5xx():
     response = httpx.Response(
         status_code=500,

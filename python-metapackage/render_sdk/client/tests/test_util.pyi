@@ -16,6 +16,7 @@ from render.client.tests.test_util import (
     handle_storage_http_error as handle_storage_http_error,
     request_errors as request_errors,
     retry_with_backoff as retry_with_backoff,
+    test_error_handlers_set_the_status_code_on_client_errors as test_error_handlers_set_the_status_code_on_client_errors,
     test_handle_api_error_client_error as test_handle_api_error_client_error,
     test_handle_api_error_code_is_none_when_absent as test_handle_api_error_code_is_none_when_absent,
     test_handle_api_error_extracts_message_from_content_when_parsed_is_none as test_handle_api_error_extracts_message_from_content_when_parsed_is_none,
