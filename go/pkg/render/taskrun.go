@@ -27,7 +27,7 @@ func (tr *TaskRunWithGet) Get(ctx context.Context) (*TaskRunDetails, error) {
 
 	// If already completed, return immediately
 	if tr.isTerminalStatus() {
-		return tr.client.GetTaskRun(tr.Id)
+		return tr.client.GetTaskRun(ctx, tr.Id)
 	}
 
 	// Get the client from the workflows service
@@ -60,7 +60,7 @@ func (tr *TaskRunWithGet) Get(ctx context.Context) (*TaskRunDetails, error) {
 
 		case <-pollTicker.C:
 			// Fallback poll for updates
-			details, err := tr.client.GetTaskRun(tr.Id)
+			details, err := tr.client.GetTaskRun(ctx, tr.Id)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get task run status: %w", err)
 			}

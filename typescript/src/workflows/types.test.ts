@@ -37,17 +37,28 @@ import {
   type CallbackRequest,
   type ClientOptions,
   createWorkflowsClient,
+  type FlowContext,
+  type FlowData,
+  type FlowRun,
+  type FlowRunDetails,
+  type FlowRunMetadata,
+  FlowRunStatus,
+  type FlowRunWithCursor,
+  type FlowSlug,
   type GetInputResponse,
   type GetSubtaskResultRequest,
   type GetSubtaskResultResponse,
+  type ListFlowRunsParams,
   type ListTaskRunsParams,
   type RegisterTaskOptions,
   type RegisterTasksRequest,
   type Retry,
+  type RunFlowRequest,
   type RunSubtaskRequest,
   type RunSubtaskResponse,
   type RunTaskRequest,
   run,
+  type StartFlowOptions,
   startTaskServer,
   type TaskContext,
   type TaskData,
@@ -104,6 +115,19 @@ describe("Exported symbols", () => {
     expectTypeOf<InstanceType<typeof TaskRunResult>>().toHaveProperty("taskRunId");
   });
 
+  it("FlowRunStatus covers every status the API returns", () => {
+    expectTypeOf<`${FlowRunStatus}`>().toEqualTypeOf<FlowRun["status"]>();
+  });
+
+  it("WorkflowsClient exposes flow run methods", () => {
+    expectTypeOf<WorkflowsClient["startFlow"]>().returns.toExtend<Promise<FlowRun>>();
+    expectTypeOf<WorkflowsClient["getFlowRun"]>().returns.toExtend<Promise<FlowRunDetails>>();
+    expectTypeOf<WorkflowsClient["cancelFlowRun"]>().parameter(0).toEqualTypeOf<string>();
+    expectTypeOf<WorkflowsClient["listFlowRuns"]>().returns.toExtend<
+      Promise<FlowRunWithCursor[]>
+    >();
+  });
+
   it("TaskEventType maps to SSE event name strings", () => {
     expect(TaskEventType.COMPLETED).toBe("task.completed");
     expect(TaskEventType.SUCCEEDED).toBe("task.succeeded");
@@ -147,6 +171,13 @@ describe("TaskDefinition type", () => {
 
   it("is not itself callable", () => {
     expectTypeOf<TaskDefinition<[string], number>>().not.toExtend<(...args: never[]) => unknown>();
+  });
+});
+
+describe("FlowContext type", () => {
+  it("exposes readonly run metadata", () => {
+    expectTypeOf<FlowContext["metadata"]>().toEqualTypeOf<FlowRunMetadata>();
+    expectTypeOf<FlowRunMetadata>().toEqualTypeOf<{ readonly flowRunId: string }>();
   });
 });
 
@@ -249,6 +280,60 @@ async function testWorkflowsClient() {
     const runRootTaskRunId: string = run.rootTaskRunId;
     const runRetries: number = run.retries;
   }
+}
+
+async function testFlowsClient() {
+  const render = new Render({ token: "test" });
+
+  const slug: FlowSlug = "workflow-slug/flow-name:v1";
+  const positional: FlowData = ["arg1", 2];
+  const named: FlowData = { key: "value" };
+  const request: RunFlowRequest = { flow: slug, input: named, idempotencyKey: "key-1" };
+  const options: StartFlowOptions = { signal: new AbortController().signal, idempotencyKey: "k" };
+
+  const started: FlowRun = await render.workflows.startFlow(slug, positional, options);
+  const startedId: string = started.id;
+  const startedWithSignal: FlowRun = await render.workflows.startFlow(
+    slug,
+    named,
+    new AbortController().signal,
+  );
+
+  const flowResult: FlowRunDetails = await render.workflows.getFlowRun("frn-123");
+  const id: string = flowResult.id;
+  const flowId: string = flowResult.flowId;
+  const status: FlowRunDetails["status"] = flowResult.status;
+  const results: unknown[] = flowResult.results;
+  const error: string | undefined = flowResult.error;
+  const input: unknown[] | { [key: string]: unknown } = flowResult.input;
+  const attempt: number = flowResult.attempts[0].attempt;
+
+  await render.workflows.cancelFlowRun("frn-123");
+
+  const params: ListFlowRunsParams = {
+    cursor: "cursor-123",
+    limit: 50,
+    flowSlug: ["my-workflow/my-flow"],
+    flowId: ["flw-123"],
+    status: [FlowRunStatus.RUNNING, "paused"],
+    ownerId: ["owner-123"],
+    workflowVersionId: ["version-123"],
+    workflowId: ["workflow-123"],
+  };
+  const flowRuns: FlowRunWithCursor[] = await render.workflows.listFlowRuns(params);
+  if (flowRuns.length > 0) {
+    const run: FlowRun = flowRuns[0].flowRun;
+    const cursor: string = flowRuns[0].cursor;
+  }
+}
+
+function testFlowRunStatus() {
+  const pending: "pending" = FlowRunStatus.PENDING;
+  const running: "running" = FlowRunStatus.RUNNING;
+  const paused: "paused" = FlowRunStatus.PAUSED;
+  const succeeded: "succeeded" = FlowRunStatus.SUCCEEDED;
+  const failed: "failed" = FlowRunStatus.FAILED;
+  const canceled: "canceled" = FlowRunStatus.CANCELED;
 }
 
 function testTaskRunStatus() {

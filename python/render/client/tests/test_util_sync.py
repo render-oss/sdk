@@ -71,3 +71,29 @@ def test_retry_with_backoff_returns_none_when_all_none():
         fn, max_retries=3, poll_interval=0.001, backoff_factor=1.0
     )
     assert result is None
+
+
+def test_retry_with_backoff_without_retries_raises_the_first_error():
+    calls = 0
+
+    def fn():
+        nonlocal calls
+        calls += 1
+        raise ValueError("boom")
+
+    with pytest.raises(ValueError, match="boom"):
+        retry_with_backoff(fn, max_retries=0)
+    assert calls == 1
+
+
+def test_retry_with_backoff_retries_after_the_first_attempt():
+    calls = 0
+
+    def fn():
+        nonlocal calls
+        calls += 1
+        raise ValueError("boom")
+
+    with pytest.raises(ValueError):
+        retry_with_backoff(fn, max_retries=2, poll_interval=0, backoff_factor=1.0)
+    assert calls == 3

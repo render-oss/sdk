@@ -1,0 +1,17 @@
+{
+  "name": "render-sdk-workflow-example",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preinstall": "cd ../../ && npm i && npm run build",
+    "start": "tsx main.ts"
+  },
+  "dependencies": {
+    "@renderinc/sdk": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0"
+  }
+}

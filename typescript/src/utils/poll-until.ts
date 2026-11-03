@@ -1,51 +1,70 @@
 import { AbortError } from "../errors.js";
 
-/** The longest delay between checks once the backoff has grown. */
-const MAX_BACKOFF_INTERVAL_MS = 2000;
+/** The default longest delay between checks once the backoff has grown. */
+const DEFAULT_MAX_INTERVAL_MS = 2000;
 
 type PollOptions<T> = {
-  timeoutMs: number;
-  /** The first delay between checks. It doubles after each check, up to 2 seconds. A longer one stays fixed. */
+  /** The first delay between checks. It doubles after each check, up to `maxIntervalMs`. A longer one stays fixed. */
   intervalMs: number;
+  /** The longest delay between checks once the backoff has grown. Defaults to 2 seconds. */
+  maxIntervalMs?: number;
   signal?: AbortSignal;
-  /** Builds the error for a timeout, from the last value `load` returned, if any. */
-  timeoutError: (last: T | undefined) => Error;
-};
+} & (
+  | {
+      timeoutMs: number;
+      /** Builds the error for a timeout, from the last value `load` returned, if any. */
+      timeoutError: (last: T | undefined) => Error;
+    }
+  | {
+      /** Omitted, the poll has no deadline. */
+      timeoutMs?: undefined;
+      timeoutError?: undefined;
+    }
+);
 
 type WaitScopeOptions = {
-  timeoutMs: number;
+  timeoutMs?: number;
   signal?: AbortSignal;
-  timeoutError: () => Error;
+  timeoutError?: () => Error;
 };
 
 /** Throws `RangeError` for a timeout or interval that `pollUntil` can't use. */
 export function validateOptions({
   timeoutMs,
   intervalMs,
+  maxIntervalMs,
 }: {
-  timeoutMs: number;
+  timeoutMs?: number;
   intervalMs: number;
+  maxIntervalMs?: number;
 }): void {
-  if (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs > 2_147_483_647) {
+  if (
+    timeoutMs !== undefined &&
+    (!Number.isFinite(timeoutMs) || timeoutMs < 0 || timeoutMs > 2_147_483_647)
+  ) {
     throw new RangeError("timeoutMs must be between 0 and 2147483647");
   }
   if (!Number.isFinite(intervalMs) || intervalMs <= 0) {
     throw new RangeError("intervalMs must be a positive finite number");
   }
+  if (maxIntervalMs !== undefined && (!Number.isFinite(maxIntervalMs) || maxIntervalMs <= 0)) {
+    throw new RangeError("maxIntervalMs must be a positive finite number");
+  }
 }
 
+/** Without a `timeoutMs`, the scope has no deadline and sets no timer. */
 function createWaitScope({ timeoutMs, signal, timeoutError }: WaitScopeOptions) {
-  const deadline = Date.now() + timeoutMs;
+  const deadline = timeoutMs === undefined ? Number.POSITIVE_INFINITY : Date.now() + timeoutMs;
   const controller = new AbortController();
   const onAbort = () => controller.abort(new AbortError());
-  const onTimeout = () => controller.abort(timeoutError());
+  const onTimeout = () => controller.abort(timeoutError?.());
   let rejectOnAbort: (() => void) | undefined;
   const stopped = new Promise<never>((_, reject) => {
     rejectOnAbort = () => reject(controller.signal.reason);
     controller.signal.addEventListener("abort", rejectOnAbort, { once: true });
   });
   signal?.addEventListener("abort", onAbort, { once: true });
-  const timer = setTimeout(onTimeout, timeoutMs);
+  const timer = timeoutMs === undefined ? undefined : setTimeout(onTimeout, timeoutMs);
 
   return {
     deadline,
@@ -90,8 +109,16 @@ export async function pollUntil<T, R>(
   if (options.signal?.aborted) throw new AbortError();
   validateOptions(options);
   let last: T | undefined;
-  const scope = createWaitScope({ ...options, timeoutError: () => options.timeoutError(last) });
-  const maxIntervalMs = Math.max(options.intervalMs, MAX_BACKOFF_INTERVAL_MS);
+  const { timeoutError } = options;
+  const scope = createWaitScope({
+    timeoutMs: options.timeoutMs,
+    signal: options.signal,
+    timeoutError: timeoutError && (() => timeoutError(last)),
+  });
+  const maxIntervalMs = Math.max(
+    options.intervalMs,
+    options.maxIntervalMs ?? DEFAULT_MAX_INTERVAL_MS,
+  );
   const poll = async () => {
     let intervalMs = options.intervalMs;
     for (;;) {

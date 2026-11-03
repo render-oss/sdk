@@ -6,7 +6,12 @@ from unittest.mock import AsyncMock
 import pytest
 
 from render.client.errors import ClientError, ServerError, TimeoutError
-from render.workflows.client import Status, UDSClient, _retry_transient_errors
+from render.workflows.client import (
+    Status,
+    UDSClient,
+    _retry_transient_errors,
+    _retry_transient_errors_sync,
+)
 from render.workflows.executor import TaskExecutor
 from render.workflows.task import TaskRegistry, create_task_decorator
 
@@ -219,3 +224,12 @@ async def test_retry_exhausted_raises_last_error():
         await decorated()
 
     assert mock_fn.call_count == 25  # _UDS_MAX_RETRIES
+
+
+def test_sync_retry_retries_transient_errors(mocker):
+    sleep = mocker.patch("render.workflows.client.time.sleep")
+    mock_fn = mocker.Mock(side_effect=[ServerError("blip"), "ok"])
+
+    assert _retry_transient_errors_sync(mock_fn)() == "ok"
+    assert mock_fn.call_count == 2
+    sleep.assert_called_once_with(0.25)

@@ -24,6 +24,8 @@ TOP_LEVEL_ALL: tuple[str, ...] = (
     "Workflows",
     "TaskContext",
     "TaskRunMetadata",
+    "FlowContext",
+    "FlowRunMetadata",
     "Options",
     "Retry",
     "start",
@@ -68,7 +70,7 @@ DEEP_IMPORT_STATEMENTS: tuple[str, ...] = (
     "from render_sdk.public_api import AuthenticatedClient",
     "import render_sdk.experimental.key_value",
     "import render_sdk.experimental.sandbox",
-    "import render_sdk.workflows._callback_models",
+    "import render_sdk.workflows._models.task",
     "import render_sdk.workflows._uds_http",
 )
 

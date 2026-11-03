@@ -1,7 +1,7 @@
 """Unix domain socket client for communicating with the SDK server.
 
 Uses a hand-rolled HTTP/UDS transport (``_uds_http``) and hand-rolled
-data models (``_callback_models``) so this module — which is on the
+data models (``_models``) so this module — which is on the
 worker hot path — does not pull in ``httpx`` or ``attrs`` at import
 time.
 
@@ -14,13 +14,14 @@ domain error vocabulary and operation labels.
 
 import asyncio
 import base64
+import contextlib
 import functools
 import http.client
 import json
 import logging
 import time
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -36,19 +37,35 @@ from render.client.errors import (
 )
 from render.client.errors import TimeoutError as SdkTimeoutError
 from render.version import get_user_agent
-from render.workflows._callback_models import CallbackRequest as ApiCallbackRequest
-from render.workflows._callback_models import (
-    InputResponse,
+from render.workflows._models.registration import Tasks
+from render.workflows._models.step import (
+    StepAttemptRequest,
+    StepAttemptResponse,
+    StepCompleteRequest,
+    StepCompleteResponse,
+    StepStartRequest,
+    StepStartResponse,
+)
+from render.workflows._models.subtask import (
     RunSubtaskRequest,
     RunSubtaskResponse,
     SubtaskResultRequest,
     SubtaskResultResponse,
+)
+from render.workflows._models.task import CallbackRequest as ApiCallbackRequest
+from render.workflows._models.task import (
+    DeterminismDetails,
+    InputResponse,
     TaskComplete,
     TaskError,
-    Tasks,
-    Unset,
+    TaskErrorReason,
 )
-from render.workflows._uds_http import HttpStatusError, request_json
+from render.workflows._models.wire import Unset
+from render.workflows._uds_http import (
+    HttpStatusError,
+    request_json,
+    request_json_sync,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +93,13 @@ class CallbackRequest:
     status: Status
     result: Any | None = None
     error: str | None = None
+    # Why the task failed, when it's more than an ordinary task error.
+    reason: TaskErrorReason | None = None
+    # Set when a flow replay diverged from its history.
+    determinism: DeterminismDetails | None = None
+    # For a flow limit: the limit, and the value that exceeded it.
+    limit: int | None = None
+    value: int | None = None
 
 
 POLLING_INTERVAL = 1.0
@@ -109,44 +133,66 @@ def _retry_transient_errors(
             except (ServerError, SdkTimeoutError, RateLimitError) as e:
                 if attempt >= _UDS_MAX_RETRIES - 1:
                     raise
-                delay = min(
-                    _UDS_INITIAL_DELAY_S * (_UDS_BACKOFF_FACTOR**attempt),
-                    _UDS_MAX_DELAY_S,
-                )
-                logger.warning(
-                    "Request to Render failed (%d/%d), retry in %.1fs: %s",
-                    attempt + 1,
-                    _UDS_MAX_RETRIES,
-                    delay,
-                    e,
-                )
-                await asyncio.sleep(delay)
+                await asyncio.sleep(_retry_delay(attempt, e))
         raise AssertionError("unreachable")  # pragma: no cover
 
     return wrapper
 
 
-def _extract_status_message(body: bytes) -> str | None:
-    """Best-effort extraction of an error message from an HTTP error body.
+def _retry_transient_errors_sync(func: Callable[P, R]) -> Callable[P, R]:
+    """Blocking :func:`_retry_transient_errors`, for flow step writes."""
 
-    Tries JSON ``{"message": ...}`` / ``{"error": ...}`` first, then falls
-    back to the raw body as UTF-8. Returns ``None`` if nothing usable is
-    found.
+    @functools.wraps(func)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        for attempt in range(_UDS_MAX_RETRIES):
+            try:
+                return func(*args, **kwargs)
+            except (ServerError, SdkTimeoutError, RateLimitError) as e:
+                if attempt >= _UDS_MAX_RETRIES - 1:
+                    raise
+                time.sleep(_retry_delay(attempt, e))
+        raise AssertionError("unreachable")  # pragma: no cover
+
+    return wrapper
+
+
+def _retry_delay(attempt: int, e: Exception) -> float:
+    delay = min(
+        _UDS_INITIAL_DELAY_S * (_UDS_BACKOFF_FACTOR**attempt),
+        _UDS_MAX_DELAY_S,
+    )
+    logger.warning(
+        "Request to Render failed (%d/%d), retry in %.1fs: %s",
+        attempt + 1,
+        _UDS_MAX_RETRIES,
+        delay,
+        e,
+    )
+    return delay
+
+
+def _decode_body(body: bytes) -> tuple[str | None, dict[str, Any] | None]:
+    """An HTTP error body's message and its decoded JSON object.
+
+    The message is best effort: JSON ``{"message": ...}`` /
+    ``{"error": ...}`` first, then the raw body as UTF-8. Either is ``None``
+    when the body has nothing usable.
     """
     if not body:
-        return None
+        return None, None
     try:
         payload = json.loads(body)
-        if isinstance(payload, dict):
-            raw = payload.get("message") or payload.get("error")
-            if isinstance(raw, str):
-                return raw
     except (ValueError, UnicodeDecodeError):
-        pass
+        payload = None
+    json_body = payload if isinstance(payload, dict) else None
+    if json_body is not None:
+        raw = json_body.get("message") or json_body.get("error")
+        if isinstance(raw, str):
+            return raw, json_body
     try:
-        return body.decode("utf-8", errors="replace").strip() or None
+        return body.decode("utf-8", errors="replace").strip() or None, json_body
     except Exception:  # pragma: no cover - defensive
-        return None
+        return None, json_body
 
 
 def _translate_errors(
@@ -164,35 +210,59 @@ def _translate_errors(
     def decorator(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[R]]:
         @functools.wraps(func)
         async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            try:
+            with _translated(operation):
                 return await func(*args, **kwargs)
-            # `socket.timeout` is an alias for the built-in ``TimeoutError``;
-            # our domain timeout is imported as ``SdkTimeoutError`` so the
-            # built-in name stays free for catching.
-            except TimeoutError as e:
-                raise SdkTimeoutError(f"{operation} timed out: {e}") from e
-            except (ConnectionError, FileNotFoundError) as e:
-                raise ServerError(f"{operation} failed to connect: {e}") from e
-            except http.client.HTTPException as e:
-                raise ServerError(f"{operation} got invalid HTTP response: {e}") from e
-            except HttpStatusError as e:
-                message = _extract_status_message(e.body)
-                full = f"{operation} failed with status {e.status}"
-                if message:
-                    full = f"{full}: {message}"
-                if e.status == 429:
-                    raise RateLimitError(full) from e
-                if e.status < 500:
-                    raise ClientError(full) from e
-                raise ServerError(full) from e
-            except json.JSONDecodeError as e:
-                raise RenderError(f"{operation} failed: non-JSON response: {e}") from e
-            except OSError as e:
-                raise ServerError(f"{operation} network error: {e}") from e
+            raise AssertionError("unreachable")  # pragma: no cover
 
         return wrapper
 
     return decorator
+
+
+def _translate_errors_sync(
+    operation: str,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """Blocking :func:`_translate_errors`, for flow step writes."""
+
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            with _translated(operation):
+                return func(*args, **kwargs)
+            raise AssertionError("unreachable")  # pragma: no cover
+
+        return wrapper
+
+    return decorator
+
+
+@contextlib.contextmanager
+def _translated(operation: str) -> Iterator[None]:
+    try:
+        yield
+    # `socket.timeout` is an alias for the built-in ``TimeoutError``;
+    # our domain timeout is imported as ``SdkTimeoutError`` so the
+    # built-in name stays free for catching.
+    except TimeoutError as e:
+        raise SdkTimeoutError(f"{operation} timed out: {e}") from e
+    except (ConnectionError, FileNotFoundError) as e:
+        raise ServerError(f"{operation} failed to connect: {e}") from e
+    except http.client.HTTPException as e:
+        raise ServerError(f"{operation} got invalid HTTP response: {e}") from e
+    except HttpStatusError as e:
+        message, json_body = _decode_body(e.body)
+        full = f"{operation} failed with status {e.status}"
+        if message:
+            full = f"{full}: {message}"
+        if e.status == 429:
+            raise RateLimitError(full) from e
+        if e.status < 500:
+            raise ClientError(full, status_code=e.status, json_body=json_body) from e
+        raise ServerError(full) from e
+    except json.JSONDecodeError as e:
+        raise RenderError(f"{operation} failed: non-JSON response: {e}") from e
+    except OSError as e:
+        raise ServerError(f"{operation} network error: {e}") from e
 
 
 class UDSClient:
@@ -214,6 +284,22 @@ class UDSClient:
         responsible for asserting the response shape it expects.
         """
         return await request_json(
+            socket_path=self.socket_path,
+            method=method,
+            path=path,
+            body=body,
+            user_agent=get_user_agent(),
+            timeout=QUERY_TIMEOUT,
+        )
+
+    def _request_sync(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | None,
+    ) -> Any:
+        """Blocking :meth:`_request`, for flow step writes."""
+        return request_json_sync(
             socket_path=self.socket_path,
             method=method,
             path=path,
@@ -250,7 +336,17 @@ class UDSClient:
             callback_request.status == Status.ERROR
             and callback_request.error is not None
         ):
-            data = ApiCallbackRequest(error=TaskError(details=callback_request.error))
+            error = TaskError(details=callback_request.error)
+            if callback_request.reason is not None:
+                error.reason = callback_request.reason
+            if callback_request.determinism is not None:
+                error.reason = TaskErrorReason.DETERMINISM
+                error.determinism = callback_request.determinism
+            if callback_request.limit is not None:
+                error.limit = callback_request.limit
+            if callback_request.value is not None:
+                error.value = callback_request.value
+            data = ApiCallbackRequest(error=error)
         else:
             data = ApiCallbackRequest()
 
@@ -310,6 +406,38 @@ class UDSClient:
         if not isinstance(payload, dict):
             raise RenderError(f"run subtask failed: unexpected response: {payload!r}")
         return RunSubtaskResponse.from_dict(payload)
+
+    # Step writes block: they're made from the flow's own sync code.
+
+    @_retry_transient_errors_sync
+    @_translate_errors_sync("record step")
+    def step_start(self, request: StepStartRequest) -> StepStartResponse:
+        """Record an inline step's start, before its first attempt runs."""
+        return StepStartResponse.from_dict(
+            self._step_write("/step-inline/start", request.to_dict())
+        )
+
+    @_retry_transient_errors_sync
+    @_translate_errors_sync("record step")
+    def step_attempt(self, request: StepAttemptRequest) -> StepAttemptResponse:
+        """Record a failed attempt of an inline step that will be retried."""
+        return StepAttemptResponse.from_dict(
+            self._step_write("/step-inline/attempt", request.to_dict())
+        )
+
+    @_retry_transient_errors_sync
+    @_translate_errors_sync("record step")
+    def step_complete(self, request: StepCompleteRequest) -> StepCompleteResponse:
+        """Record an inline step's output or final error."""
+        return StepCompleteResponse.from_dict(
+            self._step_write("/step-inline/complete", request.to_dict())
+        )
+
+    def _step_write(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
+        payload = self._request_sync("POST", path, body)
+        if not isinstance(payload, dict):
+            raise RenderError(f"record step failed: unexpected response: {payload!r}")
+        return payload
 
     @_retry_transient_errors
     @_translate_errors("register tasks")

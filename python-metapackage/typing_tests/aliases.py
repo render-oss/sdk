@@ -12,7 +12,7 @@ from render.experimental.key_value import NameOwnerIdOptions as RealNameOwnerIdO
 from render.public_api import AuthenticatedClient as RealAuthenticatedClient
 from render.render import Render as RealRender
 from render.render_async import RenderAsync as RealRenderAsync
-from render.workflows._callback_models import InputResponse as RealInputResponse
+from render.workflows._models.task import InputResponse as RealInputResponse
 from render.workflows.app import Workflows as RealWorkflows
 from render.workflows.task import Options as RealOptions
 from render.workflows.task import Retry as RealRetry
@@ -23,7 +23,7 @@ import render_sdk.client.errors
 from render_sdk.experimental.key_value import NameOwnerIdOptions
 from render_sdk.public_api import AuthenticatedClient
 from render_sdk.workflows import NotAThing  # type: ignore[attr-defined]  # noqa: F401
-from render_sdk.workflows._callback_models import InputResponse
+from render_sdk.workflows._models.task import InputResponse
 
 # --- top-level names are the real classes ------------------------------------
 

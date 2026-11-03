@@ -3,7 +3,8 @@
 
 import pytest
 
-from render.workflows._callback_models import TaskOptions
+from render.client.errors import FlowCancelledError
+from render.workflows._models.registration import TaskOptions
 from render.workflows.client import Status, UDSClient
 from render.workflows.context import TaskRunMetadata
 from render.workflows.executor import TaskExecutor
@@ -142,6 +143,25 @@ async def test_runner_keeps_metadata_separate_between_executions(
     assert contexts[1].metadata == TaskRunMetadata("trn-next", "trn-next")
 
 
+@pytest.mark.asyncio
+async def test_runner_waits_to_be_stopped_after_a_cancelled_attempt(mocker):
+    request = mocker.patch.object(UDSClient, "_request", new_callable=mocker.AsyncMock)
+    request.return_value = {"task_name": "wf", "input": "W10="}
+    mocker.patch("render._startup.input_query", return_value="")
+    mocker.patch.object(
+        TaskExecutor, "execute", side_effect=FlowCancelledError("run cancelled")
+    )
+    wait = mocker.patch(
+        "render.workflows.runner._wait_to_be_stopped", new_callable=mocker.AsyncMock
+    )
+
+    await run_async("unused.sock")
+
+    wait.assert_awaited_once()
+    # No callback: a cancelled attempt has nothing to report.
+    assert request.await_args_list == [mocker.call("GET", "/input", None)]
+
+
 def test_task_registration_network_payload(task_registry, task_decorator, mocker):
     """
     Test that task registration actually sends the
@@ -229,7 +249,7 @@ def test_task_registration_with_timeout_seconds(task_registry, task_decorator, m
     Test that task registration correctly serializes timeout_seconds
     in the network payload.
     """
-    from render.workflows._callback_models import UNSET
+    from render.workflows._models.wire import UNSET
 
     # Mock the UDSClient class
     mock_uds_client_class = mocker.patch("render.workflows.runner.UDSClient")
@@ -338,7 +358,7 @@ def test_task_registration_without_retry_config(task_registry, task_decorator, m
     Test that tasks with no retry config register successfully. This is the
     common case that was unaffected by the dict retry bug.
     """
-    from render.workflows._callback_models import UNSET
+    from render.workflows._models.wire import UNSET
 
     mock_uds_client_class = mocker.patch("render.workflows.runner.UDSClient")
     mock_client_instance = mocker.Mock()

@@ -16,11 +16,19 @@ type (
 	TaskRunDetails = workflows.TaskRunDetails
 	TaskRunStatus  = workflows.TaskRunStatus
 	RunTask        = workflows.RunTask
+
+	FlowSlug       = workflows.FlowSlug
+	FlowInput      = workflows.FlowInput
+	FlowRun        = workflows.FlowRun
+	FlowRunDetails = workflows.FlowRunDetails
+	FlowRunStatus  = workflows.FlowRunStatus
+	StartFlowRun   = workflows.StartFlowRun
 )
 
 // Types from client package
 type (
 	ListTaskRunsParams = client.ListTaskRunsParams
+	ListFlowRunsParams = client.ListFlowRunsParams
 	LimitParam         = client.LimitParam
 	CursorParam        = client.CursorParam
 	OwnerIdParam       = client.OwnerIdParam
@@ -43,4 +51,14 @@ const (
 	TaskRunStatusRunning   = workflows.Running
 	TaskRunStatusCompleted = workflows.Completed
 	TaskRunStatusFailed    = workflows.Failed
+)
+
+// Constants for FlowRunStatus
+const (
+	FlowRunStatusPending   = workflows.FlowRunStatusPending
+	FlowRunStatusRunning   = workflows.FlowRunStatusRunning
+	FlowRunStatusPaused    = workflows.FlowRunStatusPaused
+	FlowRunStatusSucceeded = workflows.FlowRunStatusSucceeded
+	FlowRunStatusFailed    = workflows.FlowRunStatusFailed
+	FlowRunStatusCanceled  = workflows.FlowRunStatusCanceled
 )

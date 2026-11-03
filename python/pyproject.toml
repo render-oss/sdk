@@ -43,6 +43,7 @@ dev = [
   "pytest-mock>=3.10.0,<4",
   "mypy>=1.18.2,<2",
   "tox>=4.0,<5",
+  "types-python-dateutil>=2.9,<3",
   "redis>=4.2.0",
   "ruff>=0.13,<0.14",
   "openapi-python-client>=0.26.1,<0.27",

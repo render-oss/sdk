@@ -7,7 +7,6 @@ All other functions in util.py are already synchronous and are imported directly
 import functools
 import logging
 from collections.abc import Callable
-from time import sleep
 from typing import Any
 
 from render.client.util import (
@@ -20,6 +19,7 @@ from render.client.util import (
 )
 from render.public_api.models.error import Error
 from render.public_api.types import Response
+from render.retry import retry_with_backoff_sync as retry_with_backoff
 
 # Re-export sync functions so unasync'd imports from util_sync work
 __all__ = [
@@ -34,30 +34,6 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
-
-
-def retry_with_backoff(
-    fn: Callable[[], Any],
-    max_retries: int = 5,
-    poll_interval: float = 1.0,
-    backoff_factor: float = 2.0,
-    exempted_exceptions: tuple[type[Exception], ...] = (),
-) -> Any:
-    """Retry a function until it returns a non-None value."""
-    for i in range(max_retries):
-        logger.debug(f"Retrying {fn.__name__} (attempt {i + 1}/{max_retries})")
-        try:
-            result = fn()
-        except exempted_exceptions:
-            raise
-        except Exception as e:
-            if i == max_retries - 1:
-                raise e
-            sleep(poll_interval * backoff_factor**i)
-            continue
-        if result is not None:
-            return result
-    return None
 
 
 def handle_http_errors(operation: str):

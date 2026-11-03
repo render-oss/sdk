@@ -1,5 +1,6 @@
 import { RenderError } from "../errors.js";
 import { WorkflowTaskContext } from "./context.js";
+import { flow } from "./flow.js";
 import { TaskRegistry } from "./registry.js";
 import { task } from "./task.js";
 import type { GetSubtaskResultResponse } from "./types.js";
@@ -122,6 +123,19 @@ describe("WorkflowTaskContext", () => {
       TaskRegistry.getInstance().clear();
 
       await expect(context.run(orphan)).rejects.toThrow("Task 'orphan' is not registered");
+    });
+
+    it("rejects a workflow", async () => {
+      const { context, uds } = newContext();
+      const fulfill = flow({ name: "fulfillOrder" }, () => 1);
+
+      // A workflow definition isn't a TaskDefinition, so only untyped callers reach this.
+      // @ts-expect-error a workflow can't be passed where a task is expected
+      const run = context.run(fulfill);
+      await expect(run).rejects.toThrow(
+        "'fulfillOrder' is a workflow; a task can't run a workflow with ctx.run",
+      );
+      expect(uds.submitted).toEqual([]);
     });
   });
 });

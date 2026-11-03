@@ -10,6 +10,7 @@ from render.workflows.tests.test_executor import (
     UDSClient as UDSClient,
     _no_sleep as _no_sleep,
     _retry_transient_errors as _retry_transient_errors,
+    _retry_transient_errors_sync as _retry_transient_errors_sync,
     create_task_decorator as create_task_decorator,
     mock_client as mock_client,
     task_decorator as task_decorator,
@@ -23,6 +24,7 @@ from render.workflows.tests.test_executor import (
     test_retry_on_server_error_then_succeed as test_retry_on_server_error_then_succeed,
     test_retry_on_timeout_error_then_succeed as test_retry_on_timeout_error_then_succeed,
     test_simple_task_execution as test_simple_task_execution,
+    test_sync_retry_retries_transient_errors as test_sync_retry_retries_transient_errors,
     test_task_execution_error as test_task_execution_error,
     test_task_with_string_result as test_task_with_string_result,
 )

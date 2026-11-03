@@ -15,7 +15,7 @@ from render.client.errors import (
 )
 from render.client.errors import TimeoutError as SdkTimeoutError
 from render.workflows._uds_http import HttpStatusError
-from render.workflows.client import _translate_errors
+from render.workflows.client import _translate_errors, _translate_errors_sync
 
 
 def _wrap_raises(operation: str, exc: BaseException):
@@ -78,6 +78,45 @@ async def test_4xx_status_becomes_client_error():
     assert "bad input" in msg
 
 
+@pytest.mark.parametrize(
+    "body, code",
+    [
+        (b'{"code": "run_cancelled", "message": "run was cancelled"}', "run_cancelled"),
+        (b'{"code": 409}', None),
+        (b"raw error string", None),
+        (b"", None),
+    ],
+    ids=["code", "non-string-code", "non-json", "empty"],
+)
+@pytest.mark.asyncio
+async def test_4xx_status_keeps_the_body_code(body, code):
+    fn = _wrap_raises("record step", HttpStatusError(409, body))
+    with pytest.raises(ClientError) as exc_info:
+        await fn()
+    assert exc_info.value.code == code
+
+
+@pytest.mark.parametrize(
+    "body, json_body",
+    [
+        (
+            b'{"code": "workflow_payload_too_large", "limit": 1024, "value": 2048}',
+            {"code": "workflow_payload_too_large", "limit": 1024, "value": 2048},
+        ),
+        (b"[1, 2]", None),
+        (b"raw error string", None),
+    ],
+    ids=["object", "non-object", "non-json"],
+)
+@pytest.mark.asyncio
+async def test_4xx_status_keeps_the_decoded_body(body, json_body):
+    fn = _wrap_raises("record step", HttpStatusError(422, body))
+    with pytest.raises(ClientError) as exc_info:
+        await fn()
+    assert exc_info.value.status_code == 422
+    assert exc_info.value.json_body == json_body
+
+
 @pytest.mark.asyncio
 async def test_429_status_becomes_rate_limit_error():
     fn = _wrap_raises("get input", HttpStatusError(429, b""))
@@ -124,3 +163,12 @@ async def test_render_error_propagates_unchanged():
     with pytest.raises(ClientError) as exc_info:
         await fn()
     assert exc_info.value is original
+
+
+def test_sync_variant_translates_the_same_way():
+    @_translate_errors_sync("record step")
+    def fn():
+        raise HttpStatusError(429, b'{"message": "slow down"}')
+
+    with pytest.raises(RateLimitError, match="record step failed with status 429"):
+        fn()

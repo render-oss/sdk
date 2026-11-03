@@ -53,16 +53,77 @@ export interface RunTaskRequest {
   idempotencyKey?: string;
 }
 
-export interface StartTaskOptions {
+/**
+ * Options for starting a task run or a flow run.
+ */
+export interface StartRunOptions {
   signal?: AbortSignal;
   /**
    * A client-generated key that makes starting the run safe to retry.
-   * Repeating a call with the same key within 24 hours returns the task run
-   * the first call started instead of starting another one. Keys are scoped to
-   * a single workflow version.
+   * Repeating a call with the same key within 24 hours returns the run the
+   * first call started instead of starting another one.
    */
   idempotencyKey?: string;
 }
+
+/**
+ * Options for startTask() and runTask(). Idempotency keys are scoped to a
+ * single workflow version.
+ */
+export type StartTaskOptions = StartRunOptions;
+
+/**
+ * Flow slug in the format "workflow-slug/flow-name". An optional version can be
+ * appended ("workflow-slug/flow-name:version"); without one, the latest version is used.
+ */
+export type FlowSlug = string;
+
+/**
+ * Flow input data: an array of positional arguments or an object of named parameters
+ */
+export type FlowData = components["schemas"]["FlowInput"];
+
+/**
+ * Flow run status enum
+ */
+export enum FlowRunStatus {
+  PENDING = "pending",
+  RUNNING = "running",
+  PAUSED = "paused",
+  SUCCEEDED = "succeeded",
+  FAILED = "failed",
+  CANCELED = "canceled",
+}
+
+/**
+ * Basic flow run information
+ */
+export type FlowRun = components["schemas"]["FlowRun"];
+
+/**
+ * A flow run paired with a pagination cursor, returned by list endpoints.
+ */
+export type FlowRunWithCursor = components["schemas"]["flowRunWithCursor"];
+
+/**
+ * Detailed flow run information including input, results, errors and attempts
+ */
+export type FlowRunDetails = components["schemas"]["FlowRunDetails"];
+
+/**
+ * Parameters for listing flow runs
+ */
+export type ListFlowRunsParams = paths["/flow-runs"]["get"]["parameters"]["query"];
+
+/**
+ * Request body for running a flow
+ */
+export type RunFlowRequest = components["schemas"]["StartFlowRun"];
+
+/**
+ * Options for startFlow(). Idempotency keys are scoped to a workflow.
+ */
+export type StartFlowOptions = StartRunOptions;
 
 /**
  * Client configuration options

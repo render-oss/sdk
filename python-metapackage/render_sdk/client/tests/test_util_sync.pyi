@@ -4,7 +4,9 @@ from render.client.tests.test_util_sync import (
     retry_with_backoff as retry_with_backoff,
     test_retry_with_backoff_exempted_exception as test_retry_with_backoff_exempted_exception,
     test_retry_with_backoff_failure as test_retry_with_backoff_failure,
+    test_retry_with_backoff_retries_after_the_first_attempt as test_retry_with_backoff_retries_after_the_first_attempt,
     test_retry_with_backoff_returns_none_when_all_none as test_retry_with_backoff_returns_none_when_all_none,
     test_retry_with_backoff_success as test_retry_with_backoff_success,
     test_retry_with_backoff_success_after_failure as test_retry_with_backoff_success_after_failure,
+    test_retry_with_backoff_without_retries_raises_the_first_error as test_retry_with_backoff_without_retries_raises_the_first_error,
 )

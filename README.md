@@ -2,9 +2,6 @@
 
 The official SDK for Render
 
-> [!WARNING]
-> **Early Access:** This SDK is in early access and subject to breaking changes without notice.
-
 SDK support is provided for the following languages
 
 | Language   | README                                 | Package          |
@@ -17,6 +14,7 @@ With the following features
 | Feature        | REST API                                                        | Python                                                                   | TypeScript                                                                 |
 | -------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------- |
 | Workflows      | [REST API](https://api-docs.render.com/reference/listworkflows) | [Released](./python/render/client/workflows.py)                          | [Released](./typescript/src/workflows/client/client.ts)                    |
+| Durable Flows  | REST API                                                        | [Released](./python/README.md#durable-flows)                             | [Released](./typescript/README.md#durable-flows)                           |
 | Object Storage | Soon                                                            | [⚠️ Early Access client](./python/render/experimental/object/client.py)  | [⚠️ Early Access client](./typescript/src/experimental/object/client.ts)   |
 | Sandboxes      | Soon                                                            | [Client](./python/render/sandbox/__init__.py)                         | [Client](./typescript/src/index.ts)                                    |
 

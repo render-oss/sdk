@@ -55,20 +55,34 @@ export function task<TArgs extends unknown[], TResult>(
   options: RegisterTaskOptions,
   func: TaskFunction<TArgs, TResult>,
 ): TaskDefinition<TArgs, TResult> {
-  // Warn if task is registered after server has started. This is possible if
-  // the task is loaded via dynamic import.
+  registerAndScheduleStart("Task", options.name, () =>
+    TaskRegistry.getInstance().register(func, options),
+  );
+
+  return Object.freeze({
+    name: options.name,
+    func,
+  });
+}
+
+/**
+ * Run a registration, warning if it comes too late to be served, and schedule
+ * the task server to start once module-level registrations are done.
+ */
+export function registerAndScheduleStart(kind: string, name: string, register: () => void): void {
+  // Warn if registered after the server has started. This is possible if
+  // the module is loaded via dynamic import.
   if (serverStarted) {
     console.warn(
-      `Warning: Task '${options.name}' was registered after the task server started. ` +
-        `This task will not be available for execution. ` +
+      `Warning: ${kind} '${name}' was registered after the task server started. ` +
+        `This ${kind.toLowerCase()} will not be available for execution. ` +
         `Ensure all tasks are defined synchronously at module level.`,
     );
   }
 
-  const registry = TaskRegistry.getInstance();
-  registry.register(func, options);
+  register();
 
-  // Schedule auto-start on first task registration when in workflow environment
+  // Schedule auto-start on first registration when in workflow environment
   if (!autoStartScheduled && shouldAutoStart()) {
     autoStartScheduled = true;
     setImmediate(async () => {
@@ -81,9 +95,4 @@ export function task<TArgs extends unknown[], TResult>(
       }
     });
   }
-
-  return Object.freeze({
-    name: options.name,
-    func,
-  });
 }

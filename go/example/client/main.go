@@ -15,19 +15,21 @@ func main() {
 		log.Fatalf("Failed to create render client: %v", err)
 	}
 
+	ctx := context.Background()
+
 	// Example: Run a task
 	taskSlug := render.TaskSlug("my-workflow-slug/square")
 	var input render.TaskData
 	_ = input.FromTaskData0([]interface{}{4})
 
-	taskRun, err := client.Workflows.RunTask(taskSlug, input)
+	taskRun, err := client.Workflows.RunTask(ctx, taskSlug, input)
 	if err != nil {
 		log.Fatalf("Failed to run task: %v", err)
 	}
 
 	fmt.Printf("Task run created with ID: %s, Status: %s\n", taskRun.Id, taskRun.Status)
 
-	result, err := taskRun.Get(context.Background())
+	result, err := taskRun.Get(ctx)
 	if err != nil {
 		log.Fatalf("Failed to get task run details: %v", err)
 	}
@@ -35,7 +37,7 @@ func main() {
 	fmt.Printf("Task run details: ID=%s, Status=%s, Results=%v\n",
 		result.Id, result.Status, result.Results)
 	// Example: Get task run details
-	details, err := client.Workflows.GetTaskRun(taskRun.Id)
+	details, err := client.Workflows.GetTaskRun(ctx, taskRun.Id)
 	if err != nil {
 		log.Fatalf("Failed to get task run details: %v", err)
 	}
@@ -48,10 +50,10 @@ func main() {
 		Limit: func() *int { i := 10; return &i }(),
 	}
 
-	taskRuns, err := client.Workflows.ListTaskRuns(params)
+	taskRuns, err := client.Workflows.ListTaskRuns(ctx, params)
 	if err != nil {
 		log.Fatalf("Failed to list task runs: %v", err)
 	}
 
-	fmt.Printf("Found %d task runs\n", len(taskRuns))
+	fmt.Printf("Found %d task runs\n", len(taskRuns.TaskRuns))
 }

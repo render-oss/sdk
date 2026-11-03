@@ -42,6 +42,8 @@ __version__ = "1.6.0"
 from typing import TYPE_CHECKING
 
 from render.workflows import (
+    FlowContext,
+    FlowRunMetadata,
     Options,
     Retry,
     TaskContext,
@@ -63,6 +65,8 @@ __all__ = [
     "Workflows",  # Task definition
     "TaskContext",  # First parameter of every task
     "TaskRunMetadata",
+    "FlowContext",  # First parameter of every flow
+    "FlowRunMetadata",
     # Configuration
     "Options",
     "Retry",

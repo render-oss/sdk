@@ -2,9 +2,15 @@
 
 from __future__ import annotations
 
+import inspect
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar, overload
 
+from render.workflows.flow import (
+    BoundFlowDecorator,
+    FlowContext,
+    FlowDefinition,
+)
 from render.workflows.runner import register, run
 from render.workflows.task import (
     BoundTaskDecorator,
@@ -174,6 +180,90 @@ class Workflows:
             # Called with arguments: @app.task(name="...", timeout_seconds=30)
             return decorator
         # Called without arguments: @app.task
+        return decorator(func)
+
+    @overload
+    def flow(
+        self,
+        func: Callable[Concatenate[FlowContext, P], R],
+        /,
+    ) -> FlowDefinition[P, R]: ...
+
+    @overload
+    def flow(
+        self,
+        *,
+        name: str | None = ...,
+        timeout_seconds: int | None = ...,
+        plan: str | None = ...,
+        retry: None = ...,
+    ) -> BoundFlowDecorator: ...
+
+    def flow(
+        self,
+        func: Callable[..., Any] | None = None,
+        *,
+        name: str | None = None,
+        timeout_seconds: int | None = None,
+        plan: str | None = None,
+        retry: Retry | None = None,
+    ) -> Any:
+        """
+        Decorator to register a sync function as a durable flow.
+
+        The decorated function takes a FlowContext as its first
+        parameter, followed by its inputs. Each ``ctx`` call is a durable
+        step that returns the step's result. When a flow attempt crashes, a later attempt replays it from the top
+        and finished steps return their recorded results, so flow code must
+        be deterministic.
+
+        Flows don't take a retry policy, and ``default_retry`` doesn't
+        apply to them: they recover and replay instead. Set retries on the
+        steps a flow runs.
+
+        Args:
+            func: The function to decorate (when used without parentheses).
+            name: Optional custom name for the flow (defaults to function name).
+            timeout_seconds: Timeout in seconds (overrides default_timeout).
+            plan: Resource plan (overrides default_plan).
+            retry: Not allowed on a flow.
+
+        Returns:
+            The decorated function as a FlowDefinition.
+
+        Example:
+            @app.flow
+            def fulfill_order(ctx: FlowContext, order_id: str) -> str:
+                return ctx.step("charge_card", charge_card, order_id)
+        """
+        if retry is not None:
+            raise ValueError(
+                "A retry policy is not allowed on a flow. Flows recover "
+                "and replay instead; set retries on the steps it runs."
+            )
+
+        options = Options(
+            timeout_seconds=(
+                timeout_seconds
+                if timeout_seconds is not None
+                else self._default_timeout
+            ),
+            plan=plan if plan is not None else self._default_plan,
+        )
+
+        def decorator(f: Callable[..., Any]) -> FlowDefinition:
+            flow_name = name or f.__name__
+            if inspect.iscoroutinefunction(f):
+                raise ValueError(
+                    f"Flow '{flow_name}' must be a sync function. "
+                    f"Each ctx call returns its step's result, so there's "
+                    f"nothing to await."
+                )
+            self._registry.register(f, flow_name, options, workflow=True)
+            return FlowDefinition(f, flow_name)
+
+        if func is None:
+            return decorator
         return decorator(func)
 
     def start(self) -> None:

@@ -131,6 +131,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/flow-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List flow runs
+         * @description List flow runs that match the provided filters. If no filters are provided, all flow runs accessible by the authenticated user are returned.
+         */
+        get: operations["listFlowRuns"];
+        put?: never;
+        /**
+         * Start flow run
+         * @description Starts a run of the workflow flow with the provided slug, passing the provided input data.
+         */
+        post: operations["startFlowRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/flow-runs/{flowRunId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The ID of the flow run
+                 * @example frn-d0hp8fs9c44c73a6f1qg
+                 */
+                flowRunId: components["parameters"]["FlowRunIDParam"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve flow run
+         * @description Retrieve the flow run with the provided ID, including its input and results.
+         */
+        get: operations["getFlowRun"];
+        put?: never;
+        post?: never;
+        /**
+         * Cancel flow run
+         * @description Cancel a running flow run with the provided ID.
+         */
+        delete: operations["cancelFlowRun"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/objects/{ownerId}/{region}": {
         parameters: {
             query?: never;
@@ -775,6 +829,10 @@ export interface components {
             taskRun: components["schemas"]["TaskRun"];
             cursor: components["schemas"]["cursor"];
         };
+        flowRunWithCursor: {
+            flowRun: components["schemas"]["FlowRun"];
+            cursor: components["schemas"]["cursor"];
+        };
         /** @example mrn-cph1rs3idesc73a2b2mg */
         maintenanceRunId: string;
         /** @enum {string} */
@@ -875,6 +933,82 @@ export interface components {
             rootTaskRunId: string;
             retries: number;
             attempts: components["schemas"]["TaskAttemptDetails"][];
+        };
+        /**
+         * @description The status of a flow run.
+         * @enum {string}
+         */
+        FlowRunStatus: "pending" | "running" | "succeeded" | "failed" | "canceled" | "paused";
+        FlowRun: {
+            /** @example frn-d0hp8fs9c44c73a6f1qg */
+            id: string;
+            /** @example flw-d0hp8fs9c44c73a6f1qg */
+            flowId: string;
+            status: components["schemas"]["FlowRunStatus"];
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+        };
+        /**
+         * @description A flow slug in the format workflow-slug/flow-name. An optional version can be appended (workflow-slug/flow-name:version). If no version is provided, the latest version is used. Cannot be blank.
+         * @example my-workflow-slug/my-flow
+         */
+        FlowSlug: string;
+        /** @description Input data for a flow. Can be either an array (for positional arguments) or an object (for named parameters). */
+        FlowInput: unknown[] | {
+            [key: string]: unknown;
+        };
+        StartFlowRun: {
+            flow: components["schemas"]["FlowSlug"];
+            input: components["schemas"]["FlowInput"];
+            idempotencyKey?: components["schemas"]["IdempotencyKey"];
+        };
+        FlowRunResult: unknown[];
+        FlowRunErrorDetails: {
+            /** @enum {string} */
+            code: "flow_determinism_error" | "flow_step_limit_exceeded" | "flow_payload_too_large" | "flow_history_too_large";
+            message: string;
+            seq?: number;
+            subKey?: string;
+            flowAttempt?: number;
+            /** @enum {string} */
+            kind?: "input_hash" | "type" | "unknown_type";
+            expected?: string;
+            actual?: string;
+            /** Format: int64 */
+            limit?: number;
+            /** Format: int64 */
+            value?: number;
+        };
+        FlowRunAttempt: {
+            /** @description The 0-indexed attempt number. */
+            attempt: number;
+            status: components["schemas"]["FlowRunStatus"];
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            /** @description Error message if the attempt failed. */
+            error?: string;
+        };
+        FlowRunDetails: {
+            /** @example frn-d0hp8fs9c44c73a6f1qg */
+            id: string;
+            /** @example flw-d0hp8fs9c44c73a6f1qg */
+            flowId: string;
+            status: components["schemas"]["FlowRunStatus"];
+            /** Format: date-time */
+            startedAt?: string;
+            /** Format: date-time */
+            completedAt?: string;
+            input: components["schemas"]["FlowInput"];
+            results: components["schemas"]["FlowRunResult"];
+            /** @description Error message if the flow run failed. */
+            error?: string;
+            errorDetails?: components["schemas"]["FlowRunErrorDetails"];
+            /** @description The flow run's attempts. A flow run gets a new attempt when it resumes after its process is interrupted; it replays completed steps instead of rerunning them. */
+            attempts: components["schemas"]["FlowRunAttempt"][];
         };
         objectMetadata: {
             /**
@@ -1468,6 +1602,23 @@ export interface components {
         RootTaskRunIDFilterParam: string[];
         /** @description The ID of the task run */
         TaskRunIDParam: string;
+        /**
+         * @description An array of flow slugs in the format workflow-slug/flow-name. An optional version can be appended (workflow-slug/flow-name:version). If no version is provided, the latest version is used.
+         * @example [
+         *       "my-workflow-slug/my-flow",
+         *       "my-workflow-slug/my-flow:SHA123"
+         *     ]
+         */
+        FlowSlugFilterParam: string[];
+        /** @description An array of flow IDs */
+        FlowIDFilterParam: string[];
+        /** @description An array of flow run statuses to filter on */
+        FlowRunStatusFilterParam: components["schemas"]["FlowRunStatus"][];
+        /**
+         * @description The ID of the flow run
+         * @example frn-d0hp8fs9c44c73a6f1qg
+         */
+        FlowRunIDParam: string;
         /** @description The key (path) of the object */
         objectKeyPathParam: string;
         /** @description The ID of the sandbox */
@@ -1823,6 +1974,151 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Task run canceled */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    listFlowRuns: {
+        parameters: {
+            query?: {
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+                /**
+                 * @description An array of flow slugs in the format workflow-slug/flow-name. An optional version can be appended (workflow-slug/flow-name:version). If no version is provided, the latest version is used.
+                 * @example [
+                 *       "my-workflow-slug/my-flow",
+                 *       "my-workflow-slug/my-flow:SHA123"
+                 *     ]
+                 */
+                flowSlug?: components["parameters"]["FlowSlugFilterParam"];
+                /** @description An array of flow IDs */
+                flowId?: components["parameters"]["FlowIDFilterParam"];
+                /** @description An array of flow run statuses to filter on */
+                status?: components["parameters"]["FlowRunStatusFilterParam"];
+                /** @description The ID of the workspaces to return resources for */
+                ownerId?: components["parameters"]["ownerIdParam"];
+                /** @description An array of workflow version IDs */
+                workflowVersionId?: components["parameters"]["WorkflowVersionIDFilterParam"];
+                /** @description An array of workflow IDs */
+                workflowId?: components["parameters"]["WorkflowIDFilterParam"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of flow runs */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["flowRunWithCursor"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    startFlowRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StartFlowRun"];
+            };
+        };
+        responses: {
+            /** @description Flow run started */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlowRun"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    getFlowRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The ID of the flow run
+                 * @example frn-d0hp8fs9c44c73a6f1qg
+                 */
+                flowRunId: components["parameters"]["FlowRunIDParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Flow run details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlowRunDetails"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    cancelFlowRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /**
+                 * @description The ID of the flow run
+                 * @example frn-d0hp8fs9c44c73a6f1qg
+                 */
+                flowRunId: components["parameters"]["FlowRunIDParam"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Flow run canceled */
             204: {
                 headers: {
                     [name: string]: unknown;

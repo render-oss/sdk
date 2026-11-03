@@ -25,7 +25,9 @@ export async function startTaskServer(): Promise<void> {
     await executor.registerTasks();
   } else if (mode === "run") {
     // Run task mode
-    await executor.executeTask();
+    if ((await executor.executeTask()) === "stopped") {
+      await waitToBeStopped();
+    }
   } else {
     throw new RenderError(`Unknown SDK mode: ${mode}`);
   }
@@ -37,5 +39,18 @@ export async function startTaskServer(): Promise<void> {
 export async function run(socketPath: string): Promise<void> {
   markSdkStarted();
   const executor = new TaskExecutor(socketPath);
-  await executor.executeTask();
+  if ((await executor.executeTask()) === "stopped") {
+    await waitToBeStopped();
+  }
+}
+
+/**
+ * Keep the process alive after a workflow attempt suspends or is cancelled.
+ * The workflow system stops the process; exiting first would look like a
+ * crash.
+ */
+function waitToBeStopped(): Promise<never> {
+  return new Promise(() => {
+    setInterval(() => {}, 1 << 30);
+  });
 }

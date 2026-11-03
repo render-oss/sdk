@@ -115,7 +115,7 @@ class AwaitableTaskRun:
 
         return await retry_with_backoff(
             self._task_run_completed_with_sse,
-            max_retries=5,
+            max_retries=4,
             poll_interval=1.0,
             backoff_factor=2.0,
             exempted_exceptions=(TaskRunError,),

@@ -14,7 +14,14 @@ export interface paths {
     /** Get the task name and input for a task run */
     get: {
       parameters: {
-        query?: never;
+        query?: {
+          /** @description When the SDK began importing. Unix time in nanoseconds, as a decimal string. Startup telemetry only. Renderd ignores a missing or malformed value. */
+          sdk_import_started_at?: string;
+          /** @description When the SDK finished importing. Unix time in nanoseconds, as a decimal string. Startup telemetry only. Renderd ignores a missing or malformed value. */
+          sdk_import_finished_at?: string;
+          /** @description When the SDK took over to run the task. Unix time in nanoseconds, as a decimal string. Startup telemetry only. Renderd ignores a missing or malformed value. */
+          sdk_started_at?: string;
+        };
         header?: never;
         path?: never;
         cookie?: never;
@@ -215,7 +222,7 @@ export interface paths {
             "application/json": components["schemas"]["RunSubtaskError"];
           };
         };
-        /** @description The parent task run is cancelled. Do not retry. */
+        /** @description The parent task run is canceled. Do not retry. */
         409: {
           headers: {
             [name: string]: unknown;
@@ -224,8 +231,24 @@ export interface paths {
             "application/json": components["schemas"]["RunSubtaskError"];
           };
         };
+        /** @description A workflow limit was exceeded. Fail the run. */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["LimitError"];
+          };
+        };
         /** @description Internal server error */
         500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The child was dispatched but its step could not be recorded. Retry; the retry resolves to the same child. */
+        503: {
           headers: {
             [name: string]: unknown;
           };
@@ -286,6 +309,407 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/step-inline/start": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Record an inline step's start, before its first attempt runs
+     * @description Workflows only. Detached tasks and sleeps are recorded by /run-subtask, /step-wait and /step-sleep.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["StepStartRequest"];
+        };
+      };
+      responses: {
+        /** @description OK. When applied is false the step was already recorded and the response holds that step. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepStartResponse"];
+          };
+        };
+        /** @description Malformed request. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The step can't be recorded. code says why: run_cancelled means stop without reporting a failure. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepConflictError"];
+          };
+        };
+        /** @description A workflow limit was exceeded. Fail the run. */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["LimitError"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Temporarily unavailable. Retry. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/step-inline/attempt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Record a failed attempt of an inline step that the SDK will retry
+     * @description Workflows only. Detached tasks and sleeps are recorded by /run-subtask, /step-wait and /step-sleep.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["StepAttemptRequest"];
+        };
+      };
+      responses: {
+        /** @description OK. applied is false when the attempt was already recorded. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepAttemptResponse"];
+          };
+        };
+        /** @description Malformed request. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The step can't be recorded. code says why: run_cancelled means stop without reporting a failure; missing_start means the step has no recorded start, so fail the run. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepConflictError"];
+          };
+        };
+        /** @description A workflow limit was exceeded. Fail the run. */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["LimitError"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Temporarily unavailable. Retry. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/step-inline/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Record an inline step's outcome
+     * @description Workflows only. Detached tasks and sleeps are recorded by /run-subtask, /step-wait and /step-sleep.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["StepCompleteRequest"];
+        };
+      };
+      responses: {
+        /** @description OK. When applied is false the step already had an outcome and the response holds that outcome. */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepCompleteResponse"];
+          };
+        };
+        /** @description Malformed request. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The step can't be recorded. code says why: run_cancelled means stop without reporting a failure; missing_start means the step has no recorded start, so fail the run. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepConflictError"];
+          };
+        };
+        /** @description A workflow limit was exceeded. Fail the run. */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["LimitError"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Temporarily unavailable. Retry. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/step-sleep": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Sleep a workflow for a duration
+     * @description Workflows only. Records the sleep, then either holds the request until the wake time and answers proceed, or suspends the attempt and answers suspending.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["SleepRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["SleepResponse"];
+          };
+        };
+        /** @description Malformed request, or a wake time more than 30 days out. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The run was canceled (code run_cancelled). Stop without reporting a failure. Do not retry. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepConflictError"];
+          };
+        };
+        /** @description A workflow limit was exceeded. Fail the run. */
+        422: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["LimitError"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Temporarily unavailable. Retry. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/step-wait": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Wait for a detached subtask to finish
+     * @description Workflows only. Waits briefly for the child to finish. If it does, its result is returned; otherwise the attempt is suspended.
+     */
+    post: {
+      parameters: {
+        query?: never;
+        header?: never;
+        path?: never;
+        cookie?: never;
+      };
+      requestBody: {
+        content: {
+          "application/json": components["schemas"]["WaitRequest"];
+        };
+      };
+      responses: {
+        /** @description OK */
+        200: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["WaitResponse"];
+          };
+        };
+        /** @description Malformed request, or the child is not a recorded detached step of this run. Do not retry. */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description The run was canceled (code run_cancelled). Stop without reporting a failure. Do not retry. */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": components["schemas"]["StepConflictError"];
+          };
+        };
+        /** @description Internal server error */
+        500: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+        /** @description Temporarily unavailable. Retry. */
+        503: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content?: never;
+        };
+      };
+    };
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -297,6 +721,32 @@ export interface components {
     TaskError: {
       details: string;
       stack_trace?: string;
+      /**
+       * @description Absent for an ordinary task error. system_error means Render caused the failure, such as the SDK being unable to reach a Render service, so Render retries the run as a system failure.
+       * @enum {string}
+       */
+      reason?:
+        | "DeterminismError"
+        | "workflow_step_limit_exceeded"
+        | "workflow_payload_too_large"
+        | "workflow_history_too_large"
+        | "system_error";
+      determinism?: components["schemas"]["DeterminismDetails"];
+      /** Format: int64 */
+      limit?: number;
+      /** Format: int64 */
+      value?: number;
+    };
+    /** @description Where a workflow replay diverged from its recorded history. */
+    DeterminismDetails: {
+      step_key: components["schemas"]["StepKey"];
+      workflow_attempt?: number;
+      /** @enum {string} */
+      kind: "input_hash" | "type" | "unknown_type";
+      /** @description What the history recorded. */
+      expected?: string;
+      /** @description What this replay did. */
+      actual?: string;
     };
     TaskComplete: {
       /** Format: byte */
@@ -310,9 +760,10 @@ export interface components {
       idempotency_key?: string;
       /**
        * Format: date-time
-       * @description Caller-pinned creation time, as an RFC 3339 timestamp. Must be stable across retries: the scheduler deduplicates on (idempotency_key, created_at).
+       * @description Caller-pinned creation time, as an RFC 3339 timestamp, recording when the caller created the subtask.
        */
       created_at?: string;
+      step_key?: components["schemas"]["StepKey"];
     };
     RunSubtaskResponse: {
       task_run_id: string;
@@ -338,6 +789,191 @@ export interface components {
       root_task_run_id?: string;
       /** @description Run ID of the task run that started this one. Omitted for a root run. */
       parent_task_run_id?: string;
+      /** @description True when the run is a workflow. Absent or false for a plain task, which gets none of the workflow fields. */
+      is_workflow?: boolean;
+      /** @description Workflows only. The workflow attempt number. 0 is the first attempt, which has no history. */
+      attempt?: number;
+      history?: components["schemas"]["History"];
+    };
+    /** @description Workflows only. Empty when attempt is 0. */
+    History: {
+      /** @description Every step recorded for the run, in seq order. */
+      steps?: components["schemas"]["StepRecord"][];
+      /** @description Failed inline attempts from the lowest seq with no outcome, in (seq, attempt) order. */
+      step_attempts?: components["schemas"]["StepAttemptRecord"][];
+    };
+    /** @description Identifies a step within its run. */
+    StepKey: {
+      seq: number;
+      /** @description The SDK's name for the step within its seq. */
+      sub_key?: string;
+    };
+    StepRecord: {
+      step_key: components["schemas"]["StepKey"];
+      /** @description inline | detached | sleep. An unknown value is a determinism error. */
+      type: string;
+      /** @description Empty for a sleep. */
+      task_name?: string;
+      /** @description The workflow attempt that completed the step, 0 until then. A hint to how many workflow attempts the step took. */
+      workflow_attempt: number;
+      /**
+       * Format: byte
+       * @description The step's arguments.
+       */
+      input?: string;
+      /** Format: byte */
+      output?: string;
+      error?: components["schemas"]["StepError"];
+      /** @description Detached steps only. */
+      child_run_id?: string;
+      /**
+       * Format: date-time
+       * @description Sleep steps only.
+       */
+      wake_at?: string;
+      /** Format: date-time */
+      started_at: string;
+      /**
+       * Format: date-time
+       * @description Absent while the step is open. A step is finished exactly when this is set.
+       */
+      completed_at?: string;
+    };
+    StepAttemptRecord: {
+      step_key: components["schemas"]["StepKey"];
+      /** @description The inline step's attempt number. Continues across workflow attempts. */
+      attempt: number;
+      workflow_attempt: number;
+      error: components["schemas"]["StepError"];
+      /** Format: date-time */
+      started_at?: string;
+      /** Format: date-time */
+      ended_at: string;
+    };
+    StepError: {
+      name: string;
+      message: string;
+      stack?: string;
+      /** @description JSON the SDK chooses to round-trip. */
+      data?: string;
+    };
+    StepStartRequest: {
+      step_key: components["schemas"]["StepKey"];
+      task_name: string;
+      /**
+       * Format: byte
+       * @description The step's arguments.
+       */
+      input?: string;
+      /** Format: date-time */
+      started_at?: string;
+    };
+    StepStartResponse: {
+      /** @description False when the step was already recorded. */
+      applied: boolean;
+      /** @description The recorded step when applied is false. */
+      step?: components["schemas"]["StepRecord"];
+    };
+    StepAttemptRequest: {
+      step_key: components["schemas"]["StepKey"];
+      /** @description The inline step's attempt number. */
+      attempt: number;
+      error: components["schemas"]["StepError"];
+      /** Format: date-time */
+      started_at?: string;
+    };
+    StepAttemptResponse: {
+      /** @description False when the attempt was already recorded. */
+      applied: boolean;
+    };
+    StepCompleteRequest: {
+      session_id: string;
+      key: components["schemas"]["StepKey"];
+      outcome: components["schemas"]["StepOutcome"];
+    };
+    /** @description Set output for success or final_attempt for an error, not both. */
+    StepOutcome: {
+      /** Format: date-time */
+      completed_at: string;
+      output?: components["schemas"]["Payload"];
+      final_attempt?: components["schemas"]["StepAttempt"];
+    };
+    /** @description A failed attempt of an inline step, matching the step-history proto. */
+    StepAttempt: {
+      session_id: string;
+      key: components["schemas"]["StepKey"];
+      attempt: number;
+      /** Format: date-time */
+      started_at: string;
+      /** Format: date-time */
+      ended_at: string;
+      data?: components["schemas"]["StepAttemptData"];
+      error: components["schemas"]["Payload"];
+    };
+    StepAttemptData: {
+      workflow_attempt: number;
+    };
+    /** @description An encoded value, matching the step-history proto. Serializer 1 is JSON. */
+    Payload: {
+      /** Format: int32 */
+      serializer: number;
+      /** Format: byte */
+      data?: string;
+      url?: string;
+    };
+    StepCompleteResponse: {
+      /** @description False when the step already had an outcome. */
+      applied: boolean;
+      /** @description The recorded outcome when applied is false. */
+      outcome?: components["schemas"]["StepResult"];
+    };
+    /** @description A step's output, or the error it failed with. */
+    StepResult: {
+      /** Format: byte */
+      output?: string;
+      error?: components["schemas"]["StepError"];
+    };
+    SleepRequest: {
+      step_key: components["schemas"]["StepKey"];
+      /**
+       * Format: int64
+       * @description The requested duration. Recorded as the step's input.
+       */
+      duration_ms: number;
+    };
+    SleepResponse: {
+      /**
+       * @description proceed: the wake time has passed and the sleep is recorded complete; continue. suspending: the attempt is being suspended and the process will be stopped; stop and wait.
+       * @enum {string}
+       */
+      action: "proceed" | "suspending";
+    };
+    WaitRequest: {
+      seq: number;
+      child_run_id: string;
+    };
+    WaitResponse: {
+      /**
+       * @description done: the child finished and its result is set. suspending: stop and wait.
+       * @enum {string}
+       */
+      action: "done" | "suspending";
+      complete?: components["schemas"]["TaskComplete"];
+      error?: components["schemas"]["TaskError"];
+    };
+    StepConflictError: {
+      /** @enum {string} */
+      code: "run_cancelled" | "missing_start";
+      message: string;
+    };
+    LimitError: {
+      /** @enum {string} */
+      code: "workflow_step_limit_exceeded" | "workflow_payload_too_large";
+      message: string;
+      /** Format: int64 */
+      limit?: number;
+      /** Format: int64 */
+      value?: number;
     };
     Tasks: {
       tasks: components["schemas"]["Task"][];
@@ -347,6 +983,8 @@ export interface components {
       options?: components["schemas"]["TaskOptions"];
       /** @description Parameter schema extracted from the task function signature */
       parameters?: components["schemas"]["TaskParameter"][];
+      /** @description Registered with workflow(). A workflow may not set options.retry. */
+      workflow?: boolean;
     };
     /** @description Information about a task parameter extracted from function signature */
     TaskParameter: {

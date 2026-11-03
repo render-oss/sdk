@@ -1367,6 +1367,7 @@ dev = [
     { name = "redis", specifier = ">=4.2.0" },
     { name = "ruff", specifier = ">=0.13,<0.14" },
     { name = "tox", specifier = ">=4.0,<5" },
+    { name = "types-python-dateutil", specifier = ">=2.9,<3" },
 ]
 
 [[package]]

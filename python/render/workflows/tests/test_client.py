@@ -6,7 +6,7 @@ from datetime import datetime
 import pytest
 
 from render import _startup
-from render.workflows._callback_models import RunSubtaskRequest, RunSubtaskResponse
+from render.workflows._models.subtask import RunSubtaskRequest, RunSubtaskResponse
 from render.workflows.client import Status, TaskResultResponse, UDSClient
 
 

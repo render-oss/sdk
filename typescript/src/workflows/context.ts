@@ -1,4 +1,5 @@
 import { RenderError } from "../errors.js";
+import { decodeOutput } from "./encoding.js";
 import { TaskRegistry } from "./registry.js";
 import type { GetInputResponse, TaskContext, TaskDefinition, TaskRunMetadata } from "./types.js";
 import type { UDSClient } from "./uds.js";
@@ -31,7 +32,11 @@ export class WorkflowTaskContext implements TaskContext {
   ): Promise<TResult> {
     const registry = TaskRegistry.getInstance();
     if (!registry.has(task.name)) {
-      throw new RenderError(`Task '${task.name}' is not registered`);
+      throw new RenderError(
+        registry.getFlow(task.name)
+          ? `'${task.name}' is a workflow; a task can't run a workflow with ctx.run`
+          : `Task '${task.name}' is not registered`,
+      );
     }
 
     const subtaskId = await this.udsClient.runSubtask(task.name, args);
@@ -54,13 +59,7 @@ export class WorkflowTaskContext implements TaskContext {
         throw new RenderError(`Subtask failed: ${result.error.details}`);
       }
 
-      if (result.complete?.output) {
-        const json = Buffer.from(result.complete.output, "base64").toString();
-        // Task output is wire-encoded as a single-element array.
-        return JSON.parse(json)[0] as TResult;
-      }
-
-      return undefined as TResult;
+      return decodeOutput(result.complete?.output) as TResult;
     }
   }
 }

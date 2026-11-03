@@ -10,7 +10,8 @@ UDS connector: a subclass that overrides ``connect()`` to dial an
 ``http.client`` is sync, so each request runs on the asyncio
 threadpool via :func:`asyncio.to_thread`. The thread context switch is
 in the microseconds — imperceptible next to the actual UDS round trip
-— and keeps the event loop free for the workflow runner.
+— and keeps the event loop free for the workflow runner. Workflow step
+writes call :func:`request_json_sync` and block instead.
 
 This module raises only stdlib exceptions and :class:`HttpStatusError`.
 Translation to ``render.client.errors`` types happens at the call
@@ -101,14 +102,34 @@ async def request_json(
     (``TimeoutError``, ``ConnectionError``, ``OSError``,
     ``http.client.HTTPException``, ``json.JSONDecodeError``).
     """
+    return await asyncio.to_thread(
+        request_json_sync,
+        socket_path,
+        method,
+        path,
+        body=body,
+        user_agent=user_agent,
+        timeout=timeout,
+    )
+
+
+def request_json_sync(
+    socket_path: str,
+    method: str,
+    path: str,
+    *,
+    body: dict[str, Any] | None,
+    user_agent: str,
+    timeout: float,
+) -> Any:
+    """Blocking :func:`request_json`, for flow step writes."""
     body_bytes: bytes | None = None
     content_type: str | None = None
     if body is not None:
         body_bytes = json.dumps(body).encode("utf-8")
         content_type = "application/json"
 
-    status_code, content = await asyncio.to_thread(
-        _request_sync,
+    status_code, content = _request_sync(
         socket_path,
         method,
         path,

@@ -7,15 +7,15 @@ import logging
 import os
 
 from render import _startup
-from render.workflows._callback_models import (
-    UNSET,
+from render.client.errors import FlowCancelledError
+from render.workflows._models.registration import (
     RetryConfig,
     Task,
     TaskOptions,
     TaskParameter,
     Tasks,
-    Unset,
 )
+from render.workflows._models.wire import UNSET, Unset
 from render.workflows.client import UDSClient
 from render.workflows.executor import TaskExecutor
 from render.workflows.task import ParameterInfo, get_task_registry
@@ -58,8 +58,17 @@ async def run_async(socket_path: str) -> None:
 
         logger.debug(f"Executing task: {task_name}")
         await executor.execute(task_name, input_data, input_response=input_response)
+    except FlowCancelledError:
+        await _wait_to_be_stopped()
     except Exception:
         raise
+
+
+async def _wait_to_be_stopped() -> None:
+    """Keep the process alive after a cancelled flow attempt. The
+    workflow system stops the process; exiting first would look like a
+    crash."""
+    await asyncio.Event().wait()
 
 
 def run(socket_path: str) -> None:
@@ -111,7 +120,12 @@ async def register_async(socket_path: str) -> None:
                     for param in task_info.parameters
                 ]
 
-            task_def = Task(name=name, options=options, parameters=parameters)
+            task_def = Task(
+                name=name,
+                options=options,
+                parameters=parameters,
+                workflow=True if task_info and task_info.workflow else UNSET,
+            )
             tasks.append(task_def)
 
         # Register tasks with server

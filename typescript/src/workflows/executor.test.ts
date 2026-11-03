@@ -36,7 +36,10 @@ class FakeWorkflowServer {
       res.end(
         JSON.stringify({
           task_name: this.taskName,
-          input: Buffer.from(JSON.stringify(this.input)).toString("base64"),
+          input:
+            this.input === undefined
+              ? undefined
+              : Buffer.from(JSON.stringify(this.input)).toString("base64"),
           ...this.runIds,
         }),
       );
@@ -202,6 +205,41 @@ describe("TaskExecutor", () => {
 
     expect(argCount).toBe(1);
     expect(server.completedOutput()).toBe("done");
+  });
+
+  it("treats missing input as no arguments", async () => {
+    let argCount = -1;
+    task({ name: "missingInput" }, (...args: unknown[]) => {
+      argCount = args.length;
+      return "done";
+    });
+
+    const server = await runTask("missingInput", undefined);
+
+    expect(argCount).toBe(1);
+    expect(server.completedOutput()).toBe("done");
+  });
+
+  it.each([
+    ["an object", { a: 1 }, "got object"],
+    ["null", null, "got null"],
+    ["a string", "hi", "got string"],
+  ])("fails a task given %s as input, saying input must be an array", async (_, input, got) => {
+    const handler = vi.fn();
+    task({ name: "badInput" }, handler);
+
+    const server = new FakeWorkflowServer("badInput", input);
+    await server.start();
+    try {
+      await expect(new TaskExecutor(server.socketPath).executeTask()).rejects.toThrow(
+        "expected an array of the task's arguments",
+      );
+    } finally {
+      await server.stop();
+    }
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(server.callbacks[0]?.error?.details).toContain(got);
   });
 
   it("awaits an async handler before reporting its result", async () => {

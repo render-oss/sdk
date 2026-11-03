@@ -27,7 +27,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-@dataclass
+@dataclass(frozen=True)
 class Retry:
     """Retry configuration for a task."""
 
@@ -126,11 +126,13 @@ class TaskInfo:
         name: str,
         options: Options | None = None,
         parameters: list[ParameterInfo] | None = None,
+        workflow: bool = False,
     ):
         self.func = func
         self.name = name
         self.options = options or Options()
         self.parameters = parameters
+        self.workflow = workflow
 
 
 class TaskRegistry:
@@ -178,14 +180,15 @@ class TaskRegistry:
         func: Callable,
         name: str | None = None,
         options: Options | None = None,
+        workflow: bool = False,
     ) -> str:
-        """Register a task function."""
+        """Register a task function, or a flow when ``workflow`` is set."""
         task_name = name or func.__name__
 
         _verify_signature(func, task_name)
         parameters = self._extract_parameters(func)
 
-        task_info = TaskInfo(func, task_name, options, parameters)
+        task_info = TaskInfo(func, task_name, options, parameters, workflow)
 
         if task_name in self._tasks:
             raise ValueError(f"Task '{task_name}' already registered")

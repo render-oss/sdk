@@ -66,6 +66,38 @@ vi.mock("eventsource", () => ({
   EventSource: MockEventSource,
 }));
 
+// ---- Flow run helpers ----
+
+type FakeApi = {
+  POST: ReturnType<typeof vi.fn>;
+  GET: ReturnType<typeof vi.fn>;
+  DELETE: ReturnType<typeof vi.fn>;
+};
+
+function flowRunDetails(status: string) {
+  return { id: "frn-1", flowId: "flw-1", status, input: [], results: [], attempts: [] };
+}
+
+function ok(data?: unknown) {
+  return { data, error: undefined, response: { status: 200 } };
+}
+
+function apiError(status: number) {
+  return { data: undefined, error: { message: "nope", id: "err-1" }, response: { status } };
+}
+
+// Builds a client whose API calls all succeed; each test overrides only the calls it cares about.
+function newFlowClient(overrides: Partial<FakeApi> = {}) {
+  const api: FakeApi = {
+    POST: vi.fn().mockResolvedValue(ok({ id: "frn-1", flowId: "flw-1", status: "pending" })),
+    GET: vi.fn().mockResolvedValue(ok(flowRunDetails("succeeded"))),
+    DELETE: vi.fn().mockResolvedValue(ok()),
+    ...overrides,
+  };
+  const client = new WorkflowsClient(api as unknown as Client<paths>, "http://test", "token");
+  return { api, client };
+}
+
 function latestEventSource(): InstanceType<typeof MockEventSource> {
   return MockEventSource.instances[MockEventSource.instances.length - 1];
 }
@@ -415,5 +447,295 @@ describe("WorkflowsClient", () => {
       const es = latestEventSource();
       expect(es.closed).toBe(true);
     });
+  });
+  describe("startFlow", () => {
+    it("returns the started flow run", async () => {
+      const { client } = newFlowClient();
+
+      const flowRun = await client.startFlow("workflow/flow", [1, 2]);
+
+      expect(flowRun).toEqual({ id: "frn-1", flowId: "flw-1", status: "pending" });
+    });
+
+    it.each([
+      {
+        name: "no options",
+        options: undefined,
+        body: { flow: "workflow/flow", input: { a: 1 } },
+        signal: undefined,
+      },
+      {
+        name: "an idempotency key",
+        options: { idempotencyKey: "order-42" },
+        body: { flow: "workflow/flow", input: { a: 1 }, idempotencyKey: "order-42" },
+        signal: undefined,
+      },
+    ])("sends the request body with $name", async ({ options, body, signal }) => {
+      const { api, client } = newFlowClient();
+
+      await client.startFlow("workflow/flow", { a: 1 }, options);
+
+      expect(api.POST).toHaveBeenCalledWith("/flow-runs", { body, signal });
+    });
+
+    it.each([
+      { name: "a bare signal", wrap: (signal: AbortSignal) => signal },
+      { name: "an options object", wrap: (signal: AbortSignal) => ({ signal }) },
+    ])("forwards $name to the request", async ({ wrap }) => {
+      const { api, client } = newFlowClient();
+      const controller = new AbortController();
+
+      await client.startFlow("workflow/flow", [], wrap(controller.signal));
+
+      expect(api.POST).toHaveBeenCalledWith("/flow-runs", {
+        body: { flow: "workflow/flow", input: [] },
+        signal: controller.signal,
+      });
+    });
+
+    it.each([
+      { name: "a bare signal", wrap: (signal: AbortSignal) => signal },
+      { name: "an options object", wrap: (signal: AbortSignal) => ({ signal }) },
+    ])("throws AbortError without a request if $name is already aborted", async ({ wrap }) => {
+      const { api, client } = newFlowClient();
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        client.startFlow("workflow/flow", [], wrap(controller.signal)),
+      ).rejects.toBeInstanceOf(AbortError);
+      expect(api.POST).not.toHaveBeenCalled();
+    });
+
+    it("converts a DOM AbortError from the request into AbortError", async () => {
+      const { client } = newFlowClient({
+        POST: vi.fn().mockRejectedValue(new DOMException("aborted", "AbortError")),
+      });
+
+      await expect(client.startFlow("workflow/flow", [])).rejects.toBeInstanceOf(AbortError);
+    });
+  });
+
+  describe("runFlow", () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function getFlowRunReturning(...statuses: string[]) {
+      const GET = vi.fn();
+      for (const status of statuses) GET.mockResolvedValueOnce(ok(flowRunDetails(status)));
+      return GET;
+    }
+
+    it.each([
+      { name: "succeeds", statuses: ["pending", "running", "paused", "succeeded"] },
+      { name: "fails", statuses: ["running", "failed"] },
+      { name: "is canceled", statuses: ["canceled"] },
+    ])("polls until the flow run $name and resolves with its details", async ({ statuses }) => {
+      const { api, client } = newFlowClient({ GET: getFlowRunReturning(...statuses) });
+
+      const result = client.runFlow("workflow/flow", [1]);
+      await vi.advanceTimersByTimeAsync(60_000);
+
+      await expect(result).resolves.toEqual(flowRunDetails(statuses[statuses.length - 1]));
+      expect(api.GET).toHaveBeenCalledTimes(statuses.length);
+      expect(api.GET).toHaveBeenCalledWith("/flow-runs/{flowRunId}", {
+        params: { path: { flowRunId: "frn-1" } },
+        signal: expect.any(AbortSignal),
+      });
+    });
+
+    it("passes the idempotencyKey through to the request body", async () => {
+      const { api, client } = newFlowClient();
+
+      await client.runFlow("workflow/flow", [1], { idempotencyKey: "order-42" });
+
+      expect(api.POST).toHaveBeenCalledWith("/flow-runs", {
+        body: { flow: "workflow/flow", input: [1], idempotencyKey: "order-42" },
+        signal: undefined,
+      });
+    });
+
+    it.each([
+      { name: "a bare signal", wrap: (signal: AbortSignal) => signal },
+      { name: "an options object", wrap: (signal: AbortSignal) => ({ signal }) },
+    ])("rejects with AbortError when $name aborts while waiting", async ({ wrap }) => {
+      const { api, client } = newFlowClient({
+        GET: vi.fn().mockResolvedValue(ok(flowRunDetails("running"))),
+      });
+      const controller = new AbortController();
+
+      const result = client.runFlow("workflow/flow", [1], wrap(controller.signal));
+      const rejected = expect(result).rejects.toBeInstanceOf(AbortError);
+      await vi.advanceTimersByTimeAsync(1500);
+      controller.abort();
+      await vi.advanceTimersByTimeAsync(60_000);
+
+      await rejected;
+      expect(api.GET).toHaveBeenCalledTimes(2);
+    });
+
+    it("throws the start error without polling", async () => {
+      const { api, client } = newFlowClient({ POST: vi.fn().mockResolvedValue(apiError(404)) });
+
+      await expect(client.runFlow("workflow/flow", [1])).rejects.toBeInstanceOf(ClientError);
+      expect(api.GET).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getFlowRun", () => {
+    it("returns the flow run details", async () => {
+      const { api, client } = newFlowClient();
+
+      const details = await client.getFlowRun("frn-1");
+
+      expect(details).toEqual(flowRunDetails("succeeded"));
+      expect(api.GET).toHaveBeenCalledWith("/flow-runs/{flowRunId}", {
+        params: { path: { flowRunId: "frn-1" } },
+      });
+    });
+  });
+
+  describe("cancelFlowRun", () => {
+    it("calls DELETE on the flow run endpoint", async () => {
+      const { api, client } = newFlowClient();
+
+      await client.cancelFlowRun("frn-1");
+
+      expect(api.DELETE).toHaveBeenCalledWith("/flow-runs/{flowRunId}", {
+        params: { path: { flowRunId: "frn-1" } },
+      });
+    });
+  });
+
+  describe("listFlowRuns", () => {
+    it("passes the filters as query params and returns the runs", async () => {
+      const runs = [{ flowRun: flowRunDetails("running"), cursor: "c-1" }];
+      const { api, client } = newFlowClient({ GET: vi.fn().mockResolvedValue(ok(runs)) });
+      const params = { flowSlug: ["workflow/flow"], status: ["running" as const], limit: 10 };
+
+      const result = await client.listFlowRuns(params);
+
+      expect(result).toBe(runs);
+      expect(api.GET).toHaveBeenCalledWith("/flow-runs", { params: { query: params } });
+    });
+
+    it("lists all flow runs when called without filters", async () => {
+      const { api, client } = newFlowClient({ GET: vi.fn().mockResolvedValue(ok([])) });
+
+      await client.listFlowRuns();
+
+      expect(api.GET).toHaveBeenCalledWith("/flow-runs", { params: { query: {} } });
+    });
+  });
+
+  describe("flow run requests with a signal", () => {
+    type Call = (client: WorkflowsClient, signal: AbortSignal) => Promise<unknown>;
+    const calls: { name: string; method: "GET" | "DELETE"; path: string; call: Call }[] = [
+      {
+        name: "getFlowRun",
+        method: "GET",
+        path: "/flow-runs/{flowRunId}",
+        call: (c, signal) => c.getFlowRun("frn-1", signal),
+      },
+      {
+        name: "cancelFlowRun",
+        method: "DELETE",
+        path: "/flow-runs/{flowRunId}",
+        call: (c, signal) => c.cancelFlowRun("frn-1", signal),
+      },
+      {
+        name: "listFlowRuns",
+        method: "GET",
+        path: "/flow-runs",
+        call: (c, signal) => c.listFlowRuns({}, signal),
+      },
+    ];
+
+    it.each(calls)("$name forwards the signal to the request", async ({ method, path, call }) => {
+      const { api, client } = newFlowClient({ GET: vi.fn().mockResolvedValue(ok([])) });
+      const controller = new AbortController();
+
+      await call(client, controller.signal);
+
+      expect(api[method]).toHaveBeenCalledWith(
+        path,
+        expect.objectContaining({ signal: controller.signal }),
+      );
+    });
+
+    it.each(calls)(
+      "$name throws AbortError without a request if the signal is already aborted",
+      async ({ method, call }) => {
+        const { api, client } = newFlowClient();
+        const controller = new AbortController();
+        controller.abort();
+
+        await expect(call(client, controller.signal)).rejects.toBeInstanceOf(AbortError);
+        expect(api[method]).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(calls)(
+      "$name converts a DOM AbortError from the request into AbortError",
+      async ({ method, call }) => {
+        const { client } = newFlowClient({
+          [method]: vi.fn().mockRejectedValue(new DOMException("aborted", "AbortError")),
+        });
+
+        await expect(call(client, new AbortController().signal)).rejects.toBeInstanceOf(AbortError);
+      },
+    );
+  });
+
+  describe("flow run API errors", () => {
+    type Call = (client: WorkflowsClient) => Promise<unknown>;
+    const calls: { name: string; method: keyof FakeApi; call: Call; message: string }[] = [
+      {
+        name: "startFlow",
+        method: "POST",
+        call: (c) => c.startFlow("workflow/flow", []),
+        message: "Failed to start flow run",
+      },
+      {
+        name: "getFlowRun",
+        method: "GET",
+        call: (c) => c.getFlowRun("frn-1"),
+        message: "Failed to get flow run",
+      },
+      {
+        name: "cancelFlowRun",
+        method: "DELETE",
+        call: (c) => c.cancelFlowRun("frn-1"),
+        message: "Failed to cancel flow run",
+      },
+      {
+        name: "listFlowRuns",
+        method: "GET",
+        call: (c) => c.listFlowRuns(),
+        message: "Failed to list flow runs",
+      },
+    ];
+    const cases = calls.flatMap((c) => [
+      { ...c, status: 404, errorType: ClientError },
+      { ...c, status: 500, errorType: ServerError },
+    ]);
+
+    it.each(cases)(
+      "$name throws $errorType.name for a $status response",
+      async ({ method, call, message, status, errorType }) => {
+        const { client } = newFlowClient({ [method]: vi.fn().mockResolvedValue(apiError(status)) });
+
+        const err = (await call(client).catch((e) => e)) as Error;
+
+        expect(err).toBeInstanceOf(errorType);
+        expect(err).toMatchObject({ statusCode: status });
+        expect(err.message).toContain(message);
+      },
+    );
   });
 });

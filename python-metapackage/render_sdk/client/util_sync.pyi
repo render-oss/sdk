@@ -13,7 +13,6 @@ from render.client.util_sync import (
     logger as logger,
     request_errors as request_errors,
     retry_with_backoff as retry_with_backoff,
-    sleep as sleep,
 )
 
 __all__ = [

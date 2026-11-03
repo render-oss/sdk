@@ -4,9 +4,10 @@ from dataclasses import FrozenInstanceError
 
 import pytest
 
-from render.workflows._callback_models import InputResponse
+from render.workflows._models.task import InputResponse
 from render.workflows.client import UDSClient
 from render.workflows.context import TaskContext, TaskRunMetadata, WorkflowTaskContext
+from render.workflows.flow import FlowDefinition
 from render.workflows.task import TaskRegistry, create_task_decorator
 
 
@@ -129,6 +130,17 @@ class TestRun:
 
         with pytest.raises(ValueError, match="Cannot mix positional and keyword"):
             await ctx.run(add, 1, b=2)
+
+    @pytest.mark.asyncio
+    async def test_rejects_a_flow(self, ctx, mock_client):
+        def my_flow(ctx) -> None:
+            return None
+
+        flow = FlowDefinition(my_flow, "my-flow")
+
+        with pytest.raises(TypeError, match=r"ctx.run\(my-flow\): a task can't start"):
+            await ctx.run(flow)
+        mock_client.run_subtask.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_propagates_subtask_failures(

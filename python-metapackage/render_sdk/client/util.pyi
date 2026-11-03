@@ -24,6 +24,5 @@ from render.client.util import (
     logger as logger,
     request_errors as request_errors,
     retry_with_backoff as retry_with_backoff,
-    sleep as sleep,
     storage_error_message as storage_error_message,
 )

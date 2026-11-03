@@ -1,11 +1,12 @@
 # Render SDK for TypeScript
 
-The official TypeScript SDK for Render. Define Workflow tasks, manage task runs, and access experimental platform features like object storage.
+The official TypeScript SDK for Render. Define Workflow tasks and flows, manage task runs and flow runs, and access experimental platform features like object storage.
 
 ## Features
 
-- **REST API Client**: Run, monitor, and manage task runs
+- **REST API Client**: Run, monitor, and manage task runs and flow runs
 - **Task Definition SDK**: Define and register tasks with decorators
+- **Durable Flows**: Flows that replay after a crash, with steps that retry in-process
 - **Server-Sent Events**: Real-time streaming of task run events
 - **Async/Await Support**: Modern Promise-based API
 - **TypeScript First**: Full type safety and IntelliSense support
@@ -159,6 +160,63 @@ it does not make a network request.
 
 For a root run, `ctx.metadata.rootTaskRunId` equals `ctx.metadata.taskRunId` and
 `ctx.metadata.parentTaskRunId` is `undefined`.
+
+### Durable Flows
+
+A flow is a task that resumes after a crash. Register one with `flow()`.
+Each `ctx` call in a flow is a durable **step**, and the SDK records its
+result. After a crash, the flow reruns from the top, and `ctx` calls for
+finished steps return the recorded results instead of running again.
+
+```typescript
+import { flow, StepError } from "@renderinc/sdk/workflows";
+
+// A plain function. From a flow, it runs inline, in the flow's process.
+function chargeCard(orderId: string, total: number) {
+  return payments.charge(orderId, total);
+}
+
+flow({ name: "fulfillOrder" }, async (ctx, order: Order) => {
+  const charge = await ctx.step("charge", chargeCard, [order.id, order.total], {
+    retry: { maxRetries: 3, waitDurationMs: 1000 },
+  });
+  const invoice = await ctx.step("invoice", createInvoice, [order.id]);
+  const receiptId = await ctx.step("receiptId", () => crypto.randomUUID());
+
+  try {
+    await ctx.step("send", sendReceipt, [order.email, invoice.id, receiptId]);
+  } catch (error) {
+    if (!(error instanceof StepError)) throw error;
+    await ctx.step("notify", notifySupport, [order.id]);
+  }
+  return { charge: charge.id, invoice: invoice.id };
+});
+```
+
+| Call                                    | Description                                                          |
+| --------------------------------------- | -------------------------------------------------------------------- |
+| `ctx.step(name, fn, [args], { retry })` | Runs a plain function inline as the step `name`, retrying in-process |
+| `ctx.step(name, fn, { retry })`         | Runs a zero-argument function inline as the step `name`              |
+
+Rules for flow code:
+- **Be deterministic.** A replay must make the same `ctx` calls in the same
+  order with the same inputs. Put I/O, clocks, random values and anything else
+  non-deterministic inside a step.
+- **Run one step at a time.** Await each `ctx` call before making the next.
+  `Promise.all` over `ctx` calls is not supported yet.
+- **Steps make no `ctx` calls.** A step's arguments and result are recorded as
+  JSON, so a `Date` comes back as a string.
+- **Set retries on steps, not flows.** Flows take no retry policy: they replay
+  after infrastructure failures instead.
+- If a step fails for good, `ctx.step` throws a `StepError`, which you can
+  catch; a replay rethrows the same error.
+- **Don't pass secrets through step inputs or outputs.** Render stores them.
+- `ctx.invoke` and `ctx.sleep` are not supported yet, so flows can't run
+  registered tasks. Call the task's plain function with `ctx.step` instead.
+
+For limits, supported regions and how flow runs recover, see the
+[Workflows documentation](https://render.com/docs/workflows). To start and
+inspect flow runs, see [Flow Client Methods](#flow-client-methods).
 
 ### Run the Local Task Server
 
@@ -361,6 +419,98 @@ const render = new Render();
 const taskRuns = await render.workflows.listTaskRuns({ limit: 10 });
 ```
 
+### Flow Client Methods
+
+The client starts, inspects, lists and cancels flow runs the same way it does task runs. A flow slug has the format `"workflow-slug/flow-name"`. Append `:version` to run a specific version; otherwise the latest version runs.
+
+#### `render.workflows.startFlow(flowSlug, inputData, signalOrOptions?)`
+
+Starts a flow run and returns it without waiting for it to finish. Use `getFlowRun()` with the returned ID to check its status.
+
+**Parameters:**
+- `flowSlug: string` - Flow slug in format "workflow-slug/flow-name"
+- `inputData: any[] | Record<string, any>` - Input data as an array of positional arguments or an object of named parameters
+- `signalOrOptions?: AbortSignal | StartFlowOptions` - An abort signal, or an options object with `signal` and/or `idempotencyKey`
+
+**Returns:** `Promise<FlowRun>`
+
+**Example:**
+
+```typescript
+const render = new Render();
+const flowRun = await render.workflows.startFlow(
+  "my-workflow/fulfillOrder",
+  [order],
+  { idempotencyKey: `fulfill-${order.id}` },
+);
+console.log("Flow run ID:", flowRun.id);
+```
+
+#### `render.workflows.runFlow(flowSlug, inputData, signalOrOptions?)`
+
+Starts a flow run and waits for it to finish. Resolves with the run's details whether it succeeded, failed or was canceled, so check `status`. The wait has no deadline; pass a signal to stop it.
+
+**Parameters:** Same as `startFlow`.
+
+**Returns:** `Promise<FlowRunDetails>`
+
+**Example:**
+
+```typescript
+import { Render } from "@renderinc/sdk";
+import { FlowRunStatus } from "@renderinc/sdk/workflows";
+
+const render = new Render();
+const details = await render.workflows.runFlow("my-workflow/fulfillOrder", [
+  order,
+]);
+if (details.status === FlowRunStatus.SUCCEEDED) {
+  console.log("Results:", details.results);
+} else {
+  console.error("Flow run ended:", details.status, details.error);
+}
+```
+
+#### `render.workflows.getFlowRun(flowRunId, signal?)`
+
+Gets flow run details by ID, including its `results`, `error` and `attempts`.
+
+**Returns:** `Promise<FlowRunDetails>`
+
+#### `render.workflows.cancelFlowRun(flowRunId, signal?)`
+
+Cancels a flow run.
+
+**Returns:** `Promise<void>`
+
+#### `render.workflows.listFlowRuns(params?, signal?)`
+
+Lists flow runs with optional filters.
+
+**Parameters:**
+- `params.limit?: number` - Maximum number of results
+- `params.cursor?: string` - Pagination cursor
+- `params.flowSlug?: string[]` - Filter by flow slugs
+- `params.flowId?: string[]` - Filter by flow IDs
+- `params.status?: FlowRunStatus[]` - Filter by statuses
+- `params.ownerId?: string[]` - Filter by owner IDs
+- `params.workflowId?: string[]` - Filter by workflow IDs
+- `params.workflowVersionId?: string[]` - Filter by workflow version IDs
+
+**Returns:** `Promise<FlowRunWithCursor[]>`
+
+**Example:**
+
+```typescript
+import { FlowRunStatus } from "@renderinc/sdk/workflows";
+
+const render = new Render();
+const failedRuns = await render.workflows.listFlowRuns({
+  status: [FlowRunStatus.FAILED],
+  limit: 10,
+});
+```
+
 ### Task API
 
 #### `task(options, func)`
@@ -508,6 +658,19 @@ class TaskRunResult {
 }
 ```
 
+#### `FlowRunStatus`
+
+```typescript
+enum FlowRunStatus {
+  PENDING = "pending",
+  RUNNING = "running",
+  PAUSED = "paused",
+  SUCCEEDED = "succeeded",
+  FAILED = "failed",
+  CANCELED = "canceled",
+}
+```
+
 #### `RegisterTaskOptions`
 
 ```typescript
@@ -558,7 +721,7 @@ try {
 
 ## Environment Variables
 
-- `RENDER_API_KEY` - Your Render API key (required)
+- `RENDER_API_KEY` - Your Render API key
 - `RENDER_WORKSPACE_ID` - Default owner ID for object storage (workspace team ID, e.g. `tea-xxxxx`)
 - `RENDER_REGION` - Default region for object storage (e.g. `oregon`, `frankfurt`)
 - `RENDER_USE_LOCAL_DEV` - Enable local development mode (`true`/`false`)
@@ -569,8 +732,6 @@ try {
 - `RENDER_LOCAL_REDIS_PORT` - Custom port for local Redis / Valkey instance (default: `6379`) (requires `RENDER_USE_LOCAL_DEV=true`)
 
 ### Object Storage
-
-When running on Render, `RENDER_WORKSPACE_ID` and `RENDER_REGION` are set automatically. You can also pass them as constructor options:
 
 ```typescript
 import { Render } from "@renderinc/sdk";

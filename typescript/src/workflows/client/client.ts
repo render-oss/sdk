@@ -4,10 +4,19 @@ import { AbortError } from "../../errors.js";
 import type { paths } from "../../generated/schema.js";
 import { getApiError, isConnectionError } from "../../utils/http.js";
 import { getUserAgent } from "../../version.js";
+import { waitForFlowRun } from "./flow-run-wait.js";
 import { TaskEventType } from "./sse.js";
 import { TaskRunResult } from "./task-run-result.js";
 import type {
+  FlowData,
+  FlowRun,
+  FlowRunDetails,
+  FlowRunWithCursor,
+  FlowSlug,
+  ListFlowRunsParams,
   ListTaskRunsParams,
+  StartFlowOptions,
+  StartRunOptions,
   StartTaskOptions,
   TaskData,
   TaskRunDetails,
@@ -15,13 +24,33 @@ import type {
   TaskSlug,
 } from "./types.js";
 
-function normalizeStartTaskOptions(
-  signalOrOptions?: AbortSignal | StartTaskOptions,
-): StartTaskOptions {
+function normalizeStartOptions(signalOrOptions?: AbortSignal | StartRunOptions): StartRunOptions {
   if (signalOrOptions instanceof AbortSignal) {
     return { signal: signalOrOptions };
   }
   return signalOrOptions ?? {};
+}
+
+function isDomAbortError(err: unknown): boolean {
+  return err instanceof DOMException && err.name === "AbortError";
+}
+
+/** Run a request, reporting an abort before or during it as AbortError. */
+async function abortable<T>(
+  signal: AbortSignal | undefined,
+  request: () => Promise<T>,
+): Promise<T> {
+  if (signal?.aborted) {
+    throw new AbortError();
+  }
+  try {
+    return await request();
+  } catch (err) {
+    if (isDomAbortError(err)) {
+      throw new AbortError();
+    }
+    throw err;
+  }
 }
 
 /**
@@ -238,12 +267,8 @@ export class WorkflowsClient {
     inputData: TaskData,
     signalOrOptions?: AbortSignal | StartTaskOptions,
   ): Promise<TaskRunResult> {
-    const { signal, idempotencyKey } = normalizeStartTaskOptions(signalOrOptions);
-    if (signal?.aborted) {
-      throw new AbortError();
-    }
-
-    try {
+    const { signal, idempotencyKey } = normalizeStartOptions(signalOrOptions);
+    return abortable(signal, async () => {
       const { data, error, response } = await this.apiClient.POST("/task-runs", {
         body: {
           task: taskSlug,
@@ -252,18 +277,11 @@ export class WorkflowsClient {
         },
         signal,
       });
-
       if (error) {
         throw getApiError(`${error.message} ${error.id}`, response, "Failed to run task");
       }
-
       return new TaskRunResult((id, sig) => this.waitOnTaskRun(id, sig), data.id, signal);
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") {
-        throw new AbortError();
-      }
-      throw err;
-    }
+    });
   }
 
   /**
@@ -333,5 +351,111 @@ export class WorkflowsClient {
       return event;
     }
     throw new Error(`SSE stream ended without receiving an event for task run ${taskRunId}`);
+  }
+
+  /**
+   * Start a flow run and return it without waiting for it to finish.
+   * Use getFlowRun() with the returned ID to check its status.
+   *
+   * Pass `idempotencyKey` in the options object to make the call safe to retry.
+   */
+  async startFlow(
+    flowSlug: FlowSlug,
+    inputData: FlowData,
+    signalOrOptions?: AbortSignal | StartFlowOptions,
+  ): Promise<FlowRun> {
+    const { signal, idempotencyKey } = normalizeStartOptions(signalOrOptions);
+    return abortable(signal, async () => {
+      const { data, error, response } = await this.apiClient.POST("/flow-runs", {
+        body: {
+          flow: flowSlug,
+          input: inputData,
+          ...(idempotencyKey === undefined ? {} : { idempotencyKey }),
+        },
+        signal,
+      });
+      if (error) {
+        throw getApiError(`${error.message} ${error.id}`, response, "Failed to start flow run");
+      }
+      return data;
+    });
+  }
+
+  /**
+   * Start a flow run and wait for it to finish, returning its details.
+   * Resolves whether the run succeeded, failed, or was canceled.
+   *
+   * Checks the run's status with backoff, starting at 1 second and doubling up to
+   * 60 seconds. The wait has no deadline; pass a signal to stop it. Up to 4 transient
+   * errors in a row (5xx, 408, 429, or a network failure) are retried; the 5th is thrown.
+   *
+   * Pass `idempotencyKey` in the options object to make the call safe to retry.
+   */
+  async runFlow(
+    flowSlug: FlowSlug,
+    inputData: FlowData,
+    signalOrOptions?: AbortSignal | StartFlowOptions,
+  ): Promise<FlowRunDetails> {
+    const { signal } = normalizeStartOptions(signalOrOptions);
+    const flowRun = await this.startFlow(flowSlug, inputData, signalOrOptions);
+    return waitForFlowRun((id, sig) => this.getFlowRun(id, sig), flowRun.id, signal);
+  }
+
+  /**
+   * Get flow run details by ID
+   * @param flowRunId Flow run ID
+   * @param signal Optional AbortSignal to cancel the request
+   * @returns Flow run details
+   */
+  async getFlowRun(flowRunId: string, signal?: AbortSignal): Promise<FlowRunDetails> {
+    return abortable(signal, async () => {
+      const { data, error, response } = await this.apiClient.GET("/flow-runs/{flowRunId}", {
+        params: { path: { flowRunId } },
+        signal,
+      });
+      if (error) {
+        throw getApiError(`${error.message} ${error.id}`, response, "Failed to get flow run");
+      }
+      return data;
+    });
+  }
+
+  /**
+   * Cancel a flow run
+   * @param flowRunId Flow run ID
+   * @param signal Optional AbortSignal to cancel the request
+   */
+  async cancelFlowRun(flowRunId: string, signal?: AbortSignal): Promise<void> {
+    return abortable(signal, async () => {
+      const { error, response } = await this.apiClient.DELETE("/flow-runs/{flowRunId}", {
+        params: { path: { flowRunId } },
+        signal,
+      });
+      if (error) {
+        throw getApiError(`${error.message} ${error.id}`, response, "Failed to cancel flow run");
+      }
+    });
+  }
+
+  /**
+   * List flow runs with optional filters
+   * @param params Filter parameters. Omit them to list all flow runs.
+   * @param signal Optional AbortSignal to cancel the request
+   * @returns List of flow runs
+   */
+  async listFlowRuns(
+    params: ListFlowRunsParams = {},
+    signal?: AbortSignal,
+  ): Promise<FlowRunWithCursor[]> {
+    return abortable(signal, async () => {
+      const { data, error, response } = await this.apiClient.GET("/flow-runs", {
+        params: { query: params },
+        signal,
+      });
+      if (error) {
+        throw getApiError(`${error.message} ${error.id}`, response, "Failed to list flow runs");
+      }
+      return data;
+    });
   }
 }

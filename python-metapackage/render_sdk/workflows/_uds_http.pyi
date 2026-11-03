@@ -6,4 +6,5 @@ from render.workflows._uds_http import (
     _request_sync as _request_sync,
     logger as logger,
     request_json as request_json,
+    request_json_sync as request_json_sync,
 )

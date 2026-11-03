@@ -9,12 +9,9 @@ Never executed. See README.md in this directory.
 
 from typing_extensions import assert_type
 
-from render.workflows._callback_models import (
-    InputResponse,
-    RunSubtaskRequest,
-    RunSubtaskResponse,
-    Tasks,
-)
+from render.workflows._models.registration import Tasks
+from render.workflows._models.subtask import RunSubtaskRequest, RunSubtaskResponse
+from render.workflows._models.task import InputResponse
 from render.workflows.client import (
     CallbackRequest,
     Status,

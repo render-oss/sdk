@@ -1,7 +1,15 @@
 """Render SDK - Durable Workflows Task Definition"""
 
+from render.client.errors import ExecutionError, TerminalFlowError
 from render.workflows.app import Workflows
-from render.workflows.context import TaskContext, TaskRunMetadata, WorkflowTaskContext
+from render.workflows.context import (
+    FlowContext,
+    FlowRunMetadata,
+    TaskContext,
+    TaskRunMetadata,
+    WorkflowTaskContext,
+)
+from render.workflows.flow import FlowDefinition
 from render.workflows.runner import start
 from render.workflows.task import (
     Options,
@@ -14,10 +22,15 @@ from render.workflows.task import (
 __all__ = [
     "Options",
     "Retry",
+    "ExecutionError",
     "TaskContext",
     "TaskRunMetadata",
     "TaskDefinition",
     "TaskRegistry",
+    "TerminalFlowError",
+    "FlowContext",
+    "FlowDefinition",
+    "FlowRunMetadata",
     "WorkflowTaskContext",
     "Workflows",
     # Deprecated: use Workflows.task and Workflows.start() instead

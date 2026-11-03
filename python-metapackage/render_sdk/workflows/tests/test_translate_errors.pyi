@@ -7,9 +7,12 @@ from render.workflows.tests.test_translate_errors import (
     SdkTimeoutError as SdkTimeoutError,
     ServerError as ServerError,
     _translate_errors as _translate_errors,
+    _translate_errors_sync as _translate_errors_sync,
     _wrap_raises as _wrap_raises,
     test_429_status_becomes_rate_limit_error as test_429_status_becomes_rate_limit_error,
     test_4xx_status_becomes_client_error as test_4xx_status_becomes_client_error,
+    test_4xx_status_keeps_the_body_code as test_4xx_status_keeps_the_body_code,
+    test_4xx_status_keeps_the_decoded_body as test_4xx_status_keeps_the_decoded_body,
     test_5xx_status_becomes_server_error as test_5xx_status_becomes_server_error,
     test_builtin_timeout_becomes_sdk_timeout as test_builtin_timeout_becomes_sdk_timeout,
     test_connection_refused_becomes_server_error as test_connection_refused_becomes_server_error,
@@ -19,4 +22,5 @@ from render.workflows.tests.test_translate_errors import (
     test_json_decode_error_becomes_render_error as test_json_decode_error_becomes_render_error,
     test_render_error_propagates_unchanged as test_render_error_propagates_unchanged,
     test_status_error_with_non_json_body_uses_raw_text as test_status_error_with_non_json_body_uses_raw_text,
+    test_sync_variant_translates_the_same_way as test_sync_variant_translates_the_same_way,
 )
