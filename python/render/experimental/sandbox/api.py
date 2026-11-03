@@ -71,7 +71,7 @@ from render.experimental.sandbox.types import (
     Snapshot,
     SnapshotList,
 )
-from render.public_api.api.sandboxes_beta import (
+from render.public_api.api.sandboxes import (
     create_sandbox,
     create_sandbox_build,
     create_sandbox_group,
