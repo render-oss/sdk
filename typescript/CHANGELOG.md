@@ -4,6 +4,17 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-11-02
+
+### Added
+
+- (Workflows) Durable flows: register a flow with `flow()`. A flow is a function that takes a `FlowContext` as its first parameter. `ctx.step(name, fn, [args], { retry })` runs a plain function inline as a durable step and records its result. After a crash, the flow reruns from the top and finished steps return their recorded results. A replay that makes different `ctx` calls fails the run with `DeterminismError`.
+- (Workflows) Flow runs: `startFlow()`, `runFlow()`, `getFlowRun()`, `cancelFlowRun()`, and `listFlowRuns()` on `render.workflows`. `runFlow()` starts a flow run and waits for it to succeed, fail, or be canceled, and returns its details.
+
+### Fixed
+
+- (Workflows) A task started with input that isn't an array fails with an error that says to pass an array of the task's arguments.
+
 ## [1.6.0] - 2026-10-29
 
 ### Added

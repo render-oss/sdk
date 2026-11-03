@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0] - 2026-11-02
+
+### Added
+
+- (Workflows) Durable flows: register a flow with `@app.flow`. A flow is a function that takes a `FlowContext` as its first parameter. `ctx.step(name, fn, *args, retry=...)` runs a plain function inline as a durable step and records its result. After a crash, the flow reruns from the top and finished steps return their recorded results. A replay that makes different `ctx` calls fails the run with `DeterminismError`.
+- (Workflows) `run_flow()` on `render.workflows` and the sync client (joining the other methods from 1.6.0).
+- `ErrorCode.BUILD_SOURCE_REGION_MISMATCH` for the `build_source_region_mismatch` API error code.
+- `owner_id` on `Blueprint` and `BlueprintDetail`.
+
+### Fixed
+
+- `AuditLogEvent` accepts `UpdateBuildSourceEvent` and `UpdateServiceBuildSourceEvent`. Before, the client raised `ValueError` on audit logs that contain these events.
+
 ## [1.6.0] - 2026-10-29
 
 ### Added
