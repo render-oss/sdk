@@ -131,6 +131,7 @@ const (
 	UpdateOrgPaymentMethodEvent        AuditLogEvent = "UpdateOrgPaymentMethodEvent"
 	UpdateOtelIntegrationEvent         AuditLogEvent = "UpdateOtelIntegrationEvent"
 	UpdateSSOConnectionEvent           AuditLogEvent = "UpdateSSOConnectionEvent"
+	UpdateServiceBuildSourceEvent      AuditLogEvent = "UpdateServiceBuildSourceEvent"
 	UpdateServiceNameEvent             AuditLogEvent = "UpdateServiceNameEvent"
 	UpdateWebhookEvent                 AuditLogEvent = "UpdateWebhookEvent"
 	UpdateWorkspacePaymentMethodEvent  AuditLogEvent = "UpdateWorkspacePaymentMethodEvent"
@@ -301,6 +302,8 @@ func (e AuditLogEvent) Valid() bool {
 	case UpdateOtelIntegrationEvent:
 		return true
 	case UpdateSSOConnectionEvent:
+		return true
+	case UpdateServiceBuildSourceEvent:
 		return true
 	case UpdateServiceNameEvent:
 		return true
@@ -2329,12 +2332,6 @@ type ExecutionWithCursor struct {
 	Execution externalRef15.Execution `json:"execution"`
 }
 
-// FlowRunStepWithCursor defines model for flowRunStepWithCursor.
-type FlowRunStepWithCursor struct {
-	Cursor Cursor                    `json:"cursor"`
-	Step   externalRef18.FlowRunStep `json:"step"`
-}
-
 // FlowRunWithCursor defines model for flowRunWithCursor.
 type FlowRunWithCursor struct {
 	Cursor  Cursor                `json:"cursor"`
@@ -4125,6 +4122,12 @@ type ListFlowRunStepsParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// GetFlowRunStepParams defines parameters for GetFlowRunStep.
+type GetFlowRunStepParams struct {
+	// StepKey The SDK's key for the step, as `stepKey` reports it in the step listing. Steps that share a sequence number are told apart by it. Omit it for a step the SDK recorded without one.
+	StepKey *externalRef18.FlowRunStepKeyParam `form:"stepKey,omitempty" json:"stepKey,omitempty"`
+}
+
 // ListFlowsParams defines parameters for ListFlows.
 type ListFlowsParams struct {
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
@@ -5138,7 +5141,7 @@ type ConnectSandboxFilesParams struct {
 	// determined from the sandbox ID, and this parameter is ignored when supplied.
 	OwnerId *externalRef15.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 
-	// Path Path in the sandbox this token authorizes. A relative path resolves within the sandbox's home directory ("." is the home directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch.
+	// Path Path in the sandbox this token authorizes. A relative path resolves within the sandbox's working directory, which is the image's WORKDIR or, when the image sets none, the home directory ("." is the working directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch.
 	Path string `form:"path" json:"path"`
 }
 

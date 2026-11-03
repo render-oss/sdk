@@ -1,6 +1,6 @@
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import Any, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -9,10 +9,6 @@ from dateutil.parser import isoparse
 from ..models.flow_run_step_status import FlowRunStepStatus
 from ..models.flow_run_step_type import FlowRunStepType
 from ..types import UNSET, Unset
-
-if TYPE_CHECKING:
-    from ..models.flow_run_step_attempt import FlowRunStepAttempt
-
 
 T = TypeVar("T", bound="FlowRunStepDetails")
 
@@ -27,10 +23,6 @@ class FlowRunStepDetails:
             place. `detached` runs a registered task as its own task run. `sleep` is a durable sleep.
         status (FlowRunStepStatus): `running` until the step records an outcome, then `succeeded` or `failed`.
         started_at (datetime.datetime):
-        flow_run_attempt (int): The 0-indexed flow run attempt that completed the step, 0 until then. A hint to how many
-            flow run attempts the step took.
-        attempts (list['FlowRunStepAttempt']): Failed attempts of an inline step, in attempt order. Empty for other step
-            types.
         name (Union[Unset, str]): For inline steps, the function's name. For detached steps, the task's registered name.
             Omitted for sleep steps.
         completed_at (Union[Unset, datetime.datetime]):
@@ -48,8 +40,6 @@ class FlowRunStepDetails:
     type_: FlowRunStepType
     status: FlowRunStepStatus
     started_at: datetime.datetime
-    flow_run_attempt: int
-    attempts: list["FlowRunStepAttempt"]
     name: Union[Unset, str] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     wake_at: Union[Unset, datetime.datetime] = UNSET
@@ -69,13 +59,6 @@ class FlowRunStepDetails:
         status = self.status.value
 
         started_at = self.started_at.isoformat()
-
-        flow_run_attempt = self.flow_run_attempt
-
-        attempts = []
-        for attempts_item_data in self.attempts:
-            attempts_item = attempts_item_data.to_dict()
-            attempts.append(attempts_item)
 
         name = self.name
 
@@ -104,8 +87,6 @@ class FlowRunStepDetails:
                 "type": type_,
                 "status": status,
                 "startedAt": started_at,
-                "flowRunAttempt": flow_run_attempt,
-                "attempts": attempts,
             }
         )
         if name is not UNSET:
@@ -127,8 +108,6 @@ class FlowRunStepDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.flow_run_step_attempt import FlowRunStepAttempt
-
         d = dict(src_dict)
         seq = d.pop("seq")
 
@@ -139,15 +118,6 @@ class FlowRunStepDetails:
         status = FlowRunStepStatus(d.pop("status"))
 
         started_at = isoparse(d.pop("startedAt"))
-
-        flow_run_attempt = d.pop("flowRunAttempt")
-
-        attempts = []
-        _attempts = d.pop("attempts")
-        for attempts_item_data in _attempts:
-            attempts_item = FlowRunStepAttempt.from_dict(attempts_item_data)
-
-            attempts.append(attempts_item)
 
         name = d.pop("name", UNSET)
 
@@ -179,8 +149,6 @@ class FlowRunStepDetails:
             type_=type_,
             status=status,
             started_at=started_at,
-            flow_run_attempt=flow_run_attempt,
-            attempts=attempts,
             name=name,
             completed_at=completed_at,
             wake_at=wake_at,

@@ -23,8 +23,6 @@ class FlowRunStep:
             place. `detached` runs a registered task as its own task run. `sleep` is a durable sleep.
         status (FlowRunStepStatus): `running` until the step records an outcome, then `succeeded` or `failed`.
         started_at (datetime.datetime):
-        flow_run_attempt (int): The 0-indexed flow run attempt that completed the step, 0 until then. A hint to how many
-            flow run attempts the step took.
         name (Union[Unset, str]): For inline steps, the function's name. For detached steps, the task's registered name.
             Omitted for sleep steps.
         completed_at (Union[Unset, datetime.datetime]):
@@ -38,7 +36,6 @@ class FlowRunStep:
     type_: FlowRunStepType
     status: FlowRunStepStatus
     started_at: datetime.datetime
-    flow_run_attempt: int
     name: Union[Unset, str] = UNSET
     completed_at: Union[Unset, datetime.datetime] = UNSET
     wake_at: Union[Unset, datetime.datetime] = UNSET
@@ -55,8 +52,6 @@ class FlowRunStep:
         status = self.status.value
 
         started_at = self.started_at.isoformat()
-
-        flow_run_attempt = self.flow_run_attempt
 
         name = self.name
 
@@ -79,7 +74,6 @@ class FlowRunStep:
                 "type": type_,
                 "status": status,
                 "startedAt": started_at,
-                "flowRunAttempt": flow_run_attempt,
             }
         )
         if name is not UNSET:
@@ -106,8 +100,6 @@ class FlowRunStep:
 
         started_at = isoparse(d.pop("startedAt"))
 
-        flow_run_attempt = d.pop("flowRunAttempt")
-
         name = d.pop("name", UNSET)
 
         _completed_at = d.pop("completedAt", UNSET)
@@ -132,7 +124,6 @@ class FlowRunStep:
             type_=type_,
             status=status,
             started_at=started_at,
-            flow_run_attempt=flow_run_attempt,
             name=name,
             completed_at=completed_at,
             wake_at=wake_at,

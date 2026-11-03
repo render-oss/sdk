@@ -7,16 +7,25 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
 from ...models.flow_run_step_details import FlowRunStepDetails
-from ...types import Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     flow_run_id: str,
     step_seq: int,
+    *,
+    step_key: Union[Unset, str] = UNSET,
 ) -> dict[str, Any]:
+    params: dict[str, Any] = {}
+
+    params["stepKey"] = step_key
+
+    params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
+
     _kwargs: dict[str, Any] = {
         "method": "get",
         "url": f"/flow-runs/{flow_run_id}/steps/{step_seq}",
+        "params": params,
     }
 
     return _kwargs
@@ -87,14 +96,17 @@ def sync_detailed(
     step_seq: int,
     *,
     client: Union[AuthenticatedClient, Client],
+    step_key: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, FlowRunStepDetails]]:
     """Retrieve flow run step
 
-     Retrieve a single step of a flow run, including its input, result, error, and failed attempts.
+     Retrieve a single step of a flow run, including its input, result and error. A sequence number can
+    cover more than one step, so pass the `stepKey` the step listing reported to address one of those.
 
     Args:
         flow_run_id (str):
         step_seq (int):
+        step_key (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -107,6 +119,7 @@ def sync_detailed(
     kwargs = _get_kwargs(
         flow_run_id=flow_run_id,
         step_seq=step_seq,
+        step_key=step_key,
     )
 
     response = client.get_httpx_client().request(
@@ -121,14 +134,17 @@ def sync(
     step_seq: int,
     *,
     client: Union[AuthenticatedClient, Client],
+    step_key: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, FlowRunStepDetails]]:
     """Retrieve flow run step
 
-     Retrieve a single step of a flow run, including its input, result, error, and failed attempts.
+     Retrieve a single step of a flow run, including its input, result and error. A sequence number can
+    cover more than one step, so pass the `stepKey` the step listing reported to address one of those.
 
     Args:
         flow_run_id (str):
         step_seq (int):
+        step_key (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -142,6 +158,7 @@ def sync(
         flow_run_id=flow_run_id,
         step_seq=step_seq,
         client=client,
+        step_key=step_key,
     ).parsed
 
 
@@ -150,14 +167,17 @@ async def asyncio_detailed(
     step_seq: int,
     *,
     client: Union[AuthenticatedClient, Client],
+    step_key: Union[Unset, str] = UNSET,
 ) -> Response[Union[Error, FlowRunStepDetails]]:
     """Retrieve flow run step
 
-     Retrieve a single step of a flow run, including its input, result, error, and failed attempts.
+     Retrieve a single step of a flow run, including its input, result and error. A sequence number can
+    cover more than one step, so pass the `stepKey` the step listing reported to address one of those.
 
     Args:
         flow_run_id (str):
         step_seq (int):
+        step_key (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -170,6 +190,7 @@ async def asyncio_detailed(
     kwargs = _get_kwargs(
         flow_run_id=flow_run_id,
         step_seq=step_seq,
+        step_key=step_key,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -182,14 +203,17 @@ async def asyncio(
     step_seq: int,
     *,
     client: Union[AuthenticatedClient, Client],
+    step_key: Union[Unset, str] = UNSET,
 ) -> Optional[Union[Error, FlowRunStepDetails]]:
     """Retrieve flow run step
 
-     Retrieve a single step of a flow run, including its input, result, error, and failed attempts.
+     Retrieve a single step of a flow run, including its input, result and error. A sequence number can
+    cover more than one step, so pass the `stepKey` the step listing reported to address one of those.
 
     Args:
         flow_run_id (str):
         step_seq (int):
+        step_key (Union[Unset, str]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -204,5 +228,6 @@ async def asyncio(
             flow_run_id=flow_run_id,
             step_seq=step_seq,
             client=client,
+            step_key=step_key,
         )
     ).parsed

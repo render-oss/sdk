@@ -2875,7 +2875,7 @@ export interface operations {
                  *     determined from the sandbox ID, and this parameter is ignored when supplied.
                  */
                 ownerId?: components["parameters"]["ownerId"];
-                /** @description Path in the sandbox this token authorizes. A relative path resolves within the sandbox's home directory ("." is the home directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch. */
+                /** @description Path in the sandbox this token authorizes. A relative path resolves within the sandbox's working directory, which is the image's WORKDIR or, when the image sets none, the home directory ("." is the working directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch. */
                 path: string;
             };
             header?: never;

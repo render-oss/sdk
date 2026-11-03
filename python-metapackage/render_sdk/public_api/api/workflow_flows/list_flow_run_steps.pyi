@@ -4,7 +4,7 @@ from render.public_api.api.workflow_flows.list_flow_run_steps import (
     AuthenticatedClient as AuthenticatedClient,
     Client as Client,
     Error as Error,
-    FlowRunStepWithCursor as FlowRunStepWithCursor,
+    FlowRunStepsPage as FlowRunStepsPage,
     HTTPStatus as HTTPStatus,
     Optional as Optional,
     Response as Response,

@@ -81,6 +81,7 @@ class AuditLogEvent(str, Enum):
     UPDATEIPALLOWLISTEVENT = "UpdateIPAllowListEvent"
     UPDATEORGPAYMENTMETHODEVENT = "UpdateOrgPaymentMethodEvent"
     UPDATEOTELINTEGRATIONEVENT = "UpdateOtelIntegrationEvent"
+    UPDATESERVICEBUILDSOURCEEVENT = "UpdateServiceBuildSourceEvent"
     UPDATESERVICENAMEEVENT = "UpdateServiceNameEvent"
     UPDATESSOCONNECTIONEVENT = "UpdateSSOConnectionEvent"
     UPDATEWEBHOOKEVENT = "UpdateWebhookEvent"
