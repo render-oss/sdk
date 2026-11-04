@@ -34,6 +34,8 @@ class Workflow:
         auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
             commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
             autodeploy.
+        default_version_id (Union[Unset, str]): ID of the workflow version that new task runs use by default. Omitted
+            until a version has been registered.
     """
 
     id: str
@@ -47,6 +49,7 @@ class Workflow:
     environment_id: Union[Unset, str] = UNSET
     slug: Union[Unset, str] = UNSET
     auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
+    default_version_id: Union[Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -74,6 +77,8 @@ class Workflow:
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
+        default_version_id = self.default_version_id
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -94,6 +99,8 @@ class Workflow:
             field_dict["slug"] = slug
         if auto_deploy_trigger is not UNSET:
             field_dict["autoDeployTrigger"] = auto_deploy_trigger
+        if default_version_id is not UNSET:
+            field_dict["defaultVersionId"] = default_version_id
 
         return field_dict
 
@@ -129,6 +136,8 @@ class Workflow:
         else:
             auto_deploy_trigger = AutoDeployTrigger(_auto_deploy_trigger)
 
+        default_version_id = d.pop("defaultVersionId", UNSET)
+
         workflow = cls(
             id=id,
             name=name,
@@ -141,6 +150,7 @@ class Workflow:
             environment_id=environment_id,
             slug=slug,
             auto_deploy_trigger=auto_deploy_trigger,
+            default_version_id=default_version_id,
         )
 
         workflow.additional_properties = d
