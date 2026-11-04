@@ -379,6 +379,7 @@ from .sandbox_network_policy_type import SandboxNetworkPolicyType
 from .sandbox_plan import SandboxPlan
 from .sandbox_post import SandboxPOST
 from .sandbox_post_env import SandboxPOSTEnv
+from .sandbox_shared_filesystem import SandboxSharedFilesystem
 from .sandbox_snapshot import SandboxSnapshot
 from .sandbox_snapshot_kind import SandboxSnapshotKind
 from .sandbox_snapshot_post import SandboxSnapshotPOST
@@ -419,6 +420,7 @@ from .service_type import ServiceType
 from .service_type_short import ServiceTypeShort
 from .service_with_cursor import ServiceWithCursor
 from .setup_postgres_replication_response_201 import SetupPostgresReplicationResponse201
+from .shared_filesystem import SharedFilesystem
 from .snapshot_restore_post import SnapshotRestorePOST
 from .start_flow_run import StartFlowRun
 from .static_site_details import StaticSiteDetails
@@ -851,6 +853,7 @@ __all__ = (
     "SandboxPlan",
     "SandboxPOST",
     "SandboxPOSTEnv",
+    "SandboxSharedFilesystem",
     "SandboxSnapshot",
     "SandboxSnapshotKind",
     "SandboxSnapshotPOST",
@@ -891,6 +894,7 @@ __all__ = (
     "ServiceTypeShort",
     "ServiceWithCursor",
     "SetupPostgresReplicationResponse201",
+    "SharedFilesystem",
     "SnapshotRestorePOST",
     "StartFlowRun",
     "StaticSiteDetails",

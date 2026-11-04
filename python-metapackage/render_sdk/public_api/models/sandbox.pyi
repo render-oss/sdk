@@ -5,6 +5,7 @@ from render.public_api.models.sandbox import (
     Sandbox as Sandbox,
     SandboxNetworkPolicy as SandboxNetworkPolicy,
     SandboxPlan as SandboxPlan,
+    SandboxSharedFilesystem as SandboxSharedFilesystem,
     SandboxStatus as SandboxStatus,
     T as T,
     TYPE_CHECKING as TYPE_CHECKING,

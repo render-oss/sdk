@@ -6,6 +6,7 @@ from render.public_api.models.sandbox_post import (
     SandboxPOST as SandboxPOST,
     SandboxPOSTEnv as SandboxPOSTEnv,
     SandboxPlan as SandboxPlan,
+    SandboxSharedFilesystem as SandboxSharedFilesystem,
     T as T,
     TYPE_CHECKING as TYPE_CHECKING,
     TypeVar as TypeVar,

@@ -284,8 +284,7 @@ export interface paths {
          *     accepts. The message lists the accepted plans.
          *
          *     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-         *     above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
-         *     workspaces.
+         *     above 2592000 (30 days).
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -1133,6 +1132,22 @@ export interface components {
              */
             rules?: components["schemas"]["sandboxEgressRule"][];
         };
+        sandboxSharedFilesystem: {
+            /**
+             * @description Name of the shared filesystem in the workspace. The first sandbox
+             *     that uses a name creates the filesystem; later sandboxes in the
+             *     workspace that use the same name share it.
+             * @example data
+             */
+            name: string;
+            /**
+             * @description Absolute path in the sandbox where the filesystem is mounted. Must
+             *     not be `/` or inside a system directory such as `/proc`, `/etc`,
+             *     or `/usr`.
+             * @example /data
+             */
+            mountPath: string;
+        };
         sandbox: {
             id: components["schemas"]["sandboxId"];
             /** @description The sandbox group this sandbox belongs to. */
@@ -1166,6 +1181,8 @@ export interface components {
              * @description When the sandbox was terminated, or null.
              */
             terminatedAt?: string | null;
+            /** @description Shared filesystems mounted in the sandbox. Absent when there are none. */
+            sharedFilesystems?: components["schemas"]["sandboxSharedFilesystem"][];
         };
         /**
          * @description Set either `type` or its deprecated alias `default`. Sending both is
@@ -1212,7 +1229,7 @@ export interface components {
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
             /**
-             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached. Use 0 for no timeout.
+             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached. Use 0 for no timeout. Positive values must be at least 60.
              * @default 86400
              */
             timeoutSeconds: number;
@@ -1253,6 +1270,11 @@ export interface components {
              *     `snapshotId` and `snapshotName`.
              */
             buildName?: string;
+            /**
+             * @description Shared filesystems to mount in the sandbox. At most one is
+             *     supported.
+             */
+            sharedFilesystems?: components["schemas"]["sandboxSharedFilesystem"][];
         };
         sandboxGroup: {
             id: components["schemas"]["sandboxGroupId"];

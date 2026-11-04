@@ -123,8 +123,7 @@ def sync_detailed(
     accepts. The message lists the accepted plans.
 
     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
-    workspaces.
+    above 2592000 (30 days).
 
     Args:
         body (SandboxPOST):
@@ -176,8 +175,7 @@ def sync(
     accepts. The message lists the accepted plans.
 
     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
-    workspaces.
+    above 2592000 (30 days).
 
     Args:
         body (SandboxPOST):
@@ -224,8 +222,7 @@ async def asyncio_detailed(
     accepts. The message lists the accepted plans.
 
     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
-    workspaces.
+    above 2592000 (30 days).
 
     Args:
         body (SandboxPOST):
@@ -275,8 +272,7 @@ async def asyncio(
     accepts. The message lists the accepted plans.
 
     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above the plan's maximum: 2592000 (30 days), or 86400 (24 hours) on Hobby
-    workspaces.
+    above 2592000 (30 days).
 
     Args:
         body (SandboxPOST):

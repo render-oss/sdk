@@ -10,6 +10,7 @@ from ..types import UNSET, Unset
 if TYPE_CHECKING:
     from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST
     from ..models.sandbox_post_env import SandboxPOSTEnv
+    from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem
 
 
 T = TypeVar("T", bound="SandboxPOST")
@@ -26,7 +27,7 @@ class SandboxPOST:
             only accepted when they name the same policy.
         plan (Union[SandboxPlan, Unset, str]): Compute plan. See `sandboxPlan` for known values.
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-            Use 0 for no timeout. Default: 86400.
+            Use 0 for no timeout. Positive values must be at least 60. Default: 86400.
         idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
             disable automatic idle suspension. Positive values must be at least 300. Default: 900.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
@@ -42,6 +43,9 @@ class SandboxPOST:
             no build with the name, and 409 with `code: build_not_succeeded` if
             none of them has succeeded. Mutually exclusive with `buildId`,
             `snapshotId` and `snapshotName`.
+        shared_filesystems (Union[Unset, list['SandboxSharedFilesystem']]): Shared filesystems to mount in the sandbox.
+            At most one is
+            supported.
     """
 
     owner_id: str
@@ -55,6 +59,7 @@ class SandboxPOST:
     snapshot_name: Union[Unset, str] = UNSET
     build_id: Union[Unset, str] = UNSET
     build_name: Union[Unset, str] = UNSET
+    shared_filesystems: Union[Unset, list["SandboxSharedFilesystem"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -90,6 +95,13 @@ class SandboxPOST:
 
         build_name = self.build_name
 
+        shared_filesystems: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.shared_filesystems, Unset):
+            shared_filesystems = []
+            for shared_filesystems_item_data in self.shared_filesystems:
+                shared_filesystems_item = shared_filesystems_item_data.to_dict()
+                shared_filesystems.append(shared_filesystems_item)
+
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update(
@@ -117,6 +129,8 @@ class SandboxPOST:
             field_dict["buildId"] = build_id
         if build_name is not UNSET:
             field_dict["buildName"] = build_name
+        if shared_filesystems is not UNSET:
+            field_dict["sharedFilesystems"] = shared_filesystems
 
         return field_dict
 
@@ -124,6 +138,7 @@ class SandboxPOST:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST
         from ..models.sandbox_post_env import SandboxPOSTEnv
+        from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem
 
         d = dict(src_dict)
         owner_id = d.pop("ownerId")
@@ -171,6 +186,13 @@ class SandboxPOST:
 
         build_name = d.pop("buildName", UNSET)
 
+        shared_filesystems = []
+        _shared_filesystems = d.pop("sharedFilesystems", UNSET)
+        for shared_filesystems_item_data in _shared_filesystems or []:
+            shared_filesystems_item = SandboxSharedFilesystem.from_dict(shared_filesystems_item_data)
+
+            shared_filesystems.append(shared_filesystems_item)
+
         sandbox_post = cls(
             owner_id=owner_id,
             sandbox_group_id=sandbox_group_id,
@@ -183,6 +205,7 @@ class SandboxPOST:
             snapshot_name=snapshot_name,
             build_id=build_id,
             build_name=build_name,
+            shared_filesystems=shared_filesystems,
         )
 
         sandbox_post.additional_properties = d
