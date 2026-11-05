@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import inspect
 import time
-import traceback
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -15,18 +14,22 @@ from typing import TYPE_CHECKING, Any, cast
 from render.client.errors import (
     DeterminismError,
     ExecutionError,
-    FlowHistoryError,
-    FlowHistoryErrorCode,
     FlowNestedStepError,
+    FlowUnreachableError,
     RenderError,
+    StepError,
     TerminalFlowError,
 )
 from render.workflows import _determinism
 from render.workflows._models.history import History
-from render.workflows._models.step import StepError, StepKey, StepRecord
+from render.workflows._models.step import StepKey, StepRecord
 from render.workflows._models.task import DeterminismDetails, DeterminismKind
 from render.workflows._models.wire import UNSET, Unset
 from render.workflows._utils import clock, serializers
+from render.workflows._utils.step_errors import (
+    raised_error,
+    recorded_error,
+)
 from render.workflows._utils.step_journal import RunFailure, StepJournal
 from render.workflows.context import FlowContext, FlowRunMetadata
 from render.workflows.flow import FlowDefinition
@@ -38,10 +41,6 @@ if TYPE_CHECKING:
     from render.workflows._models.task import InputResponse
     from render.workflows.client import UDSClient
 
-
-# The SDK server caps a step error at 250 KiB. A stack this long fits with
-# room for the message and data, even if every character is JSON-escaped.
-_STACK_LIMIT = 16_000
 
 _ONE_STEP_AT_A_TIME = (
     "A flow runs one step at a time, so a step's function can't make ctx calls."
@@ -91,10 +90,13 @@ class DurableFlowContext(FlowContext):
                 f"isn't supported. Steps retry locally"
             )
         self._metadata = FlowRunMetadata(flow_run_id=task_run_id)
+        self._workflow_attempt = (
+            0 if isinstance(input_response.attempt, Unset) else input_response.attempt
+        )
         self._failure = RunFailure()
         self._journal = StepJournal(
             client,
-            _replay_history(input_response, task_run_id),
+            _replay_history(input_response),
             session_id=task_run_id,
             failure=self._failure,
         )
@@ -191,7 +193,23 @@ class DurableFlowContext(FlowContext):
 
         retry = _step_retry(kwargs)
         with self.start_step(name, retry) as (step_ctx, recorded_step):
-            return self._run_step(step_ctx, recorded_step, fn, args)
+            try:
+                return self._run_step(step_ctx, recorded_step, fn, args)
+            except ExecutionError as error:
+                if not isinstance(error, StepError):
+                    # Runtime failures stop this attempt and go to the executor.
+                    # Recovery may supersede it before its callback is accepted;
+                    # they are not persisted as application step outcomes.
+                    self._failure.stop(error)
+                self._failure.raise_if_set()
+
+                completion = error.to_step_completion()
+                if completion is not None:
+                    self._journal.finish_attempt(completion)
+
+                # A recoverable failure reaches flow code only after its write.
+                self._failure.raise_if_set()
+                raise
 
     @contextmanager
     def start_step(
@@ -247,11 +265,21 @@ class DurableFlowContext(FlowContext):
 
         # A finished step returns its recorded outcome instead of running again.
         if recorded_step is not None and recorded_step.completed_at is not None:
+            if recorded_step.error is not None:
+                raise raised_error(
+                    step_ctx.name,
+                    recorded_step.error,
+                    session_id=self._metadata.flow_run_id,
+                    step_key=step_ctx.step_key,
+                )
             return _decoded_output(recorded_step)
 
         if recorded_step is None:
             self._journal.start(step_ctx, encoded_args)
 
+        # Failed argument encoding raised above unless this was a replay.
+        if encoded_args is None:
+            raise TerminalFlowError("step input is missing after argument validation")
         output, step_ctx = self._run_attempts(step_ctx, fn, encoded_args)
         self._journal.complete(step_ctx, output)
         # Return the decoded output, so a first run sees what a replay would.
@@ -262,34 +290,22 @@ class DurableFlowContext(FlowContext):
         step_ctx: RunningStep,
         recorded_step: StepRecord | None,
         args: tuple[Any, ...],
-    ) -> str:
-        """The step's args, encoded and, on a replay, checked against its
-        record. Args that diverge or can't be encoded fail the run."""
+    ) -> str | None:
+        """Encode and check args; a replayed encoding failure has no input."""
         try:
             return _encode_and_check_args(step_ctx, recorded_step, args)
-        except DeterminismError as e:
-            # A divergence fails the run. A finished step keeps its record, but
-            # an open one fails with the divergence, so it isn't left open.
-            # The run fails first, so a failed write can't lose the divergence.
-            self._failure.stop(e)
-            if recorded_step is not None and recorded_step.completed_at is None:
-                self._close_out_step(
-                    step_ctx,
-                    _step_error(e),
-                    started_at=clock.now(),
-                )
-            raise
         except (TypeError, ValueError) as e:
-            # Args that can't be encoded never will be, so the step fails and
-            # takes the run with it, even if the flow catches the error.
-            # A new step records that it started. An open one already did,
-            # and was cut off before it recorded the failure.
+            # A completed encoding failure is raised from its recorded outcome.
+            if recorded_step is not None and recorded_step.completed_at is not None:
+                return None
+            # A new step records its failed input encoding without an input.
+            # An open one was cut off before recording that failure.
             started_at = (
                 self._journal.start(step_ctx) if recorded_step is None else clock.now()
             )
-            raise self._fail_step(
+            raise self._step_failure(
                 step_ctx,
-                _step_error(e),
+                e,
                 started_at=started_at,
             ) from None
 
@@ -318,126 +334,83 @@ class DurableFlowContext(FlowContext):
                 # failed call cannot affect the next attempt or a replay.
                 # Decoding is the copy, and is cheaper than copy.deepcopy.
                 result = fn(*_decoded_args(encoded_args))
+            except (TerminalFlowError, FlowUnreachableError):
+                raise
             except Exception as e:
-                error = _step_error(e)
-                if (
-                    isinstance(e, TerminalFlowError)
-                    # A terminal error the step caught and replaced, e.g. a
-                    # nested ctx call, already failed the run.
-                    or self._failure.error is not None
-                    or not retry
-                    or step_ctx.attempt >= max_retries
-                ):
-                    # A step that fails for good ends the run, even if the
-                    # flow catches the error: its history can't be
-                    # replayed past a failed step.
-                    raise self._fail_step(
-                        step_ctx,
-                        error,
-                        started_at=started_at,
+                # A runtime guard may have been caught and wrapped by user code.
+                self._failure.raise_if_set()
+                if not retry or step_ctx.attempt >= max_retries:
+                    raise self._step_failure(
+                        step_ctx, e, started_at=started_at
                     ) from None
 
-                self._journal.attempt_failed(step_ctx, error, started_at=started_at)
+                self._journal.attempt_failed(
+                    step_ctx, recorded_error(e), started_at=started_at
+                )
                 # Back off here, at the failure, so a resumed attempt never waits.
                 time.sleep(_retry_delay_ms(retry, step_ctx.attempt) / 1000)
                 step_ctx = replace(step_ctx, attempt=step_ctx.attempt + 1)
                 continue
+
+            # A swallowed runtime violation still stops this attempt.
+            self._failure.raise_if_set()
 
             try:
                 return serializers.encode(result), step_ctx
             except (TypeError, ValueError) as e:
                 # Not retried: another attempt would repeat the function's
                 # side effects and return a result that still can't be encoded.
-                raise self._fail_step(
+                raise self._step_failure(
                     step_ctx,
-                    _step_error(e),
+                    e,
                     started_at=started_at,
                 ) from None
 
     def _fail_resume_past_retries(
         self, step_ctx: RunningStep, max_retries: int
     ) -> ExecutionError:
-        """Fail a step resumed past its retries, returning the error to raise."""
-        # A step past its retries has no attempt left to run, e.g. a crash
-        # cut off its last one. That's an internal state error, so it fails
-        # the run rather than run the step again.
-        internal_error = TerminalFlowError(
-            f"ctx.step({step_ctx.name}) resumed at attempt {step_ctx.attempt}, "
-            f"past its {max_retries} retries",
-            step_name=step_ctx.name,
-            session_id=self._metadata.flow_run_id,
-            step_key=step_ctx.step_key,
-        )
-        # The run fails first, so a failed write can't lose the error.
-        raised = self._failure.stop(internal_error)
-
-        # Self-repair: close out the open step, with its last recorded
-        # error if it has one, so a later replay doesn't resume it again.
+        """Reuse the last recorded failure without executing another attempt."""
         prev_attempts = self._journal.attempts(step_ctx.step_key)
-        self._close_out_step(
-            step_ctx,
-            prev_attempts[-1].error if prev_attempts else _step_error(internal_error),
-            started_at=clock.now(),
-        )
-        return raised
-
-    def _fail_step(
-        self,
-        step_ctx: RunningStep,
-        error: StepError,
-        *,
-        started_at: datetime,
-    ) -> ExecutionError:
-        """Complete the step with the error from its final attempt, failing
-        the run with it. Returns the error to raise."""
-        # The run fails before the write, so a failed write can't lose the
-        # error. A terminal write error that outranks it, e.g. a cancel,
-        # still overrides it.
-        raised = self._failure.stop(
-            _raised_step_error(
+        if prev_attempts:
+            final = prev_attempts[-1]
+            return raised_error(
                 step_ctx.name,
-                error,
+                final.error,
                 session_id=self._metadata.flow_run_id,
                 step_key=step_ctx.step_key,
-                terminal=True,
+                completion=final,
             )
-        )
-        self._journal.fail(step_ctx, error, started_at=started_at)
-        return raised
 
-    def _close_out_step(
+        return TerminalFlowError(
+            f"ctx.step({step_ctx.name}) resumed at attempt {step_ctx.attempt}, "
+            f"past its {max_retries} retries"
+        )
+
+    def _step_failure(
         self,
         step_ctx: RunningStep,
-        error: StepError,
+        error: Exception,
         *,
         started_at: datetime,
-    ) -> None:
-        """Complete the step with an error after the run already failed, from
-        a divergence or an internal error, which keeps that error."""
-        self._journal.fail(step_ctx, error, started_at=started_at, log_errors=True)
+    ) -> StepError:
+        recorded = recorded_error(error)
+        return raised_error(
+            step_ctx.name,
+            recorded,
+            session_id=self._metadata.flow_run_id,
+            step_key=step_ctx.step_key,
+            completion=self._journal.create_failed_attempt(
+                step_ctx,
+                recorded,
+                started_at=started_at,
+                workflow_attempt=self._workflow_attempt,
+            ),
+        )
 
 
-def _replay_history(input_response: InputResponse, session_id: str) -> History:
-    """The validated history the attempt replays.
-
-    The SDK server sends a flow's recorded history with its input.
-    Without one, the attempt starts from the first step.
-    """
-    try:
-        input_response.history.validate()
-    except FlowHistoryError as e:
-        # A terminal step ended the run. The attempt fails with its error
-        # rather than running the flow again to reach it.
-        last = input_response.history.steps[-1]
-        if e.code is not FlowHistoryErrorCode.TERMINAL or last.error is None:
-            raise
-        raise _raised_step_error(
-            last.task_name or "",
-            last.error,
-            session_id=session_id,
-            step_key=last.step_key,
-            terminal=True,
-        ) from None
+def _replay_history(input_response: InputResponse) -> History:
+    """Validate history before replaying each outcome at its original ctx call."""
+    input_response.history.validate()
     return input_response.history
 
 
@@ -501,62 +474,4 @@ def _retry_delay_ms(retry: Retry, failed_attempt: int) -> int:
     return max(
         0,
         int(retry.wait_duration_ms * retry.backoff_scaling**failed_attempt),
-    )
-
-
-def _step_error(e: Exception) -> StepError:
-    stack = "".join(traceback.format_exception(e))
-    if len(stack) > _STACK_LIMIT:
-        # Keep the end: the innermost frames and the error itself.
-        stack = "…" + stack[-_STACK_LIMIT:]
-    return StepError(
-        name=type(e).__name__,
-        message=str(e),
-        stack=stack,
-        data=_error_data(e),
-    )
-
-
-def _error_data(e: Exception) -> str | Unset:
-    """The attributes the error set on itself, such as `self.code`, as JSON."""
-    # Dunder entries are Python's bookkeeping, e.g. add_note's __notes__.
-    fields = {k: v for k, v in vars(e).items() if not k.startswith("__")}
-    if not fields:
-        return UNSET
-    try:
-        return serializers.encode(fields)
-    except (TypeError, ValueError):
-        # Fields that don't encode are dropped.
-        return UNSET
-
-
-def _decoded_error_data(error: StepError) -> Any:
-    """A recorded error's data, decoded when it's JSON."""
-    if isinstance(error.data, Unset):
-        return None
-    try:
-        return serializers.decode(error.data)
-    except ValueError:
-        return error.data
-
-
-def _raised_step_error(
-    name: str,
-    error: StepError,
-    *,
-    session_id: str | None,
-    step_key: StepKey,
-    terminal: bool = False,
-) -> ExecutionError:
-    """Built from the recorded error, so a replay raises the same one."""
-    cls = TerminalFlowError if terminal else ExecutionError
-    return cls(
-        f"Step {name!r} failed with {error.name}: {error.message}",
-        type="flow",
-        err_type="runtime",
-        step_name=name,
-        error_name=error.name,
-        error_data=_decoded_error_data(error),
-        session_id=session_id,
-        step_key=step_key,
     )

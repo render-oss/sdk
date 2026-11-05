@@ -45,14 +45,13 @@ def encoding_failure_divergence(
     step, if it does."""
     recorded_name = recorded.task_name or ""
     recorded_input = recorded.input_
-    # Only an open step without input matches: it was cut off before it
-    # recorded that its args failed to encode. A finished one fails the
-    # attempt before the flow runs.
+    # A step without input can have a recorded encoding failure, or have
+    # been cut off before recording it. Match the same call in either case.
     if (
         recorded.type_ is StepType.INLINE
         and recorded_name == name
         and not recorded_input
-        and recorded.completed_at is None
+        and (recorded.completed_at is None or recorded.error is not None)
     ):
         return None
 

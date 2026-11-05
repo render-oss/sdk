@@ -31,6 +31,5 @@ from render.workflows._utils.step_journal import (
     _run_failure_error_rank as _run_failure_error_rank,
     clock as clock,
     datetime as datetime,
-    logger as logger,
     serializers as serializers,
 )

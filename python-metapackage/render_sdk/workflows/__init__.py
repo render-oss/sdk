@@ -16,6 +16,7 @@ __all__ = [
     "Options",
     "Retry",
     "ExecutionError",
+    "StepError",
     "TaskContext",
     "TaskRunMetadata",
     "TaskDefinition",

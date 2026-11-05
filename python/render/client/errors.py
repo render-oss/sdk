@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
     # Type-only: the step models raise these errors, so a runtime import
     # would be circular.
-    from render.workflows._models.step import StepKey
+    from render.workflows._models.step import StepAttemptRecord, StepKey
     from render.workflows._models.task import DeterminismDetails
     from render.workflows.client import CallbackRequest
 
@@ -102,6 +102,10 @@ class ExecutionError(RenderError):
         self.session_id = session_id
         self.step_key = step_key
 
+    def to_step_completion(self) -> "StepAttemptRecord | None":
+        """The failed attempt to complete before exposing this error, if any."""
+        return None
+
     def to_callback_request(self) -> "CallbackRequest":
         """The error callback that reports this error as the task's failure."""
         # Imported here: the workflow client imports these errors.
@@ -136,9 +140,24 @@ class FlowRunError(RenderError):
         self.details = details
 
 
+class StepError(ExecutionError):
+    """A step failure that flow code can catch, including on replay."""
+
+    def __init__(
+        self,
+        *args: object,
+        completion: "StepAttemptRecord | None" = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(*args, **kwargs)
+        self._completion = completion
+
+    def to_step_completion(self) -> "StepAttemptRecord | None":
+        return self._completion
+
+
 class TerminalFlowError(ExecutionError):
-    """Exception for a flow step error that retrying won't fix. A step
-    that raises it fails without using its remaining retries."""
+    """Internal runtime error that stops the flow even if user code catches it."""
 
     def __init__(
         self,
@@ -281,10 +300,6 @@ class FlowHistoryErrorCode(str, Enum):
     """The steps' seqs don't count up from zero without skipping one."""
     AFTER_OPEN = "WFL-HIST-AFTER-OPEN"
     """A step comes after one that never finished."""
-    AFTER_TERMINAL = "WFL-HIST-AFTER-TERMINAL"
-    """A step comes after one that ended the run."""
-    TERMINAL = "WFL-HIST-TERMINAL"
-    """The last step ended the run, so there's nothing left to replay."""
     ATTEMPT_STEP = "WFL-HIST-ATTEMPT-STEP"
     """A failed attempt was made before its step started."""
     ATTEMPT_SEQ = "WFL-HIST-ATTEMPT-SEQ"

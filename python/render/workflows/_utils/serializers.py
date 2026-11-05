@@ -9,6 +9,7 @@ from datetime import datetime
 from render.workflows._models.step import (
     Payload,
     StepAttempt,
+    StepAttemptData,
     StepError,
     StepKey,
 )
@@ -39,6 +40,7 @@ def final_attempt(
     attempt: int,
     started_at: datetime,
     ended_at: datetime,
+    workflow_attempt: int,
 ) -> StepAttempt:
     """The failed attempt that ends a step, with its error as a JSON payload."""
     return StepAttempt(
@@ -48,4 +50,5 @@ def final_attempt(
         started_at=started_at.isoformat(),
         ended_at=ended_at.isoformat(),
         error=payload(json.dumps(error.to_dict())),
+        data=StepAttemptData(workflow_attempt=workflow_attempt),
     )

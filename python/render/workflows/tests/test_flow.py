@@ -20,6 +20,7 @@ from render.client.errors import (
     RateLimitError,
     RenderError,
     ServerError,
+    StepError,
     TerminalFlowError,
 )
 from render.client.errors import TimeoutError as SdkTimeoutError
@@ -260,7 +261,7 @@ def final_error(complete):
 
 
 @pytest.mark.parametrize("circular", [False, True], ids=["datetime", "circular"])
-def test_invalid_step_arguments_are_recorded_as_a_terminal_failure(
+def test_invalid_step_arguments_are_recorded_as_a_catchable_failure(
     ctx, mock_client, mocker, circular
 ):
     value = []
@@ -278,7 +279,7 @@ def test_invalid_step_arguments_are_recorded_as_a_terminal_failure(
         return arg
 
     with pytest.raises(
-        TerminalFlowError, match=f"Step 'charge' failed with {error_name}"
+        StepError, match=f"Step 'charge' failed with {error_name}"
     ) as raised:
         ctx.step(
             "charge",
@@ -312,16 +313,15 @@ def test_invalid_step_arguments_are_recorded_as_a_terminal_failure(
         0,
     )
     assert final["ended_at"] == complete["outcome"]["completed_at"]
-    assert "data" not in final
+    assert final["data"]["workflow_attempt"] == 2
     assert final_error(complete)["name"] == error_name
     assert final_error(complete)["message"] in str(raised.value)
     assert error_name in final_error(complete)["stack"]
 
-    # The failure ends the run: a later step raises it again without running.
-    with pytest.raises(TerminalFlowError) as later:
-        ctx.step("next", lambda: "ok")
-    assert later.value is raised.value
-    assert len(requests(mock_client)) == 2
+    # Once recorded, the failure is catchable and a later step can run.
+    assert ctx.step("next", lambda: "ok") == "ok"
+    assert ctx.run_failure is None
+    assert len(requests(mock_client)) == 4
 
 
 def test_steps_run_in_the_order_the_flow_calls_them(ctx, mock_client):
@@ -440,7 +440,7 @@ async def test_a_failed_step_fails_the_flow_run(app, mock_client):
     def wf(ctx) -> None:
         ctx.step("declined", declined)
 
-    with pytest.raises(ExecutionError, match="card declined"):
+    with pytest.raises(RuntimeError, match="card declined"):
         await TaskExecutor(app._registry, mock_client).execute(
             "wf", [], input_response=flow_input()
         )
@@ -511,27 +511,66 @@ def unencodable_result():
     [
         (unencodable_arg, (object(),), "TypeError"),
         (out_of_retries, (), "ConnectionError"),
-        (terminal, (), "TerminalFlowError"),
         (unencodable_result, (), "TypeError"),
     ],
-    ids=["unencodable-arg", "out-of-retries", "terminal", "unencodable-result"],
+    ids=["unencodable-arg", "out-of-retries", "unencodable-result"],
 )
-def test_failed_step_fails_the_run_even_if_completing_it_fails(
+def test_unacknowledged_failure_stops_the_attempt(
     ctx, mock_client, sleeps, fn, args, error_name
 ):
     lost = ServerError("write was not acknowledged")
     mock_client.step_complete.side_effect = lost
 
-    # The step's failure wins over the write that would have recorded it.
+    # Workflow code cannot catch the step failure until it is durable.
     with pytest.raises(
-        TerminalFlowError, match=f"Step 'charge' failed with {error_name}"
+        FlowUnreachableError, match="write was not acknowledged"
     ) as raised:
         ctx.step("charge", fn, *args)
     assert raised.value.__cause__ is lost
 
-    with pytest.raises(TerminalFlowError) as later:
+    with pytest.raises(FlowUnreachableError) as later:
         ctx.step("later", must_not_run)
     assert later.value is raised.value
+
+
+@pytest.mark.parametrize(
+    "fn, args",
+    [(out_of_retries, ()), (unencodable_arg, (object(),)), (unencodable_result, ())],
+)
+def test_step_failure_becomes_catchable_only_after_completion_ack(
+    ctx, mock_client, fn, args
+):
+    pending = []
+
+    def acknowledge(request):
+        pending.append(ctx.run_failure)
+
+    mock_client.step_complete.side_effect = acknowledge
+    with pytest.raises(StepError):
+        ctx.step("fn", fn, *args)
+
+    assert pending == [None]
+    assert ctx.run_failure is None
+    assert ctx.step("fallback", lambda: "fallback") == "fallback"
+
+
+@pytest.mark.parametrize("error_type", [TerminalFlowError, FlowUnreachableError])
+def test_runtime_failure_stops_without_recording(ctx, mock_client, sleeps, error_type):
+    error = error_type("runtime stopped")
+
+    def fail():
+        raise error
+
+    with pytest.raises(error_type) as raised:
+        ctx.step("fail", fail, retry=Retry(max_retries=3, wait_duration_ms=10))
+
+    assert raised.value is error
+    assert ctx.run_failure is error
+    assert [r["kind"] for r in requests(mock_client)] == ["start"]
+    sleeps.assert_not_called()
+    with pytest.raises(error_type) as later:
+        ctx.step("later", must_not_run)
+    assert later.value is error
 
 
 def flaky_once():
@@ -592,7 +631,7 @@ def test_inline_step_raises_step_error_after_its_last_attempt(
     def declined() -> None:
         raise ValueError("card declined")
 
-    with pytest.raises(ExecutionError, match="card declined") as raised:
+    with pytest.raises(StepError, match="card declined") as raised:
         ctx.step(
             "declined",
             declined,
@@ -607,7 +646,9 @@ def test_inline_step_raises_step_error_after_its_last_attempt(
         "ValueError",
     )
     assert (error.session_id, error.step_key) == ("trn-1", StepKey(seq=0))
-    assert isinstance(error, TerminalFlowError)
+    assert type(error) is StepError
+    assert isinstance(error, ExecutionError)
+    assert not isinstance(error, TerminalFlowError)
 
     writes = requests(mock_client)
     assert [w["kind"] for w in writes] == ["start", "complete"]
@@ -616,8 +657,9 @@ def test_inline_step_raises_step_error_after_its_last_attempt(
     assert "output" not in writes[-1]["outcome"]
 
 
-def test_failed_step_records_the_end_of_a_long_stack(ctx, mock_client):
-    message = "card declined " + "x" * 20_000
+@pytest.mark.parametrize("character", ["x", "界"])
+def test_failed_step_records_the_end_of_a_long_stack(ctx, mock_client, character):
+    message = "card declined " + character * 20_000
 
     def charge() -> None:
         raise ValueError(message)
@@ -627,9 +669,9 @@ def test_failed_step_records_the_end_of_a_long_stack(ctx, mock_client):
 
     (_, complete) = requests(mock_client)
     stack = final_error(complete)["stack"]
-    assert len(stack) == 16_001
+    assert 15_997 <= len(stack.encode("utf-8")) <= 16_000
     assert stack.startswith("…")
-    assert stack.endswith("x" * 15_000 + "\n")
+    assert stack.endswith(character * 5_000 + "\n")
     assert final_error(complete)["message"] == message
 
 
@@ -647,7 +689,7 @@ def test_failed_step_records_the_fields_its_error_set(ctx, mock_client):
         vars(error)["__notes__"] = ["not recorded"]
         raise error
 
-    with pytest.raises(ExecutionError) as raised:
+    with pytest.raises(StepError) as raised:
         ctx.step("charge", charge)
 
     assert raised.value.error_data == {
@@ -660,19 +702,63 @@ def test_failed_step_records_the_fields_its_error_set(ctx, mock_client):
 
 @pytest.mark.parametrize(
     "error",
-    [ValueError("plain"), CardDeclined("expired", retry_after=datetime(2026, 10, 30))],
+    [ValueError("plain"), CardDeclined(object(), retry_after=datetime(2026, 10, 30))],
     ids=["no-fields", "unencodable"],
 )
 def test_failed_step_without_encodable_fields_records_no_data(ctx, mock_client, error):
     def charge() -> None:
         raise error
 
-    with pytest.raises(ExecutionError) as raised:
+    with pytest.raises(StepError) as raised:
         ctx.step("charge", charge)
 
     assert raised.value.error_data is None
     (_, complete) = requests(mock_client)
     assert "data" not in final_error(complete)
+
+
+@pytest.mark.parametrize(
+    "fields, expected",
+    [
+        (
+            {"code": "expired", "bad": object(), "retry": 2},
+            {"code": "expired", "retry": 2},
+        ),
+        ({"large": "x" * 16_000, "code": "expired"}, {"code": "expired"}),
+        (
+            {"first": "x" * 10_000, "second": "y" * 10_000, "code": "expired"},
+            {"first": "x" * 10_000, "code": "expired"},
+        ),
+        ({"unicode": "界" * 4_000, "code": "expired"}, {"code": "expired"}),
+    ],
+    ids=["mixed-fields", "oversized-field", "total-budget", "unicode-budget"],
+)
+def test_failed_step_preserves_fields_that_encode_and_fit(
+    ctx, mock_client, fields, expected
+):
+    def charge() -> None:
+        error = ValueError("declined")
+        vars(error).update(fields)
+        raise error
+
+    with pytest.raises(StepError) as raised:
+        ctx.step("charge", charge)
+
+    assert raised.value.error_data == expected
+    (_, complete) = requests(mock_client)
+    data = final_error(complete)["data"]
+    assert len(data.encode("utf-8")) <= 16_000
+    assert json.loads(data) == expected
+
+
+def test_missing_validated_step_input_is_terminal(ctx, mock_client, monkeypatch):
+    monkeypatch.setattr(ctx, "_checked_args", lambda *args: None)
+
+    with pytest.raises(TerminalFlowError, match="step input is missing") as raised:
+        ctx.step("charge", must_not_run)
+
+    assert ctx.run_failure is raised.value
+    assert [w["kind"] for w in requests(mock_client)] == ["start"]
 
 
 @pytest.mark.parametrize(
@@ -684,10 +770,11 @@ def test_replayed_step_failure_carries_its_recorded_data(mock_client, data, expe
     step = recorded_step(0, "charge", [], error=("CardDeclined", "card declined"))
     step["error"]["data"] = data
 
-    with pytest.raises(ExecutionError) as raised:
-        replay_ctx(mock_client, [step])
+    with pytest.raises(StepError) as raised:
+        replay_ctx(mock_client, [step]).step("charge", must_not_run)
 
     assert raised.value.error_data == expected
+    assert requests(mock_client) == []
 
 
 def test_inline_step_fails_once_its_retries_max_out(ctx, mock_client, sleeps):
@@ -698,7 +785,7 @@ def test_inline_step_fails_once_its_retries_max_out(ctx, mock_client, sleeps):
         calls += 1
         raise ConnectionError(f"timeout {calls - 1}")
 
-    with pytest.raises(TerminalFlowError, match="timeout 2"):
+    with pytest.raises(StepError, match="timeout 2"):
         ctx.step("flaky", flaky, retry=Retry(max_retries=2, wait_duration_ms=100))
 
     assert calls == 3
@@ -742,7 +829,7 @@ def test_inline_step_without_retry_runs_once(ctx, mock_client, sleeps):
     def declined() -> None:
         raise ValueError("card declined")
 
-    with pytest.raises(ExecutionError):
+    with pytest.raises(StepError):
         ctx.step("declined", declined)
 
     assert [w["kind"] for w in requests(mock_client)] == ["start", "complete"]
@@ -759,7 +846,7 @@ def test_inline_step_with_an_unencodable_result_is_not_retried(
         calls += 1
         return object()
 
-    with pytest.raises(TerminalFlowError) as raised:
+    with pytest.raises(StepError) as raised:
         ctx.step("charge", charge, retry=Retry(max_retries=3, wait_duration_ms=10))
     assert raised.value.error_name == "TypeError"
 
@@ -806,9 +893,7 @@ def test_ctx_call_inside_a_step_fails_without_retrying(ctx, mock_client, sleeps)
     assert ctx._in_flight is False
     assert ctx.run_failure is raised.value
     writes = requests(mock_client)
-    assert [w["kind"] for w in writes] == ["start", "complete"]
-    assert "within a step" in final_error(writes[-1])["message"]
-    assert "output" not in writes[-1]["outcome"]
+    assert [w["kind"] for w in writes] == ["start"]
     sleeps.assert_not_called()
 
 
@@ -831,12 +916,13 @@ def test_a_step_that_replaces_a_terminal_error_fails_without_retrying(
     assert calls == 1
     assert ctx.run_failure is raised.value
     writes = requests(mock_client)
-    assert [w["kind"] for w in writes] == ["start", "complete"]
-    assert final_error(writes[-1])["name"] == "RuntimeError"
+    assert [w["kind"] for w in writes] == ["start"]
     sleeps.assert_not_called()
 
 
-def test_ctx_call_inside_a_step_fails_the_run_even_if_the_step_catches_it(ctx):
+def test_ctx_call_inside_a_step_fails_the_run_even_if_the_step_catches_it(
+    ctx, mock_client, sleeps
+):
     def nested() -> str:
         try:
             ctx.step("inner", lambda: None)
@@ -844,43 +930,197 @@ def test_ctx_call_inside_a_step_fails_the_run_even_if_the_step_catches_it(ctx):
             return "caught"
         return "ran"
 
-    assert ctx.step("nested", nested) == "caught"
-    assert ctx.run_failure is not None
-    assert "within a step" in str(ctx.run_failure)
-    with pytest.raises(FlowNestedStepError, match="within a step"):
+    with pytest.raises(FlowNestedStepError, match="within a step") as raised:
+        ctx.step("nested", nested, retry=Retry(max_retries=3, wait_duration_ms=10))
+    assert ctx.run_failure is raised.value
+    assert [w["kind"] for w in requests(mock_client)] == ["start"]
+    sleeps.assert_not_called()
+    with pytest.raises(FlowNestedStepError, match="within a step") as later:
         ctx.step("after", lambda: None)
+    assert later.value is raised.value
 
 
 def test_terminal_error_fails_without_retrying(ctx, mock_client, sleeps):
     calls = 0
+    fatal = TerminalFlowError("card declined")
 
     def charge() -> None:
         nonlocal calls
         calls += 1
-        raise TerminalFlowError("card declined")
+        raise fatal
 
     with pytest.raises(TerminalFlowError, match="card declined") as raised:
         ctx.step("charge", charge, retry=Retry(max_retries=3, wait_duration_ms=10))
 
-    assert raised.value.step_name == "charge"
+    assert raised.value is fatal
+    assert ctx.run_failure is fatal
     assert calls == 1
-    assert [w["kind"] for w in requests(mock_client)] == ["start", "complete"]
+    assert [w["kind"] for w in requests(mock_client)] == ["start"]
     sleeps.assert_not_called()
 
 
-def test_a_failed_step_fails_the_run_even_if_caught(ctx, mock_client):
-    def declined() -> None:
+@pytest.mark.parametrize("fn", [out_of_retries, unencodable_result])
+@pytest.mark.asyncio
+async def test_caught_step_failure_succeeds(app, mock_client, sleeps, fn):
+    mock_client.step_attempt.return_value = StepAttemptResponse(applied=True)
+    later_ran = catch_all_flow(app, fn)
+
+    assert await execute_flow(app, mock_client) == "carried on"
+    assert later_ran == [True]
+    assert step_seqs(mock_client) == {0, 1}
+    callback = mock_client.post_callback.await_args.args[0]
+    assert callback.status is Status.SUCCESS
+
+
+@pytest.mark.parametrize("retries", [None, 0, 2])
+def test_caught_exhausted_step_runs_fallback_and_replays(
+    ctx, mock_client, sleeps, retries
+):
+    calls = []
+
+    def declined():
+        calls.append("declined")
         raise ValueError("card declined")
 
-    with pytest.raises(TerminalFlowError) as on_exit, ctx:
-        with contextlib.suppress(TerminalFlowError):
-            ctx.step("declined", declined)
-        with pytest.raises(TerminalFlowError) as later:
-            ctx.step("later", must_not_run)
+    def fallback():
+        calls.append("fallback")
+        return "recovered"
 
-    assert on_exit.value is later.value
-    assert later.value.step_name == "declined"
-    assert [w["kind"] for w in requests(mock_client)] == ["start", "complete"]
+    options = (
+        {}
+        if retries is None
+        else {"retry": Retry(max_retries=retries, wait_duration_ms=0)}
+    )
+
+    def run(context):
+        with context:
+            try:
+                context.step("declined", declined, **options)
+            except StepError as error:
+                assert error.step_name == "declined"
+                assert error.error_name == "ValueError"
+                return context.step("fallback", fallback)
+        pytest.fail("expected the failed step to raise")
+
+    assert run(ctx) == "recovered"
+    assert calls == ["declined"] * ((retries or 0) + 1) + ["fallback"]
+    assert ctx.run_failure is None
+    history = [
+        recorded_step(0, "declined", [], error=("ValueError", "card declined")),
+        recorded_step(1, "fallback", [], output="recovered"),
+    ]
+    mock_client.reset_mock()
+    calls.clear()
+    assert run(replay_ctx(mock_client, history)) == "recovered"
+    assert calls == []
+    assert requests(mock_client) == []
+
+
+@pytest.mark.parametrize("encoding", ["input", "output"])
+def test_caught_encoding_failure_replays_without_reexecuting(
+    ctx, mock_client, encoding
+):
+    calls = []
+
+    def invalid(value=None):
+        calls.append("invalid")
+        return object()
+
+    args = (object(),) if encoding == "input" else ()
+
+    def run(context):
+        with context:
+            with pytest.raises(StepError) as error:
+                context.step("invalid", invalid, *args)
+            assert error.value.error_name == "TypeError"
+            return context.step("fallback", lambda: "recovered")
+
+    assert run(ctx) == "recovered"
+    assert calls == ([] if encoding == "input" else ["invalid"])
+    # Replay the history this execution actually recorded, including its error.
+    response = flow_input(history=ctx._journal._history)
+    mock_client.reset_mock()
+    calls.clear()
+    assert run(DurableFlowContext(mock_client, response)) == "recovered"
+    assert calls == []
+    assert requests(mock_client) == []
+
+
+@pytest.mark.parametrize(
+    "error_name",
+    [
+        "DeterminismError",
+        "FlowCancelledError",
+        "FlowUnreachableError",
+        "TerminalFlowError",
+    ],
+)
+def test_user_step_error_names_are_catchable_on_first_run_and_replay(
+    ctx, mock_client, error_name
+):
+    error_type = type(error_name, (Exception,), {})
+
+    def fails():
+        raise error_type("user failure")
+
+    def run(context, fn):
+        with context:
+            with pytest.raises(StepError) as error:
+                context.step("fails", fn)
+            assert error.value.error_name == error_name
+            assert context.run_failure is None
+
+    run(ctx, fails)
+    mock_client.reset_mock()
+    replay = DurableFlowContext(mock_client, flow_input(history=ctx._journal._history))
+    run(replay, must_not_run)
+    assert requests(mock_client) == []
+
+
+def test_raising_a_caught_step_error_records_the_current_step(ctx, mock_client, sleeps):
+    with pytest.raises(StepError) as first:
+        ctx.step("first", out_of_retries)
+    original = first.value
+    original_fields = vars(original).copy()
+    calls = []
+
+    def raise_again():
+        calls.append(True)
+        raise original
+
+    mock_client.step_attempt.return_value = StepAttemptResponse(applied=True)
+    with pytest.raises(StepError) as second:
+        ctx.step("second", raise_again, retry=Retry(max_retries=1, wait_duration_ms=0))
+
+    assert calls == [True, True]
+    assert vars(original) == original_fields
+    assert original.step_key == StepKey(seq=0)
+    assert second.value is not original
+    assert second.value.step_name == "second"
+    assert second.value.step_key == StepKey(seq=1)
+    assert second.value.error_name == "StepError"
+    writes = requests(mock_client)
+    assert [r["kind"] for r in writes] == [
+        "start",
+        "complete",
+        "start",
+        "attempt",
+        "complete",
+    ]
+    assert writes[-1]["key"] == {"seq": 1, "sub_key": ""}
+    assert writes[-1]["outcome"]["final_attempt"]["attempt"] == 1
+    assert final_error(writes[-1])["message"] == str(original)
+    assert ctx.run_failure is None
+    assert ctx.step("fallback", lambda: "fallback") == "fallback"
+
+
+def test_replay_after_failed_step_ack_runs_caught_fallback(mock_client):
+    history = [recorded_step(0, "declined", [], error=("ValueError", "card declined"))]
+    with replay_ctx(mock_client, history) as context:
+        with pytest.raises(StepError, match="card declined"):
+            context.step("declined", must_not_run)
+        assert context.step("fallback", lambda: "recovered") == "recovered"
+    assert step_seqs(mock_client) == {1}
 
 
 def test_failed_write_stops_the_step(ctx, mock_client):
@@ -937,18 +1177,18 @@ def step_seqs(mock_client):
 @pytest.mark.parametrize(
     "fn, mock_config, error, match",
     [
-        (terminal, {}, TerminalFlowError, "failed with TerminalFlowError"),
-        (
-            out_of_retries,
-            {"step_attempt.return_value": StepAttemptResponse(applied=True)},
-            TerminalFlowError,
-            "failed with ConnectionError",
-        ),
+        (terminal, {}, TerminalFlowError, "card declined"),
         (
             terminal,
             {"step_complete.side_effect": ServerError("complete not acknowledged")},
             TerminalFlowError,
-            "failed with TerminalFlowError",
+            "card declined",
+        ),
+        (
+            out_of_retries,
+            {"step_complete.side_effect": ServerError("complete not acknowledged")},
+            FlowUnreachableError,
+            "complete not acknowledged",
         ),
         (
             succeeds,
@@ -973,7 +1213,7 @@ def step_seqs(mock_client):
             "status 400",
         ),
         (
-            # Both are terminal, so the step's failure stands.
+            # Runtime failures do not attempt a step completion.
             terminal,
             {
                 "step_complete.side_effect": ClientError(
@@ -981,10 +1221,10 @@ def step_seqs(mock_client):
                 )
             },
             TerminalFlowError,
-            "failed with TerminalFlowError",
+            "card declined",
         ),
         (
-            terminal,
+            out_of_retries,
             {
                 "step_complete.side_effect": ClientError(
                     "record step failed with status 409",
@@ -997,13 +1237,13 @@ def step_seqs(mock_client):
         ),
     ],
     ids=[
-        "terminal",
-        "out-of-retries",
+        "terminal-acknowledged",
         "terminal-then-unreachable",
+        "ordinary-then-unreachable",
         "rejected-write",
         "bad-request",
         "terminal-then-rejected",
-        "terminal-then-cancelled",
+        "ordinary-then-cancelled",
     ],
 )
 @pytest.mark.asyncio
@@ -1028,7 +1268,9 @@ async def test_a_failure_the_flow_catches_still_fails_the_run(
     callback = mock_client.post_callback.await_args.args[0]
     assert callback.status == Status.ERROR
     assert callback.error == str(raised.value)
-    assert callback.reason is None
+    assert callback.reason == (
+        TaskErrorReason.SYSTEM if error is FlowUnreachableError else None
+    )
 
 
 @pytest.mark.parametrize(
@@ -1106,11 +1348,9 @@ async def test_an_unreachable_server_still_ends_the_attempt_if_the_callback_fail
         (succeeds, "step_start"),
         (out_of_retries, "step_attempt"),
         (succeeds, "step_complete"),
-        # The cancel overrides the step's failure, which already failed the run.
-        (terminal, "step_complete"),
         (out_of_retries, "step_complete"),
     ],
-    ids=["start", "attempt", "complete", "terminal", "out-of-retries"],
+    ids=["start", "attempt", "complete", "out-of-retries"],
 )
 @pytest.mark.asyncio
 async def test_a_cancelled_run_stops_the_attempt_without_a_callback(
@@ -1173,18 +1413,18 @@ async def test_an_execution_error_raised_by_user_code_is_a_plain_failure(
 
 
 @pytest.mark.asyncio
-async def test_the_recorded_run_failure_passes_through_when_re_raised(app, mock_client):
+async def test_re_raised_step_failure_reports_an_ordinary_error(app, mock_client):
     @app.flow
     def wf(ctx) -> None:
         try:
-            ctx.step("terminal", terminal)
-        except TerminalFlowError as e:
+            ctx.step("out_of_retries", out_of_retries)
+        except StepError as e:
             raise e from None
 
-    with pytest.raises(TerminalFlowError) as raised:
+    with pytest.raises(RuntimeError) as raised:
         await execute_flow(app, mock_client)
 
-    assert raised.value.step_name == "terminal"
+    assert raised.value.__cause__.step_name == "out_of_retries"
     callback = mock_client.post_callback.await_args.args[0]
     assert callback.status == Status.ERROR
 
@@ -1283,15 +1523,6 @@ def replay_ctx(mock_client, steps, step_attempts=()):
     return DurableFlowContext(mock_client, replay_input(steps, step_attempts))
 
 
-def assert_failed_with_divergence(writes, *, attempt):
-    """The open step at seq 0 completed with the divergence as its error."""
-    (complete,) = writes
-    assert complete["kind"] == "complete"
-    assert complete["key"] == {"seq": 0, "sub_key": ""}
-    assert complete["outcome"]["final_attempt"]["attempt"] == attempt
-    assert final_error(complete)["name"] == "DeterminismError"
-
-
 def recorded_attempt(seq, attempt):
     return {
         "step_key": {"seq": seq},
@@ -1323,10 +1554,10 @@ def test_failed_step_fails_the_replay_with_the_same_error(mock_client, sleeps):
         raise ValueError("card declined")
 
     first_run = DurableFlowContext(mock_client, flow_input())
-    with pytest.raises(ExecutionError) as first:
+    with pytest.raises(StepError) as first:
         first_run.step("declined", declined, "o-1")
 
-    with pytest.raises(ExecutionError) as replayed:
+    with pytest.raises(StepError) as replayed:
         replay_ctx(
             mock_client,
             [
@@ -1334,7 +1565,7 @@ def test_failed_step_fails_the_replay_with_the_same_error(mock_client, sleeps):
                     0, "declined", ["o-1"], error=("ValueError", "card declined")
                 )
             ],
-        )
+        ).step("declined", must_not_run, "o-1")
     assert type(replayed.value) is type(first.value)
     assert str(replayed.value) == str(first.value)
 
@@ -1358,10 +1589,8 @@ def test_unencodable_replay_args_diverge_from_recorded_args(
         ctx.step("charge", must_not_run, datetime(2026, 10, 20))
 
     assert raised.value.details.kind == DeterminismKind.INPUT_HASH
-    if failures == 0:
-        assert requests(mock_client) == []
-    else:
-        assert_failed_with_divergence(requests(mock_client), attempt=failures)
+    assert requests(mock_client) == []
+    assert ctx.run_failure is raised.value
 
 
 @pytest.mark.parametrize(
@@ -1372,22 +1601,24 @@ def test_unencodable_replay_args_diverge_from_recorded_args(
     ],
     ids=["encoding-failure", "divergence"],
 )
-def test_recorded_terminal_step_fails_the_attempt_at_start(
+def test_recorded_error_is_raised_at_its_step_without_trusting_its_name(
     mock_client, error, has_input
 ):
     step = recorded_step(0, "charge", ["o-1"], error=error)
     if not has_input:
         del step["input"]
 
-    with pytest.raises(TerminalFlowError, match=error[1]) as raised:
-        replay_ctx(mock_client, [step])
-
+    with replay_ctx(mock_client, [step]) as context:
+        args = ("o-1",) if has_input else (datetime(2026, 10, 20),)
+        with pytest.raises(StepError, match=error[1]) as raised:
+            context.step("charge", must_not_run, *args)
+        assert context.run_failure is None
     assert raised.value.error_name == error[0]
     assert requests(mock_client) == []
 
 
 @pytest.mark.asyncio
-async def test_executor_fails_a_replay_of_a_terminal_history_without_running_it(
+async def test_executor_replays_failed_step_before_reporting_uncaught_error(
     app, mock_client
 ):
     ran = False
@@ -1396,18 +1627,19 @@ async def test_executor_fails_a_replay_of_a_terminal_history_without_running_it(
     def wf(ctx) -> None:
         nonlocal ran
         ran = True
+        ctx.step("charge", must_not_run, "o-1")
 
     response = replay_input(
         [recorded_step(0, "charge", ["o-1"], error=("ValueError", "card declined"))]
     )
     with pytest.raises(
-        TerminalFlowError, match="Step 'charge' failed with ValueError"
+        RuntimeError, match="Step 'charge' failed with ValueError"
     ) as raised:
         await TaskExecutor(app._registry, mock_client).execute(
             "wf", [], input_response=response
         )
 
-    assert not ran
+    assert ran
     assert requests(mock_client) == []
     mock_client.post_callback.assert_awaited_once()
     callback = mock_client.post_callback.await_args.args[0]
@@ -1437,11 +1669,11 @@ def test_cut_off_encoding_failure_still_checks_name_and_type(
         )
 
     assert raised.value.details.kind == kind
-    # The cut-off attempt 0 left no record, so the replay is on attempt 1.
-    assert_failed_with_divergence(requests(mock_client), attempt=1)
+    assert requests(mock_client) == []
+    assert ctx.run_failure is raised.value
 
 
-def test_divergence_fails_the_run_even_if_closing_the_step_fails(mock_client):
+def test_divergence_fails_without_closing_the_open_step(mock_client):
     ctx = replay_ctx(mock_client, [recorded_step(0, "charge", ["o-1"], done=False)])
     mock_client.step_complete.side_effect = ServerError("write was not acknowledged")
 
@@ -1449,7 +1681,7 @@ def test_divergence_fails_the_run_even_if_closing_the_step_fails(mock_client):
         ctx.step("charge", must_not_run, "o-2")
     assert raised.value.__cause__ is None
     assert ctx.run_failure is raised.value
-    mock_client.step_complete.assert_called_once()
+    mock_client.step_complete.assert_not_called()
 
     with pytest.raises(DeterminismError) as later:
         ctx.step("refund", must_not_run, "o-3")
@@ -1847,39 +2079,46 @@ def test_each_replay_counts_on_from_the_attempts_before_it(mock_client, sleeps):
     # The 4th attempt uses up the step's 3 retries.
     mock_client.reset_mock()
     ctx = replay_ctx(mock_client, [step], failures)
-    with pytest.raises(ExecutionError):
+    with pytest.raises(StepError):
         ctx.step("flaky", flaky, retry=retry)
 
     (complete,) = requests(mock_client)
     assert complete["outcome"]["final_attempt"]["attempt"] == 3
 
 
-@pytest.mark.parametrize(
-    "prev_attempts", [[recorded_attempt(0, 0)], []], ids=["failed", "cut-off"]
-)
-def test_open_step_past_its_retries_fails_the_run(mock_client, sleeps, prev_attempts):
+def test_open_step_past_its_retries_records_a_catchable_failure(mock_client, sleeps):
     ctx = replay_ctx(
-        mock_client, [recorded_step(0, "flaky", [], done=False)], prev_attempts
+        mock_client,
+        [recorded_step(0, "flaky", [], done=False)],
+        [recorded_attempt(0, 0)],
     )
 
-    with pytest.raises(TerminalFlowError, match="past its 0 retries") as raised:
+    with pytest.raises(StepError, match="timeout"):
         ctx.step("flaky", must_not_run)
-    with pytest.raises(TerminalFlowError) as later:
-        ctx.step("later", must_not_run)
-
-    assert later.value is raised.value
-    # The open step is closed out with its last recorded error, if any.
+    assert ctx.run_failure is None
     (complete,) = requests(mock_client)
-    assert complete["outcome"]["final_attempt"]["attempt"] == 1
-    assert final_error(complete)["name"] == (
-        "ConnectionError" if prev_attempts else "TerminalFlowError"
-    )
+    assert complete["outcome"]["final_attempt"]["attempt"] == 0
+    assert final_error(complete)["name"] == "ConnectionError"
     (step,) = ctx._journal._history.steps
     assert step.completed_at is not None
     sleeps.assert_not_called()
+    assert ctx.step("fallback", lambda: "recovered") == "recovered"
 
 
-def test_open_step_past_its_retries_fails_the_run_even_if_closing_it_fails(
+def test_interrupted_step_without_a_recorded_error_is_terminal(mock_client, sleeps):
+    ctx = replay_ctx(mock_client, [recorded_step(0, "flaky", [], done=False)])
+
+    with pytest.raises(TerminalFlowError, match="past its 0 retries") as raised:
+        ctx.step("flaky", must_not_run)
+    assert ctx.run_failure is raised.value
+    assert requests(mock_client) == []
+    sleeps.assert_not_called()
+    with pytest.raises(TerminalFlowError) as later:
+        ctx.step("fallback", must_not_run)
+    assert later.value is raised.value
+
+
+def test_open_step_past_its_retries_stops_on_an_unacknowledged_failure(
     mock_client,
 ):
     ctx = replay_ctx(
@@ -1889,15 +2128,15 @@ def test_open_step_past_its_retries_fails_the_run_even_if_closing_it_fails(
     )
     mock_client.step_complete.side_effect = ServerError("write was not acknowledged")
 
-    # The run already failed, so the failed close-out neither replaces its
-    # error nor raises.
-    with pytest.raises(TerminalFlowError, match="past its 0 retries") as raised:
+    with pytest.raises(
+        FlowUnreachableError, match="write was not acknowledged"
+    ) as raised:
         ctx.step("flaky", must_not_run)
-    assert raised.value.__cause__ is None
+    assert isinstance(raised.value.__cause__, ServerError)
     assert ctx.run_failure is raised.value
     mock_client.step_complete.assert_called_once()
 
-    with pytest.raises(TerminalFlowError) as later:
+    with pytest.raises(FlowUnreachableError) as later:
         ctx.step("later", must_not_run)
     assert later.value is raised.value
 
@@ -1960,7 +2199,7 @@ def test_history_tracks_a_failed_step(ctx, mock_client):
     def declined():
         raise ValueError("card declined")
 
-    with pytest.raises(TerminalFlowError):
+    with pytest.raises(StepError):
         ctx.step("declined", declined)
 
     (step,) = ctx._journal._history.steps
@@ -1996,11 +2235,11 @@ def test_resumed_step_never_completes_before_its_recorded_start(mock_client, fai
 
     def charge():
         if fails:
-            raise TerminalFlowError("card declined")
+            raise ValueError("card declined")
         return "ok"
 
-    retry = Retry(max_retries=3, wait_duration_ms=10)
-    with contextlib.suppress(TerminalFlowError):
+    retry = Retry(max_retries=1, wait_duration_ms=10)
+    with contextlib.suppress(StepError):
         ctx.step("charge", charge, retry=retry)
 
     (complete,) = requests(mock_client)
@@ -2010,3 +2249,27 @@ def test_resumed_step_never_completes_before_its_recorded_start(mock_client, fai
         ended_at = complete["outcome"]["final_attempt"]["ended_at"]
         assert parse_time(ended_at) == completed_at
     assert ctx._journal._history.steps[0].completed_at == completed_at
+
+
+def test_exhausted_replay_completes_the_actual_last_attempt(mock_client):
+    final = recorded_attempt(0, 2)
+    final["started_at"] = "2026-10-13T21:00:00.200Z"
+    final["ended_at"] = "2026-10-13T21:00:00.400Z"
+    final["workflow_attempt"] = 7
+    context = replay_ctx(
+        mock_client, [recorded_step(0, "flaky", [], done=False)], [final]
+    )
+    with pytest.raises(StepError, match="timeout"):
+        context.step(
+            "flaky", must_not_run, retry=Retry(max_retries=2, wait_duration_ms=0)
+        )
+    (complete,) = requests(mock_client)
+    sent = complete["outcome"]["final_attempt"]
+    assert sent["attempt"] == 2
+    assert sent["data"]["workflow_attempt"] == 7
+    assert parse_time(sent["started_at"]) == parse_time(final["started_at"])
+    assert parse_time(sent["ended_at"]) == parse_time(final["ended_at"])
+    assert parse_time(complete["outcome"]["completed_at"]) == parse_time(
+        final["ended_at"]
+    )
+    assert final_error(complete) == final["error"]

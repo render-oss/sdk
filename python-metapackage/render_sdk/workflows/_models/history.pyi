@@ -10,7 +10,6 @@ from render.workflows._models.history import (
     StepRecord as StepRecord,
     StepType as StepType,
     _several_steps_per_seq as _several_steps_per_seq,
-    _terminal_reason as _terminal_reason,
     dataclass as dataclass,
     datetime as datetime,
     field as field,

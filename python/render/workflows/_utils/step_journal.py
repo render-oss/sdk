@@ -3,7 +3,6 @@ server's."""
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Callable
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -40,14 +39,11 @@ if TYPE_CHECKING:
     from render.workflows.durable_context import RunningStep
 
 
-logger = logging.getLogger(__name__)
-
-
 class RunFailure:
-    """The error that fails the run: a divergence from the history, a step
-    that failed for good, or a step write the SDK server didn't take. Its type
-    says how the attempt ends. It's kept, not just raised, so it fails the
-    run even if the flow catches it: the next step raises it again, and so
+    """The error that stops an attempt: a divergence from history or a step
+    write the SDK server didn't take. Its type says how the attempt ends.
+    It's kept, not just raised, so it stops the attempt even if the flow
+    catches it: the next step raises it again, and so
     does the context on exit.
     """
 
@@ -56,9 +52,7 @@ class RunFailure:
     def stop(self, error: ExecutionError) -> ExecutionError:
         """Stop the attempt, returning the error to raise. An error replaces
         an earlier one only if it ranks higher in
-        _RUN_FAILURE_ERROR_PRIORITY; otherwise the first error wins, e.g. a
-        step that failed for good over the failed write that would have
-        recorded it."""
+        _RUN_FAILURE_ERROR_PRIORITY; otherwise the first error wins."""
         if self.error is None or (
             _run_failure_error_rank(error) < _run_failure_error_rank(self.error)
         ):
@@ -174,6 +168,7 @@ class StepJournal:
                 workflow_attempt=0,
                 error=error,
                 ended_at=clock.now(),
+                started_at=started_at,
             )
         )
         self._send(
@@ -208,46 +203,49 @@ class StepJournal:
             )
         )
 
-    def fail(
+    def create_failed_attempt(
         self,
         step_ctx: RunningStep,
         error: StepError,
         *,
         started_at: datetime,
-        log_errors: bool = False,
-    ) -> None:
-        """Complete the step with the error from its final attempt.
+        workflow_attempt: int,
+    ) -> StepAttemptRecord:
+        """Build the final attempt without writing or changing history."""
+        return StepAttemptRecord(
+            step_key=step_ctx.step_key,
+            attempt=step_ctx.attempt,
+            workflow_attempt=workflow_attempt,
+            error=error,
+            started_at=started_at,
+            ended_at=self._completed_at(step_ctx),
+        )
 
-        Args:
-            log_errors: Log a failed write instead of failing the run. For a
-                step closed out after the run already failed, whose error
-                stands unless the write's error is terminal and outranks it.
-        """
-        ended_at = self._completed_at(step_ctx)
-
+    def finish_attempt(self, attempt: StepAttemptRecord) -> None:
+        """Complete a step with this failure, preserving a replayed attempt's identity."""
         outcome = StepOutcome(
-            completed_at=ended_at.isoformat(),
+            completed_at=attempt.ended_at.isoformat(),
             result=serializers.final_attempt(
-                error,
+                attempt.error,
                 session_id=self._session_id,
-                step_key=step_ctx.step_key,
-                attempt=step_ctx.attempt,
-                started_at=started_at,
-                ended_at=ended_at,
+                step_key=attempt.step_key,
+                attempt=attempt.attempt,
+                started_at=attempt.started_at or attempt.ended_at,
+                ended_at=attempt.ended_at,
+                workflow_attempt=attempt.workflow_attempt,
             ),
         )
         self._history.record_complete(
-            step_ctx.step_key,
-            completed_at=ended_at,
-            error=error,
+            attempt.step_key,
+            completed_at=attempt.ended_at,
+            error=attempt.error,
         )
         request = StepCompleteRequest(
-            session_id=self._session_id, key=step_ctx.step_key, outcome=outcome
+            session_id=self._session_id, key=attempt.step_key, outcome=outcome
         )
+        self._send(lambda: self._client.step_complete(request))
 
-        self._send(lambda: self._client.step_complete(request), log_errors=log_errors)
-
-    def _send(self, write: Callable[[], object], *, log_errors: bool = False) -> None:
+    def _send(self, write: Callable[[], object]) -> None:
         """Send a step write, failing the run if the SDK server doesn't take
         it."""
         try:
@@ -274,17 +272,6 @@ class StepJournal:
                 case _:
                     # E.g. a response the client can't parse.
                     error = ExecutionError(str(e), type="flow")
-            # A terminal error always stops the attempt: the run's failure
-            # may rank below it, e.g. a cancel its failure callback would
-            # overwrite.
-            if log_errors and not isinstance(error, TerminalFlowError):
-                # The next attempt's replay sends the write again.
-                logger.warning(
-                    "step write failed after the attempt stopped: %r",
-                    error,
-                    exc_info=e,
-                )
-                return
             raise self._failure.stop(error) from e
 
     def _completed_at(self, step_ctx: RunningStep) -> datetime:

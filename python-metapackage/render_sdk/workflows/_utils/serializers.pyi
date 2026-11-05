@@ -2,6 +2,7 @@
 from render.workflows._utils.serializers import (
     Payload as Payload,
     StepAttempt as StepAttempt,
+    StepAttemptData as StepAttemptData,
     StepError as StepError,
     StepKey as StepKey,
     datetime as datetime,

@@ -20,6 +20,8 @@ from render.client.errors import (
     RateLimitError as RateLimitError,
     RenderError as RenderError,
     ServerError as ServerError,
+    StepAttemptRecord as StepAttemptRecord,
+    StepError as StepError,
     StepKey as StepKey,
     TYPE_CHECKING as TYPE_CHECKING,
     TaskRunError as TaskRunError,

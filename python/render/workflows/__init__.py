@@ -1,6 +1,6 @@
 """Render SDK - Durable Workflows Task Definition"""
 
-from render.client.errors import ExecutionError, TerminalFlowError
+from render.client.errors import ExecutionError, StepError, TerminalFlowError
 from render.workflows.app import Workflows
 from render.workflows.context import (
     FlowContext,
@@ -23,6 +23,7 @@ __all__ = [
     "Options",
     "Retry",
     "ExecutionError",
+    "StepError",
     "TaskContext",
     "TaskRunMetadata",
     "TaskDefinition",

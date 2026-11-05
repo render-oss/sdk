@@ -59,17 +59,7 @@ def test_a_failed_write_fails_the_run(journal, client, failure):
     assert failure.error is raised.value
 
 
-def test_a_close_out_write_only_logs_its_failure(journal, client, failure, caplog):
-    journal.start(STEP)
-    client.step_complete.side_effect = ServerError("down")
-
-    journal.fail(STEP, ERROR, started_at=clock.now(), log_errors=True)
-
-    assert failure.error is None
-    assert "step write failed" in caplog.text
-
-
-def test_a_cancelled_close_out_write_still_stops_the_run(journal, client, failure):
+def test_cancelled_failure_completion_stops_the_run(journal, client, failure):
     journal.start(STEP)
     client.step_complete.side_effect = ClientError(
         "record step failed with status 409",
@@ -78,7 +68,11 @@ def test_a_cancelled_close_out_write_still_stops_the_run(journal, client, failur
     )
 
     with pytest.raises(FlowCancelledError) as raised:
-        journal.fail(STEP, ERROR, started_at=clock.now(), log_errors=True)
+        journal.finish_attempt(
+            journal.create_failed_attempt(
+                STEP, ERROR, started_at=clock.now(), workflow_attempt=0
+            )
+        )
 
     assert failure.error is raised.value
 

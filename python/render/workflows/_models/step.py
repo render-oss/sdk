@@ -213,6 +213,7 @@ class StepAttemptRecord(Wire):
     workflow_attempt: int
     error: StepError
     ended_at: datetime
+    started_at: datetime | None = None
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> StepAttemptRecord:
@@ -222,4 +223,5 @@ class StepAttemptRecord(Wire):
             workflow_attempt=d["workflow_attempt"],
             error=StepError.from_dict(d["error"]),
             ended_at=parse_time(d["ended_at"]),
+            started_at=parse_time(d["started_at"]) if d.get("started_at") else None,
         )

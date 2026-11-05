@@ -35,7 +35,7 @@ def step(seq, *, done=True, sub_key="", workflow_attempt=0):
 
 
 def failed(seq):
-    """A step that finished with an error, which ends the run."""
+    """A step that finished with an error the flow may catch."""
     return replace(step(seq), error=StepError(name="ValueError", message="declined"))
 
 
@@ -162,8 +162,6 @@ def test_empty_history_is_valid():
         ([step(1)], Code.STEP_SEQ, StepKey(seq=1)),
         ([step(0), step(2)], Code.STEP_SEQ, StepKey(seq=2)),
         ([step(0, done=False), step(1)], Code.AFTER_OPEN, StepKey(seq=0)),
-        ([failed(0), step(1)], Code.AFTER_TERMINAL, StepKey(seq=0)),
-        ([step(0), failed(1)], Code.TERMINAL, StepKey(seq=1)),
     ],
 )
 def test_validate_steps_rejects_bad_sequencing(steps, code, step_key):
@@ -350,3 +348,10 @@ def test_history_rejects_a_completion_before_the_start():
             StepKey(seq=0),
             completed_at=STARTED - timedelta(seconds=1),
         )
+
+
+@pytest.mark.parametrize(
+    "steps", [[failed(0)], [failed(0), step(1)], [step(0), failed(1)]]
+)
+def test_completed_failures_are_valid_history(steps):
+    validate_steps(steps, {})

@@ -169,8 +169,6 @@ def validate_steps(
     """Check
     - the steps' seqs count up from zero
     - only the last step is open
-    - no step comes after a terminal one
-    - the last step isn't terminal, since the run already ended there
     - the last step's failed attempts fit it.
     """
     if not steps:
@@ -195,33 +193,10 @@ def validate_steps(
                 "steps come after this unfinished step",
                 prev.step_key,
             )
-        reason = _terminal_reason(prev)
-        if reason is not None:
-            raise FlowHistoryError(
-                FlowHistoryErrorCode.AFTER_TERMINAL,
-                f"steps come after this step, which ended the run because {reason}",
-                prev.step_key,
-            )
 
     last = steps[-1]
-    reason = _terminal_reason(last)
-    if reason is not None:
-        raise FlowHistoryError(
-            FlowHistoryErrorCode.TERMINAL,
-            f"the run ended at this step because {reason}",
-            last.step_key,
-        )
     # Only the last step can be resumed, so other steps' attempts don't matter.
     validate_attempts(last, attempts.get(last.step_key, []))
-
-
-def _terminal_reason(step: StepRecord) -> str | None:
-    """Why the step ended the run, or None if it didn't."""
-    # A step only finishes with an error that's terminal: it ran out of
-    # retries, its args couldn't be encoded, or a replay diverged from it.
-    if step.completed_at is None or step.error is None:
-        return None
-    return f"it failed with {step.error.name}"
 
 
 def validate_attempts(step: StepRecord, attempts: list[StepAttemptRecord]) -> None:

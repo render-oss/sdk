@@ -23,6 +23,7 @@ from render.workflows.tests.test_history import (
     test_attempt_record_parses_rfc3339_times as test_attempt_record_parses_rfc3339_times,
     test_bad_base64_fails_to_parse as test_bad_base64_fails_to_parse,
     test_bad_times_fail_to_parse as test_bad_times_fail_to_parse,
+    test_completed_failures_are_valid_history as test_completed_failures_are_valid_history,
     test_empty_history_is_valid as test_empty_history_is_valid,
     test_get_step_state_finds_the_attempt_a_replay_is_on as test_get_step_state_finds_the_attempt_a_replay_is_on,
     test_history_error_message_leads_with_its_code_and_step as test_history_error_message_leads_with_its_code_and_step,
