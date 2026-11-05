@@ -414,7 +414,17 @@ export interface paths {
         get: operations["retrieve-sandbox-group"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete sandbox group
+         * @description Delete a sandbox group. Its sandboxes are terminated, and its snapshots
+         *     and credentials are deleted shortly after the request returns.
+         *
+         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+         *     409 with `code: default_sandbox_group_not_deletable` for the owner's
+         *     default sandbox group. Make another group the default first.
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         */
+        delete: operations["delete-sandbox-group"];
         options?: never;
         head?: never;
         /**
@@ -2619,6 +2629,35 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "delete-sandbox-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sandbox group deleted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

@@ -1996,6 +1996,19 @@ type ClientInterface interface {
 	// Corresponds with POST /sandbox-groups (the `CreateSandboxGroup` operationId).
 	CreateSandboxGroup(ctx context.Context, body CreateSandboxGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// DeleteSandboxGroup Delete sandbox group
+	//
+	// Delete a sandbox group. Its sandboxes are terminated, and its snapshots
+	// and credentials are deleted shortly after the request returns.
+	//
+	// 400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+	// 409 with `code: default_sandbox_group_not_deletable` for the owner's
+	// default sandbox group. Make another group the default first.
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
+	// Corresponds with DELETE /sandbox-groups/{sandboxGroupId} (the `DeleteSandboxGroup` operationId).
+	DeleteSandboxGroup(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// RetrieveSandboxGroup Retrieve sandbox group
 	//
 	// Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
@@ -7364,6 +7377,29 @@ func (c *Client) CreateSandboxGroupWithBody(ctx context.Context, contentType str
 // Corresponds with POST /sandbox-groups (the `CreateSandboxGroup` operationId).
 func (c *Client) CreateSandboxGroup(ctx context.Context, body CreateSandboxGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateSandboxGroupRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// DeleteSandboxGroup Delete sandbox group
+//
+// Delete a sandbox group. Its sandboxes are terminated, and its snapshots
+// and credentials are deleted shortly after the request returns.
+//
+// 400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+// 409 with `code: default_sandbox_group_not_deletable` for the owner's
+// default sandbox group. Make another group the default first.
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
+// Corresponds with DELETE /sandbox-groups/{sandboxGroupId} (the `DeleteSandboxGroup` operationId).
+func (c *Client) DeleteSandboxGroup(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewDeleteSandboxGroupRequest(c.Server, sandboxGroupId)
 	if err != nil {
 		return nil, err
 	}
@@ -20894,6 +20930,40 @@ func NewCreateSandboxGroupRequestWithBody(server string, contentType string, bod
 	return req, nil
 }
 
+// NewDeleteSandboxGroupRequest constructs an http.Request for the DeleteSandboxGroup method
+func NewDeleteSandboxGroupRequest(server string, sandboxGroupId externalRef15.SandboxGroupId) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "sandboxGroupId", sandboxGroupId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sandbox-groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodDelete, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewRetrieveSandboxGroupRequest constructs an http.Request for the RetrieveSandboxGroup method
 func NewRetrieveSandboxGroupRequest(server string, sandboxGroupId externalRef15.SandboxGroupId) (*http.Request, error) {
 	var err error
@@ -28623,6 +28693,21 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sandbox-groups (the `CreateSandboxGroup` operationId).
 	CreateSandboxGroupWithResponse(ctx context.Context, body CreateSandboxGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSandboxGroupResponse, error)
+
+	// DeleteSandboxGroupWithResponse Delete sandbox group
+	//
+	// Delete a sandbox group. Its sandboxes are terminated, and its snapshots
+	// and credentials are deleted shortly after the request returns.
+	//
+	// 400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+	// 409 with `code: default_sandbox_group_not_deletable` for the owner's
+	// default sandbox group. Make another group the default first.
+	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with DELETE /sandbox-groups/{sandboxGroupId} (the `DeleteSandboxGroup` operationId).
+	DeleteSandboxGroupWithResponse(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, reqEditors ...RequestEditorFn) (*DeleteSandboxGroupResponse, error)
 
 	// RetrieveSandboxGroupWithResponse Retrieve sandbox group
 	//
@@ -46472,6 +46557,106 @@ func (r CreateSandboxGroupResponse) ContentType() string {
 	return ""
 }
 
+// DeleteSandboxGroupResponse429Headers the declared response headers of an HTTP 429 response for DeleteSandboxGroup
+type DeleteSandboxGroupResponse429Headers struct {
+	RateLimitLimit     *int
+	RateLimitRemaining *int
+	RateLimitReset     *int
+	RetryAfter         *int
+}
+
+type DeleteSandboxGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *N400BadRequest
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *N401Unauthorized
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *N403Forbidden
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *N404NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *N409Conflict
+	// JSON429 the response for an HTTP 429 `application/json` response
+	JSON429 *N429RateLimit
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *N500InternalServerError
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *N503ServiceUnavailable
+	// Headers429 the parsed response headers for an HTTP 429 response
+	Headers429 *DeleteSandboxGroupResponse429Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON400() *N400BadRequest {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON401() *N401Unauthorized {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON403() *N403Forbidden {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON404() *N404NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON409() *N409Conflict {
+	return r.JSON409
+}
+
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON429() *N429RateLimit {
+	return r.JSON429
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON500() *N500InternalServerError {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r DeleteSandboxGroupResponse) GetJSON503() *N503ServiceUnavailable {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r DeleteSandboxGroupResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r DeleteSandboxGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r DeleteSandboxGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r DeleteSandboxGroupResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // RetrieveSandboxGroupResponse429Headers the declared response headers of an HTTP 429 response for RetrieveSandboxGroup
 type RetrieveSandboxGroupResponse429Headers struct {
 	RateLimitLimit     *int
@@ -59700,6 +59885,27 @@ func (c *ClientWithResponses) CreateSandboxGroupWithResponse(ctx context.Context
 		return nil, err
 	}
 	return ParseCreateSandboxGroupResponse(rsp)
+}
+
+// DeleteSandboxGroupWithResponse Delete sandbox group
+//
+// Delete a sandbox group. Its sandboxes are terminated, and its snapshots
+// and credentials are deleted shortly after the request returns.
+//
+// 400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+// 409 with `code: default_sandbox_group_not_deletable` for the owner's
+// default sandbox group. Make another group the default first.
+// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /sandbox-groups/{sandboxGroupId} (the `DeleteSandboxGroup` operationId).
+func (c *ClientWithResponses) DeleteSandboxGroupWithResponse(ctx context.Context, sandboxGroupId externalRef15.SandboxGroupId, reqEditors ...RequestEditorFn) (*DeleteSandboxGroupResponse, error) {
+	rsp, err := c.DeleteSandboxGroup(ctx, sandboxGroupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteSandboxGroupResponse(rsp)
 }
 
 // RetrieveSandboxGroupWithResponse Retrieve sandbox group
@@ -79422,6 +79628,118 @@ func ParseCreateSandboxGroupResponse(rsp *http.Response) (*CreateSandboxGroupRes
 	switch {
 	case rsp.StatusCode == 429:
 		var headers CreateSandboxGroupResponse429Headers
+		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitReset = &value
+		}
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers429 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseDeleteSandboxGroupResponse parses an HTTP response from a DeleteSandboxGroupWithResponse call
+func ParseDeleteSandboxGroupResponse(rsp *http.Response) (*DeleteSandboxGroupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &DeleteSandboxGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 204:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest N401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest N403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest N404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest N409Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest N429RateLimit
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest N500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest N503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 429:
+		var headers DeleteSandboxGroupResponse429Headers
 		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
 			var value int
 			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
