@@ -92,6 +92,28 @@ export class SandboxSnapshotPlanMismatchError extends ClientError {
 }
 
 /**
+ * The delete named the workspace's default sandbox group. Make another group the default first.
+ */
+export class SandboxGroupDefaultNotDeletableError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxGroupDefaultNotDeletableError";
+    Object.setPrototypeOf(this, SandboxGroupDefaultNotDeletableError.prototype);
+  }
+}
+
+/**
+ * The sandbox group is suspended
+ */
+export class SandboxGroupSuspendedError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxGroupSuspendedError";
+    Object.setPrototypeOf(this, SandboxGroupSuspendedError.prototype);
+  }
+}
+
+/**
  * No image in the sandbox group has the requested ID or name
  */
 export class SandboxImageNotFoundError extends ClientError {

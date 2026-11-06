@@ -33,12 +33,14 @@ from render.experimental.sandbox._tar import (
     astat_path,
 )
 from render.experimental.sandbox.errors import (
+    DefaultSandboxGroupNotDeletableError,
     ImageNotFoundError,
     ImageNotReadyError,
     SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxFileNotFoundError,
+    SandboxGroupSuspendedError,
     SandboxNotFoundError,
     SnapshotNotFoundError,
     SnapshotNotReadyError,
@@ -76,6 +78,7 @@ from render.public_api.api.sandboxes import (
     create_sandbox_build,
     create_sandbox_group,
     create_sandbox_snapshot,
+    delete_sandbox_group,
     delete_sandbox_snapshot,
     list_sandbox_groups,
     list_sandbox_snapshots,
@@ -138,6 +141,10 @@ _SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
 # The API still calls images builds, in its paths and error codes.
 _IMAGE_NOT_FOUND_CODE = "build_not_found"
 _IMAGE_NOT_SUCCEEDED_CODE = "build_not_succeeded"
+_GROUP_CONFLICT_ERRORS: dict[str, type[ClientError]] = {
+    "default_sandbox_group_not_deletable": DefaultSandboxGroupNotDeletableError,
+    "sandbox_group_suspended": SandboxGroupSuspendedError,
+}
 
 # Aliased at module scope so the annotations on the _api_call methods resolve
 # the builtin list, not the SandboxApi.list method that shadows it in the class body.
@@ -325,6 +332,18 @@ def _handle_image_api_error(
     handle_api_error(response, operation)
 
 
+def _handle_group_api_error(response: Response[Any], operation: str) -> None:
+    if response.status_code == 409:
+        error = _error_body(response.content)
+        error_type = _GROUP_CONFLICT_ERRORS.get(error.code or "")
+        if error_type is not None:
+            message = f"{operation} failed"
+            if error.message:
+                message = f"{message}: {error.message}"
+            raise error_type(message, code=error.code, status_code=409)
+    handle_api_error(response, operation)
+
+
 class SandboxApi:
     """Typed wrapper over the generated sandbox endpoints."""
 
@@ -503,6 +522,13 @@ class SandboxApi:
                 "Failed to update sandbox group: unexpected response type"
             )
         return _to_sandbox_group(response.parsed)
+
+    async def delete_group(self, sandbox_group_id: str) -> None:
+        with request_errors("delete sandbox group"):
+            response = await delete_sandbox_group.asyncio_detailed(
+                sandbox_group_id, client=self.client
+            )
+        _handle_group_api_error(response, "delete sandbox group")
 
     async def terminate(self, sandbox_id: str, owner_id: str) -> None:
         with request_errors("terminate sandbox"):

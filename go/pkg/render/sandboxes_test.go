@@ -480,3 +480,54 @@ func TestSandboxGroupSelectionAndManagement(t *testing.T) {
 	_, err = s.List(ctx, &ListSandboxesOptions{SandboxGroupID: g.ID})
 	require.NoError(t, err)
 }
+
+func conflictClient(t *testing.T, code string) *SandboxClient {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		_, _ = fmt.Fprintf(w, `{"code":%q,"message":"conflict"}`, code)
+	}))
+	t.Cleanup(server.Close)
+	c, err := NewClient(WithBaseURL(server.URL), WithToken("t"), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+	return c.Experimental.Sandboxes
+}
+
+func TestSandboxGroupDelete(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("DELETE /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	require.NoError(t, c.Experimental.Sandboxes.DeleteGroup(context.Background(), "sbg-1"))
+}
+
+func TestSandboxGroupDeleteConflicts(t *testing.T) {
+	tests := []struct {
+		code string
+		want error
+	}{
+		{code: "default_sandbox_group_not_deletable", want: ErrDefaultSandboxGroupNotDeletable},
+		{code: "sandbox_group_suspended", want: ErrSandboxGroupSuspended},
+	}
+	for _, tt := range tests {
+		t.Run(tt.code, func(t *testing.T) {
+			err := conflictClient(t, tt.code).DeleteGroup(context.Background(), "sbg-1")
+
+			require.ErrorIs(t, err, tt.want)
+		})
+	}
+}
+
+func TestSandboxGroupDeleteUnknownConflictIsNotTyped(t *testing.T) {
+	err := conflictClient(t, "something_else").DeleteGroup(context.Background(), "sbg-1")
+
+	require.ErrorContains(t, err, "409")
+	require.NotErrorIs(t, err, ErrDefaultSandboxGroupNotDeletable)
+	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
+}

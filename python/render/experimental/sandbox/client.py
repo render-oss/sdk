@@ -287,6 +287,16 @@ class SandboxClient:
         """Set concurrency and return the effective limit after Render's cap."""
         return await self.api.update_group(sandbox_group_id, concurrency_limit)
 
+    async def delete_group(self, sandbox_group_id: str) -> None:
+        """Delete a group, terminating its sandboxes.
+
+        Its snapshots and credentials are deleted shortly after. Raises
+        DefaultSandboxGroupNotDeletableError for the workspace's default group;
+        make another group the default first. Raises SandboxGroupSuspendedError
+        for a suspended group.
+        """
+        await self.api.delete_group(sandbox_group_id)
+
     async def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
         """Terminate a sandbox.
 

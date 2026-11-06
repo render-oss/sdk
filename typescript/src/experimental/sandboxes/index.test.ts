@@ -7,6 +7,8 @@ import {
   SandboxBuildNotReadyError,
   SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxGroupDefaultNotDeletableError,
+  SandboxGroupSuspendedError,
   SandboxImageFailedError,
   SandboxImageNotFoundError,
   SandboxImageNotReadyError,
@@ -2545,5 +2547,40 @@ describe("sandbox group selection", () => {
       params: { path: { sandboxGroupId: "sbg-1" } },
       body: { concurrencyLimit: 200 },
     });
+  });
+
+  it("deletes a group when the API answers 204 with no body", async () => {
+    const del = mockApiClient("DELETE", { status: 204 });
+    await expect(new SandboxesClient(del).deleteGroup("sbg-1")).resolves.toBeUndefined();
+    expect(del.DELETE).toHaveBeenCalledWith("/sandbox-groups/{sandboxGroupId}", {
+      params: { path: { sandboxGroupId: "sbg-1" } },
+    });
+  });
+
+  it.each([
+    {
+      code: "default_sandbox_group_not_deletable",
+      ErrorClass: SandboxGroupDefaultNotDeletableError,
+    },
+    { code: "sandbox_group_suspended", ErrorClass: SandboxGroupSuspendedError },
+  ])("throws $ErrorClass.name when delete returns 409 $code", async ({ code, ErrorClass }) => {
+    const del = mockApiClient("DELETE", { status: 409, error: { code, message: "conflict" } });
+    const error = await new SandboxesClient(del).deleteGroup("sbg-1").catch((err) => err);
+    expect(error).toBeInstanceOf(ErrorClass);
+    expect(error).toBeInstanceOf(ClientError);
+    expect(error).toMatchObject({
+      statusCode: 409,
+      code,
+      message: "Failed to delete sandbox group: conflict",
+    });
+  });
+
+  it("throws a plain ClientError for an unknown 409 code on delete", async () => {
+    const del = mockApiClient("DELETE", {
+      status: 409,
+      error: { code: "other", message: "conflict" },
+    });
+    const error = await new SandboxesClient(del).deleteGroup("sbg-1").catch((err) => err);
+    expect(error.constructor).toBe(ClientError);
   });
 });

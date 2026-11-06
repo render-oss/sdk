@@ -8,6 +8,8 @@ import {
   RenderError,
   SandboxCreateWaitError,
   SandboxEndedError,
+  SandboxGroupDefaultNotDeletableError,
+  SandboxGroupSuspendedError,
   SandboxImageFailedError,
   SandboxImageWaitTimeoutError,
   SandboxNotRunningError,
@@ -870,6 +872,21 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Deletes a group and terminates its sandboxes. Its snapshots and credentials are deleted
+   * shortly after. Throws `SandboxGroupDefaultNotDeletableError` for the workspace's default
+   * group (make another group the default first) and `SandboxGroupSuspendedError` for a
+   * suspended group.
+   */
+  async deleteGroup(sandboxGroupId: string): Promise<void> {
+    const { error, response } = await this.apiClient.DELETE("/sandbox-groups/{sandboxGroupId}", {
+      params: { path: { sandboxGroupId } },
+    });
+    if (error !== undefined || !response.ok) {
+      throw getGroupApiError(error, response, "Failed to delete sandbox group");
+    }
+  }
+
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
     const { error, response } = await this.apiClient.POST("/sandboxes/{sandboxId}/terminate", {
       params: {
@@ -1236,6 +1253,23 @@ function getTypedApiError(error: unknown, response: Response, context: string): 
         : response.statusText;
   const code = typeof body?.code === "string" ? body.code : undefined;
   return getApiError(message, response, context, code);
+}
+
+const GROUP_CONFLICT_ERRORS: Record<string, typeof ClientError> = {
+  default_sandbox_group_not_deletable: SandboxGroupDefaultNotDeletableError,
+  sandbox_group_suspended: SandboxGroupSuspendedError,
+};
+
+function getGroupApiError(error: unknown, response: Response, context: string): Error {
+  const apiError = getTypedApiError(error, response, context);
+  if (!(apiError instanceof ClientError) || apiError.statusCode !== 409) {
+    return apiError;
+  }
+  const ErrorClass = GROUP_CONFLICT_ERRORS[apiError.code ?? ""];
+  if (ErrorClass === undefined) {
+    return apiError;
+  }
+  return new ErrorClass(apiError.message, apiError.statusCode, apiError.response, apiError.code);
 }
 
 function getSnapshotApiError(error: unknown, response: Response, context: string): Error {

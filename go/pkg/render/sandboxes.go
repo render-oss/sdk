@@ -32,6 +32,11 @@ var (
 	// ErrSnapshotPlanMismatch means a sandbox create named a runtime snapshot
 	// captured on a different plan.
 	ErrSnapshotPlanMismatch = errors.New("snapshot plan mismatch")
+	// ErrDefaultSandboxGroupNotDeletable means a delete named the workspace's
+	// default sandbox group. Make another group the default first.
+	ErrDefaultSandboxGroupNotDeletable = errors.New("default sandbox group not deletable")
+	// ErrSandboxGroupSuspended means a delete named a suspended sandbox group.
+	ErrSandboxGroupSuspended = errors.New("sandbox group suspended")
 	// ErrSandboxDownload means a download could not be written to disk safely:
 	// a truncated archive, an entry that escapes the destination, or a
 	// response encoding the SDK cannot decode.
@@ -59,6 +64,8 @@ const (
 	snapshotPlanMismatchCode = "snapshot_plan_mismatch"
 	snapshotCreatingCode     = "snapshot_creating"
 	snapshotNotAvailableCode = "snapshot_not_available"
+	groupNotDeletableCode    = "default_sandbox_group_not_deletable"
+	groupSuspendedCode       = "sandbox_group_suspended"
 )
 
 // Read timeout at 3x the server's 15s SSE keep-alive interval, so a dead
@@ -781,6 +788,22 @@ func apiError(op string, status int, body []byte) error {
 	return fmt.Errorf("%s failed with status %d: %s", op, status, body)
 }
 
+// groupError maps sandbox group conflicts to sentinel errors.
+func groupError(op string, status int, body []byte) error {
+	code, message := errorBody(body)
+	detail := op + " failed"
+	if message != "" {
+		detail += ": " + message
+	}
+	switch {
+	case status == 409 && code == groupNotDeletableCode:
+		return fmt.Errorf("%w: %s", ErrDefaultSandboxGroupNotDeletable, detail)
+	case status == 409 && code == groupSuspendedCode:
+		return fmt.Errorf("%w: %s", ErrSandboxGroupSuspended, detail)
+	}
+	return apiError(op, status, body)
+}
+
 // snapshotError maps snapshot failures to sentinel errors. pathNamesSnapshot
 // says whether the request path names the snapshot, in which case any 404 is
 // the snapshot's; otherwise only a snapshot_not_found code is.
@@ -912,6 +935,22 @@ func (s *SandboxClient) UpdateGroup(ctx context.Context, groupID string, concurr
 		return nil, fmt.Errorf("unexpected response format")
 	}
 	return toSandboxGroup(*resp.JSON200), nil
+}
+
+// DeleteGroup deletes a group. Its sandboxes are terminated and its snapshots
+// and credentials are deleted shortly after. Returns
+// ErrDefaultSandboxGroupNotDeletable for the workspace's default group (make
+// another group the default first) and ErrSandboxGroupSuspended for a
+// suspended group.
+func (s *SandboxClient) DeleteGroup(ctx context.Context, groupID string) error {
+	resp, err := s.client.internal.DeleteSandboxGroupWithResponse(ctx, groupID)
+	if err != nil {
+		return fmt.Errorf("failed to delete sandbox group: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return groupError("delete sandbox group", resp.StatusCode(), resp.Body)
+	}
+	return nil
 }
 
 func toSandboxGroup(g sandboxes.SandboxGroup) *SandboxGroup {

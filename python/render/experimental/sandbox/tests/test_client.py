@@ -11,8 +11,10 @@ import pytest
 from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.client import SandboxClient
 from render.experimental.sandbox.errors import (
+    DefaultSandboxGroupNotDeletableError,
     SandboxExecError,
     SandboxExecStreamError,
+    SandboxGroupSuspendedError,
     SandboxNotFoundError,
 )
 from render.experimental.sandbox.types import (
@@ -22,6 +24,7 @@ from render.experimental.sandbox.types import (
     SandboxExecOutput,
 )
 from render.public_api.client import AuthenticatedClient
+from render.public_api.models.error_code import ErrorCode
 
 SANDBOX_JSON = {
     "id": "sbx-abc",
@@ -1241,3 +1244,67 @@ def test_sync_group_selection_and_management():
     assert client.create(sandbox_group_id=group.id).sandbox_group_id == group.id
     assert client.get_group(group.id).id == group.id
     assert client.update_group(group.id, concurrency_limit=200).concurrency_limit == 10
+
+
+@pytest.mark.asyncio
+async def test_delete_group_sends_delete():
+    captured = []
+
+    async def handler(request):
+        captured.append(request)
+        return httpx.Response(204)
+
+    client = _sandbox_client(handler)
+    assert await client.delete_group("sbg-abc") is None
+
+    assert captured[-1].method == "DELETE"
+    assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("code", "error_type"),
+    [
+        ("default_sandbox_group_not_deletable", DefaultSandboxGroupNotDeletableError),
+        ("sandbox_group_suspended", SandboxGroupSuspendedError),
+    ],
+)
+async def test_delete_group_raises_a_typed_error_for_each_conflict_code(
+    code, error_type
+):
+    async def handler(request):
+        return httpx.Response(409, json={"code": code, "message": "conflict"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(error_type, match="conflict") as exc:
+        await client.delete_group("sbg-abc")
+    assert exc.value.code == ErrorCode(code)
+    assert exc.value.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_delete_group_raises_client_error_for_an_unknown_conflict_code():
+    async def handler(request):
+        return httpx.Response(409, json={"code": "other", "message": "conflict"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError) as exc:
+        await client.delete_group("sbg-abc")
+    assert type(exc.value) is ClientError
+
+
+def test_sync_delete_group_raises_a_typed_error_for_the_default_group():
+    captured = []
+
+    def handler(request):
+        captured.append(request)
+        if request.url.path.endswith("sbg-default"):
+            body = {"code": "default_sandbox_group_not_deletable", "message": "x"}
+            return httpx.Response(409, json=body)
+        return httpx.Response(204)
+
+    client = _sync_sandbox_client(handler)
+    assert client.delete_group("sbg-abc") is None
+    assert captured[-1].method == "DELETE"
+    with pytest.raises(DefaultSandboxGroupNotDeletableError):
+        client.delete_group("sbg-default")
