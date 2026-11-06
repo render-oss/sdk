@@ -28,6 +28,7 @@ import type { paths } from "../../generated/schema.js";
 import {
   type SandboxBuild,
   type SandboxCreateInput,
+  type SandboxDownloadOptions,
   type SandboxExecEvent,
   SandboxExecStreamError,
   SandboxesClient,
@@ -1437,15 +1438,236 @@ describe("SandboxesClient", () => {
           response: new Response(null, { status: 200 }),
         }),
       } as unknown as Client<paths>;
-      const response = new Response();
-      vi.spyOn(response, "arrayBuffer").mockRejectedValue(
-        new DOMException("This operation was aborted", "AbortError"),
-      );
-      vi.spyOn(globalThis, "fetch").mockResolvedValue(response);
+      const abortedBody = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.error(new DOMException("This operation was aborted", "AbortError"));
+        },
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(abortedBody));
       const client = new SandboxesClient(apiClient);
 
       await expect(client.download("sbx-123", "/app/hello.txt", "tea-test")).rejects.toBeInstanceOf(
         AbortError,
+      );
+    });
+
+    describe("download size limit", () => {
+      const DEFAULT_MAX_BYTES = 256 * 1024 * 1024;
+
+      type DownloadError = {
+        type: string;
+        name?: string;
+        message: string;
+        sandboxId?: string;
+        path?: string;
+        maxSizeBytes?: number;
+      };
+
+      type DownloadOutcome = {
+        text?: string;
+        error?: DownloadError;
+        tokenRequests: number;
+      };
+
+      async function downloadOutcome(
+        body: ConstructorParameters<typeof Response>[0],
+        headers: Record<string, string>,
+        signalOrOptions?: AbortSignal | SandboxDownloadOptions,
+      ): Promise<DownloadOutcome> {
+        const apiClient = mockApiClientWithConnectResponse();
+        vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { headers }));
+        const client = new SandboxesClient(apiClient);
+
+        const download = client.download("sbx-123", "/app/out.bin", "tea-test", signalOrOptions);
+        const settled = await download.then(
+          ({ data }) => ({ text: data.toString() }),
+          (err: Error) => ({ error: { ...err, type: err.constructor.name, message: err.message } }),
+        );
+
+        return { ...settled, tokenRequests: vi.mocked(apiClient.POST).mock.calls.length };
+      }
+
+      function tooLarge(maxSizeBytes: number): DownloadOutcome {
+        return {
+          error: {
+            type: "SandboxDownloadTooLargeError",
+            name: "SandboxDownloadTooLargeError",
+            message: `Sandbox sbx-123 file /app/out.bin exceeds the ${maxSizeBytes}-byte download limit (maxSizeBytes)`,
+            sandboxId: "sbx-123",
+            path: "/app/out.bin",
+            maxSizeBytes,
+          },
+          tokenRequests: 1,
+        };
+      }
+
+      type SizeLimitCase = {
+        name: string;
+        body: string;
+        headers: Record<string, string>;
+        maxSizeBytes: number | undefined;
+        want: DownloadOutcome;
+      };
+
+      it.each<SizeLimitCase>([
+        {
+          name: "accepts a body under the limit",
+          body: "hey",
+          headers: { "Content-Length": "3" },
+          maxSizeBytes: 5,
+          want: { text: "hey", tokenRequests: 1 },
+        },
+        {
+          name: "accepts a declared length equal to the limit",
+          body: "hello",
+          headers: { "Content-Length": "5" },
+          maxSizeBytes: 5,
+          want: { text: "hello", tokenRequests: 1 },
+        },
+        {
+          name: "accepts an undeclared body equal to the limit",
+          body: "hello",
+          headers: {},
+          maxSizeBytes: 5,
+          want: { text: "hello", tokenRequests: 1 },
+        },
+        {
+          name: "rejects a declared length over the limit",
+          body: "hey",
+          headers: { "Content-Length": "6" },
+          maxSizeBytes: 5,
+          want: tooLarge(5),
+        },
+        {
+          name: "rejects an undeclared body over the limit",
+          body: "hello!",
+          headers: {},
+          maxSizeBytes: 5,
+          want: tooLarge(5),
+        },
+        {
+          name: "rejects a body longer than its declared length",
+          body: "hello!",
+          headers: { "Content-Length": "3" },
+          maxSizeBytes: 5,
+          want: tooLarge(5),
+        },
+        {
+          name: "returns a body longer than its declared length when it fits the limit",
+          body: "hello",
+          headers: { "Content-Length": "3" },
+          maxSizeBytes: 10,
+          want: { text: "hello", tokenRequests: 1 },
+        },
+        {
+          name: "returns only the bytes received when the body is shorter than its declared length",
+          body: "hey",
+          headers: { "Content-Length": "5" },
+          maxSizeBytes: 10,
+          want: { text: "hey", tokenRequests: 1 },
+        },
+        {
+          name: "ignores an encoded body's declared length and counts decoded bytes",
+          body: "hey",
+          headers: { "Content-Length": "6", "Content-Encoding": "gzip" },
+          maxSizeBytes: 5,
+          want: { text: "hey", tokenRequests: 1 },
+        },
+        {
+          name: "defaults the limit to 256 MiB",
+          body: "hey",
+          headers: { "Content-Length": String(DEFAULT_MAX_BYTES + 1) },
+          maxSizeBytes: undefined,
+          want: tooLarge(DEFAULT_MAX_BYTES),
+        },
+      ])("$name", async ({ body, headers, maxSizeBytes, want }) => {
+        // arrange
+        const options = { maxSizeBytes };
+
+        // act
+        const got = await downloadOutcome(body, headers, options);
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it("assembles a body that arrives in several chunks without a declared length", async () => {
+        // arrange
+        const encoder = new TextEncoder();
+        const chunkedBody = new ReadableStream<Uint8Array>({
+          start(controller) {
+            for (const part of ["he", "ll", "o, ", "world"]) {
+              controller.enqueue(encoder.encode(part));
+            }
+            controller.close();
+          },
+        });
+
+        const want = { text: "hello, world", tokenRequests: 1 };
+
+        // act
+        const got = await downloadOutcome(chunkedBody, {}, { maxSizeBytes: 100 });
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it("stops reading a body that never ends", async () => {
+        // arrange
+        const endlessBody = new ReadableStream<Uint8Array>({
+          pull(controller) {
+            controller.enqueue(new Uint8Array(1024));
+          },
+        });
+
+        const want = tooLarge(1_000_000);
+
+        // act
+        const got = await downloadOutcome(endlessBody, {}, { maxSizeBytes: 1_000_000 });
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it.each([0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+        "rejects maxSizeBytes %s before minting a token",
+        async (maxSizeBytes) => {
+          // arrange
+          const want = {
+            error: { type: "RangeError", message: "maxSizeBytes must be a positive integer" },
+            tokenRequests: 0,
+          };
+
+          // act
+          const got = await downloadOutcome("hey", {}, { maxSizeBytes });
+
+          // assert
+          expect(got).toEqual(want);
+        },
+      );
+
+      it.each([
+        { name: "positional signal", signalOrOptions: AbortSignal.abort() },
+        { name: "options.signal", signalOrOptions: { signal: AbortSignal.abort() } },
+      ])(
+        "throws AbortError for an aborted $name before minting a token",
+        async ({ signalOrOptions }) => {
+          // arrange
+          const want = {
+            error: {
+              type: "AbortError",
+              name: "AbortError",
+              message: "The operation was aborted.",
+            },
+            tokenRequests: 0,
+          };
+
+          // act
+          const got = await downloadOutcome("hey", {}, signalOrOptions);
+
+          // assert
+          expect(got).toEqual(want);
+        },
       );
     });
   });

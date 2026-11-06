@@ -195,6 +195,23 @@ export class SandboxImageFailedError extends RenderError {
   }
 }
 
+/**
+ * The sandbox file is larger than the `maxSizeBytes` that `download()` accepts. The download stops
+ * before it reads more than `maxSizeBytes`. Pass a larger `maxSizeBytes` to accept the file.
+ */
+export class SandboxDownloadTooLargeError extends RenderError {
+  constructor(
+    message: string,
+    public sandboxId: string,
+    public path: string,
+    public maxSizeBytes: number,
+  ) {
+    super(message);
+    this.name = "SandboxDownloadTooLargeError";
+    Object.setPrototypeOf(this, SandboxDownloadTooLargeError.prototype);
+  }
+}
+
 export class ServerError extends RenderError {
   constructor(
     message: string,

@@ -16,6 +16,7 @@ export {
   SandboxBuildsClient,
   type SandboxCreateInput,
   type SandboxDownload,
+  type SandboxDownloadOptions,
   type SandboxEgressRule,
   type SandboxExecEvent,
   SandboxExecStreamError,
