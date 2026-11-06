@@ -300,6 +300,25 @@ describe("SandboxesClient", () => {
         },
       });
     });
+
+    it("filters by name and returns every sandbox with it", async () => {
+      const named = (id: string) => ({ sandbox: { id, name: "my-agent" }, cursor: id });
+      const apiClient = {
+        GET: vi.fn().mockResolvedValue({
+          data: [named("sbx-1"), named("sbx-2")],
+          error: undefined,
+          response: new Response(null, { status: 200 }),
+        }),
+      } as unknown as Client<paths>;
+      const client = new SandboxesClient(apiClient, "tea-test");
+
+      const result = await client.list({ name: "my-agent" });
+
+      expect(result.map(({ sandbox }) => sandbox.id)).toEqual(["sbx-1", "sbx-2"]);
+      expect(apiClient.GET).toHaveBeenCalledWith("/sandboxes", {
+        params: { query: expect.objectContaining({ ownerId: "tea-test", name: "my-agent" }) },
+      });
+    });
   });
 
   describe("listGroups", () => {
@@ -558,6 +577,21 @@ describe("SandboxesClient", () => {
 
       expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
         body: { ownerId: "tea-test", snapshotName: "gold" },
+      });
+    });
+
+    it("forwards the sandbox name", async () => {
+      const apiClient = mockApiClient("POST", {
+        status: 201,
+        data: { id: "sbx-123", name: "my-agent" },
+      });
+      const client = new SandboxesClient(apiClient);
+
+      const sandbox = await client.create({ ownerId: "tea-test", name: "my-agent" });
+
+      expect(sandbox.name).toBe("my-agent");
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes", {
+        body: { ownerId: "tea-test", name: "my-agent" },
       });
     });
 

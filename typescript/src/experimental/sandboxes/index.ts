@@ -161,6 +161,11 @@ export type SandboxNetworkPolicy =
 export type SandboxCreateInput = SandboxSourceInput & {
   /** Omit to use the workspace's default group. */
   sandboxGroupId?: string;
+  /**
+   * A label for the sandbox, like `my-agent`. Names aren't unique, so use the sandbox ID to
+   * address it. At most 64 characters, and it can't start with `sbx-`.
+   */
+  name?: string;
   ownerId?: `tea-${string}`;
   plan?: SandboxPlan | (string & {});
   /** Maximum sandbox lifetime in seconds. 0 disables the lifetime limit. The API defaults to 86400 (24 hours). */
@@ -761,6 +766,7 @@ export class SandboxesClient {
       ownerId,
       ...(input.plan ? { plan: input.plan } : {}),
       ...(input.sandboxGroupId === undefined ? {} : { sandboxGroupId: input.sandboxGroupId }),
+      ...(input.name === undefined ? {} : { name: input.name }),
       ...(input.timeoutSeconds === undefined ? {} : { timeoutSeconds: input.timeoutSeconds }),
       ...(input.idleTimeoutSeconds === undefined
         ? {}
@@ -805,12 +811,15 @@ export class SandboxesClient {
     limit,
     status,
     sandboxGroupId,
+    name,
   }: {
     ownerId?: `tea-${string}`;
     cursor?: string;
     limit?: number;
     sandboxGroupId?: string;
     status?: components["schemas"]["sandboxStatus"][];
+    /** Return only sandboxes with exactly this name. Names aren't unique, so this can match several. */
+    name?: string;
   } = {}) {
     const owner = this.resolveOwnerId(ownerId);
     return unwrap(
@@ -822,6 +831,7 @@ export class SandboxesClient {
             limit,
             status,
             sandboxGroupId,
+            name,
           },
         },
       }),

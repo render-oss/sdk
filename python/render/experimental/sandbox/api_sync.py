@@ -204,6 +204,7 @@ def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
     return Sandbox(
         id=model.id,
         sandbox_group_id=_set_or_none(model.sandbox_group_id),
+        name=_set_or_none(model.name),
         status=model.status.value,
         plan=str(model.plan),
         network_policy=_to_network_policy(model.network_policy),
@@ -366,10 +367,13 @@ class SyncSandboxApi:
         image_id: str | None = None,
         image_name: str | None = None,
         sandbox_group_id: str | None = None,
+        name: str | None = None,
     ) -> Sandbox:
         body = SandboxPOST(owner_id=owner_id)
         if sandbox_group_id is not None:
             body.sandbox_group_id = sandbox_group_id
+        if name is not None:
+            body.name = name
         if plan is not None:
             body.plan = plan
         if timeout_seconds is not None:
@@ -424,10 +428,11 @@ class SyncSandboxApi:
         cursor: str | None,
         limit: int | None,
         sandbox_group_id: str | None = None,
+        name: str | None = None,
     ) -> SandboxList:
         statuses = _normalize_statuses(status, SandboxStatus)
         response = self._list_api_call(
-            owner_id, statuses, cursor, limit, sandbox_group_id
+            owner_id, statuses, cursor, limit, sandbox_group_id, name
         )
         parsed = response.parsed
         if not isinstance(parsed, list):
@@ -444,6 +449,7 @@ class SyncSandboxApi:
         cursor: str | None,
         limit: int | None,
         sandbox_group_id: str | None = None,
+        name: str | None = None,
     ) -> Response[Error | _SandboxWithCursorList]:
         return list_sandboxes.sync_detailed(
             client=self.client,
@@ -452,6 +458,7 @@ class SyncSandboxApi:
             sandbox_group_id=sandbox_group_id
             if sandbox_group_id is not None
             else UNSET,
+            name=name if name is not None else UNSET,
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
         )

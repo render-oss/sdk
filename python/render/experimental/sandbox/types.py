@@ -53,6 +53,8 @@ class Sandbox:
     created_at: datetime
     terminated_at: datetime | None = None
     sandbox_group_id: str | None = None
+    # A label set at create. Names aren't unique; use id to address the sandbox.
+    name: str | None = None
 
 
 @dataclass

@@ -75,6 +75,7 @@ class SandboxClient:
         self,
         *,
         owner_id: str | None = None,
+        name: str | None = None,
         plan: SandboxPlan | str | None = None,
         timeout_seconds: int | None = None,
         idle_timeout_seconds: int | None = None,
@@ -98,6 +99,10 @@ class SandboxClient:
         Set idle_timeout_seconds to 0 to disable automatic idle suspension.
         sandbox_group_id defaults to the workspace's default group. The group
         determines placement; region is accepted for compatibility and ignored.
+
+        name is a label for the sandbox, like ``my-agent``. Names aren't
+        unique, so use the sandbox id to address it. At most 64 characters,
+        and it can't start with ``sbx-``.
 
         network_policy is a NetworkPolicy, or a policy type string as a
         shorthand for one without rules. To restrict outbound traffic to
@@ -169,6 +174,7 @@ class SandboxClient:
             image_id=image_id,
             image_name=image_name,
             sandbox_group_id=sandbox_group_id,
+            name=name,
         )
         if wait_settings is None:
             return sandbox
@@ -241,16 +247,18 @@ class SandboxClient:
         cursor: str | None = None,
         limit: int | None = None,
         sandbox_group_id: str | None = None,
+        name: str | None = None,
     ) -> SandboxList:
         """List sandboxes for a workspace.
 
         status filters by sandbox status, one or a sequence of them (each one
         of creating, running, suspended, resuming, errored, terminated). limit
-        is capped at 100 by the API.
+        is capped at 100 by the API. name returns only sandboxes with exactly
+        that name; names aren't unique, so it can match several.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return await self.api.list(
-            resolved_owner_id, status, cursor, limit, sandbox_group_id
+            resolved_owner_id, status, cursor, limit, sandbox_group_id, name
         )
 
     async def list_groups(

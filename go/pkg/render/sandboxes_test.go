@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -324,6 +325,54 @@ func TestSandboxNetworkPolicyCreate(t *testing.T) {
 			require.Equal(t, tt.want, sandbox.NetworkPolicy)
 		})
 	}
+}
+
+func TestSandboxName(t *testing.T) {
+	named := strings.Replace(sandboxJSON, `"id":"sbx-1"`, `"id":"sbx-1","name":"my-agent"`, 1)
+	t.Setenv(UseLocalDev, "")
+	t.Setenv(LocalDevURL, "")
+	var createBodies []map[string]json.RawMessage
+	var listQuery url.Values
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if r.Method == http.MethodGet {
+			listQuery = r.URL.Query()
+			// Names repeat, so one name can match several sandboxes.
+			_, _ = fmt.Fprintf(w, `[{"cursor":"c1","sandbox":%s},{"cursor":"c2","sandbox":%s}]`,
+				named, strings.Replace(named, `"sbx-1"`, `"sbx-2"`, 1))
+			return
+		}
+		var body map[string]json.RawMessage
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		createBodies = append(createBodies, body)
+		w.WriteHeader(http.StatusCreated)
+		if _, ok := body["name"]; ok {
+			_, _ = w.Write([]byte(named))
+		} else {
+			_, _ = w.Write([]byte(sandboxJSON))
+		}
+	}))
+	defer server.Close()
+	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+	sandboxes := client.Experimental.Sandboxes
+	ctx := context.Background()
+
+	sandbox, err := sandboxes.Create(ctx, CreateSandboxParams{Name: "my-agent"})
+	require.NoError(t, err)
+	require.Equal(t, "my-agent", sandbox.Name)
+	require.JSONEq(t, `"my-agent"`, string(createBodies[0]["name"]))
+
+	sandbox, err = sandboxes.Create(ctx, CreateSandboxParams{})
+	require.NoError(t, err)
+	require.Empty(t, sandbox.Name)
+	require.NotContains(t, createBodies[1], "name")
+
+	page, err := sandboxes.List(ctx, &ListSandboxesOptions{Name: "my-agent"})
+	require.NoError(t, err)
+	require.Equal(t, "my-agent", listQuery.Get("name"))
+	require.Len(t, page.Sandboxes, 2)
+	require.Equal(t, "my-agent", page.Sandboxes[1].Name)
 }
 
 func TestSnapshotCreateKind(t *testing.T) {

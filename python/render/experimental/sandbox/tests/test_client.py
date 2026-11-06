@@ -159,6 +159,50 @@ def test_sync_create_passes_a_plan_unknown_to_the_sdk_through():
 
 
 @pytest.mark.asyncio
+async def test_create_sends_the_name_and_returns_it():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json={**SANDBOX_JSON, "name": "my-agent"})
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create(name="my-agent")
+
+    assert captured["body"]["name"] == "my-agent"
+    assert sandbox.name == "my-agent"
+
+
+@pytest.mark.asyncio
+async def test_create_omits_the_name_when_none_is_given():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json=SANDBOX_JSON)
+
+    client = _sandbox_client(handler)
+    sandbox = await client.create()
+
+    assert "name" not in captured["body"]
+    assert sandbox.name is None
+
+
+def test_sync_create_sends_the_name_and_returns_it():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(201, json={**SANDBOX_JSON, "name": "my-agent"})
+
+    client = _sync_sandbox_client(handler)
+    sandbox = client.create(name="my-agent")
+
+    assert captured["body"]["name"] == "my-agent"
+    assert sandbox.name == "my-agent"
+
+
+@pytest.mark.asyncio
 async def test_create_sends_env_in_post_body():
     captured = {}
 
@@ -285,6 +329,29 @@ async def test_list_returns_sandboxes_and_cursor():
     assert captured["query"]["limit"] == "50"
     assert [s.id for s in page.sandboxes] == ["sbx-abc", "sbx-def"]
     assert page.next_cursor == "cur-2"
+
+
+@pytest.mark.asyncio
+async def test_list_filters_by_name_and_returns_every_match():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["query"] = dict(request.url.params)
+        named = {**SANDBOX_JSON, "name": "my-agent"}
+        body = [
+            {"sandbox": named, "cursor": "cur-1"},
+            {"sandbox": {**named, "id": "sbx-def"}, "cursor": "cur-2"},
+        ]
+        return httpx.Response(200, json=body)
+
+    client = _sandbox_client(handler)
+    page = await client.list(name="my-agent")
+
+    assert captured["query"]["name"] == "my-agent"
+    assert [(s.id, s.name) for s in page.sandboxes] == [
+        ("sbx-abc", "my-agent"),
+        ("sbx-def", "my-agent"),
+    ]
 
 
 @pytest.mark.asyncio

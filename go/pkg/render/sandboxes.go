@@ -91,6 +91,9 @@ type NetworkPolicy struct {
 type Sandbox struct {
 	SandboxGroupID string
 	ID             string
+	// Name is the label set at create, or "" if none was set. Names aren't
+	// unique; use ID to address the sandbox.
+	Name           string
 	Status         string
 	Plan           string
 	NetworkPolicy  NetworkPolicy
@@ -169,6 +172,10 @@ func (SandboxExecExit) isSandboxExecEvent()   {}
 type CreateSandboxParams struct {
 	// SandboxGroupID defaults to the workspace's default group.
 	SandboxGroupID string
+	// Name is an optional label, like "my-agent". Names aren't unique, so the
+	// sandbox ID stays the way to address it. At most 64 characters, and it
+	// can't start with "sbx-". Empty means no name.
+	Name           string
 	Plan           string
 	TimeoutSeconds int
 	// NetworkPolicy nil uses the API default.
@@ -192,6 +199,9 @@ type CreateSandboxParams struct {
 // ListSandboxesOptions filters and pages ListSandboxes.
 type ListSandboxesOptions struct {
 	SandboxGroupID string
+	// Name returns only sandboxes with exactly this name. Names aren't unique,
+	// so it can match more than one sandbox.
+	Name string
 	// Status filters by sandbox status (creating, running, suspended,
 	// resuming, errored, terminated).
 	Status []string
@@ -271,6 +281,9 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 	body := sandboxes.SandboxPOST{OwnerId: ownerID}
 	if params.SandboxGroupID != "" {
 		body.SandboxGroupId = &params.SandboxGroupID
+	}
+	if params.Name != "" {
+		body.Name = &params.Name
 	}
 	if params.Plan != "" {
 		plan := sandboxes.SandboxPlan(params.Plan)
@@ -357,6 +370,9 @@ func (s *SandboxClient) List(ctx context.Context, opts *ListSandboxesOptions) (*
 		params.Cursor, params.Limit = page(opts.Cursor, opts.Limit)
 		if opts.SandboxGroupID != "" {
 			params.SandboxGroupId = &opts.SandboxGroupID
+		}
+		if opts.Name != "" {
+			params.Name = &opts.Name
 		}
 		if len(opts.Status) > 0 {
 			statuses := make([]sandboxes.SandboxStatus, len(opts.Status))
@@ -732,9 +748,14 @@ func toSandbox(m sandboxes.Sandbox) *Sandbox {
 	if m.SandboxGroupId != nil {
 		groupID = *m.SandboxGroupId
 	}
+	name := ""
+	if m.Name != nil {
+		name = *m.Name
+	}
 	return &Sandbox{
 		SandboxGroupID: groupID,
 		ID:             m.Id,
+		Name:           name,
 		Status:         string(m.Status),
 		Plan:           string(m.Plan),
 		NetworkPolicy:  toNetworkPolicy(m.NetworkPolicy),

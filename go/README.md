@@ -38,6 +38,22 @@ sandbox, err := client.Experimental.Sandboxes.Create(ctx, render.CreateSandboxPa
 An allow-list needs at least one rule. Sandbox responses expose the policy and
 rules in `sandbox.NetworkPolicy`.
 
+## Sandbox names
+
+Give a sandbox a name to tell it apart, then filter by it:
+
+```go
+sandbox, err := client.Experimental.Sandboxes.Create(ctx, render.CreateSandboxParams{
+    Name: "my-agent",
+})
+page, err := client.Experimental.Sandboxes.List(ctx, &render.ListSandboxesOptions{
+    Name: "my-agent",
+})
+```
+
+Names aren't unique, so `List` can return several sandboxes. Use `sandbox.ID`
+to address one.
+
 ## Development
 
 ### Generating the OpenAPI spec
