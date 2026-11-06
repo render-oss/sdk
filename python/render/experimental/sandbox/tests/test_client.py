@@ -11,9 +11,9 @@ import pytest
 from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.client import SandboxClient
 from render.experimental.sandbox.errors import (
-    DefaultSandboxGroupNotDeletableError,
     SandboxExecError,
     SandboxExecStreamError,
+    SandboxGroupDefaultNotDeletableError,
     SandboxGroupSuspendedError,
     SandboxNotFoundError,
 )
@@ -1332,7 +1332,7 @@ async def test_delete_group_sends_delete():
 @pytest.mark.parametrize(
     ("code", "error_type"),
     [
-        ("default_sandbox_group_not_deletable", DefaultSandboxGroupNotDeletableError),
+        ("default_sandbox_group_not_deletable", SandboxGroupDefaultNotDeletableError),
         ("sandbox_group_suspended", SandboxGroupSuspendedError),
     ],
 )
@@ -1373,7 +1373,7 @@ def test_sync_delete_group_raises_a_typed_error_for_the_default_group():
     client = _sync_sandbox_client(handler)
     assert client.delete_group("sbg-abc") is None
     assert captured[-1].method == "DELETE"
-    with pytest.raises(DefaultSandboxGroupNotDeletableError):
+    with pytest.raises(SandboxGroupDefaultNotDeletableError):
         client.delete_group("sbg-default")
 
 

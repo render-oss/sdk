@@ -561,7 +561,7 @@ func TestSandboxGroupDeleteConflicts(t *testing.T) {
 		code string
 		want error
 	}{
-		{code: "default_sandbox_group_not_deletable", want: ErrDefaultSandboxGroupNotDeletable},
+		{code: "default_sandbox_group_not_deletable", want: ErrSandboxGroupDefaultNotDeletable},
 		{code: "sandbox_group_suspended", want: ErrSandboxGroupSuspended},
 	}
 	for _, tt := range tests {
@@ -577,7 +577,7 @@ func TestSandboxGroupDeleteUnknownConflictIsNotTyped(t *testing.T) {
 	err := conflictClient(t, "something_else").DeleteGroup(context.Background(), "sbg-1")
 
 	require.ErrorContains(t, err, "409")
-	require.NotErrorIs(t, err, ErrDefaultSandboxGroupNotDeletable)
+	require.NotErrorIs(t, err, ErrSandboxGroupDefaultNotDeletable)
 	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
 }
 
@@ -612,5 +612,5 @@ func TestSandboxGroupSetDefaultUnknownConflictIsNotTyped(t *testing.T) {
 
 	require.ErrorContains(t, err, "409")
 	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
-	require.NotErrorIs(t, err, ErrDefaultSandboxGroupNotDeletable)
+	require.NotErrorIs(t, err, ErrSandboxGroupDefaultNotDeletable)
 }

@@ -299,7 +299,7 @@ class SandboxClient:
         """Delete a group, terminating its sandboxes.
 
         Its snapshots and credentials are deleted shortly after. Raises
-        DefaultSandboxGroupNotDeletableError for the workspace's default group;
+        SandboxGroupDefaultNotDeletableError for the workspace's default group;
         make another group the default first with set_default_group. Raises
         SandboxGroupSuspendedError for a suspended group.
         """

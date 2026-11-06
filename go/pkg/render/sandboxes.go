@@ -32,10 +32,10 @@ var (
 	// ErrSnapshotPlanMismatch means a sandbox create named a runtime snapshot
 	// captured on a different plan.
 	ErrSnapshotPlanMismatch = errors.New("snapshot plan mismatch")
-	// ErrDefaultSandboxGroupNotDeletable means a delete named the workspace's
+	// ErrSandboxGroupDefaultNotDeletable means a delete named the workspace's
 	// default sandbox group. Make another group the default first with
 	// SetDefaultGroup.
-	ErrDefaultSandboxGroupNotDeletable = errors.New("default sandbox group not deletable")
+	ErrSandboxGroupDefaultNotDeletable = errors.New("default sandbox group not deletable")
 	// ErrSandboxGroupSuspended means a DeleteGroup or SetDefaultGroup call named
 	// a suspended sandbox group.
 	ErrSandboxGroupSuspended = errors.New("sandbox group suspended")
@@ -820,7 +820,7 @@ func groupError(op string, status int, body []byte) error {
 	}
 	switch {
 	case status == 409 && code == groupNotDeletableCode:
-		return fmt.Errorf("%w: %s", ErrDefaultSandboxGroupNotDeletable, detail)
+		return fmt.Errorf("%w: %s", ErrSandboxGroupDefaultNotDeletable, detail)
 	case status == 409 && code == groupSuspendedCode:
 		return fmt.Errorf("%w: %s", ErrSandboxGroupSuspended, detail)
 	}
@@ -962,7 +962,7 @@ func (s *SandboxClient) UpdateGroup(ctx context.Context, groupID string, concurr
 
 // DeleteGroup deletes a group. Its sandboxes are terminated and its snapshots
 // and credentials are deleted shortly after. Returns
-// ErrDefaultSandboxGroupNotDeletable for the workspace's default group (make
+// ErrSandboxGroupDefaultNotDeletable for the workspace's default group (make
 // another group the default first with SetDefaultGroup) and
 // ErrSandboxGroupSuspended for a suspended group.
 func (s *SandboxClient) DeleteGroup(ctx context.Context, groupID string) error {

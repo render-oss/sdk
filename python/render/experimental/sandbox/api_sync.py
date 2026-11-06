@@ -35,13 +35,13 @@ from render.experimental.sandbox._tar import (
     stat_path,
 )
 from render.experimental.sandbox.errors import (
-    DefaultSandboxGroupNotDeletableError,
     ImageNotFoundError,
     ImageNotReadyError,
     SandboxDownloadError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxFileNotFoundError,
+    SandboxGroupDefaultNotDeletableError,
     SandboxGroupSuspendedError,
     SandboxNotFoundError,
     SnapshotNotFoundError,
@@ -145,7 +145,7 @@ _SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
 _IMAGE_NOT_FOUND_CODE = "build_not_found"
 _IMAGE_NOT_SUCCEEDED_CODE = "build_not_succeeded"
 _GROUP_CONFLICT_ERRORS: dict[str, type[ClientError]] = {
-    "default_sandbox_group_not_deletable": DefaultSandboxGroupNotDeletableError,
+    "default_sandbox_group_not_deletable": SandboxGroupDefaultNotDeletableError,
     "sandbox_group_suspended": SandboxGroupSuspendedError,
 }
 

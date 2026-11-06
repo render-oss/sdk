@@ -18,7 +18,7 @@ __all__ = [
     "BuildNotFoundError",
     "BuildNotReadyError",
     "BuildSource",
-    "DefaultSandboxGroupNotDeletableError",
+    "SandboxGroupDefaultNotDeletableError",
     "EgressRule",
     "Image",
     "ImageClient",
