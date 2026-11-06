@@ -69,6 +69,11 @@ def _parse_response(
 
         return response_404
 
+    if response.status_code == 409:
+        response_409 = Error.from_dict(response.json())
+
+        return response_409
+
     if response.status_code == 429:
         response_429 = Error.from_dict(response.json())
 
@@ -115,7 +120,8 @@ def sync_detailed(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+    409 with `code: sandbox_not_running` if the sandbox is terminated or
+    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -162,7 +168,8 @@ def sync(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+    409 with `code: sandbox_not_running` if the sandbox is terminated or
+    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -204,7 +211,8 @@ async def asyncio_detailed(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+    409 with `code: sandbox_not_running` if the sandbox is terminated or
+    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
@@ -249,7 +257,8 @@ async def asyncio(
     single run operation against the specified sandbox. The response contains
     the sandbox URI where the caller sends the command with the token as a bearer credential.
 
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+    409 with `code: sandbox_not_running` if the sandbox is terminated or
+    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 
     Args:
         sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.

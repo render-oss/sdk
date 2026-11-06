@@ -595,7 +595,8 @@ export interface paths {
          *     single run operation against the specified sandbox. The response contains
          *     the sandbox URI where the caller sends the command with the token as a bearer credential.
          *
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         *     409 with `code: sandbox_not_running` if the sandbox is terminated or
+         *     errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["connect-sandbox-run"];
         delete?: never;
@@ -631,7 +632,8 @@ export interface paths {
          *     token is bound to this sandbox, operation, and path, and expires
          *     shortly after issuance.
          *
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         *     409 with `code: sandbox_not_running` if the sandbox is terminated or
+         *     errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
          */
         post: operations["connect-sandbox-files"];
         delete?: never;
@@ -1250,15 +1252,18 @@ export interface components {
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
             /**
-             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached. Use 0 for no timeout. Positive values must be at least 60.
-             * @default 86400
+             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
+             *     Use 0 for no timeout. Positive values must be at least 60. Defaults to
+             *     86400, or to the source sandbox's timeout when starting from a snapshot.
              */
-            timeoutSeconds: number;
+            timeoutSeconds?: number;
             /**
-             * @description Seconds of inactivity before the sandbox is suspended. Use 0 to disable automatic idle suspension. Positive values must be at least 300.
-             * @default 900
+             * @description Seconds of inactivity before the sandbox is suspended. Use 0 to disable
+             *     automatic idle suspension. Positive values must be at least 300. Defaults
+             *     to 900, or to the source sandbox's idle timeout when starting from a
+             *     snapshot.
              */
-            idleTimeoutSeconds: number;
+            idleTimeoutSeconds?: number;
             /** @description Inline environment variables injected into the sandbox at creation. */
             env?: {
                 [key: string]: string;
@@ -1267,7 +1272,8 @@ export interface components {
              * @description Start from this snapshot instead of the base image. Must be `available`
              *     and in the same sandbox group. For a `runtime` snapshot, `plan` must
              *     match the snapshot's plan. The new sandbox uses the source sandbox's
-             *     network policy. Include `networkPolicy` to set a different one.
+             *     network policy, timeout and idle timeout. Include `networkPolicy`,
+             *     `timeoutSeconds` or `idleTimeoutSeconds` to set a different one.
              */
             snapshotId?: components["schemas"]["sandboxSnapshotId"];
             /**
@@ -2940,6 +2946,7 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -2980,6 +2987,7 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

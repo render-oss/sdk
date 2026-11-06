@@ -29,9 +29,13 @@ class SandboxPOST:
             only accepted when they name the same policy.
         plan (Union[SandboxPlan, Unset, str]): Compute plan. See `sandboxPlan` for known values.
         timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-            Use 0 for no timeout. Positive values must be at least 60. Default: 86400.
+            Use 0 for no timeout. Positive values must be at least 60. Defaults to
+            86400, or to the source sandbox's timeout when starting from a snapshot.
         idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
-            disable automatic idle suspension. Positive values must be at least 300. Default: 900.
+            disable
+            automatic idle suspension. Positive values must be at least 300. Defaults
+            to 900, or to the source sandbox's idle timeout when starting from a
+            snapshot.
         env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
         snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
         snapshot_name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
@@ -55,8 +59,8 @@ class SandboxPOST:
     name: Union[Unset, str] = UNSET
     network_policy: Union[Unset, "SandboxNetworkPolicyPOST"] = UNSET
     plan: Union[SandboxPlan, Unset, str] = UNSET
-    timeout_seconds: Union[Unset, int] = 86400
-    idle_timeout_seconds: Union[Unset, int] = 900
+    timeout_seconds: Union[Unset, int] = UNSET
+    idle_timeout_seconds: Union[Unset, int] = UNSET
     env: Union[Unset, "SandboxPOSTEnv"] = UNSET
     snapshot_id: Union[Unset, str] = UNSET
     snapshot_name: Union[Unset, str] = UNSET

@@ -2372,7 +2372,8 @@ type ClientInterface interface {
 	// token is bound to this sandbox, operation, and path, and expires
 	// shortly after issuance.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
 	ConnectSandboxFiles(ctx context.Context, sandboxId externalRef15.SandboxId, operation string, params *ConnectSandboxFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -2383,7 +2384,8 @@ type ClientInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -2396,7 +2398,8 @@ type ClientInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -8029,7 +8032,8 @@ func (c *Client) RetrieveSandboxExecution(ctx context.Context, sandboxId externa
 // token is bound to this sandbox, operation, and path, and expires
 // shortly after issuance.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Corresponds with POST /sandboxes/{sandboxId}/files/{operation}/token (the `ConnectSandboxFiles` operationId).
 func (c *Client) ConnectSandboxFiles(ctx context.Context, sandboxId externalRef15.SandboxId, operation string, params *ConnectSandboxFilesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -8050,7 +8054,8 @@ func (c *Client) ConnectSandboxFiles(ctx context.Context, sandboxId externalRef1
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes any type of body and a specified content type.
 //
@@ -8073,7 +8078,8 @@ func (c *Client) ConnectSandboxRunWithBody(ctx context.Context, sandboxId extern
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -29122,7 +29128,8 @@ type ClientWithResponsesInterface interface {
 	// token is bound to this sandbox, operation, and path, and expires
 	// shortly after issuance.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -29135,7 +29142,8 @@ type ClientWithResponsesInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -29148,7 +29156,8 @@ type ClientWithResponsesInterface interface {
 	// single run operation against the specified sandbox. The response contains
 	// the sandbox URI where the caller sends the command with the token as a bearer credential.
 	//
-	// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+	// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+	// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -48643,6 +48652,8 @@ type ConnectSandboxFilesResponse struct {
 	JSON403 *N403Forbidden
 	// JSON404 the response for an HTTP 404 `application/json` response
 	JSON404 *N404NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *N409Conflict
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *N429RateLimit
 	// JSON500 the response for an HTTP 500 `application/json` response
@@ -48676,6 +48687,11 @@ func (r ConnectSandboxFilesResponse) GetJSON403() *N403Forbidden {
 // GetJSON404 returns the response for an HTTP 404 `application/json` response
 func (r ConnectSandboxFilesResponse) GetJSON404() *N404NotFound {
 	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r ConnectSandboxFilesResponse) GetJSON409() *N409Conflict {
+	return r.JSON409
 }
 
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
@@ -48743,6 +48759,8 @@ type ConnectSandboxRunResponse struct {
 	JSON403 *N403Forbidden
 	// JSON404 the response for an HTTP 404 `application/json` response
 	JSON404 *N404NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *N409Conflict
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *N429RateLimit
 	// JSON500 the response for an HTTP 500 `application/json` response
@@ -48776,6 +48794,11 @@ func (r ConnectSandboxRunResponse) GetJSON403() *N403Forbidden {
 // GetJSON404 returns the response for an HTTP 404 `application/json` response
 func (r ConnectSandboxRunResponse) GetJSON404() *N404NotFound {
 	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r ConnectSandboxRunResponse) GetJSON409() *N409Conflict {
+	return r.JSON409
 }
 
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
@@ -60477,7 +60500,8 @@ func (c *ClientWithResponses) RetrieveSandboxExecutionWithResponse(ctx context.C
 // token is bound to this sandbox, operation, and path, and expires
 // shortly after issuance.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -60496,7 +60520,8 @@ func (c *ClientWithResponses) ConnectSandboxFilesWithResponse(ctx context.Contex
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -60515,7 +60540,8 @@ func (c *ClientWithResponses) ConnectSandboxRunWithBodyWithResponse(ctx context.
 // single run operation against the specified sandbox. The response contains
 // the sandbox URI where the caller sends the command with the token as a bearer credential.
 //
-// 409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+// 409 with `code: sandbox_not_running` if the sandbox is terminated or
+// errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -81971,6 +81997,13 @@ func ParseConnectSandboxFilesResponse(rsp *http.Response) (*ConnectSandboxFilesR
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest N409Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
 		var dest N429RateLimit
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
@@ -82079,6 +82112,13 @@ func ParseConnectSandboxRunResponse(rsp *http.Response) (*ConnectSandboxRunRespo
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest N409Conflict
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
 		var dest N429RateLimit
