@@ -449,7 +449,16 @@ export interface paths {
             };
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List sandbox builds
+         * @description Builds in a sandbox group, newest first.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, `code: invalid_status` for a status outside the
+         *     build status vocabulary, `code: invalid_cursor` for a malformed cursor,
+         *     or `code: invalid_limit` for a limit outside 1 to 100.
+         */
+        get: operations["list-sandbox-builds"];
         put?: never;
         /**
          * Create sandbox build
@@ -832,6 +841,11 @@ export interface components {
         /** @description A sandbox snapshot with a cursor */
         sandboxSnapshotWithCursor: {
             snapshot: components["schemas"]["sandboxSnapshot"];
+            cursor: components["schemas"]["cursor"];
+        };
+        /** @description A sandbox build with a cursor */
+        sandboxBuildWithCursor: {
+            build: components["schemas"]["sandboxBuild"];
             cursor: components["schemas"]["cursor"];
         };
         /** @description A sandbox group with a cursor */
@@ -1420,21 +1434,6 @@ export interface components {
              */
             concurrencyLimit: number;
         };
-        sandboxBuildPOST: {
-            /** @description Names the image. Every build of an image shares it. */
-            name: string;
-            /**
-             * @description The image to convert, by tag or digest.
-             * @example python:3.13
-             */
-            sourceImage: string;
-            /** @description Pulls `sourceImage` from a private registry. Used for this build only and never stored. */
-            registryCredential?: {
-                username: string;
-                /** Format: password */
-                password: string;
-            };
-        };
         /** @enum {string} */
         sandboxBuildStatus: "pending" | "running" | "succeeded" | "failed";
         sandboxBuild: {
@@ -1465,6 +1464,21 @@ export interface components {
              * @description When the build succeeded or failed.
              */
             finishedAt?: string | null;
+        };
+        sandboxBuildPOST: {
+            /** @description Names the image. Every build of an image shares it. */
+            name: string;
+            /**
+             * @description The image to convert, by tag or digest.
+             * @example python:3.13
+             */
+            sourceImage: string;
+            /** @description Pulls `sourceImage` from a private registry. Used for this build only and never stored. */
+            registryCredential?: {
+                username: string;
+                /** Format: password */
+                password: string;
+            };
         };
         /**
          * @description Optional body when minting a run connect token. `command` is stored on
@@ -2721,6 +2735,45 @@ export interface operations {
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-sandbox-builds": {
+        parameters: {
+            query?: {
+                /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                cursor?: components["parameters"]["cursorParam"];
+                /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
+                limit?: components["parameters"]["limitParam"];
+                /** @description Return only builds of the image with this name. */
+                name?: string;
+                /** @description Filter by build status. */
+                status?: components["schemas"]["sandboxBuildStatus"][];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxBuildWithCursor"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

@@ -369,6 +369,7 @@ __all__ = [
     "SandboxBuildPOSTRegistryCredential",
     "SandboxBuildSource",
     "SandboxBuildStatus",
+    "SandboxBuildWithCursor",
     "SandboxConnectRequest",
     "SandboxConnectResponse",
     "SandboxCredential",

@@ -358,6 +358,7 @@ from .sandbox_build_post import SandboxBuildPOST
 from .sandbox_build_post_registry_credential import SandboxBuildPOSTRegistryCredential
 from .sandbox_build_source import SandboxBuildSource
 from .sandbox_build_status import SandboxBuildStatus
+from .sandbox_build_with_cursor import SandboxBuildWithCursor
 from .sandbox_connect_request import SandboxConnectRequest
 from .sandbox_connect_response import SandboxConnectResponse
 from .sandbox_credential import SandboxCredential
@@ -832,6 +833,7 @@ __all__ = (
     "SandboxBuildPOSTRegistryCredential",
     "SandboxBuildSource",
     "SandboxBuildStatus",
+    "SandboxBuildWithCursor",
     "SandboxConnectRequest",
     "SandboxConnectResponse",
     "SandboxCredential",
