@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.8.0] - 2026-11-06
+
+### Added
+
+- (Sandboxes) Sandbox names: `sandboxes.create()` accepts `name`, a label like `my-agent`, and `sandboxes.list()` accepts `name` to return only sandboxes with exactly that name. `Sandbox.name` returns it. Names aren't unique, so use the sandbox ID to address one sandbox.
+- (Sandboxes) `sandboxes.delete_group()` deletes a sandbox group and terminates its sandboxes. It raises `SandboxGroupDefaultNotDeletableError` for the workspace's default group.
+- (Sandboxes) `sandboxes.set_default_group()` makes a sandbox group the workspace's default.
+- (Sandboxes) `SandboxGroupSuspendedError`, raised by `delete_group()` and `set_default_group()` for a suspended group.
+- `ErrorCode.DEFAULT_SANDBOX_GROUP_NOT_DELETABLE` and `ErrorCode.INVALID_SANDBOX_NAME` for the matching API error codes.
+- `default_version_id` on `Workflow`.
+
+### Fixed
+
+- (Workflows) A flow can catch the `StepError` from a step's final failed attempt and continue. An uncaught `StepError` fails the run with the last step error. Replay keeps the recorded attempt.
+- (Sandboxes) `sandboxes.create()` from a snapshot without `timeout_seconds` or `idle_timeout_seconds` keeps the source sandbox's timeouts. Before, the client always sent the 24-hour and 15-minute defaults.
+
 ## [1.7.0] - 2026-11-02
 
 ### Added

@@ -4,6 +4,20 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-11-06
+
+### Added
+
+- (Sandboxes) Sandbox names: `sandboxes.create()` accepts `name`, a label like `my-agent`, and `sandboxes.list()` accepts `name` to return only sandboxes with exactly that name. The sandbox returns it as `name`. Names aren't unique, so use the sandbox ID to address one sandbox.
+- (Sandboxes) `sandboxes.deleteGroup()` deletes a sandbox group and terminates its sandboxes. It throws `SandboxGroupDefaultNotDeletableError` for the workspace's default group.
+- (Sandboxes) `sandboxes.setDefaultGroup()` makes a sandbox group the workspace's default.
+- (Sandboxes) `SandboxGroupSuspendedError`, thrown by `deleteGroup()` and `setDefaultGroup()` for a suspended group.
+- (Sandboxes) `download()` accepts `{ maxSizeBytes, signal }`. Passing an `AbortSignal` alone still works.
+
+### Fixed
+
+- (Sandboxes) `download()` no longer reads an unbounded file into memory. It stops at 256 MiB by default and throws `SandboxDownloadTooLargeError`. Pass `{ maxSizeBytes }` to allow a larger download.
+
 ## [1.7.0] - 2026-11-02
 
 ### Added
