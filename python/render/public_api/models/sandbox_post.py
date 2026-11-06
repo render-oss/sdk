@@ -22,6 +22,8 @@ class SandboxPOST:
     Attributes:
         owner_id (str): The ID of the workspace the sandbox belongs to.
         sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
+        name (Union[Unset, str]): A label for the sandbox, like `my-agent`. It isn't unique, so the
+            sandbox ID stays the handle. It can't start with `sbx-`.
         network_policy (Union[Unset, SandboxNetworkPolicyPOST]): Set either `type` or its deprecated alias `default`.
             Sending both is
             only accepted when they name the same policy.
@@ -50,6 +52,7 @@ class SandboxPOST:
 
     owner_id: str
     sandbox_group_id: Union[Unset, str] = UNSET
+    name: Union[Unset, str] = UNSET
     network_policy: Union[Unset, "SandboxNetworkPolicyPOST"] = UNSET
     plan: Union[SandboxPlan, Unset, str] = UNSET
     timeout_seconds: Union[Unset, int] = 86400
@@ -66,6 +69,8 @@ class SandboxPOST:
         owner_id = self.owner_id
 
         sandbox_group_id = self.sandbox_group_id
+
+        name = self.name
 
         network_policy: Union[Unset, dict[str, Any]] = UNSET
         if not isinstance(self.network_policy, Unset):
@@ -111,6 +116,8 @@ class SandboxPOST:
         )
         if sandbox_group_id is not UNSET:
             field_dict["sandboxGroupId"] = sandbox_group_id
+        if name is not UNSET:
+            field_dict["name"] = name
         if network_policy is not UNSET:
             field_dict["networkPolicy"] = network_policy
         if plan is not UNSET:
@@ -144,6 +151,8 @@ class SandboxPOST:
         owner_id = d.pop("ownerId")
 
         sandbox_group_id = d.pop("sandboxGroupId", UNSET)
+
+        name = d.pop("name", UNSET)
 
         _network_policy = d.pop("networkPolicy", UNSET)
         network_policy: Union[Unset, SandboxNetworkPolicyPOST]
@@ -196,6 +205,7 @@ class SandboxPOST:
         sandbox_post = cls(
             owner_id=owner_id,
             sandbox_group_id=sandbox_group_id,
+            name=name,
             network_policy=network_policy,
             plan=plan,
             timeout_seconds=timeout_seconds,

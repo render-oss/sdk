@@ -31,6 +31,7 @@ class Sandbox:
         idle_timeout_seconds (int): Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle
             suspension. Example: 900.
         created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
+        name (Union[None, Unset, str]): The label set when the sandbox was created.
         sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
         terminated_at (Union[None, Unset, datetime.datetime]): When the sandbox was terminated, or null.
         shared_filesystems (Union[Unset, list['SandboxSharedFilesystem']]): Shared filesystems mounted in the sandbox.
@@ -45,6 +46,7 @@ class Sandbox:
     timeout_seconds: int
     idle_timeout_seconds: int
     created_at: datetime.datetime
+    name: Union[None, Unset, str] = UNSET
     sandbox_group_id: Union[Unset, str] = UNSET
     terminated_at: Union[None, Unset, datetime.datetime] = UNSET
     shared_filesystems: Union[Unset, list["SandboxSharedFilesystem"]] = UNSET
@@ -70,6 +72,12 @@ class Sandbox:
         idle_timeout_seconds = self.idle_timeout_seconds
 
         created_at = self.created_at.isoformat()
+
+        name: Union[None, Unset, str]
+        if isinstance(self.name, Unset):
+            name = UNSET
+        else:
+            name = self.name
 
         sandbox_group_id = self.sandbox_group_id
 
@@ -102,6 +110,8 @@ class Sandbox:
                 "createdAt": created_at,
             }
         )
+        if name is not UNSET:
+            field_dict["name"] = name
         if sandbox_group_id is not UNSET:
             field_dict["sandboxGroupId"] = sandbox_group_id
         if terminated_at is not UNSET:
@@ -144,6 +154,15 @@ class Sandbox:
 
         created_at = isoparse(d.pop("createdAt"))
 
+        def _parse_name(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        name = _parse_name(d.pop("name", UNSET))
+
         sandbox_group_id = d.pop("sandboxGroupId", UNSET)
 
         def _parse_terminated_at(data: object) -> Union[None, Unset, datetime.datetime]:
@@ -179,6 +198,7 @@ class Sandbox:
             timeout_seconds=timeout_seconds,
             idle_timeout_seconds=idle_timeout_seconds,
             created_at=created_at,
+            name=name,
             sandbox_group_id=sandbox_group_id,
             terminated_at=terminated_at,
             shared_filesystems=shared_filesystems,

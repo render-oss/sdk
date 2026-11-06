@@ -275,6 +275,9 @@ export interface paths {
          *     `code: snapshot_not_found` if no `available` snapshot in the group has the
          *     name. The 409 cases above apply to the resolved snapshot.
          *
+         *     400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
+         *     or starts with `sbx-`.
+         *
          *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
          *
          *     400 with `code: sandbox_group_limit_reached` if the owner has no default
@@ -1160,6 +1163,8 @@ export interface components {
         };
         sandbox: {
             id: components["schemas"]["sandboxId"];
+            /** @description The label set when the sandbox was created. */
+            name?: string | null;
             /** @description The sandbox group this sandbox belongs to. */
             sandboxGroupId?: components["schemas"]["sandboxGroupId"];
             status: components["schemas"]["sandboxStatus"];
@@ -1202,8 +1207,9 @@ export interface components {
             /**
              * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
              *     `allow-list` (requires additional `rules`). Either `type` or `default`
-             *     is required when `networkPolicy` is provided. Omitting
-             *     `networkPolicy` defaults to `allow-all`.
+             *     is required when `networkPolicy` is provided. Defaults to `allow-all`,
+             *     or to the source sandbox's network policy when starting from a
+             *     snapshot. Include `networkPolicy` to override.
              */
             type?: components["schemas"]["sandboxNetworkPolicyType"];
             /**
@@ -1235,6 +1241,11 @@ export interface components {
             ownerId: string;
             /** @description Group to create the sandbox in; defaults to the workspace's default group. */
             sandboxGroupId?: components["schemas"]["sandboxGroupId"];
+            /**
+             * @description A label for the sandbox, like `my-agent`. It isn't unique, so the
+             *     sandbox ID stays the handle. It can't start with `sbx-`.
+             */
+            name?: string;
             networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
             /** @description Compute plan. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
@@ -1255,7 +1266,8 @@ export interface components {
             /**
              * @description Start from this snapshot instead of the base image. Must be `available`
              *     and in the same sandbox group. For a `runtime` snapshot, `plan` must
-             *     match the snapshot's plan.
+             *     match the snapshot's plan. The new sandbox uses the source sandbox's
+             *     network policy. Include `networkPolicy` to set a different one.
              */
             snapshotId?: components["schemas"]["sandboxSnapshotId"];
             /**
@@ -2316,6 +2328,11 @@ export interface operations {
                 ownerId: string;
                 /** @description Return only sandboxes in this group. The group must belong to ownerId. */
                 sandboxGroupId?: components["schemas"]["sandboxGroupId"];
+                /**
+                 * @description Return only sandboxes with exactly this name. Names aren't unique, so
+                 *     this can match more than one sandbox.
+                 */
+                name?: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
