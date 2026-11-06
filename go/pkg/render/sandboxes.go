@@ -33,9 +33,11 @@ var (
 	// captured on a different plan.
 	ErrSnapshotPlanMismatch = errors.New("snapshot plan mismatch")
 	// ErrDefaultSandboxGroupNotDeletable means a delete named the workspace's
-	// default sandbox group. Make another group the default first.
+	// default sandbox group. Make another group the default first with
+	// SetDefaultGroup.
 	ErrDefaultSandboxGroupNotDeletable = errors.New("default sandbox group not deletable")
-	// ErrSandboxGroupSuspended means a delete named a suspended sandbox group.
+	// ErrSandboxGroupSuspended means a DeleteGroup or SetDefaultGroup call named
+	// a suspended sandbox group.
 	ErrSandboxGroupSuspended = errors.New("sandbox group suspended")
 	// ErrSandboxDownload means a download could not be written to disk safely:
 	// a truncated archive, an entry that escapes the destination, or a
@@ -961,8 +963,8 @@ func (s *SandboxClient) UpdateGroup(ctx context.Context, groupID string, concurr
 // DeleteGroup deletes a group. Its sandboxes are terminated and its snapshots
 // and credentials are deleted shortly after. Returns
 // ErrDefaultSandboxGroupNotDeletable for the workspace's default group (make
-// another group the default first) and ErrSandboxGroupSuspended for a
-// suspended group.
+// another group the default first with SetDefaultGroup) and
+// ErrSandboxGroupSuspended for a suspended group.
 func (s *SandboxClient) DeleteGroup(ctx context.Context, groupID string) error {
 	resp, err := s.client.internal.DeleteSandboxGroupWithResponse(ctx, groupID)
 	if err != nil {
@@ -972,6 +974,23 @@ func (s *SandboxClient) DeleteGroup(ctx context.Context, groupID string) error {
 		return groupError("delete sandbox group", resp.StatusCode(), resp.Body)
 	}
 	return nil
+}
+
+// SetDefaultGroup makes a group the workspace's default. Calling it on the
+// current default returns the group unchanged. Returns ErrSandboxGroupSuspended
+// for a suspended group.
+func (s *SandboxClient) SetDefaultGroup(ctx context.Context, groupID string) (*SandboxGroup, error) {
+	resp, err := s.client.internal.SetDefaultSandboxGroupWithResponse(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set default sandbox group: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, groupError("set default sandbox group", resp.StatusCode(), resp.Body)
+	}
+	if resp.JSON200 == nil {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+	return toSandboxGroup(*resp.JSON200), nil
 }
 
 func toSandboxGroup(g sandboxes.SandboxGroup) *SandboxGroup {

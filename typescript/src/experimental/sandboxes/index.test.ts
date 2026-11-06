@@ -2839,4 +2839,37 @@ describe("sandbox group selection", () => {
     const error = await new SandboxesClient(del).deleteGroup("sbg-1").catch((err) => err);
     expect(error.constructor).toBe(ClientError);
   });
+
+  it("sets the default group and returns it", async () => {
+    const group = { id: "sbg-1", isDefault: true };
+    const post = mockApiClient("POST", { status: 200, data: group });
+    await expect(new SandboxesClient(post).setDefaultGroup("sbg-1")).resolves.toEqual(group);
+    expect(post.POST).toHaveBeenCalledWith("/sandbox-groups/{sandboxGroupId}/set-default", {
+      params: { path: { sandboxGroupId: "sbg-1" } },
+    });
+  });
+
+  it("throws SandboxGroupSuspendedError when set-default returns 409 sandbox_group_suspended", async () => {
+    const post = mockApiClient("POST", {
+      status: 409,
+      error: { code: "sandbox_group_suspended", message: "suspended" },
+    });
+    const error = await new SandboxesClient(post).setDefaultGroup("sbg-1").catch((err) => err);
+    expect(error).toBeInstanceOf(SandboxGroupSuspendedError);
+    expect(error).toBeInstanceOf(ClientError);
+    expect(error).toMatchObject({
+      statusCode: 409,
+      code: "sandbox_group_suspended",
+      message: "Failed to set default sandbox group: suspended",
+    });
+  });
+
+  it("throws a plain ClientError for an unknown 409 code on set-default", async () => {
+    const post = mockApiClient("POST", {
+      status: 409,
+      error: { code: "other", message: "conflict" },
+    });
+    const error = await new SandboxesClient(post).setDefaultGroup("sbg-1").catch((err) => err);
+    expect(error.constructor).toBe(ClientError);
+  });
 });

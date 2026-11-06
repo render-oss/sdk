@@ -12,6 +12,7 @@
     "/sandbox-groups/{sandboxGroupId}",
     "/sandbox-groups/{sandboxGroupId}/builds",
     "/sandbox-groups/{sandboxGroupId}/builds/{buildId}",
+    "/sandbox-groups/{sandboxGroupId}/set-default",
     "/sandbox-groups/{sandboxGroupId}/snapshots",
     "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}",
     "/sandboxes",

@@ -896,8 +896,8 @@ export class SandboxesClient {
   /**
    * Deletes a group and terminates its sandboxes. Its snapshots and credentials are deleted
    * shortly after. Throws `SandboxGroupDefaultNotDeletableError` for the workspace's default
-   * group (make another group the default first) and `SandboxGroupSuspendedError` for a
-   * suspended group.
+   * group (make another group the default first with `setDefaultGroup()`) and
+   * `SandboxGroupSuspendedError` for a suspended group.
    */
   async deleteGroup(sandboxGroupId: string): Promise<void> {
     const { error, response } = await this.apiClient.DELETE("/sandbox-groups/{sandboxGroupId}", {
@@ -906,6 +906,20 @@ export class SandboxesClient {
     if (error !== undefined || !response.ok) {
       throw getGroupApiError(error, response, "Failed to delete sandbox group");
     }
+  }
+
+  /**
+   * Makes a group the workspace's default. Setting the current default returns it unchanged.
+   * Throws `SandboxGroupSuspendedError` for a suspended group.
+   */
+  async setDefaultGroup(sandboxGroupId: string): Promise<SandboxGroup> {
+    return unwrap(
+      await this.apiClient.POST("/sandbox-groups/{sandboxGroupId}/set-default", {
+        params: { path: { sandboxGroupId } },
+      }),
+      "Failed to set default sandbox group",
+      getGroupApiError,
+    );
   }
 
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {

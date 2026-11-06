@@ -439,6 +439,34 @@ export interface paths {
         patch: operations["update-sandbox-group"];
         trace?: never;
     };
+    "/sandbox-groups/{sandboxGroupId}/set-default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set default sandbox group
+         * @description Make a sandbox group its owner's default. Sandbox creates without a
+         *     `sandboxGroupId` use the default group. The previous default stays as a
+         *     regular group. Idempotent: setting the current default returns it unchanged.
+         *
+         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
+         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         */
+        post: operations["set-default-sandbox-group"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandbox-groups/{sandboxGroupId}/builds": {
         parameters: {
             query?: never;
@@ -2722,6 +2750,37 @@ export interface operations {
         };
         responses: {
             /** @description Sandbox group updated. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxGroup"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "set-default-sandbox-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new default sandbox group. */
             200: {
                 headers: {
                     [name: string]: unknown;

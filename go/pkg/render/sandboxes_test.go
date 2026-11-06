@@ -580,3 +580,37 @@ func TestSandboxGroupDeleteUnknownConflictIsNotTyped(t *testing.T) {
 	require.NotErrorIs(t, err, ErrDefaultSandboxGroupNotDeletable)
 	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
 }
+
+func TestSandboxGroupSetDefault(t *testing.T) {
+	groupJSON := `{"id":"sbg-1","ownerId":"tea-1","name":"agents","region":"oregon","isDefault":true,` +
+		`"concurrencyLimit":10,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z"}`
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /v1/sandbox-groups/sbg-1/set-default", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(groupJSON))
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	g, err := c.Experimental.Sandboxes.SetDefaultGroup(context.Background(), "sbg-1")
+
+	require.NoError(t, err)
+	require.Equal(t, "sbg-1", g.ID)
+	require.True(t, g.IsDefault)
+}
+
+func TestSandboxGroupSetDefaultSuspended(t *testing.T) {
+	_, err := conflictClient(t, "sandbox_group_suspended").SetDefaultGroup(context.Background(), "sbg-1")
+
+	require.ErrorIs(t, err, ErrSandboxGroupSuspended)
+}
+
+func TestSandboxGroupSetDefaultUnknownConflictIsNotTyped(t *testing.T) {
+	_, err := conflictClient(t, "something_else").SetDefaultGroup(context.Background(), "sbg-1")
+
+	require.ErrorContains(t, err, "409")
+	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
+	require.NotErrorIs(t, err, ErrDefaultSandboxGroupNotDeletable)
+}

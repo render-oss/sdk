@@ -33,7 +33,8 @@ class SnapshotPlanMismatchError(ClientError):
 
 class DefaultSandboxGroupNotDeletableError(ClientError):
     """Raised when a delete names the workspace's default sandbox group. Make
-    another group the default first. code is default_sandbox_group_not_deletable."""
+    another group the default first with set_default_group. code is
+    default_sandbox_group_not_deletable."""
 
 
 class SandboxGroupSuspendedError(ClientError):

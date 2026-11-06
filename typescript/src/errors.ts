@@ -92,7 +92,8 @@ export class SandboxSnapshotPlanMismatchError extends ClientError {
 }
 
 /**
- * The delete named the workspace's default sandbox group. Make another group the default first.
+ * The delete named the workspace's default sandbox group. Make another group the default first
+ * with `setDefaultGroup()`.
  */
 export class SandboxGroupDefaultNotDeletableError extends ClientError {
   constructor(message: string, statusCode: number, response?: any, code?: string) {

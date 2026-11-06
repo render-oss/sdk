@@ -132,6 +132,7 @@ from render.experimental.sandbox.api_sync import (
     retrieve_sandbox_group as retrieve_sandbox_group,
     retrieve_sandbox_snapshot as retrieve_sandbox_snapshot,
     run_blocking as run_blocking,
+    set_default_sandbox_group as set_default_sandbox_group,
     stat_path as stat_path,
     terminate_sandbox as terminate_sandbox,
     update_sandbox_group as update_sandbox_group,

@@ -89,6 +89,7 @@ from render.public_api.api.sandboxes import (
     retrieve_sandbox_build,
     retrieve_sandbox_group,
     retrieve_sandbox_snapshot,
+    set_default_sandbox_group,
     terminate_sandbox,
     update_sandbox_group,
 )
@@ -534,6 +535,18 @@ class SyncSandboxApi:
                 sandbox_group_id, client=self.client
             )
         _handle_group_api_error(response, "delete sandbox group")
+
+    def set_default_group(self, sandbox_group_id: str) -> SandboxGroup:
+        with request_errors("set default sandbox group"):
+            response = set_default_sandbox_group.sync_detailed(
+                sandbox_group_id, client=self.client
+            )
+        _handle_group_api_error(response, "set default sandbox group")
+        if not isinstance(response.parsed, GeneratedSandboxGroup):
+            raise RenderError(
+                "Failed to set default sandbox group: unexpected response type"
+            )
+        return _to_sandbox_group(response.parsed)
 
     def terminate(self, sandbox_id: str, owner_id: str) -> None:
         with request_errors("terminate sandbox"):

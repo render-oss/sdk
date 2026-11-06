@@ -133,6 +133,7 @@ from render.experimental.sandbox.api import (
     retrieve_sandbox_build as retrieve_sandbox_build,
     retrieve_sandbox_group as retrieve_sandbox_group,
     retrieve_sandbox_snapshot as retrieve_sandbox_snapshot,
+    set_default_sandbox_group as set_default_sandbox_group,
     terminate_sandbox as terminate_sandbox,
     update_sandbox_group as update_sandbox_group,
 )

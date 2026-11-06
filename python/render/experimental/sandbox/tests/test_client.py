@@ -1375,3 +1375,56 @@ def test_sync_delete_group_raises_a_typed_error_for_the_default_group():
     assert captured[-1].method == "DELETE"
     with pytest.raises(DefaultSandboxGroupNotDeletableError):
         client.delete_group("sbg-default")
+
+
+@pytest.mark.asyncio
+async def test_set_default_group_returns_the_default_group():
+    captured = []
+
+    async def handler(request):
+        captured.append(request)
+        return httpx.Response(200, json=SANDBOX_GROUP_JSON)
+
+    client = _sandbox_client(handler)
+    group = await client.set_default_group("sbg-abc")
+
+    assert captured[-1].method == "POST"
+    assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc/set-default"
+    assert group.id == "sbg-abc"
+    assert group.is_default is True
+
+
+@pytest.mark.asyncio
+async def test_set_default_group_raises_sandbox_group_suspended_error():
+    async def handler(request):
+        body = {"code": "sandbox_group_suspended", "message": "group suspended"}
+        return httpx.Response(409, json=body)
+
+    client = _sandbox_client(handler)
+    with pytest.raises(SandboxGroupSuspendedError, match="group suspended") as exc:
+        await client.set_default_group("sbg-abc")
+    assert exc.value.code == ErrorCode.SANDBOX_GROUP_SUSPENDED
+    assert exc.value.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_set_default_group_raises_client_error_for_an_unknown_conflict_code():
+    async def handler(request):
+        return httpx.Response(409, json={"code": "other", "message": "conflict"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError) as exc:
+        await client.set_default_group("sbg-abc")
+    assert type(exc.value) is ClientError
+
+
+def test_sync_set_default_group_returns_the_default_group():
+    captured = []
+
+    def handler(request):
+        captured.append(request)
+        return httpx.Response(200, json=SANDBOX_GROUP_JSON)
+
+    client = _sync_sandbox_client(handler)
+    assert client.set_default_group("sbg-abc").is_default is True
+    assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc/set-default"

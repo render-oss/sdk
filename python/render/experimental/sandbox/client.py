@@ -300,10 +300,18 @@ class SandboxClient:
 
         Its snapshots and credentials are deleted shortly after. Raises
         DefaultSandboxGroupNotDeletableError for the workspace's default group;
-        make another group the default first. Raises SandboxGroupSuspendedError
-        for a suspended group.
+        make another group the default first with set_default_group. Raises
+        SandboxGroupSuspendedError for a suspended group.
         """
         await self.api.delete_group(sandbox_group_id)
+
+    async def set_default_group(self, sandbox_group_id: str) -> SandboxGroup:
+        """Make a group the workspace's default.
+
+        Setting the current default returns it unchanged. Raises
+        SandboxGroupSuspendedError for a suspended group.
+        """
+        return await self.api.set_default_group(sandbox_group_id)
 
     async def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
         """Terminate a sandbox.
