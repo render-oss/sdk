@@ -18,6 +18,7 @@ from render.experimental.sandbox.tests.test_images import (
     SANDBOX_JSON as SANDBOX_JSON,
     SUCCEEDED_IMAGE_JSON as SUCCEEDED_IMAGE_JSON,
     SandboxClient as SandboxClient,
+    SandboxGroupSuspendedError as SandboxGroupSuspendedError,
     SnapshotNotFoundError as SnapshotNotFoundError,
     SyncSandboxClient as SyncSandboxClient,
     TimeoutError as TimeoutError,

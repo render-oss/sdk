@@ -1394,15 +1394,43 @@ async def test_set_default_group_returns_the_default_group():
     assert group.is_default is True
 
 
+async def _copy_to_missing_sandbox(client, tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi")
+    await client.copy_to("sbx-123", source, "/app/hello.txt")
+
+
+_SUSPENDED_GROUP_CALLS = {
+    "create": lambda client, tmp_path: client.create(),
+    "create from snapshot": lambda client, tmp_path: client.create(snapshot_id="snp-1"),
+    "create from image": lambda client, tmp_path: client.create(image="python"),
+    "snapshots.create": lambda client, tmp_path: client.snapshots.create("sbx-123"),
+    "images.import_": lambda client, tmp_path: client.images.import_(
+        sandbox_group_id="sbg-abc", name="python", source="python:3.13"
+    ),
+    "delete_group": lambda client, tmp_path: client.delete_group("sbg-abc"),
+    "set_default_group": lambda client, tmp_path: client.set_default_group("sbg-abc"),
+    "exec": lambda client, tmp_path: _collect(client.exec("sbx-123", "echo hi")),
+    "copy_to": _copy_to_missing_sandbox,
+    "copy_from": lambda client, tmp_path: client.copy_from(
+        "sbx-123", "/app/hello.txt", tmp_path / "out.txt"
+    ),
+}
+
+
 @pytest.mark.asyncio
-async def test_set_default_group_raises_sandbox_group_suspended_error():
+@pytest.mark.parametrize(
+    "call", _SUSPENDED_GROUP_CALLS.values(), ids=list(_SUSPENDED_GROUP_CALLS)
+)
+async def test_a_suspended_group_raises_sandbox_group_suspended_error(call, tmp_path):
     async def handler(request):
         body = {"code": "sandbox_group_suspended", "message": "group suspended"}
         return httpx.Response(409, json=body)
 
     client = _sandbox_client(handler)
     with pytest.raises(SandboxGroupSuspendedError, match="group suspended") as exc:
-        await client.set_default_group("sbg-abc")
+        await call(client, tmp_path)
+    assert isinstance(exc.value, ClientError)
     assert exc.value.code == ErrorCode.SANDBOX_GROUP_SUSPENDED
     assert exc.value.status_code == 409
 
@@ -1428,3 +1456,14 @@ def test_sync_set_default_group_returns_the_default_group():
     client = _sync_sandbox_client(handler)
     assert client.set_default_group("sbg-abc").is_default is True
     assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc/set-default"
+
+
+def test_sync_create_in_a_suspended_group_raises_sandbox_group_suspended_error():
+    def handler(request):
+        body = {"code": "sandbox_group_suspended", "message": "group suspended"}
+        return httpx.Response(409, json=body)
+
+    client = _sync_sandbox_client(handler)
+    with pytest.raises(SandboxGroupSuspendedError) as exc:
+        client.create()
+    assert exc.value.status_code == 409

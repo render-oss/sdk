@@ -137,12 +137,13 @@ if TYPE_CHECKING:
 # The code the sandbox agent sends in a 404 body when the remote path is missing.
 _FILE_NOT_FOUND_CODE = "file_not_found"
 _SNAPSHOT_NOT_FOUND_CODE = "snapshot_not_found"
-_SNAPSHOT_NOT_READY_CODES = frozenset({"snapshot_creating", "snapshot_not_available"})
-_SNAPSHOT_PLAN_MISMATCH_CODE = "snapshot_plan_mismatch"
 # The API still calls images builds, in its paths and error codes.
 _IMAGE_NOT_FOUND_CODE = "build_not_found"
-_IMAGE_NOT_SUCCEEDED_CODE = "build_not_succeeded"
-_GROUP_CONFLICT_ERRORS: dict[str, type[ClientError]] = {
+_CLIENT_ERRORS_BY_CODE: dict[str, type[ClientError]] = {
+    "snapshot_creating": SnapshotNotReadyError,
+    "snapshot_not_available": SnapshotNotReadyError,
+    "snapshot_plan_mismatch": SnapshotPlanMismatchError,
+    "build_not_succeeded": ImageNotReadyError,
     "default_sandbox_group_not_deletable": SandboxGroupDefaultNotDeletableError,
     "sandbox_group_suspended": SandboxGroupSuspendedError,
 }
@@ -294,6 +295,24 @@ def _error_body(body: bytes | str) -> _ErrorBody:
     )
 
 
+def _raise_for_error_code(status_code: int, body: bytes | str, operation: str) -> None:
+    if not 400 <= status_code < 500:
+        return
+    error = _error_body(body)
+    error_type = _CLIENT_ERRORS_BY_CODE.get(error.code or "")
+    if error_type is None:
+        return
+    message = f"{operation} failed"
+    if error.message:
+        message = f"{message}: {error.message}"
+    raise error_type(message, code=error.code, status_code=status_code)
+
+
+def _handle_sandbox_api_error(response: Response[Any], operation: str) -> None:
+    _raise_for_error_code(response.status_code, response.content, operation)
+    handle_api_error(response, operation)
+
+
 def _handle_snapshot_api_error(
     response: Response[Any],
     snapshot_id: str,
@@ -305,16 +324,7 @@ def _handle_snapshot_api_error(
         code = _error_body(response.content).code
         if path_names_snapshot or code == _SNAPSHOT_NOT_FOUND_CODE:
             raise SnapshotNotFoundError(f"snapshot {snapshot_id} not found", code=code)
-    if response.status_code == 409:
-        error = _error_body(response.content)
-        message = f"{operation} failed"
-        if error.message:
-            message = f"{message}: {error.message}"
-        if error.code in _SNAPSHOT_NOT_READY_CODES:
-            raise SnapshotNotReadyError(message, code=error.code)
-        if error.code == _SNAPSHOT_PLAN_MISMATCH_CODE:
-            raise SnapshotPlanMismatchError(message, code=error.code)
-    handle_api_error(response, operation)
+    _handle_sandbox_api_error(response, operation)
 
 
 def _handle_image_api_error(
@@ -324,26 +334,7 @@ def _handle_image_api_error(
         code = _error_body(response.content).code
         if code == _IMAGE_NOT_FOUND_CODE:
             raise ImageNotFoundError(f"image {image_ref} not found", code=code)
-    if response.status_code == 409:
-        error = _error_body(response.content)
-        if error.code == _IMAGE_NOT_SUCCEEDED_CODE:
-            message = f"{operation} failed"
-            if error.message:
-                message = f"{message}: {error.message}"
-            raise ImageNotReadyError(message, code=error.code)
-    handle_api_error(response, operation)
-
-
-def _handle_group_api_error(response: Response[Any], operation: str) -> None:
-    if response.status_code == 409:
-        error = _error_body(response.content)
-        error_type = _GROUP_CONFLICT_ERRORS.get(error.code or "")
-        if error_type is not None:
-            message = f"{operation} failed"
-            if error.message:
-                message = f"{message}: {error.message}"
-            raise error_type(message, code=error.code, status_code=409)
-    handle_api_error(response, operation)
+    _handle_sandbox_api_error(response, operation)
 
 
 class SandboxApi:
@@ -405,7 +396,7 @@ class SandboxApi:
         elif image_ref is not None:
             _handle_image_api_error(response, image_ref, "create sandbox")
         else:
-            handle_api_error(response, "create sandbox")
+            _handle_sandbox_api_error(response, "create sandbox")
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to create sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
@@ -417,7 +408,7 @@ class SandboxApi:
             )
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
-        handle_api_error(response, "retrieve sandbox")
+        _handle_sandbox_api_error(response, "retrieve sandbox")
         if not isinstance(response.parsed, GeneratedSandbox):
             raise RenderError("Failed to retrieve sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
@@ -496,7 +487,7 @@ class SandboxApi:
             response = await create_sandbox_group.asyncio_detailed(
                 client=self.client, body=body
             )
-        handle_api_error(response, "create sandbox group")
+        _handle_sandbox_api_error(response, "create sandbox group")
         if not isinstance(response.parsed, GeneratedSandboxGroup):
             raise RenderError(
                 "Failed to create sandbox group: unexpected response type"
@@ -508,7 +499,7 @@ class SandboxApi:
             response = await retrieve_sandbox_group.asyncio_detailed(
                 sandbox_group_id, client=self.client
             )
-        handle_api_error(response, "retrieve sandbox group")
+        _handle_sandbox_api_error(response, "retrieve sandbox group")
         if not isinstance(response.parsed, GeneratedSandboxGroup):
             raise RenderError(
                 "Failed to retrieve sandbox group: unexpected response type"
@@ -524,7 +515,7 @@ class SandboxApi:
                 client=self.client,
                 body=SandboxGroupPATCH(concurrency_limit=concurrency_limit),
             )
-        handle_api_error(response, "update sandbox group")
+        _handle_sandbox_api_error(response, "update sandbox group")
         if not isinstance(response.parsed, GeneratedSandboxGroup):
             raise RenderError(
                 "Failed to update sandbox group: unexpected response type"
@@ -536,14 +527,14 @@ class SandboxApi:
             response = await delete_sandbox_group.asyncio_detailed(
                 sandbox_group_id, client=self.client
             )
-        _handle_group_api_error(response, "delete sandbox group")
+        _handle_sandbox_api_error(response, "delete sandbox group")
 
     async def set_default_group(self, sandbox_group_id: str) -> SandboxGroup:
         with request_errors("set default sandbox group"):
             response = await set_default_sandbox_group.asyncio_detailed(
                 sandbox_group_id, client=self.client
             )
-        _handle_group_api_error(response, "set default sandbox group")
+        _handle_sandbox_api_error(response, "set default sandbox group")
         if not isinstance(response.parsed, GeneratedSandboxGroup):
             raise RenderError(
                 "Failed to set default sandbox group: unexpected response type"
@@ -557,7 +548,7 @@ class SandboxApi:
             )
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
-        handle_api_error(response, "terminate sandbox")
+        _handle_sandbox_api_error(response, "terminate sandbox")
 
     async def create_snapshot(
         self,
@@ -578,7 +569,7 @@ class SandboxApi:
             )
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
-        handle_api_error(response, "create snapshot")
+        _handle_sandbox_api_error(response, "create snapshot")
         if not isinstance(response.parsed, GeneratedSandboxSnapshot):
             raise RenderError("Failed to create snapshot: unexpected response type")
         return _to_snapshot(response.parsed)
@@ -663,7 +654,7 @@ class SandboxApi:
             response = await create_sandbox_build.asyncio_detailed(
                 sandbox_group_id, client=self.client, body=body
             )
-        handle_api_error(response, "import image")
+        _handle_sandbox_api_error(response, "import image")
         if not isinstance(response.parsed, GeneratedSandboxBuild):
             raise RenderError("Failed to import image: unexpected response type")
         return _to_image(response.parsed)
@@ -928,6 +919,7 @@ def _raise_sandbox_http_error(
         if _error_body(body).code == _FILE_NOT_FOUND_CODE:
             raise SandboxFileNotFoundError(message)
         raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
+    _raise_for_error_code(status_code, body, action)
     if status_code == 429:
         raise RateLimitError(message)
     if 400 <= status_code < 500:

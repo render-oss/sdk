@@ -13,6 +13,7 @@ from render.experimental.sandbox.errors import (
     ImageNotFoundError,
     ImageNotReadyError,
     ImageWaitTimeoutError,
+    SandboxGroupSuspendedError,
     SnapshotNotFoundError,
 )
 from render.experimental.sandbox.types import ImageSource, RegistryCredentials
@@ -238,7 +239,7 @@ async def test_import_returns_the_existing_image_for_a_known_digest():
                 "message": "sandbox group is suspended",
                 "code": "sandbox_group_suspended",
             },
-            ClientError,
+            SandboxGroupSuspendedError,
             "sandbox_group_suspended",
             "suspended",
         ),
@@ -514,7 +515,7 @@ async def test_sandbox_create_rejects_an_image_with_another_source(kwargs):
                 "message": "sandbox group is suspended",
                 "code": "sandbox_group_suspended",
             },
-            ClientError,
+            SandboxGroupSuspendedError,
             "sandbox_group_suspended",
             "suspended",
         ),
