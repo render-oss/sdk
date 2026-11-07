@@ -758,7 +758,7 @@ describe("SandboxesClient", () => {
         status: 409,
         code: "sandbox_group_suspended",
         input: { image: "python" },
-        ErrorClass: ClientError,
+        ErrorClass: SandboxGroupSuspendedError,
       },
       {
         status: 400,
@@ -1185,7 +1185,7 @@ describe("SandboxesClient", () => {
         { status: 400, code: undefined, ErrorClass: ClientError },
         { status: 400, code: "invalid_sandbox_group_id", ErrorClass: ClientError },
         { status: 404, code: undefined, ErrorClass: ClientError },
-        { status: 409, code: "sandbox_group_suspended", ErrorClass: ClientError },
+        { status: 409, code: "sandbox_group_suspended", ErrorClass: SandboxGroupSuspendedError },
         { status: 429, code: undefined, ErrorClass: ClientError },
       ];
 
@@ -2871,5 +2871,42 @@ describe("sandbox group selection", () => {
     });
     const error = await new SandboxesClient(post).setDefaultGroup("sbg-1").catch((err) => err);
     expect(error.constructor).toBe(ClientError);
+  });
+});
+
+describe("sandbox_group_suspended", () => {
+  const calls: Array<{
+    name: string;
+    method: "POST" | "DELETE";
+    call: (client: SandboxesClient) => Promise<unknown>;
+  }> = [
+    { name: "create", method: "POST", call: (c) => c.create() },
+    {
+      name: "snapshots.create",
+      method: "POST",
+      call: (c) => c.snapshots.create({ sandboxId: "sbx-123" }),
+    },
+    { name: "images.import", method: "POST", call: (c) => c.images.import(IMAGE_IMPORT_INPUT) },
+    { name: "deleteGroup", method: "DELETE", call: (c) => c.deleteGroup("sbg-1") },
+    {
+      name: "exec",
+      method: "POST",
+      call: (c) => c.exec("sbx-123", "echo hi").then((events) => collect(events)),
+    },
+    { name: "upload", method: "POST", call: (c) => c.upload("sbx-123", "/root/a.txt", "hi") },
+    { name: "download", method: "POST", call: (c) => c.download("sbx-123", "/root/a.txt") },
+  ];
+
+  it.each(calls)("$name throws SandboxGroupSuspendedError", async ({ method, call }) => {
+    const apiClient = mockApiClient(method, {
+      status: 409,
+      error: { code: "sandbox_group_suspended", message: "suspended" },
+    });
+
+    const error = await call(new SandboxesClient(apiClient, "tea-default")).catch((err) => err);
+
+    expect(error).toBeInstanceOf(SandboxGroupSuspendedError);
+    expect(error).toBeInstanceOf(ClientError);
+    expect(error).toMatchObject({ statusCode: 409, code: "sandbox_group_suspended" });
   });
 });

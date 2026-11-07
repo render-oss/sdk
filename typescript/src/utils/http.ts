@@ -1,6 +1,8 @@
 import type { ErrorEvent } from "eventsource";
 import {
   ClientError,
+  SandboxGroupDefaultNotDeletableError,
+  SandboxGroupSuspendedError,
   SandboxImageNotFoundError,
   SandboxImageNotReadyError,
   SandboxSnapshotNotFoundError,
@@ -34,6 +36,10 @@ const clientErrorForCode = (code?: string): typeof ClientError => {
       return SandboxSnapshotPlanMismatchError;
     case "snapshot_not_found":
       return SandboxSnapshotNotFoundError;
+    case "default_sandbox_group_not_deletable":
+      return SandboxGroupDefaultNotDeletableError;
+    case "sandbox_group_suspended":
+      return SandboxGroupSuspendedError;
     // The API still calls images builds in its error codes.
     case "build_not_succeeded":
       return SandboxImageNotReadyError;

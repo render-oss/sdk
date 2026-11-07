@@ -9,8 +9,6 @@ import {
   SandboxCreateWaitError,
   SandboxDownloadTooLargeError,
   SandboxEndedError,
-  SandboxGroupDefaultNotDeletableError,
-  SandboxGroupSuspendedError,
   SandboxImageFailedError,
   SandboxImageWaitTimeoutError,
   SandboxNotRunningError,
@@ -904,7 +902,7 @@ export class SandboxesClient {
       params: { path: { sandboxGroupId } },
     });
     if (error !== undefined || !response.ok) {
-      throw getGroupApiError(error, response, "Failed to delete sandbox group");
+      throw getTypedApiError(error, response, "Failed to delete sandbox group");
     }
   }
 
@@ -918,7 +916,7 @@ export class SandboxesClient {
         params: { path: { sandboxGroupId } },
       }),
       "Failed to set default sandbox group",
-      getGroupApiError,
+      getTypedApiError,
     );
   }
 
@@ -1373,23 +1371,6 @@ function getTypedApiError(error: unknown, response: Response, context: string): 
         : response.statusText;
   const code = typeof body?.code === "string" ? body.code : undefined;
   return getApiError(message, response, context, code);
-}
-
-const GROUP_CONFLICT_ERRORS: Record<string, typeof ClientError> = {
-  default_sandbox_group_not_deletable: SandboxGroupDefaultNotDeletableError,
-  sandbox_group_suspended: SandboxGroupSuspendedError,
-};
-
-function getGroupApiError(error: unknown, response: Response, context: string): Error {
-  const apiError = getTypedApiError(error, response, context);
-  if (!(apiError instanceof ClientError) || apiError.statusCode !== 409) {
-    return apiError;
-  }
-  const ErrorClass = GROUP_CONFLICT_ERRORS[apiError.code ?? ""];
-  if (ErrorClass === undefined) {
-    return apiError;
-  }
-  return new ErrorClass(apiError.message, apiError.statusCode, apiError.response, apiError.code);
 }
 
 function getSnapshotApiError(error: unknown, response: Response, context: string): Error {
