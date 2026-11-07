@@ -106,7 +106,7 @@ func (s *ImageClient) Import(ctx context.Context, sandboxGroupID string, params 
 		return nil, fmt.Errorf("failed to make import image request: %w", err)
 	}
 	if resp.StatusCode() != 201 {
-		return nil, apiError("import image", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("import image", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON201 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -193,16 +193,9 @@ func toImage(m sandboxes.SandboxBuild) *Image {
 // imageError maps image failures to sentinel errors. Only a build_not_found
 // code makes a 404 the image's, since the path also names the sandbox group.
 func imageError(op, imageRef string, status int, body []byte) error {
-	code, message := errorBody(body)
-	switch {
-	case status == 404 && code == imageNotFoundCode:
+	code, _ := errorBody(body)
+	if status == 404 && code == imageNotFoundCode {
 		return fmt.Errorf("%w: %s", ErrImageNotFound, imageRef)
-	case status == 409 && code == imageNotSucceededCode:
-		detail := op + " failed"
-		if message != "" {
-			detail += ": " + message
-		}
-		return fmt.Errorf("%w: %s", ErrImageNotReady, detail)
 	}
-	return apiError(op, status, body)
+	return sandboxAPIError(op, status, body)
 }

@@ -36,8 +36,8 @@ var (
 	// default sandbox group. Make another group the default first with
 	// SetDefaultGroup.
 	ErrSandboxGroupDefaultNotDeletable = errors.New("default sandbox group not deletable")
-	// ErrSandboxGroupSuspended means a DeleteGroup or SetDefaultGroup call named
-	// a suspended sandbox group.
+	// ErrSandboxGroupSuspended means the call acted on a suspended sandbox group
+	// or a sandbox in one.
 	ErrSandboxGroupSuspended = errors.New("sandbox group suspended")
 	// ErrSandboxDownload means a download could not be written to disk safely:
 	// a truncated archive, an entry that escapes the destination, or a
@@ -328,7 +328,7 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 			return nil, imageError("create sandbox", params.Image, resp.StatusCode(), resp.Body)
 		}
 		if snapshotRef == "" {
-			return nil, apiError("create sandbox", resp.StatusCode(), resp.Body)
+			return nil, sandboxAPIError("create sandbox", resp.StatusCode(), resp.Body)
 		}
 		return nil, snapshotError("create sandbox", snapshotRef, resp.StatusCode(), resp.Body, false)
 	}
@@ -353,7 +353,7 @@ func (s *SandboxClient) FromID(ctx context.Context, sandboxID string) (*Sandbox,
 		return nil, fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("retrieve sandbox", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("retrieve sandbox", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -390,7 +390,7 @@ func (s *SandboxClient) List(ctx context.Context, opts *ListSandboxesOptions) (*
 		return nil, fmt.Errorf("failed to make list sandboxes request: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("list sandboxes", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("list sandboxes", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -434,7 +434,7 @@ func (s *SandboxClient) ListGroupsPage(ctx context.Context, opts *ListSandboxGro
 		return nil, fmt.Errorf("failed to make list sandbox groups request: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("list sandbox groups", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("list sandbox groups", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -466,7 +466,7 @@ func (s *SandboxClient) Terminate(ctx context.Context, sandboxID string) error {
 		return fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
 	}
 	if resp.StatusCode() >= 300 {
-		return apiError("terminate sandbox", resp.StatusCode(), resp.Body)
+		return sandboxAPIError("terminate sandbox", resp.StatusCode(), resp.Body)
 	}
 	return nil
 }
@@ -624,7 +624,7 @@ func (s *SnapshotClient) Create(ctx context.Context, sandboxID string, params Cr
 		return nil, fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
 	}
 	if resp.StatusCode() != 202 {
-		return nil, apiError("create snapshot", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("create snapshot", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON202 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -673,7 +673,7 @@ func (s *SnapshotClient) List(ctx context.Context, sandboxGroupID string, opts *
 		return nil, fmt.Errorf("failed to make list snapshots request: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("list snapshots", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("list snapshots", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -811,40 +811,40 @@ func apiError(op string, status int, body []byte) error {
 	return fmt.Errorf("%s failed with status %d: %s", op, status, body)
 }
 
-// groupError maps sandbox group conflicts to sentinel errors.
-func groupError(op string, status int, body []byte) error {
+var sandboxErrorsByCode = map[string]error{
+	snapshotCreatingCode:     ErrSnapshotNotReady,
+	snapshotNotAvailableCode: ErrSnapshotNotReady,
+	snapshotPlanMismatchCode: ErrSnapshotPlanMismatch,
+	imageNotSucceededCode:    ErrImageNotReady,
+	groupNotDeletableCode:    ErrSandboxGroupDefaultNotDeletable,
+	groupSuspendedCode:       ErrSandboxGroupSuspended,
+}
+
+// sandboxAPIError wraps the sentinel error for a 4xx whose code it knows.
+func sandboxAPIError(op string, status int, body []byte) error {
 	code, message := errorBody(body)
+	sentinel, known := sandboxErrorsByCode[code]
+	isClientError := status >= 400 && status < 500
+	if !known || !isClientError {
+		return apiError(op, status, body)
+	}
+
 	detail := op + " failed"
 	if message != "" {
 		detail += ": " + message
 	}
-	switch {
-	case status == 409 && code == groupNotDeletableCode:
-		return fmt.Errorf("%w: %s", ErrSandboxGroupDefaultNotDeletable, detail)
-	case status == 409 && code == groupSuspendedCode:
-		return fmt.Errorf("%w: %s", ErrSandboxGroupSuspended, detail)
-	}
-	return apiError(op, status, body)
+	return fmt.Errorf("%w: %s", sentinel, detail)
 }
 
 // snapshotError maps snapshot failures to sentinel errors. pathNamesSnapshot
 // says whether the request path names the snapshot, in which case any 404 is
 // the snapshot's; otherwise only a snapshot_not_found code is.
 func snapshotError(op, snapshotRef string, status int, body []byte, pathNamesSnapshot bool) error {
-	code, message := errorBody(body)
-	detail := op + " failed"
-	if message != "" {
-		detail += ": " + message
-	}
-	switch {
-	case status == 404 && (pathNamesSnapshot || code == snapshotNotFoundCode):
+	code, _ := errorBody(body)
+	if status == 404 && (pathNamesSnapshot || code == snapshotNotFoundCode) {
 		return fmt.Errorf("%w: %s", ErrSnapshotNotFound, snapshotRef)
-	case status == 409 && (code == snapshotCreatingCode || code == snapshotNotAvailableCode):
-		return fmt.Errorf("%w: %s", ErrSnapshotNotReady, detail)
-	case status == 409 && code == snapshotPlanMismatchCode:
-		return fmt.Errorf("%w: %s", ErrSnapshotPlanMismatch, detail)
 	}
-	return apiError(op, status, body)
+	return sandboxAPIError(op, status, body)
 }
 
 // sandboxHTTPError maps a failed call to the sandbox (or its token mint).
@@ -857,7 +857,7 @@ func sandboxHTTPError(sandboxID string, status int, body []byte, action string) 
 		}
 		return fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
 	}
-	return apiError(action, status, body)
+	return sandboxAPIError(action, status, body)
 }
 
 // idleTimeout cancels its context when no bytes arrive for sandboxIdleTimeout.
@@ -921,7 +921,7 @@ func (s *SandboxClient) CreateGroup(ctx context.Context, params CreateSandboxGro
 		return nil, fmt.Errorf("failed to create sandbox group: %w", err)
 	}
 	if resp.StatusCode() != 201 {
-		return nil, apiError("create sandbox group", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("create sandbox group", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON201 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -936,7 +936,7 @@ func (s *SandboxClient) GetGroup(ctx context.Context, groupID string) (*SandboxG
 		return nil, fmt.Errorf("failed to retrieve sandbox group: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("retrieve sandbox group", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("retrieve sandbox group", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -952,7 +952,7 @@ func (s *SandboxClient) UpdateGroup(ctx context.Context, groupID string, concurr
 		return nil, fmt.Errorf("failed to update sandbox group: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, apiError("update sandbox group", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("update sandbox group", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -971,7 +971,7 @@ func (s *SandboxClient) DeleteGroup(ctx context.Context, groupID string) error {
 		return fmt.Errorf("failed to delete sandbox group: %w", err)
 	}
 	if resp.StatusCode() != 204 {
-		return groupError("delete sandbox group", resp.StatusCode(), resp.Body)
+		return sandboxAPIError("delete sandbox group", resp.StatusCode(), resp.Body)
 	}
 	return nil
 }
@@ -985,7 +985,7 @@ func (s *SandboxClient) SetDefaultGroup(ctx context.Context, groupID string) (*S
 		return nil, fmt.Errorf("failed to set default sandbox group: %w", err)
 	}
 	if resp.StatusCode() != 200 {
-		return nil, groupError("set default sandbox group", resp.StatusCode(), resp.Body)
+		return nil, sandboxAPIError("set default sandbox group", resp.StatusCode(), resp.Body)
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")

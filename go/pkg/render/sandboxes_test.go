@@ -614,3 +614,69 @@ func TestSandboxGroupSetDefaultUnknownConflictIsNotTyped(t *testing.T) {
 	require.NotErrorIs(t, err, ErrSandboxGroupSuspended)
 	require.NotErrorIs(t, err, ErrSandboxGroupDefaultNotDeletable)
 }
+
+func firstExecError(ctx context.Context, s *SandboxClient) error {
+	for _, err := range s.Exec(ctx, "sbx-1", "echo hi") {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func TestSuspendedGroupErrorFromEverySandboxCall(t *testing.T) {
+	tests := map[string]func(s *SandboxClient, ctx context.Context, dir string) error{
+		"Create": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.Create(ctx, CreateSandboxParams{})
+			return err
+		},
+		"Create from snapshot": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.Create(ctx, CreateSandboxParams{SnapshotID: "snap-1"})
+			return err
+		},
+		"Create from image": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.Create(ctx, CreateSandboxParams{Image: "python"})
+			return err
+		},
+		"Snapshots.Create": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.Snapshots.Create(ctx, "sbx-1", CreateSnapshotParams{})
+			return err
+		},
+		"Images.Import": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.Images.Import(ctx, "sbg-1", ImportImageParams{Name: "python", Source: "python:3.13"})
+			return err
+		},
+		"CreateGroup": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.CreateGroup(ctx, CreateSandboxGroupParams{})
+			return err
+		},
+		"DeleteGroup": func(s *SandboxClient, ctx context.Context, _ string) error {
+			return s.DeleteGroup(ctx, "sbg-1")
+		},
+		"SetDefaultGroup": func(s *SandboxClient, ctx context.Context, _ string) error {
+			_, err := s.SetDefaultGroup(ctx, "sbg-1")
+			return err
+		},
+		"Exec": func(s *SandboxClient, ctx context.Context, _ string) error {
+			return firstExecError(ctx, s)
+		},
+		"CopyTo": func(s *SandboxClient, ctx context.Context, dir string) error {
+			local := filepath.Join(dir, "hello.txt")
+			if err := os.WriteFile(local, []byte("hi"), 0o600); err != nil {
+				return err
+			}
+			return s.CopyTo(ctx, "sbx-1", local, "/app/hello.txt")
+		},
+		"CopyFrom": func(s *SandboxClient, ctx context.Context, dir string) error {
+			_, err := s.CopyFrom(ctx, "sbx-1", "/app/hello.txt", filepath.Join(dir, "out.txt"))
+			return err
+		},
+	}
+	for name, call := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := call(conflictClient(t, "sandbox_group_suspended"), context.Background(), t.TempDir())
+
+			require.ErrorIs(t, err, ErrSandboxGroupSuspended)
+		})
+	}
+}
