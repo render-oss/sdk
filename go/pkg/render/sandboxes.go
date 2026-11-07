@@ -349,11 +349,8 @@ func (s *SandboxClient) FromID(ctx context.Context, sandboxID string) (*Sandbox,
 	if err != nil {
 		return nil, fmt.Errorf("failed to make retrieve sandbox request: %w", err)
 	}
-	if resp.StatusCode() == 404 {
-		return nil, fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
-	}
 	if resp.StatusCode() != 200 {
-		return nil, sandboxAPIError("retrieve sandbox", resp.StatusCode(), resp.Body)
+		return nil, sandboxHTTPError(sandboxID, resp.StatusCode(), resp.Body, "retrieve sandbox")
 	}
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -462,11 +459,8 @@ func (s *SandboxClient) Terminate(ctx context.Context, sandboxID string) error {
 	if err != nil {
 		return fmt.Errorf("failed to make terminate sandbox request: %w", err)
 	}
-	if resp.StatusCode() == 404 {
-		return fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
-	}
 	if resp.StatusCode() >= 300 {
-		return sandboxAPIError("terminate sandbox", resp.StatusCode(), resp.Body)
+		return sandboxHTTPError(sandboxID, resp.StatusCode(), resp.Body, "terminate sandbox")
 	}
 	return nil
 }
@@ -620,11 +614,8 @@ func (s *SnapshotClient) Create(ctx context.Context, sandboxID string, params Cr
 	if err != nil {
 		return nil, fmt.Errorf("failed to make create snapshot request: %w", err)
 	}
-	if resp.StatusCode() == 404 {
-		return nil, fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
-	}
 	if resp.StatusCode() != 202 {
-		return nil, sandboxAPIError("create snapshot", resp.StatusCode(), resp.Body)
+		return nil, sandboxHTTPError(sandboxID, resp.StatusCode(), resp.Body, "create snapshot")
 	}
 	if resp.JSON202 == nil {
 		return nil, fmt.Errorf("unexpected response format")
@@ -797,20 +788,6 @@ func page(cursor string, limit int) (*client.CursorParam, *client.LimitParam) {
 	return c, l
 }
 
-// errorBody pulls code and message out of an API error body, if it has them.
-func errorBody(body []byte) (code, message string) {
-	var e struct{ Code, Message string }
-	_ = json.Unmarshal(body, &e)
-	return e.Code, e.Message
-}
-
-func apiError(op string, status int, body []byte) error {
-	if len(body) == 0 {
-		return fmt.Errorf("%s failed with status %d", op, status)
-	}
-	return fmt.Errorf("%s failed with status %d: %s", op, status, body)
-}
-
 var sandboxErrorsByCode = map[string]error{
 	snapshotCreatingCode:     ErrSnapshotNotReady,
 	snapshotNotAvailableCode: ErrSnapshotNotReady,
@@ -822,18 +799,18 @@ var sandboxErrorsByCode = map[string]error{
 
 // sandboxAPIError wraps the sentinel error for a 4xx whose code it knows.
 func sandboxAPIError(op string, status int, body []byte) error {
-	code, message := errorBody(body)
-	sentinel, known := sandboxErrorsByCode[code]
+	err := apiError(op, status, body)
+	sentinel, known := sandboxErrorsByCode[err.Code]
 	isClientError := status >= 400 && status < 500
 	if !known || !isClientError {
-		return apiError(op, status, body)
+		return err
 	}
 
-	detail := op + " failed"
-	if message != "" {
-		detail += ": " + message
+	failure := op + " failed"
+	if err.Message != "" {
+		failure += ": " + err.Message
 	}
-	return fmt.Errorf("%w: %s", sentinel, detail)
+	return err.withSentinel(sentinel, failure)
 }
 
 // snapshotError maps snapshot failures to sentinel errors. pathNamesSnapshot
@@ -842,7 +819,7 @@ func sandboxAPIError(op string, status int, body []byte) error {
 func snapshotError(op, snapshotRef string, status int, body []byte, pathNamesSnapshot bool) error {
 	code, _ := errorBody(body)
 	if status == 404 && (pathNamesSnapshot || code == snapshotNotFoundCode) {
-		return fmt.Errorf("%w: %s", ErrSnapshotNotFound, snapshotRef)
+		return notFoundError(ErrSnapshotNotFound, snapshotRef, status, body)
 	}
 	return sandboxAPIError(op, status, body)
 }
@@ -853,9 +830,9 @@ func sandboxHTTPError(sandboxID string, status int, body []byte, action string) 
 		// The agent 404s a missing remote path with this code, and the sandbox
 		// is alive when it does. Any other 404 is the sandbox itself being gone.
 		if code, _ := errorBody(body); code == fileNotFoundCode {
-			return fmt.Errorf("%w: %s", ErrSandboxFileNotFound, body)
+			return notFoundError(ErrSandboxFileNotFound, string(bytes.TrimSpace(body)), status, body)
 		}
-		return fmt.Errorf("%w: %s", ErrSandboxNotFound, sandboxID)
+		return notFoundError(ErrSandboxNotFound, sandboxID, status, body)
 	}
 	return sandboxAPIError(action, status, body)
 }

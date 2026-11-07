@@ -195,7 +195,7 @@ func toImage(m sandboxes.SandboxBuild) *Image {
 func imageError(op, imageRef string, status int, body []byte) error {
 	code, _ := errorBody(body)
 	if status == 404 && code == imageNotFoundCode {
-		return fmt.Errorf("%w: %s", ErrImageNotFound, imageRef)
+		return notFoundError(ErrImageNotFound, imageRef, status, body)
 	}
 	return sandboxAPIError(op, status, body)
 }

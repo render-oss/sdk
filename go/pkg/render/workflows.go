@@ -50,7 +50,7 @@ func (w *WorkflowsService) RunTask(ctx context.Context, taskSlug TaskSlug, input
 	}
 
 	if resp.StatusCode() != 202 {
-		return nil, fmt.Errorf("run task failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("run task", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON202 == nil {
@@ -73,7 +73,7 @@ func (w *WorkflowsService) GetTaskRun(ctx context.Context, taskRunID string) (*T
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("get task run failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("get task run", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON200 == nil {
@@ -92,7 +92,7 @@ func (w *WorkflowsService) CancelTaskRun(ctx context.Context, taskRunID string) 
 	}
 
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("cancel task run failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return apiError("cancel task run", resp.StatusCode(), resp.Body)
 	}
 
 	return nil
@@ -110,7 +110,7 @@ func (w *WorkflowsService) ListTaskRuns(ctx context.Context, params *ListTaskRun
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("list task runs failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("list task runs", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON200 == nil {
@@ -165,7 +165,7 @@ func (w *WorkflowsService) RunFlow(ctx context.Context, flowSlug FlowSlug, input
 	}
 
 	if resp.StatusCode() != 202 {
-		return nil, fmt.Errorf("run flow failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("run flow", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON202 == nil {
@@ -184,7 +184,7 @@ func (w *WorkflowsService) GetFlowRun(ctx context.Context, flowRunID string) (*F
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("get flow run failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("get flow run", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON200 == nil {
@@ -203,7 +203,7 @@ func (w *WorkflowsService) CancelFlowRun(ctx context.Context, flowRunID string) 
 	}
 
 	if resp.StatusCode() != 204 {
-		return fmt.Errorf("cancel flow run failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return apiError("cancel flow run", resp.StatusCode(), resp.Body)
 	}
 
 	return nil
@@ -218,7 +218,7 @@ func (w *WorkflowsService) ListFlowRuns(ctx context.Context, params *ListFlowRun
 	}
 
 	if resp.StatusCode() != 200 {
-		return nil, fmt.Errorf("list flow runs failed with status %d: %s", resp.StatusCode(), resp.Status())
+		return nil, apiError("list flow runs", resp.StatusCode(), resp.Body)
 	}
 
 	if resp.JSON200 == nil {
