@@ -52,7 +52,7 @@ class _ConcurrentStepError(TerminalFlowError):
 
 
 @dataclass(frozen=True)
-class RunningStep:
+class StepContext:
     """One step of a flow attempt, keyed by the order it started."""
 
     step_key: StepKey
@@ -62,7 +62,26 @@ class RunningStep:
     """The attempt the step is on, counting from 0."""
 
 
-_running_step: ContextVar[RunningStep | None] = ContextVar("running_step", default=None)
+_step_context_var: ContextVar[StepContext | None] = ContextVar(
+    "step_context", default=None
+)
+
+
+def _current_step_context() -> StepContext | None:
+    """The step running now, or None outside a step.
+
+    Internal until the shape of step context settles. Threads the step starts
+    don't inherit it. To read it in one, run the thread's work with
+    contextvars.copy_context().run.
+    """
+    return _step_context_var.get()
+
+
+def _advance_attempt(step_ctx: StepContext) -> StepContext:
+    """The step moves to its next attempt, which becomes the current step."""
+    step_ctx = replace(step_ctx, attempt=step_ctx.attempt + 1)
+    _step_context_var.set(step_ctx)
+    return step_ctx
 
 
 class DurableFlowContext(FlowContext):
@@ -214,7 +233,7 @@ class DurableFlowContext(FlowContext):
     @contextmanager
     def start_step(
         self, name: str, retry: Retry | None
-    ) -> Generator[tuple[RunningStep, StepRecord | None], None, None]:
+    ) -> Generator[tuple[StepContext, StepRecord | None], None, None]:
         """
         Number a step as it starts and hold the one-step-at-a-time slot until
         it finishes. Steps run one at a time, so the numbering follows the
@@ -224,7 +243,7 @@ class DurableFlowContext(FlowContext):
         self._failure.raise_if_set()
         # Either fails the run, even if the flow or an enclosing step
         # catches it.
-        outer_step = _running_step.get()
+        outer_step = _current_step_context()
         if outer_step is not None:
             raise self._failure.stop(
                 FlowNestedStepError(
@@ -242,21 +261,22 @@ class DurableFlowContext(FlowContext):
             retry = replace(retry, max_retries=0)
         step_key = StepKey(seq=self._next_seq)
         recorded_step, attempt = self._journal.step_state(step_key)
-        step_ctx = RunningStep(
+        step_ctx = StepContext(
             step_key=step_key, name=name, retry=retry, attempt=attempt
         )
 
         self._next_seq += 1
-        token = _running_step.set(step_ctx)
+        token = _step_context_var.set(step_ctx)
         try:
             yield step_ctx, recorded_step
         finally:
-            _running_step.reset(token)
+            # Restores the value from before the step, past any attempt's set.
+            _step_context_var.reset(token)
             self._in_flight = False
 
     def _run_step(
         self,
-        step_ctx: RunningStep,
+        step_ctx: StepContext,
         recorded_step: StepRecord | None,
         fn: Callable[..., Any],
         args: tuple[Any, ...],
@@ -287,7 +307,7 @@ class DurableFlowContext(FlowContext):
 
     def _checked_args(
         self,
-        step_ctx: RunningStep,
+        step_ctx: StepContext,
         recorded_step: StepRecord | None,
         args: tuple[Any, ...],
     ) -> str | None:
@@ -311,10 +331,10 @@ class DurableFlowContext(FlowContext):
 
     def _run_attempts(
         self,
-        step_ctx: RunningStep,
+        step_ctx: StepContext,
         fn: Callable[..., Any],
         encoded_args: str,
-    ) -> tuple[str, RunningStep]:
+    ) -> tuple[str, StepContext]:
         """Run the step until it succeeds or runs out of retries.
 
         Returns the encoded result and the step at the attempt that succeeded.
@@ -349,7 +369,7 @@ class DurableFlowContext(FlowContext):
                 )
                 # Back off here, at the failure, so a resumed attempt never waits.
                 time.sleep(_retry_delay_ms(retry, step_ctx.attempt) / 1000)
-                step_ctx = replace(step_ctx, attempt=step_ctx.attempt + 1)
+                step_ctx = _advance_attempt(step_ctx)
                 continue
 
             # A swallowed runtime violation still stops this attempt.
@@ -367,7 +387,7 @@ class DurableFlowContext(FlowContext):
                 ) from None
 
     def _fail_resume_past_retries(
-        self, step_ctx: RunningStep, max_retries: int
+        self, step_ctx: StepContext, max_retries: int
     ) -> ExecutionError:
         """Reuse the last recorded failure without executing another attempt."""
         prev_attempts = self._journal.attempts(step_ctx.step_key)
@@ -388,7 +408,7 @@ class DurableFlowContext(FlowContext):
 
     def _step_failure(
         self,
-        step_ctx: RunningStep,
+        step_ctx: StepContext,
         error: Exception,
         *,
         started_at: datetime,
@@ -427,7 +447,7 @@ def _step_retry(kwargs: dict[str, Any]) -> Retry | None:
 
 
 def _encode_and_check_args(
-    step_ctx: RunningStep,
+    step_ctx: StepContext,
     recorded_step: StepRecord | None,
     args: tuple[Any, ...],
 ) -> str:

@@ -18,9 +18,9 @@ from render.workflows._models.step import StepError, StepKey
 from render.workflows._utils import clock
 from render.workflows._utils.step_journal import RunFailure, StepJournal
 from render.workflows.client import UDSClient
-from render.workflows.durable_context import RunningStep
+from render.workflows.durable_context import StepContext
 
-STEP = RunningStep(step_key=StepKey(seq=0), name="charge", retry=None)
+STEP = StepContext(step_key=StepKey(seq=0), name="charge", retry=None)
 ERROR = StepError(name="ValueError", message="boom", stack="")
 
 

@@ -2,6 +2,7 @@
 
 import base64
 import contextlib
+import dataclasses
 import json
 from datetime import datetime, timedelta
 from typing import Any
@@ -41,7 +42,10 @@ from render.workflows._models.wire import parse_time
 from render.workflows.app import Workflows
 from render.workflows.client import CallbackRequest, Status, UDSClient
 from render.workflows.context import FlowRunMetadata
-from render.workflows.durable_context import DurableFlowContext
+from render.workflows.durable_context import (
+    DurableFlowContext,
+    _current_step_context,
+)
 from render.workflows.executor import TaskExecutor
 from render.workflows.flow import FlowDefinition
 from render.workflows.runner import register_async
@@ -488,6 +492,33 @@ def test_retry_records_each_failure_before_retrying(ctx, mock_client, sleeps, ap
     ]
     assert [a["attempt"] for a in attempts] == [0, 1]
     assert [call.args[0] for call in sleeps.call_args_list] == [0.1, 0.2]
+
+
+def test_step_function_sees_its_step_context(ctx, sleeps):
+    seen = []
+
+    def flaky():
+        step = _current_step_context()
+        seen.append((step.name, step.step_key.seq, step.attempt))
+        if step.attempt == 0:
+            raise ConnectionError("timeout")
+
+    ctx.step("first", lambda: None)
+    ctx.step("flaky", flaky, retry=Retry(max_retries=1, wait_duration_ms=0))
+
+    assert seen == [("flaky", 1, 0), ("flaky", 1, 1)]
+    assert _current_step_context() is None
+
+
+def test_step_context_is_read_only(ctx):
+    def tamper():
+        step = _current_step_context()
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            step.attempt = 5
+        with pytest.raises(dataclasses.FrozenInstanceError):
+            step.retry.wait_duration_ms = 0
+
+    ctx.step("tamper", tamper, retry=Retry(max_retries=1, wait_duration_ms=100))
 
 
 def unencodable_arg(arg):
