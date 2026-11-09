@@ -15,7 +15,7 @@ CASE_KEYS = {"description", "attempt", "history", "workflow", "exchanges", "call
 # The keys a call may set, by its ctx method. Sleeps and detached tasks will add
 # their own methods.
 CALL_KEYS = {"run": {"method", "name", "args", "retry", "attempts", "catch"}}
-STEP_TYPES = {"inline", "detached", "sleep"}
+STEP_TYPES = {"inline", "invoked", "sleep"}
 STEP_ROUTES = {"/step-inline"}
 KINDS = {"start", "attempt", "complete"}
 # The matcher ignores keys a case leaves out, so a missing one would silently

@@ -7,7 +7,7 @@
         "step_key": {
           "seq": 0
         },
-        "type": "detached",
+        "type": "invoked",
         "task_name": "charge_card",
         "workflow_attempt": 0,
         "input": {

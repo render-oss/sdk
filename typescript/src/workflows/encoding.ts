@@ -1,7 +1,7 @@
 /**
  * The task wire encoding: an input is the base64 of a JSON array of
  * arguments, and an output is the base64 of a JSON one-element array holding
- * the result. Tasks, subtasks and workflow steps all use it; a detached
+ * the result. Tasks, subtasks and workflow steps all use it; an invoked
  * step records its child's input and output objects as they are, so inline
  * steps match them.
  */

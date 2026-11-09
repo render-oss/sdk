@@ -21,16 +21,16 @@ import type {
 import { SocketHttpError, type UDSClient } from "../uds.js";
 import { DeterminismError, FlowFailedError, StepError, WorkflowLimitError } from "./errors.js";
 
-type StepType = "inline" | "detached";
+type StepType = "inline" | "invoked";
 
-const STEP_TYPES = new Set<string>(["inline", "detached", "sleep"]);
+const STEP_TYPES = new Set<string>(["inline", "invoked", "sleep"]);
 const DEFAULT_BACKOFF_SCALING = 1.5;
 const DESCRIPTION_LIMIT = 500;
 const JSON_SERIALIZER = 1;
 
 /** Why a workflow attempt stopped before its function settled. */
 export type FlowHalt =
-  /** Suspended while a detached task runs. The process will be stopped. */
+  /** Suspended while an invoked task runs. The process will be stopped. */
   | { kind: "suspended" }
   /** The run was cancelled. Stop without reporting anything. */
   | { kind: "cancelled" }
@@ -317,8 +317,8 @@ export class DurableFlowContext implements FlowContext {
   }
 
   // biome-ignore lint/correctness/noUnusedPrivateClassMembers: unused until ctx.invoke is supported
-  private async runDetached(ref: StepKey, taskName: string, args: unknown[]): Promise<unknown> {
-    const recorded = this.match(ref, "detached", taskName, args);
+  private async runInvoked(ref: StepKey, taskName: string, args: unknown[]): Promise<unknown> {
+    const recorded = this.match(ref, "invoked", taskName, args);
     if (recorded?.completed_at) {
       return this.outcome(recorded);
     }

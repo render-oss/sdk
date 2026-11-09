@@ -2,7 +2,7 @@ import { RenderError } from "../../errors.js";
 import type { DeterminismDetails, TaskErrorBody, WireStepError } from "../types.js";
 
 /**
- * A step that failed: an inline step that used up its retries, or a detached
+ * A step that failed: an inline step that used up its retries, or an invoked
  * task whose run failed. A replay rethrows the same error, so catching it
  * is safe in workflow code.
  */
@@ -50,7 +50,7 @@ export class StepError extends Error {
     return wire;
   }
 
-  /** A detached task's failure, as reported for its run. */
+  /** An invoked task's failure, as reported for its run. */
   static fromTaskError(error: TaskErrorBody): StepError {
     return new StepError({ name: "TaskError", message: error.details, stack: error.stack_trace });
   }

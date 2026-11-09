@@ -149,7 +149,7 @@ export class UDSClient {
   }
 
   /**
-   * Wait for a detached subtask. This is one request, not a polling loop:
+   * Wait for an invoked subtask. This is one request, not a polling loop:
    * renderd holds it while it polls the child, then answers `done` with the
    * result or `suspending`. After a suspend, the replay posts it again for the
    * same child, and renderd answers right away once the child has finished.

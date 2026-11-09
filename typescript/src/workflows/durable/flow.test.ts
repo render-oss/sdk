@@ -188,7 +188,7 @@ class FakeDurableServer {
         const childRunId = `child-${body.step_key.seq}`;
         this.record({
           ...this.base(body, now),
-          type: "detached",
+          type: "invoked",
           task_name: body.task_name,
           input: body.input,
           child_run_id: childRunId,

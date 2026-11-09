@@ -155,7 +155,7 @@ class StepType(str, Enum):
     """The kind of ctx call that recorded a step."""
 
     INLINE = "inline"
-    DETACHED = "detached"
+    INVOKED = "invoked"
     SLEEP = "sleep"
     UNKNOWN = "unknown"
     """A type this SDK doesn't know, which replay reports rather than failing
