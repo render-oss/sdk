@@ -1929,6 +1929,55 @@ describe("SandboxesClient", () => {
       });
     });
 
+    describe("when the connect token request returns 409 sandbox_not_running", () => {
+      const mockTokenNotRunning = (): Client<paths> =>
+        ({
+          POST: vi.fn().mockResolvedValue({
+            data: undefined,
+            error: { message: "sandbox is not running", code: "sandbox_not_running" },
+            response: new Response(null, { status: 409 }),
+          }),
+          GET: vi.fn().mockResolvedValue({
+            data: {
+              id: "sbx-123",
+              status: "errored",
+              plan: "1c-2g",
+              networkPolicy: { type: "deny-all" },
+              region: "oregon",
+              timeoutSeconds: 600,
+              createdAt: "2026-10-16T09:02:00Z",
+              terminatedAt: "2026-10-16T09:12:00Z",
+            },
+            error: undefined,
+            response: new Response(null, { status: 200 }),
+          }),
+        }) as unknown as Client<paths>;
+
+      it.each([
+        {
+          name: "exec",
+          call: (c: SandboxesClient) => collectOpenExec(c, "sbx-123", "echo hi", "tea-test"),
+          context: "Failed to get connect token",
+        },
+        {
+          name: "upload",
+          call: (c: SandboxesClient) => c.upload("sbx-123", "/tmp/in", "hi", "tea-test"),
+          context: "Failed to get file connect token",
+        },
+      ])("$name throws SandboxEndedError", async ({ call, context }) => {
+        const client = new SandboxesClient(mockTokenNotRunning());
+
+        const error = await call(client).catch((err) => err);
+        expect(error).toBeInstanceOf(SandboxEndedError);
+        expect(error).toMatchObject({
+          statusCode: 409,
+          code: "sandbox_not_running",
+          sandboxStatus: "errored",
+          message: `${context}: sandbox sbx-123 errored at 2026-10-16T09:12:00Z`,
+        });
+      });
+    });
+
     it("throws AbortError if the signal is already aborted", async () => {
       const apiClient = mockApiClientWithConnectResponse();
       const fetchMock = vi.spyOn(globalThis, "fetch");

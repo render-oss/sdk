@@ -8,6 +8,22 @@ class SandboxNotFoundError(ClientError):
     """Raised when a sandbox does not exist or is no longer retrievable."""
 
 
+class SandboxEndedError(ClientError):
+    """Raised when a sandbox has ended (terminated or errored), for example
+    because it passed its timeout. It can't run commands or transfer files, so
+    retrying won't help. sandbox_status is terminated or errored."""
+
+    def __init__(
+        self,
+        *args: object,
+        sandbox_status: str,
+        code: str | None = None,
+        status_code: int | None = None,
+    ) -> None:
+        super().__init__(*args, code=code, status_code=status_code)
+        self.sandbox_status = sandbox_status
+
+
 class SandboxFileNotFoundError(ClientError):
     """Raised when a file operation names a path the sandbox does not have.
 

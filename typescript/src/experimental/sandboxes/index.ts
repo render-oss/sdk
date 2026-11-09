@@ -1067,9 +1067,9 @@ export class SandboxesClient {
   }
 
   /**
-   * The connect token endpoint returns a bare 404 both for a sandbox that isn't ready yet and
-   * for one that has ended. Only the first is worth retrying, so look up the sandbox and name
-   * the second.
+   * The connect token endpoint returns a 409 `sandbox_not_running` for a sandbox that has
+   * ended. Older API versions returned a bare 404, which also means a sandbox that isn't ready
+   * yet. Look up the sandbox to name its status and end time.
    */
   private async explainEndedSandbox(
     err: unknown,
@@ -1077,7 +1077,10 @@ export class SandboxesClient {
     ownerId: `tea-${string}` | undefined,
     context: string,
   ): Promise<unknown> {
-    if (!(err instanceof ClientError) || err.statusCode !== 404) {
+    if (
+      !(err instanceof ClientError) ||
+      !(err.statusCode === 404 || (err.statusCode === 409 && err.code === "sandbox_not_running"))
+    ) {
       return err;
     }
     let sandbox: Sandbox;

@@ -11,6 +11,7 @@ import pytest
 from render.client.errors import ClientError, RenderError
 from render.experimental.sandbox.client import SandboxClient
 from render.experimental.sandbox.errors import (
+    SandboxEndedError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxGroupDefaultNotDeletableError,
@@ -1467,3 +1468,56 @@ def test_sync_create_in_a_suspended_group_raises_sandbox_group_suspended_error()
     with pytest.raises(SandboxGroupSuspendedError) as exc:
         client.create()
     assert exc.value.status_code == 409
+
+
+def _ended_sandbox_handler(status: str):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "POST" and request.url.path.endswith("/token"):
+            return httpx.Response(
+                409,
+                json={
+                    "message": "sandbox is not running",
+                    "code": "sandbox_not_running",
+                },
+            )
+        if request.method == "GET" and request.url.path == "/v1/sandboxes/sbx-abc":
+            return httpx.Response(
+                200,
+                json={
+                    **SANDBOX_JSON,
+                    "status": status,
+                    "terminatedAt": "2026-07-17T00:10:00Z",
+                },
+            )
+        raise AssertionError(f"unexpected request {request.method} {request.url}")
+
+    return handler
+
+
+@pytest.mark.asyncio
+async def test_exec_on_ended_sandbox_raises_sandbox_ended_error():
+    client = _sandbox_client(_ended_sandbox_handler("terminated"))
+
+    with pytest.raises(SandboxEndedError) as exc_info:
+        async for _ in client.exec("sbx-abc", "ls"):
+            pass
+
+    assert exc_info.value.status_code == 409
+    assert exc_info.value.code == "sandbox_not_running"
+    assert exc_info.value.sandbox_status == "terminated"
+    assert "sandbox sbx-abc was terminated at 2026-07-17T00:10:00Z" in str(
+        exc_info.value
+    )
+
+
+@pytest.mark.asyncio
+async def test_copy_to_on_errored_sandbox_raises_sandbox_ended_error(tmp_path):
+    source = tmp_path / "hello.txt"
+    source.write_text("hi\n")
+    client = _sandbox_client(_ended_sandbox_handler("errored"))
+
+    with pytest.raises(SandboxEndedError) as exc_info:
+        await client.copy_to("sbx-abc", source, "/app/hello.txt")
+
+    assert exc_info.value.sandbox_status == "errored"
+    assert "sandbox sbx-abc errored at 2026-07-17T00:10:00Z" in str(exc_info.value)

@@ -11,6 +11,7 @@ from render.experimental.sandbox.errors import (
     RenderTimeoutError as RenderTimeoutError,
     SandboxCreateWaitError as SandboxCreateWaitError,
     SandboxDownloadError as SandboxDownloadError,
+    SandboxEndedError as SandboxEndedError,
     SandboxExecError as SandboxExecError,
     SandboxExecStreamError as SandboxExecStreamError,
     SandboxFileNotFoundError as SandboxFileNotFoundError,

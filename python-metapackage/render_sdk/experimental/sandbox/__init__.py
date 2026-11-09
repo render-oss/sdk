@@ -34,6 +34,7 @@ __all__ = [
     "SandboxClient",
     "SandboxCreateWaitError",
     "SandboxDownloadError",
+    "SandboxEndedError",
     "SandboxExecError",
     "SandboxExecEvent",
     "SandboxExecExit",

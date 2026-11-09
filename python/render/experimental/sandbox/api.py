@@ -36,6 +36,7 @@ from render.experimental.sandbox.errors import (
     ImageNotFoundError,
     ImageNotReadyError,
     SandboxDownloadError,
+    SandboxEndedError,
     SandboxExecError,
     SandboxExecStreamError,
     SandboxFileNotFoundError,
@@ -133,6 +134,9 @@ from render.public_api.types import UNSET, Response, Unset
 if TYPE_CHECKING:
     from render.public_api.client import AuthenticatedClient, Client
 
+
+# The code the API sends in a 409 body when the sandbox has ended.
+_SANDBOX_NOT_RUNNING_CODE = "sandbox_not_running"
 
 # The code the sandbox agent sends in a 404 body when the remote path is missing.
 _FILE_NOT_FOUND_CODE = "file_not_found"
@@ -669,6 +673,27 @@ class SandboxApi:
             raise RenderError("Failed to retrieve image: unexpected response type")
         return _to_image(response.parsed)
 
+    async def _raise_connect_token_error(
+        self, sandbox_id: str, owner_id: str, response: httpx.Response, action: str
+    ) -> NoReturn:
+        # The 409 body doesn't say which way the sandbox ended or when, so look
+        # it up to name both.
+        if (
+            response.status_code == 409
+            and _error_body(response.text).code == _SANDBOX_NOT_RUNNING_CODE
+        ):
+            try:
+                sandbox = await self.get(sandbox_id, owner_id)
+            except RenderError:
+                pass
+            else:
+                ended_error = _sandbox_ended_error(sandbox, action)
+                if ended_error is not None:
+                    raise ended_error
+        _raise_sandbox_http_error(
+            sandbox_id, response.status_code, response.text, action
+        )
+
     async def _mint_run_token(
         self, sandbox_id: str, owner_id: str, operation: str, command: str
     ) -> dict[str, Any]:
@@ -683,8 +708,8 @@ class SandboxApi:
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox run")
         if response.status_code >= 400:
-            _raise_sandbox_http_error(
-                sandbox_id, response.status_code, response.text, "exec"
+            await self._raise_connect_token_error(
+                sandbox_id, owner_id, response, "exec"
             )
         return response.json()
 
@@ -700,8 +725,8 @@ class SandboxApi:
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox files")
         if response.status_code >= 400:
-            _raise_sandbox_http_error(
-                sandbox_id, response.status_code, response.text, operation
+            await self._raise_connect_token_error(
+                sandbox_id, owner_id, response, operation
             )
         return response.json()
 
@@ -904,6 +929,23 @@ def _load_event(data: str) -> dict[str, Any]:
         raise SandboxExecError(
             f"failed to parse sandbox exec event data: {data}"
         ) from exc
+
+
+def _sandbox_ended_error(sandbox: Sandbox, action: str) -> SandboxEndedError | None:
+    """Name how and when a sandbox ended, or None if it hasn't."""
+    if sandbox.status not in ("terminated", "errored"):
+        return None
+    ended = "was terminated" if sandbox.status == "terminated" else "errored"
+    at = ""
+    if sandbox.terminated_at:
+        # Match the API's own format, which ends in Z rather than +00:00.
+        at = f" at {sandbox.terminated_at.isoformat().replace('+00:00', 'Z')}"
+    return SandboxEndedError(
+        f"{action} failed: sandbox {sandbox.id} {ended}{at}",
+        sandbox_status=sandbox.status,
+        code=_SANDBOX_NOT_RUNNING_CODE,
+        status_code=409,
+    )
 
 
 def _raise_sandbox_http_error(
