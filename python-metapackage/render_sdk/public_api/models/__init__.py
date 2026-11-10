@@ -185,6 +185,7 @@ __all__ = [
     "GetObjectOutput",
     "GetTaskRunsCompletedAggregateBy",
     "GetTaskRunsCompletedState",
+    "GitCredentials",
     "Header",
     "HeaderInput",
     "HeaderWithCursor",

@@ -93,6 +93,8 @@ export enum FlowRunStatus {
   SUCCEEDED = "succeeded",
   FAILED = "failed",
   CANCELED = "canceled",
+  SUSPENDED = "suspended",
+  SLEEPING = "sleeping",
 }
 
 /**

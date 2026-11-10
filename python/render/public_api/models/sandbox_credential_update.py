@@ -29,7 +29,13 @@ class SandboxCredentialUpdate:
             domain (Union[Unset, str]):
             enabled (Union[Unset, bool]):
             methods (Union[Unset, list[str]]):
-            paths (Union[Unset, list[str]]):
+            paths (Union[Unset, list[str]]): Absolute request path patterns. The entire path must match.
+                Use * for one nonempty path segment or ** for one or more.
+                Wildcards must occupy whole segments. For example, /a/* matches
+                /a/b, while /a/** also matches /a/b/c. Neither matches /a.
+                Query strings, fragments, and escaping are not supported in patterns.
+                Request query strings do not affect path matching.
+                An empty list matches any path. Omit to preserve the current filter.
             injection (Union[Unset, SandboxCredentialInjection]):
     """
 

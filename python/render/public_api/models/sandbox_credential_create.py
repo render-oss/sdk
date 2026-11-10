@@ -28,8 +28,13 @@ class SandboxCredentialCreate:
         enabled (Union[Unset, bool]):  Default: True.
         methods (Union[Unset, list[str]]): GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
             Omitted or empty matches any method.
-        paths (Union[Unset, list[str]]): Exact absolute request paths, without query strings, fragments,
-            escaping, or patterns. Omitted or empty matches any path.
+        paths (Union[Unset, list[str]]): Absolute request path patterns. The entire path must match.
+            Use * for one nonempty path segment or ** for one or more.
+            Wildcards must occupy whole segments. For example, /a/* matches
+            /a/b, while /a/** also matches /a/b/c. Neither matches /a.
+            Query strings, fragments, and escaping are not supported in patterns.
+            Request query strings do not affect path matching.
+            Omitted or empty matches any path.
     """
 
     id: str

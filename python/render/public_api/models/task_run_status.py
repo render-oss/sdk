@@ -8,7 +8,9 @@ class TaskRunStatus(str, Enum):
     PAUSED = "paused"
     PENDING = "pending"
     RUNNING = "running"
+    SLEEPING = "sleeping"
     SUCCEEDED = "succeeded"
+    SUSPENDED = "suspended"
 
     def __str__(self) -> str:
         return str(self.value)

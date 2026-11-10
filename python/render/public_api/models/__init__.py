@@ -174,6 +174,7 @@ from .get_http_requests_aggregate_by import GetHttpRequestsAggregateBy
 from .get_object_output import GetObjectOutput
 from .get_task_runs_completed_aggregate_by import GetTaskRunsCompletedAggregateBy
 from .get_task_runs_completed_state import GetTaskRunsCompletedState
+from .git_credentials import GitCredentials
 from .header import Header
 from .header_input import HeaderInput
 from .header_with_cursor import HeaderWithCursor
@@ -649,6 +650,7 @@ __all__ = (
     "GetObjectOutput",
     "GetTaskRunsCompletedAggregateBy",
     "GetTaskRunsCompletedState",
+    "GitCredentials",
     "Header",
     "HeaderInput",
     "HeaderWithCursor",

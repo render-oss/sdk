@@ -16,7 +16,7 @@ import (
 	externalRef4 "github.com/render-oss/sdk/go/pkg/render/internal/client/disks"
 	externalRef7 "github.com/render-oss/sdk/go/pkg/render/internal/client/eventstatuses"
 	externalRef8 "github.com/render-oss/sdk/go/pkg/render/internal/client/eventtypes"
-	externalRef9 "github.com/render-oss/sdk/go/pkg/render/internal/client/jobs"
+	externalRef10 "github.com/render-oss/sdk/go/pkg/render/internal/client/jobs"
 )
 
 // ArtifactFetchFailedEvent defines model for artifactFetchFailedEvent.
@@ -315,9 +315,9 @@ type InstanceId = string
 // JobRunEndedEvent defines model for jobRunEndedEvent.
 type JobRunEndedEvent struct {
 	// JobId Example: job-cph1rs3idesc73a2b2mg
-	JobId  externalRef9.JobId     `json:"jobId"`
-	Reason *FailureReason         `json:"reason,omitempty"`
-	Status externalRef9.JobStatus `json:"status"`
+	JobId  externalRef10.JobId     `json:"jobId"`
+	Reason *FailureReason          `json:"reason,omitempty"`
+	Status externalRef10.JobStatus `json:"status"`
 }
 
 // KeyValueAvailableEvent defines model for keyValueAvailableEvent.

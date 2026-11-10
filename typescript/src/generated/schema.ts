@@ -906,7 +906,7 @@ export interface components {
             state: components["schemas"]["maintenanceState"];
         };
         /** @enum {string} */
-        TaskRunStatus: "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused";
+        TaskRunStatus: "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused" | "suspended" | "sleeping";
         TaskAttempt: {
             /** @description The ID of the task run this attempt belongs to. */
             taskRunId?: string;
@@ -994,7 +994,7 @@ export interface components {
          * @description The status of a flow run.
          * @enum {string}
          */
-        FlowRunStatus: "pending" | "running" | "succeeded" | "failed" | "canceled" | "paused";
+        FlowRunStatus: "pending" | "running" | "succeeded" | "failed" | "canceled" | "paused" | "suspended" | "sleeping";
         FlowRun: {
             /** @example frn-d0hp8fs9c44c73a6f1qg */
             id: string;
@@ -1514,7 +1514,10 @@ export interface components {
          *     to the sandbox proxy when executing.
          */
         sandboxConnectRequest: {
-            /** @description Command text for the sandbox event timeline. */
+            /**
+             * @deprecated
+             * @description Command text for the sandbox event timeline.
+             */
             command?: string;
         };
         /**
@@ -2910,6 +2913,13 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace whose snapshots to return. */
                 ownerId: string;
+                /**
+                 * @description Return only snapshots with exactly this name. Each snapshot taken
+                 *     with a name is a new version, so this lists every version, newest
+                 *     first. The first `available` one is the version `snapshotName`
+                 *     boots on sandbox create.
+                 */
+                name?: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
