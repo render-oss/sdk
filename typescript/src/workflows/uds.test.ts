@@ -153,34 +153,34 @@ describe("UDSClient", () => {
     });
   });
 
-  describe("runSubtask", () => {
-    /** Mocks http.request to always succeed, collecting each request body. */
-    function mockHttpRequestCapturingBodies(): string[] {
-      const capturedBodies: string[] = [];
-      vi.mocked(http.request).mockImplementation(((
-        _options: http.RequestOptions,
-        callback?: RequestCallback,
-      ) => {
-        const req = {
-          on: vi.fn(),
-          end: vi.fn((arg?: string) => {
-            if (arg !== undefined) capturedBodies.push(arg);
-          }),
-        } as unknown as http.ClientRequest;
-        setImmediate(() => {
-          const res = {
-            statusCode: 200,
-            [Symbol.asyncIterator]: async function* () {
-              yield Buffer.from('{"task_run_id":"trn-1"}');
-            },
-          } as unknown as http.IncomingMessage;
-          callback?.(res);
-        });
-        return req;
-      }) as typeof http.request);
-      return capturedBodies;
-    }
+  /** Mocks http.request to always succeed, collecting each request body. */
+  function mockHttpRequestCapturingBodies(): string[] {
+    const capturedBodies: string[] = [];
+    vi.mocked(http.request).mockImplementation(((
+      _options: http.RequestOptions,
+      callback?: RequestCallback,
+    ) => {
+      const req = {
+        on: vi.fn(),
+        end: vi.fn((arg?: string) => {
+          if (arg !== undefined) capturedBodies.push(arg);
+        }),
+      } as unknown as http.ClientRequest;
+      setImmediate(() => {
+        const res = {
+          statusCode: 200,
+          [Symbol.asyncIterator]: async function* () {
+            yield Buffer.from('{"task_run_id":"trn-1"}');
+          },
+        } as unknown as http.IncomingMessage;
+        callback?.(res);
+      });
+      return req;
+    }) as typeof http.request);
+    return capturedBodies;
+  }
 
+  describe("runSubtask", () => {
     it("sets idempotency_key and created_at on the request body", async () => {
       const capturedBodies = mockHttpRequestCapturingBodies();
 
@@ -207,6 +207,34 @@ describe("UDSClient", () => {
       expect(keys[0]).toMatch(UUID_V4);
       expect(keys[1]).toMatch(UUID_V4);
       expect(keys[0]).not.toBe(keys[1]);
+    });
+
+    it("sends no step_key from a plain task", async () => {
+      const capturedBodies = mockHttpRequestCapturingBodies();
+
+      const client = new UDSClient("/tmp/test.sock");
+      await client.runSubtask("my-task", ["arg"]);
+
+      expect(JSON.parse(capturedBodies[0] ?? "{}")).not.toHaveProperty("step_key");
+    });
+  });
+
+  describe("runFlowSubtask", () => {
+    it.each([
+      { name: "no sub key", step: { seq: 3 } },
+      { name: "a sub key", step: { seq: 3, sub_key: "child" } },
+    ])("sends the step_key and no idempotency_key with $name", async ({ step }) => {
+      const capturedBodies = mockHttpRequestCapturingBodies();
+
+      const client = new UDSClient("/tmp/test.sock");
+      const taskRunId = await client.runFlowSubtask("my-task", ["arg"], step);
+      expect(taskRunId).toBe("trn-1");
+
+      const body = JSON.parse(capturedBodies[0] ?? "{}");
+      expect(body).not.toHaveProperty("idempotency_key");
+      expect(body.step_key).toEqual(step);
+      expect(body.task_name).toBe("my-task");
+      expect(Number.isNaN(Date.parse(body.created_at))).toBe(false);
     });
   });
 

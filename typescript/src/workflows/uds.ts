@@ -101,18 +101,32 @@ export class UDSClient {
   }
 
   /**
-   * Run a subtask
+   * Run a subtask from a plain task.
    */
-  async runSubtask(taskName: string, input: any[], step?: StepKey): Promise<string> {
+  async runSubtask(taskName: string, input: any[]): Promise<string> {
     // Build the body outside request(), which retries internally, so every
     // retry resends the same idempotency_key and created_at.
-    const body: RunSubtaskRequest = {
+    return this.startSubtask({
       task_name: taskName,
       input: encodeArgs(input),
       idempotency_key: randomUUID(),
       created_at: new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Run a subtask as a flow's step.
+   */
+  async runFlowSubtask(taskName: string, input: any[], step: StepKey): Promise<string> {
+    return this.startSubtask({
+      task_name: taskName,
+      input: encodeArgs(input),
+      created_at: new Date().toISOString(),
       step_key: step,
-    };
+    });
+  }
+
+  private async startSubtask(body: RunSubtaskRequest): Promise<string> {
     const response = await this.request<RunSubtaskResponse>("/run-subtask", "POST", body);
     return response.task_run_id;
   }

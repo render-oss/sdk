@@ -326,7 +326,7 @@ export class DurableFlowContext implements FlowContext {
     // An open row means the child was dispatched: reattach instead.
     const childRunId = recorded
       ? recorded.child_run_id
-      : await this.udsClient.runSubtask(taskName, args, ref);
+      : await this.udsClient.runFlowSubtask(taskName, args, ref);
     if (!childRunId) {
       throw new FlowFailedError(`Step ${ref.seq} has no recorded child run`);
     }
