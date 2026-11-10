@@ -1,12 +1,14 @@
 """Keep the public examples executable against the durability SDK."""
 
 import copy
+from datetime import datetime, timezone
 
 import pytest
 
 from example.flow import main
 from render.workflows._models.history import History
 from render.workflows._models.task import InputResponse
+from render.workflows._utils import clock
 from render.workflows.client import UDSClient
 from render.workflows.durable_context import DurableFlowContext
 
@@ -32,6 +34,9 @@ def client(mocker):
 
 def test_inline_retry_stays_in_one_flow_attempt(client, mocker):
     sleep = mocker.patch("render.workflows.durable_context.time.sleep")
+    mocker.patch.object(
+        clock, "now", return_value=datetime(2026, 1, 2, tzinfo=timezone.utc)
+    )
     with context(client) as ctx:
         assert main.inline_retry.func(ctx) == 3
 

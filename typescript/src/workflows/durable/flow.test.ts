@@ -564,6 +564,36 @@ describe("workflow", () => {
       expect(server.inline("complete")).toHaveLength(1);
     });
 
+    it("sends when each retry is due and waits until then", async () => {
+      const now = Date.parse("2026-01-02T03:04:05.000Z");
+      vi.spyOn(Date, "now").mockReturnValue(now);
+      const waits: number[] = [];
+      const setTimeout = globalThis.setTimeout;
+      vi.spyOn(globalThis, "setTimeout").mockImplementation((callback, ms, ...args) => {
+        waits.push(ms ?? 0);
+        return setTimeout(callback, 0, ...args);
+      });
+      function failing(): never {
+        throw new Error("down");
+      }
+      flow({ name: "wf" }, (ctx) =>
+        ctx.step("failing", failing, [], {
+          retry: { maxRetries: 2, waitDurationMs: 100, backoffScaling: 2 },
+        }),
+      );
+      await serve("wf");
+      await server.execute();
+
+      expect(server.inline("attempt").map((a) => [a.attempt, a.retry_at])).toEqual([
+        [0, "2026-01-02T03:04:05.100Z"],
+        [1, "2026-01-02T03:04:05.200Z"],
+      ]);
+      expect(waits).toEqual(expect.arrayContaining([100, 200]));
+      // The final attempt completes the step instead, with no retry to schedule.
+      expect(server.inline("complete")).toHaveLength(1);
+      expect(server.inline("complete")[0]?.outcome.final_attempt?.attempt).toBe(2);
+    });
+
     it("records an exhausted step's error and rethrows it on replay", async () => {
       let calls = 0;
       class PaymentError extends Error {

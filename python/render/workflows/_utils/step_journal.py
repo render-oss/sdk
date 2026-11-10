@@ -156,9 +156,16 @@ class StepJournal:
         return started_at
 
     def attempt_failed(
-        self, step_ctx: StepContext, error: StepError, *, started_at: datetime
+        self,
+        step_ctx: StepContext,
+        error: StepError,
+        *,
+        started_at: datetime,
+        ended_at: datetime,
+        retry_at: datetime,
     ) -> None:
-        """Record a failed attempt that the step will retry locally."""
+        """Record a failed attempt that the step will retry locally, starting
+        the next attempt at retry_at."""
         self._history.record_attempt(
             StepAttemptRecord(
                 step_key=step_ctx.step_key,
@@ -167,7 +174,7 @@ class StepJournal:
                 # back from its own writes.
                 workflow_attempt=0,
                 error=error,
-                ended_at=clock.now(),
+                ended_at=ended_at,
                 started_at=started_at,
             )
         )
@@ -178,6 +185,7 @@ class StepJournal:
                     attempt=step_ctx.attempt,
                     error=error,
                     started_at=started_at.isoformat(),
+                    retry_at=retry_at.isoformat(),
                 )
             )
         )

@@ -881,6 +881,11 @@ export interface components {
       error: components["schemas"]["StepError"];
       /** Format: date-time */
       started_at?: string;
+      /**
+       * Format: date-time
+       * @description When the next attempt is due to start, after the backoff.
+       */
+      retry_at?: string;
     };
     StepAttemptResponse: {
       /** @description False when the attempt was already recorded. */

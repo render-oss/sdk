@@ -422,6 +422,7 @@ export class DurableFlowContext implements FlowContext {
             error: wireError,
           });
         }
+        const retryAt = Date.now() + backoffMs(retry, attempt);
         // applied: false means this attempt number is already recorded;
         // either way the next attempt takes the next number.
         await this.udsClient.stepAttempt({
@@ -429,8 +430,9 @@ export class DurableFlowContext implements FlowContext {
           attempt,
           error: wireError,
           started_at: startedAt,
+          retry_at: new Date(retryAt).toISOString(),
         });
-        await delay(backoffMs(retry, attempt));
+        await delay(retryAt - Date.now());
         attempt++;
         continue;
       }

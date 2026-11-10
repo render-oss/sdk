@@ -64,6 +64,8 @@ class StepAttemptRequest(Wire):
     attempt: int
     error: StepError
     started_at: str | Unset = UNSET
+    # When the next attempt starts, once the backoff after this one ends.
+    retry_at: str | Unset = UNSET
 
 
 @dataclass

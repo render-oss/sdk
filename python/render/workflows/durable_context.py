@@ -8,7 +8,7 @@ from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, replace
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, cast
 
 from render.client.errors import (
@@ -364,11 +364,17 @@ class DurableFlowContext(FlowContext):
                         step_ctx, e, started_at=started_at
                     ) from None
 
+                ended_at = clock.now()
+                retry_at = _retry_at(retry, step_ctx.attempt, ended_at)
                 self._journal.attempt_failed(
-                    step_ctx, recorded_error(e), started_at=started_at
+                    step_ctx,
+                    recorded_error(e),
+                    started_at=started_at,
+                    ended_at=ended_at,
+                    retry_at=retry_at,
                 )
                 # Back off here, at the failure, so a resumed attempt never waits.
-                time.sleep(_retry_delay_ms(retry, step_ctx.attempt) / 1000)
+                time.sleep(_seconds_until(retry_at, clock.now()))
                 step_ctx = _advance_attempt(step_ctx)
                 continue
 
@@ -495,3 +501,13 @@ def _retry_delay_ms(retry: Retry, failed_attempt: int) -> int:
         0,
         int(retry.wait_duration_ms * retry.backoff_scaling**failed_attempt),
     )
+
+
+def _retry_at(retry: Retry, failed_attempt: int, failed_at: datetime) -> datetime:
+    """When the attempt after this failed one starts."""
+    return failed_at + timedelta(milliseconds=_retry_delay_ms(retry, failed_attempt))
+
+
+def _seconds_until(deadline: datetime, now: datetime) -> float:
+    """The seconds from now until the deadline, or 0 once it has passed."""
+    return max(0.0, (deadline - now).total_seconds())
