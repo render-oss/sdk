@@ -3,6 +3,7 @@ from render.experimental.sandbox.client_sync import (
     AuthenticatedClient as AuthenticatedClient,
     Client as Client,
     Image as Image,
+    ImageList as ImageList,
     ImageWaitTimeoutError as ImageWaitTimeoutError,
     Iterator as Iterator,
     Mapping as Mapping,

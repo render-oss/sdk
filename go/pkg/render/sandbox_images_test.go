@@ -142,6 +142,79 @@ func TestImageFromID(t *testing.T) {
 	})
 }
 
+func TestImageList(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     *ListImagesOptions
+		query    string
+		body     string
+		wantIDs  []string
+		wantNext string // "" means no cursor
+	}{
+		{
+			name:     "no options",
+			body:     `[{"build":` + succeededImageJSON + `,"cursor":"c1"},{"build":` + failedImageJSON + `,"cursor":"c2"}]`,
+			wantIDs:  []string{"sbb-1", "sbb-1"},
+			wantNext: "c2",
+		},
+		{
+			name:     "all filters",
+			opts:     &ListImagesOptions{Name: "python", Status: []string{"succeeded", "failed"}, Cursor: "c0", Limit: 5},
+			query:    "cursor=c0&limit=5&name=python&status=succeeded,failed",
+			body:     `[{"build":` + runningImageJSON + `,"cursor":"c1"}]`,
+			wantIDs:  []string{"sbb-1"},
+			wantNext: "c1",
+		},
+		{
+			name:    "empty page",
+			opts:    &ListImagesOptions{},
+			body:    `[]`,
+			wantIDs: []string{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				require.Equal(t, http.MethodGet, r.Method)
+				require.Equal(t, "/v1/sandbox-groups/sbg-1/builds", r.URL.Path)
+				require.Equal(t, tt.query, r.URL.RawQuery)
+				writeJSON(w, http.StatusOK, tt.body)
+			})
+
+			list, err := sandboxes.Images.List(context.Background(), "sbg-1", tt.opts)
+			require.NoError(t, err)
+			ids := make([]string, len(list.Images))
+			for i, image := range list.Images {
+				ids[i] = image.ID
+			}
+			require.Equal(t, tt.wantIDs, ids)
+			if tt.wantNext == "" {
+				require.Nil(t, list.NextCursor)
+			} else {
+				require.Equal(t, tt.wantNext, *list.NextCursor)
+			}
+		})
+	}
+
+	t.Run("reports API errors", func(t *testing.T) {
+		sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusBadRequest, `{"code":"invalid_status","message":"invalid status"}`)
+		})
+
+		_, err := sandboxes.Images.List(context.Background(), "sbg-1", &ListImagesOptions{Status: []string{"done"}})
+		require.ErrorContains(t, err, "list images failed with status 400")
+	})
+
+	t.Run("maps sandbox error codes", func(t *testing.T) {
+		sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusConflict, `{"code":"sandbox_group_suspended","message":"suspended"}`)
+		})
+
+		_, err := sandboxes.Images.List(context.Background(), "sbg-1", nil)
+		require.ErrorIs(t, err, ErrSandboxGroupSuspended)
+	})
+}
+
 // imageStatusServer serves image status checks from a queue; the last one repeats.
 func imageStatusServer(t *testing.T, bodies ...string) (*SandboxClient, *int) {
 	calls := 0

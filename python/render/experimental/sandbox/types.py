@@ -162,6 +162,14 @@ class Image:
 
 
 @dataclass
+class ImageList:
+    """A page of images with an optional pagination cursor."""
+
+    images: list[Image] = field(default_factory=list)
+    next_cursor: str | None = None
+
+
+@dataclass
 class RegistryCredentials:
     """Credentials for pulling an image from a private registry.
 

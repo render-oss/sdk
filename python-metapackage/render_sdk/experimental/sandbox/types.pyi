@@ -5,6 +5,7 @@ from render.experimental.sandbox.types import (
     DEFAULT_INTERVAL_SECONDS as DEFAULT_INTERVAL_SECONDS,
     EgressRule as EgressRule,
     Image as Image,
+    ImageList as ImageList,
     ImageSource as ImageSource,
     Literal as Literal,
     NetworkPolicy as NetworkPolicy,

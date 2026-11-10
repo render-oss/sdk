@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/render-oss/sdk/go/pkg/render/internal/client"
 	sandboxes "github.com/render-oss/sdk/go/pkg/render/internal/client/sandboxes"
 )
 
@@ -84,6 +85,24 @@ type ImportImageParams struct {
 	RegistryCredentials *RegistryCredentials
 }
 
+// ListImagesOptions filters and pages ImageClient.List.
+type ListImagesOptions struct {
+	// Name returns only versions of the image with this name.
+	Name string
+	// Status filters by import status (pending, running, succeeded, failed).
+	Status []string
+	Cursor string
+	// Limit is capped at 100 by the API.
+	Limit int
+}
+
+// ImageList is one page of images. Pass NextCursor as
+// ListImagesOptions.Cursor to fetch the next page; it is nil on an empty page.
+type ImageList struct {
+	Images     []Image
+	NextCursor *string
+}
+
 // ImageClient manages the images sandboxes start from, via SandboxClient.Images.
 type ImageClient struct {
 	sandboxes *SandboxClient
@@ -128,6 +147,46 @@ func (s *ImageClient) FromID(ctx context.Context, sandboxGroupID, imageID string
 		return nil, fmt.Errorf("unexpected response format")
 	}
 	return toImage(*resp.JSON200), nil
+}
+
+// List lists the images of one sandbox group, newest first. Each version of a
+// name is its own image. opts may be nil.
+func (s *ImageClient) List(ctx context.Context, sandboxGroupID string, opts *ListImagesOptions) (*ImageList, error) {
+	params := &client.ListSandboxBuildsParams{}
+	if opts != nil {
+		params.Cursor, params.Limit = page(opts.Cursor, opts.Limit)
+		if opts.Name != "" {
+			params.Name = &opts.Name
+		}
+		if len(opts.Status) > 0 {
+			statuses := make([]sandboxes.SandboxBuildStatus, len(opts.Status))
+			for i, status := range opts.Status {
+				statuses[i] = sandboxes.SandboxBuildStatus(status)
+			}
+			params.Status = &statuses
+		}
+	}
+
+	resp, err := s.sandboxes.client.internal.ListSandboxBuildsWithResponse(ctx, sandboxGroupID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make list images request: %w", err)
+	}
+	if resp.StatusCode() != 200 {
+		return nil, sandboxAPIError("list images", resp.StatusCode(), resp.Body)
+	}
+	if resp.JSON200 == nil {
+		return nil, fmt.Errorf("unexpected response format")
+	}
+
+	items := *resp.JSON200
+	list := &ImageList{Images: make([]Image, len(items))}
+	for i, item := range items {
+		list.Images[i] = *toImage(item.Build)
+	}
+	if len(items) > 0 {
+		list.NextCursor = &items[len(items)-1].Cursor
+	}
+	return list, nil
 }
 
 // WaitUntilReady polls the image until it has succeeded, so sandboxes can

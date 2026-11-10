@@ -6,6 +6,7 @@ from render.experimental.sandbox.client import (
     Client as Client,
     Image as Image,
     ImageClient as ImageClient,
+    ImageList as ImageList,
     ImageWaitTimeoutError as ImageWaitTimeoutError,
     Mapping as Mapping,
     NetworkPolicy as NetworkPolicy,

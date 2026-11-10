@@ -22,6 +22,7 @@ from render.experimental.sandbox.errors import (
 from render.experimental.sandbox.files import normalize_remote_path
 from render.experimental.sandbox.types import (
     Image,
+    ImageList,
     NetworkPolicy,
     RegistryCredentials,
     Sandbox,
@@ -590,6 +591,27 @@ class ImageClient:
         another sandbox group.
         """
         return await self._sandboxes.api.get_image(sandbox_group_id, image_id)
+
+    async def list(
+        self,
+        *,
+        sandbox_group_id: str,
+        name: str | None = None,
+        status: str | Sequence[str] | None = None,
+        cursor: str | None = None,
+        limit: int | None = None,
+    ) -> ImageList:
+        """List images of one sandbox group, newest first.
+
+        Each version of a name is its own image. name returns only versions of
+        that image. status filters by import status, one or a sequence of them
+        (each one of pending, running, succeeded, failed). limit is capped at
+        100 by the API. sandboxes.create(image=name) uses the newest succeeded
+        image with that name.
+        """
+        return await self._sandboxes.api.list_images(
+            sandbox_group_id, name, status, cursor, limit
+        )
 
     async def wait_until_ready(
         self,

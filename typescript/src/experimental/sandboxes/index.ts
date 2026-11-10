@@ -301,6 +301,20 @@ export type SandboxImageGetInput = {
   imageId: string;
 };
 
+/** Options for listing the images in a sandbox group, newest first. */
+export type SandboxImageListInput = {
+  sandboxGroupId: string;
+  /** Return only versions of the image with this name. */
+  name?: string;
+  status?: SandboxImageStatus[];
+  cursor?: string;
+  /** 1 to 100. */
+  limit?: number;
+};
+
+/** An image in a list, with the cursor to pass to `list()` for the page after it. */
+export type SandboxImageWithCursor = { image: SandboxImage; cursor: string };
+
 /** @deprecated Use `SandboxImage`. */
 export type SandboxBuild = SandboxImage;
 
@@ -642,6 +656,26 @@ export class SandboxImagesClient {
       }),
       "Failed to get image",
     );
+  }
+
+  /** Lists the images in a sandbox group, newest first. Each version of a name is its own image. */
+  async list({
+    sandboxGroupId,
+    name,
+    status,
+    cursor,
+    limit,
+  }: SandboxImageListInput): Promise<SandboxImageWithCursor[]> {
+    const page = unwrap(
+      await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/builds", {
+        params: {
+          path: { sandboxGroupId },
+          query: { name, status, cursor, limit },
+        },
+      }),
+      "Failed to list images",
+    );
+    return page.map(({ build, cursor }) => ({ image: build, cursor }));
   }
 
   /**

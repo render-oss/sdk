@@ -1209,6 +1209,58 @@ describe("SandboxesClient", () => {
       );
     });
 
+    describe("list", () => {
+      it("lists without filters and returns the page", async () => {
+        const apiClient = mockApiClient("GET", {
+          status: 200,
+          data: [{ build: IMAGE, cursor: "c1" }],
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.images.list({ sandboxGroupId: "sbg-123" })).resolves.toEqual([
+          { image: IMAGE, cursor: "c1" },
+        ]);
+        expect(apiClient.GET).toHaveBeenCalledWith(IMAGE_PATH, {
+          params: {
+            path: { sandboxGroupId: "sbg-123" },
+            query: { name: undefined, status: undefined, cursor: undefined, limit: undefined },
+          },
+        });
+      });
+
+      it("sends the filters", async () => {
+        const apiClient = mockApiClient("GET", { status: 200, data: [] });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.images.list({
+          sandboxGroupId: "sbg-123",
+          name: "python",
+          status: ["succeeded", "failed"],
+          cursor: "c0",
+          limit: 5,
+        });
+
+        expect(apiClient.GET).toHaveBeenCalledWith(IMAGE_PATH, {
+          params: {
+            path: { sandboxGroupId: "sbg-123" },
+            query: { name: "python", status: ["succeeded", "failed"], cursor: "c0", limit: 5 },
+          },
+        });
+      });
+
+      it("throws a ClientError for an API error", async () => {
+        const apiClient = mockApiClient("GET", {
+          status: 400,
+          error: { message: "invalid status", code: "invalid_status" },
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.images.list({ sandboxGroupId: "sbg-123" }).catch((err) => err);
+        expect(error).toBeInstanceOf(ClientError);
+        expect(error.message).toContain("Failed to list images");
+      });
+    });
+
     describe("get", () => {
       it("retrieves an image by group and ID", async () => {
         const failed: SandboxImage = {

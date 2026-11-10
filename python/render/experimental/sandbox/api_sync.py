@@ -63,6 +63,7 @@ from render.experimental.sandbox.files import (
 from render.experimental.sandbox.types import (
     EgressRule,
     Image,
+    ImageList,
     ImageSource,
     NetworkPolicy,
     RegistryCredentials,
@@ -83,6 +84,7 @@ from render.public_api.api.sandboxes import (
     create_sandbox_snapshot,
     delete_sandbox_group,
     delete_sandbox_snapshot,
+    list_sandbox_builds,
     list_sandbox_groups,
     list_sandbox_snapshots,
     list_sandboxes,
@@ -101,6 +103,8 @@ from render.public_api.models.sandbox_build_post import SandboxBuildPOST
 from render.public_api.models.sandbox_build_post_registry_credential import (
     SandboxBuildPOSTRegistryCredential,
 )
+from render.public_api.models.sandbox_build_status import SandboxBuildStatus
+from render.public_api.models.sandbox_build_with_cursor import SandboxBuildWithCursor
 from render.public_api.models.sandbox_egress_rule import SandboxEgressRule
 from render.public_api.models.sandbox_egress_rule_protocol import (
     SandboxEgressRuleProtocol,
@@ -161,6 +165,8 @@ _SandboxStatusList = list[SandboxStatus]
 _SandboxGroupWithCursorList = list[SandboxGroupWithCursor]
 _SandboxSnapshotWithCursorList = list[SandboxSnapshotWithCursor]
 _SandboxSnapshotStatusList = list[SandboxSnapshotStatus]
+_SandboxBuildWithCursorList = list[SandboxBuildWithCursor]
+_SandboxBuildStatusList = list[SandboxBuildStatus]
 
 _T = TypeVar("_T")
 _StatusEnum = TypeVar("_StatusEnum", bound=Enum)
@@ -670,6 +676,43 @@ class SyncSandboxApi:
         if not isinstance(response.parsed, GeneratedSandboxBuild):
             raise RenderError("Failed to retrieve image: unexpected response type")
         return _to_image(response.parsed)
+
+    def list_images(
+        self,
+        sandbox_group_id: str,
+        name: str | None,
+        status: str | Sequence[str] | None,
+        cursor: str | None,
+        limit: int | None,
+    ) -> ImageList:
+        statuses = _normalize_statuses(status, SandboxBuildStatus)
+        response = self._list_images_api_call(
+            sandbox_group_id, name, statuses, cursor, limit
+        )
+        parsed = response.parsed
+        if not isinstance(parsed, list):
+            raise RenderError("Failed to list images: unexpected response type")
+        images = [_to_image(item.build) for item in parsed]
+        next_cursor = parsed[-1].cursor if parsed else None
+        return ImageList(images=images, next_cursor=next_cursor)
+
+    @handle_http_errors("list images")
+    def _list_images_api_call(
+        self,
+        sandbox_group_id: str,
+        name: str | None,
+        statuses: _SandboxBuildStatusList,
+        cursor: str | None,
+        limit: int | None,
+    ) -> Response[Error | _SandboxBuildWithCursorList]:
+        return list_sandbox_builds.sync_detailed(
+            sandbox_group_id,
+            client=self.client,
+            name=name if name is not None else UNSET,
+            status=statuses or UNSET,
+            cursor=cursor if cursor is not None else UNSET,
+            limit=limit if limit is not None else UNSET,
+        )
 
     def _raise_connect_token_error(
         self, sandbox_id: str, owner_id: str, response: httpx.Response, action: str

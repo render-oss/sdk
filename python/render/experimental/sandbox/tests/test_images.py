@@ -329,6 +329,83 @@ async def test_from_id_wraps_non_json_error_response():
         await client.images.from_id(sandbox_group_id="sbg-abc", image_id="sbb-abc")
 
 
+# --- list ---
+
+
+@pytest.mark.asyncio
+async def test_list_returns_a_page_of_images_and_its_cursor(make_client):
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        captured["query"] = request.url.query.decode()
+        return httpx.Response(
+            200,
+            json=[
+                {"build": SUCCEEDED_IMAGE_JSON, "cursor": "c1"},
+                {"build": FAILED_IMAGE_JSON, "cursor": "c2"},
+            ],
+        )
+
+    client = make_client(handler)
+    page = await _resolve(client.images.list(sandbox_group_id="sbg-abc"))
+
+    assert captured["method"] == "GET"
+    assert captured["path"] == "/v1/sandbox-groups/sbg-abc/builds"
+    assert captured["query"] == ""
+    assert [image.status for image in page.images] == ["succeeded", "failed"]
+    assert page.images[1].failure_reason == "image is not linux/amd64"
+    assert page.next_cursor == "c2"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("kwargs", "query"),
+    [
+        ({"name": "python"}, {"name": ["python"]}),
+        ({"status": "failed"}, {"status": ["failed"]}),
+        (
+            {"status": ["succeeded", "failed"], "cursor": "c0", "limit": 5},
+            {"status": ["succeeded", "failed"], "cursor": ["c0"], "limit": ["5"]},
+        ),
+    ],
+)
+async def test_list_sends_filters(make_client, kwargs, query):
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        params = request.url.params
+        captured["query"] = {key: params.get_list(key) for key in params}
+        return httpx.Response(200, json=[])
+
+    client = make_client(handler)
+    page = await _resolve(client.images.list(sandbox_group_id="sbg-abc", **kwargs))
+
+    assert captured["query"] == query
+    assert page.images == []
+    assert page.next_cursor is None
+
+
+@pytest.mark.asyncio
+async def test_list_rejects_an_unknown_status():
+    client = _sandbox_client(_unreachable)
+    with pytest.raises(ValueError):
+        await client.images.list(sandbox_group_id="sbg-abc", status="done")
+
+
+@pytest.mark.asyncio
+async def test_list_raises_for_an_api_error():
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            404, json={"message": "not found: sandbox group", "code": "not_found"}
+        )
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError):
+        await client.images.list(sandbox_group_id="sbg-missing")
+
+
 # --- wait_until_ready ---
 
 
