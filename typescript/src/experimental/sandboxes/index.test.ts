@@ -1,4 +1,5 @@
 import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import type { Client } from "openapi-fetch";
@@ -78,10 +79,10 @@ const CONNECT_RESPONSE = {
   method: "POST",
 };
 
-function mockApiClientWithConnectResponse(): Client<paths> {
+function mockApiClientWithConnectResponse(uri = CONNECT_RESPONSE.uri): Client<paths> {
   return {
     POST: vi.fn().mockResolvedValue({
-      data: CONNECT_RESPONSE,
+      data: { ...CONNECT_RESPONSE, uri },
       error: undefined,
       response: new Response(null, { status: 200 }),
     }),
@@ -1758,6 +1759,165 @@ describe("SandboxesClient", () => {
           expect(got).toEqual(want);
         },
       );
+    });
+
+    describe("copyTo", () => {
+      type Received = { body: string; contentLength?: string; authorization?: string };
+
+      type CopyToOutcome = {
+        received?: Received;
+        error?: { type: string; message: string; code?: string };
+        tokenRequests: number;
+      };
+
+      async function copyToOutcome(
+        localPath: string,
+        status: number,
+        responseBody: string,
+      ): Promise<CopyToOutcome> {
+        let received: Received | undefined;
+        const server = createServer(async (req, res) => {
+          let body = "";
+          for await (const chunk of req) {
+            body += chunk;
+          }
+
+          received = {
+            body,
+            contentLength: req.headers["content-length"],
+            authorization: req.headers.authorization,
+          };
+          res.writeHead(status).end(responseBody);
+        });
+        await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+
+        const address = server.address();
+        const port = typeof address === "object" && address !== null ? address.port : 0;
+        const apiClient = mockApiClientWithConnectResponse(`http://127.0.0.1:${port}/upload`);
+        const client = new SandboxesClient(apiClient);
+
+        const settled = await client
+          .copyTo("sbx-123", { localPath, remotePath: "/app/in.txt", ownerId: "tea-test" })
+          .then(
+            () => ({}),
+            (err: Error & { code?: string }) => ({
+              error: { type: err.constructor.name, message: err.message, code: err.code },
+            }),
+          );
+        await new Promise<void>((resolve) => server.close(() => resolve()));
+
+        const tokenRequests = vi.mocked(apiClient.POST).mock.calls.length;
+        return { ...settled, ...(received && { received }), tokenRequests };
+      }
+
+      async function helloFile(dir: string): Promise<string> {
+        const localPath = join(dir, "in.txt");
+        await writeFile(localPath, "hello, sandbox");
+
+        return localPath;
+      }
+
+      type CopyToCase = {
+        name: string;
+        source: (dir: string) => Promise<string>;
+        status: number;
+        responseBody: string;
+        want: (dir: string) => CopyToOutcome;
+      };
+
+      it.each<CopyToCase>([
+        {
+          name: "uploads the file's contents with its length",
+          source: helloFile,
+          status: 204,
+          responseBody: "",
+          want: () => ({
+            received: {
+              body: "hello, sandbox",
+              contentLength: "14",
+              authorization: "Bearer connect-token",
+            },
+            tokenRequests: 1,
+          }),
+        },
+        {
+          name: "throws the API error when the sandbox rejects the upload",
+          source: helloFile,
+          status: 409,
+          responseBody: "path is a directory",
+          want: () => ({
+            received: {
+              body: "hello, sandbox",
+              contentLength: "14",
+              authorization: "Bearer connect-token",
+            },
+            error: {
+              type: "ClientError",
+              message: "Failed to upload sandbox file: path is a directory",
+              code: undefined,
+            },
+            tokenRequests: 1,
+          }),
+        },
+        {
+          name: "throws when the sandbox answers with a redirect",
+          source: helloFile,
+          status: 307,
+          responseBody: "",
+          want: () => ({
+            received: {
+              body: "hello, sandbox",
+              contentLength: "14",
+              authorization: "Bearer connect-token",
+            },
+            error: {
+              type: "ClientError",
+              message: "Failed to upload sandbox file: Temporary Redirect",
+              code: undefined,
+            },
+            tokenRequests: 1,
+          }),
+        },
+        {
+          name: "rejects a directory before minting a token",
+          source: async (dir) => dir,
+          status: 204,
+          responseBody: "",
+          want: (dir) => ({
+            error: {
+              type: "RenderError",
+              message: `${dir} is not a regular file; copyTo copies only files`,
+              code: undefined,
+            },
+            tokenRequests: 0,
+          }),
+        },
+        {
+          name: "throws the file-system error for a missing file before minting a token",
+          source: async (dir) => join(dir, "missing.txt"),
+          status: 204,
+          responseBody: "",
+          want: (dir) => ({
+            error: {
+              type: "Error",
+              message: `ENOENT: no such file or directory, stat '${join(dir, "missing.txt")}'`,
+              code: "ENOENT",
+            },
+            tokenRequests: 0,
+          }),
+        },
+      ])("$name", async ({ source, status, responseBody, want }) => {
+        // arrange
+        const dir = await mkdtemp(join(tmpdir(), "sandbox-copy-to-"));
+        const localPath = await source(dir);
+
+        // act
+        const got = await copyToOutcome(localPath, status, responseBody);
+        await rm(dir, { recursive: true, force: true });
+
+        // assert
+        expect(got).toEqual(want(dir));
+      });
     });
 
     describe("copyFrom", () => {

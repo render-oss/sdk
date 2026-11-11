@@ -1,3 +1,4 @@
+import { stat } from "node:fs/promises";
 import { posix } from "node:path";
 import type { Readable } from "node:stream";
 import type { Client } from "openapi-fetch";
@@ -22,7 +23,13 @@ import type { components, paths } from "../../generated/schema.js";
 import { getApiError } from "../../utils/http.js";
 import { pollUntil, validateOptions } from "../../utils/poll-until.js";
 import { getUserAgent } from "../../version.js";
-import { downloadLimit, readLimitedBody, saveLimitedBody, toDownloadOptions } from "./files.js";
+import {
+  downloadLimit,
+  putFile,
+  readLimitedBody,
+  saveLimitedBody,
+  toDownloadOptions,
+} from "./files.js";
 import type { SandboxPlan } from "./types.js";
 
 export type { SandboxPlan } from "./types.js";
@@ -69,6 +76,13 @@ export type SandboxDownloadOptions = {
    * throws `SandboxDownloadTooLargeError`.
    */
   maxSizeBytes?: number;
+  signal?: AbortSignal;
+};
+
+export type SandboxCopyToOptions = {
+  localPath: string;
+  remotePath: string;
+  ownerId?: `tea-${string}`;
   signal?: AbortSignal;
 };
 
@@ -1038,6 +1052,27 @@ export class SandboxesClient {
         contentType: response.headers.get("Content-Type") ?? undefined,
       };
     });
+  }
+
+  /**
+   * Streams a local file to a path in the sandbox without holding it in memory. Directories
+   * can't be copied this way.
+   */
+  async copyTo(
+    sandboxId: string,
+    { localPath, remotePath, ownerId, signal }: SandboxCopyToOptions,
+  ): Promise<void> {
+    if (signal?.aborted) {
+      throw new AbortError();
+    }
+
+    const source = await stat(localPath);
+    if (!source.isFile()) {
+      throw new RenderError(`${localPath} is not a regular file; copyTo copies only files`);
+    }
+
+    const tokenResponse = await this.getFileConnectToken(sandboxId, remotePath, "upload", ownerId);
+    await putFile(tokenResponse, localPath, source.size, signal);
   }
 
   /**

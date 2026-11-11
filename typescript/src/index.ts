@@ -16,6 +16,7 @@ export {
   SandboxBuildsClient,
   type SandboxCopyFromOptions,
   type SandboxCopyFromResult,
+  type SandboxCopyToOptions,
   type SandboxCreateInput,
   type SandboxDownload,
   type SandboxDownloadOptions,

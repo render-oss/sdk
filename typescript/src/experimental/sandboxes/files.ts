@@ -1,8 +1,21 @@
 import { randomUUID } from "node:crypto";
+import { createReadStream } from "node:fs";
 import { open, rename, rm } from "node:fs/promises";
+import { request as httpRequest, type IncomingMessage } from "node:http";
+import { request as httpsRequest } from "node:https";
 import { dirname, join, resolve } from "node:path";
+import { text } from "node:stream/consumers";
+import { pipeline } from "node:stream/promises";
 
-import { RenderError, SandboxDownloadError, SandboxDownloadTooLargeError } from "../../errors.js";
+import {
+  AbortError,
+  RenderError,
+  SandboxDownloadError,
+  SandboxDownloadTooLargeError,
+} from "../../errors.js";
+import type { components } from "../../generated/schema.js";
+import { getApiError } from "../../utils/http.js";
+import { getUserAgent } from "../../version.js";
 import type { SandboxCopyFromResult, SandboxDownload, SandboxDownloadOptions } from "./index.js";
 
 export type DownloadLimit = { sandboxId: string; path: string; maxSizeBytes: number };
@@ -167,4 +180,50 @@ function downloadTooLarge({
     path,
     maxSizeBytes,
   );
+}
+
+// Node's fetch reads a request body as fast as the disk allows, without waiting for the socket
+// to drain, so it holds a large upload in memory. node:http(s) with pipeline waits.
+export async function putFile(
+  tokenResponse: components["schemas"]["sandboxConnectResponse"],
+  localPath: string,
+  size: number,
+  signal: AbortSignal | undefined,
+): Promise<void> {
+  const send = new URL(tokenResponse.uri).protocol === "http:" ? httpRequest : httpsRequest;
+  const request = send(tokenResponse.uri, {
+    method: tokenResponse.method,
+    headers: {
+      Authorization: `Bearer ${tokenResponse.token}`,
+      "Content-Length": String(size),
+      "Content-Type": "application/octet-stream",
+      "User-Agent": getUserAgent(),
+    },
+    signal,
+  });
+  const responded = new Promise<IncomingMessage>((resolve, reject) => {
+    request.once("response", resolve);
+    request.once("error", reject);
+  });
+
+  try {
+    const [, response] = await Promise.all([
+      pipeline(createReadStream(localPath), request),
+      responded,
+    ]);
+    const status = response.statusCode ?? 0;
+    const body = await text(response);
+
+    const accepted = status >= 200 && status < 300;
+    if (!accepted) {
+      const statusText = response.statusMessage ?? "";
+      const context = "Failed to upload sandbox file";
+      throw getApiError(body || statusText, new Response(null, { status, statusText }), context);
+    }
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new AbortError();
+    }
+    throw err;
+  }
 }
