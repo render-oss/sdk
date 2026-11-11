@@ -213,6 +213,24 @@ export class SandboxDownloadTooLargeError extends RenderError {
   }
 }
 
+/**
+ * `copyFrom()` could not write the sandbox file to `localPath`. `cause` is the file-system error,
+ * such as one with code `ENOENT` or `EACCES`. An existing file at `localPath` is left as it was.
+ */
+export class SandboxDownloadError extends RenderError {
+  constructor(
+    message: string,
+    public sandboxId: string,
+    public path: string,
+    public localPath: string,
+    public cause: unknown,
+  ) {
+    super(message);
+    this.name = "SandboxDownloadError";
+    Object.setPrototypeOf(this, SandboxDownloadError.prototype);
+  }
+}
+
 export class ServerError extends RenderError {
   constructor(
     message: string,

@@ -1,3 +1,6 @@
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, relative } from "node:path";
 import type { Client } from "openapi-fetch";
 import {
   AbortError,
@@ -6,6 +9,7 @@ import {
   SandboxBuildNotFoundError,
   SandboxBuildNotReadyError,
   SandboxCreateWaitError,
+  type SandboxDownloadError,
   SandboxEndedError,
   SandboxGroupDefaultNotDeletableError,
   SandboxGroupSuspendedError,
@@ -28,7 +32,6 @@ import type { paths } from "../../generated/schema.js";
 import {
   type SandboxBuild,
   type SandboxCreateInput,
-  type SandboxDownloadOptions,
   type SandboxExecEvent,
   SandboxExecStreamError,
   SandboxesClient,
@@ -1558,7 +1561,7 @@ describe("SandboxesClient", () => {
       async function downloadOutcome(
         body: ConstructorParameters<typeof Response>[0],
         headers: Record<string, string>,
-        signalOrOptions?: AbortSignal | SandboxDownloadOptions,
+        signalOrOptions?: Parameters<SandboxesClient["download"]>[3],
       ): Promise<DownloadOutcome> {
         const apiClient = mockApiClientWithConnectResponse();
         vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { headers }));
@@ -1755,6 +1758,258 @@ describe("SandboxesClient", () => {
           expect(got).toEqual(want);
         },
       );
+    });
+
+    describe("copyFrom", () => {
+      type SaveOutcome = {
+        copied?: { localPath: string; size: number; contentType?: string };
+        error?: { type: string; message: string };
+        files: Record<string, string>;
+      };
+
+      async function filesIn(dir: string): Promise<Record<string, string>> {
+        const names = await readdir(dir);
+        const contents = await Promise.all(names.map((name) => readFile(join(dir, name), "utf8")));
+
+        return Object.fromEntries(names.map((name, i) => [name, contents[i]]));
+      }
+
+      async function saveOutcome(
+        body: ConstructorParameters<typeof Response>[0],
+        headers: Record<string, string>,
+        existing: string | undefined,
+        maxSizeBytes: number | undefined,
+      ): Promise<SaveOutcome> {
+        const dir = await mkdtemp(join(tmpdir(), "sandbox-save-"));
+        const localPath = join(dir, "out.bin");
+        if (existing !== undefined) {
+          await writeFile(localPath, existing);
+        }
+
+        vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { headers }));
+        const client = new SandboxesClient(mockApiClientWithConnectResponse());
+
+        const copy = client.copyFrom("sbx-123", {
+          remotePath: "/app/out.bin",
+          localPath,
+          ownerId: "tea-test",
+          maxSizeBytes,
+        });
+        const settled = await copy.then(
+          (copied) => ({
+            copied: { ...copied, localPath: relative(dir, copied.localPath) },
+          }),
+          (err: Error) => ({ error: { type: err.constructor.name, message: err.message } }),
+        );
+
+        const files = await filesIn(dir);
+        await rm(dir, { recursive: true, force: true });
+
+        return { ...settled, files };
+      }
+
+      type SaveCase = {
+        name: string;
+        body: string;
+        headers: Record<string, string>;
+        existing: string | undefined;
+        maxSizeBytes: number | undefined;
+        want: SaveOutcome;
+      };
+
+      it.each<SaveCase>([
+        {
+          name: "saves the body to localPath",
+          body: "hey",
+          headers: { "Content-Type": "application/octet-stream" },
+          existing: undefined,
+          maxSizeBytes: undefined,
+          want: {
+            copied: { localPath: "out.bin", size: 3, contentType: "application/octet-stream" },
+            files: { "out.bin": "hey" },
+          },
+        },
+        {
+          name: "replaces an existing file",
+          body: "hey",
+          headers: { "Content-Type": "application/octet-stream" },
+          existing: "old",
+          maxSizeBytes: undefined,
+          want: {
+            copied: { localPath: "out.bin", size: 3, contentType: "application/octet-stream" },
+            files: { "out.bin": "hey" },
+          },
+        },
+        {
+          name: "has no default size limit",
+          body: "hey",
+          headers: {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": String(512 * 1024 * 1024),
+          },
+          existing: undefined,
+          maxSizeBytes: undefined,
+          want: {
+            copied: { localPath: "out.bin", size: 3, contentType: "application/octet-stream" },
+            files: { "out.bin": "hey" },
+          },
+        },
+        {
+          name: "applies an explicit maxSizeBytes and keeps the existing file",
+          body: "hey",
+          headers: { "Content-Type": "application/octet-stream" },
+          existing: "old",
+          maxSizeBytes: 2,
+          want: {
+            error: {
+              type: "SandboxDownloadTooLargeError",
+              message:
+                "Sandbox sbx-123 file /app/out.bin exceeds the 2-byte download limit (maxSizeBytes)",
+            },
+            files: { "out.bin": "old" },
+          },
+        },
+        {
+          name: "rejects a directory download and keeps the existing file",
+          body: "hey",
+          headers: { "Content-Type": "application/x-tar", "Content-Encoding": "gzip" },
+          existing: "old",
+          maxSizeBytes: undefined,
+          want: {
+            error: {
+              type: "RenderError",
+              message:
+                "Sandbox sbx-123 path /app/out.bin is a directory; copyFrom copies only files",
+            },
+            files: { "out.bin": "old" },
+          },
+        },
+      ])("$name", async ({ body, headers, existing, maxSizeBytes, want }) => {
+        // act
+        const got = await saveOutcome(body, headers, existing, maxSizeBytes);
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it("writes a body that arrives in several chunks in order", async () => {
+        // arrange
+        const encoder = new TextEncoder();
+        const chunkedBody = new ReadableStream<Uint8Array>({
+          start(controller) {
+            for (const part of ["he", "ll", "o, ", "world"]) {
+              controller.enqueue(encoder.encode(part));
+            }
+            controller.close();
+          },
+        });
+
+        const want = {
+          copied: { localPath: "out.bin", size: 12, contentType: "application/octet-stream" },
+          files: { "out.bin": "hello, world" },
+        };
+
+        // act
+        const got = await saveOutcome(
+          chunkedBody,
+          { "Content-Type": "application/octet-stream" },
+          undefined,
+          undefined,
+        );
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it("saves to a local file name near the file-system length limit", async () => {
+        // arrange
+        const dir = await mkdtemp(join(tmpdir(), "sandbox-save-"));
+        const name = `${"a".repeat(240)}.bin`;
+        vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("hey"));
+        const client = new SandboxesClient(mockApiClientWithConnectResponse());
+
+        const want = { size: 3, files: [name] };
+
+        // act
+        const copied = await client.copyFrom("sbx-123", {
+          remotePath: "/app/out.bin",
+          localPath: join(dir, name),
+          ownerId: "tea-test",
+        });
+        const files = await readdir(dir);
+        await rm(dir, { recursive: true, force: true });
+
+        // assert
+        expect({ size: copied.size, files }).toEqual(want);
+      });
+
+      it("keeps the existing file and the original error when the body fails partway", async () => {
+        // arrange
+        const failingBody = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode("he"));
+            controller.error(new TypeError("terminated"));
+          },
+        });
+
+        const want = {
+          error: { type: "TypeError", message: "terminated" },
+          files: { "out.bin": "old" },
+        };
+
+        // act
+        const got = await saveOutcome(
+          failingBody,
+          { "Content-Type": "application/octet-stream" },
+          "old",
+          undefined,
+        );
+
+        // assert
+        expect(got).toEqual(want);
+      });
+
+      it("wraps a local write failure in SandboxDownloadError and cancels the body", async () => {
+        // arrange
+        const dir = await mkdtemp(join(tmpdir(), "sandbox-save-"));
+        const localPath = join(dir, "missing", "out.bin");
+        let bodyCancelled = false;
+        const body = new ReadableStream<Uint8Array>({
+          cancel() {
+            bodyCancelled = true;
+          },
+        });
+        vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body));
+        const client = new SandboxesClient(mockApiClientWithConnectResponse());
+
+        const want = {
+          type: "SandboxDownloadError",
+          sandboxId: "sbx-123",
+          path: "/app/out.bin",
+          localPath,
+          causeCode: "ENOENT",
+          bodyCancelled: true,
+        };
+
+        // act
+        const err = await client
+          .copyFrom("sbx-123", { remotePath: "/app/out.bin", localPath, ownerId: "tea-test" })
+          .then(
+            () => undefined,
+            (e: SandboxDownloadError) => e,
+          );
+        await rm(dir, { recursive: true, force: true });
+
+        // assert
+        expect({
+          type: err?.constructor.name,
+          sandboxId: err?.sandboxId,
+          path: err?.path,
+          localPath: err?.localPath,
+          causeCode: (err?.cause as { code?: string } | undefined)?.code,
+          bodyCancelled,
+        }).toEqual(want);
+      });
     });
   });
 

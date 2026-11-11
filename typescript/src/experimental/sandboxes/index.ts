@@ -7,7 +7,6 @@ import {
   ClientError,
   RenderError,
   SandboxCreateWaitError,
-  SandboxDownloadTooLargeError,
   SandboxEndedError,
   SandboxImageFailedError,
   SandboxImageWaitTimeoutError,
@@ -23,6 +22,7 @@ import type { components, paths } from "../../generated/schema.js";
 import { getApiError } from "../../utils/http.js";
 import { pollUntil, validateOptions } from "../../utils/poll-until.js";
 import { getUserAgent } from "../../version.js";
+import { downloadLimit, readLimitedBody, saveLimitedBody, toDownloadOptions } from "./files.js";
 import type { SandboxPlan } from "./types.js";
 
 export type { SandboxPlan } from "./types.js";
@@ -72,9 +72,27 @@ export type SandboxDownloadOptions = {
   signal?: AbortSignal;
 };
 
+export type SandboxCopyFromOptions = {
+  remotePath: string;
+  localPath: string;
+  ownerId?: `tea-${string}`;
+  /**
+   * The largest file to copy, in bytes. No limit by default. A larger download throws
+   * `SandboxDownloadTooLargeError`.
+   */
+  maxSizeBytes?: number;
+  signal?: AbortSignal;
+};
+
 export type SandboxDownload = {
   /** Backed by an `ArrayBuffer`, so it passes to Web and Bun APIs that take `Uint8Array<ArrayBuffer>`. */
   data: ReturnType<typeof Buffer.from>;
+  size: number;
+  contentType?: string;
+};
+
+export type SandboxCopyFromResult = {
+  localPath: string;
   size: number;
   contentType?: string;
 };
@@ -1008,12 +1026,43 @@ export class SandboxesClient {
     ownerId?: `tea-${string}`,
     signalOrOptions?: AbortSignal | SandboxDownloadOptions,
   ): Promise<SandboxDownload> {
-    const { signal, maxSizeBytes = DEFAULT_DOWNLOAD_MAX_BYTES } =
-      toDownloadOptions(signalOrOptions);
-    if (!Number.isSafeInteger(maxSizeBytes) || maxSizeBytes <= 0) {
-      throw new RangeError("maxSizeBytes must be a positive integer");
-    }
+    const { signal, maxSizeBytes } = toDownloadOptions(signalOrOptions);
+    const limit = downloadLimit(sandboxId, path, maxSizeBytes, DEFAULT_DOWNLOAD_MAX_BYTES);
 
+    return this.fetchDownload(sandboxId, path, ownerId, signal, async (response) => {
+      const data = await readLimitedBody(response, limit);
+
+      return {
+        data,
+        size: data.byteLength,
+        contentType: response.headers.get("Content-Type") ?? undefined,
+      };
+    });
+  }
+
+  /**
+   * Streams a sandbox file to a local path without holding it in memory. An existing file is
+   * replaced. Directories can't be copied this way. A failed local write throws
+   * `SandboxDownloadError`.
+   */
+  async copyFrom(
+    sandboxId: string,
+    { remotePath, localPath, ownerId, signal, maxSizeBytes }: SandboxCopyFromOptions,
+  ): Promise<SandboxCopyFromResult> {
+    const limit = downloadLimit(sandboxId, remotePath, maxSizeBytes, Number.POSITIVE_INFINITY);
+
+    return this.fetchDownload(sandboxId, remotePath, ownerId, signal, (response) =>
+      saveLimitedBody(response, localPath, limit),
+    );
+  }
+
+  private async fetchDownload<T>(
+    sandboxId: string,
+    path: string,
+    ownerId: `tea-${string}` | undefined,
+    signal: AbortSignal | undefined,
+    read: (response: Response) => Promise<T>,
+  ): Promise<T> {
     if (signal?.aborted) {
       throw new AbortError();
     }
@@ -1033,12 +1082,7 @@ export class SandboxesClient {
         throw await getResponseError(response, "Failed to download sandbox file");
       }
 
-      const data = await readLimitedBody(response, { sandboxId, path, maxSizeBytes });
-      return {
-        data,
-        size: data.byteLength,
-        contentType: response.headers.get("Content-Type") ?? undefined,
-      };
+      return await read(response);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
         throw new AbortError();
@@ -1301,85 +1345,6 @@ function parseEventData<T>(event: SseEvent): T {
     const reason = err instanceof Error ? err.message : String(err);
     throw new RenderError(`Failed to parse sandbox exec "${event.event}" event data: ${reason}`);
   }
-}
-
-type DownloadLimit = { sandboxId: string; path: string; maxSizeBytes: number };
-
-function toDownloadOptions(
-  signalOrOptions?: AbortSignal | SandboxDownloadOptions,
-): SandboxDownloadOptions {
-  if (signalOrOptions instanceof AbortSignal) {
-    return { signal: signalOrOptions };
-  }
-
-  return signalOrOptions ?? {};
-}
-
-async function readLimitedBody(
-  response: Response,
-  limit: DownloadLimit,
-): Promise<SandboxDownload["data"]> {
-  const declared = declaredLength(response);
-  if (declared > limit.maxSizeBytes) {
-    await response.body?.cancel();
-    throw downloadTooLarge(limit);
-  }
-
-  if (response.body === null) {
-    return Buffer.alloc(0);
-  }
-
-  let data = Buffer.alloc(declared);
-  let size = 0;
-  for await (const chunk of response.body) {
-    const needed = size + chunk.byteLength;
-    if (needed > limit.maxSizeBytes) {
-      throw downloadTooLarge(limit);
-    }
-
-    if (needed > data.byteLength) {
-      data = grow(data, size, Math.min(Math.max(needed, data.byteLength * 2), limit.maxSizeBytes));
-    }
-
-    data.set(chunk, size);
-    size = needed;
-  }
-
-  return data.subarray(0, size);
-}
-
-function declaredLength(response: Response): number {
-  const contentLength = response.headers.get("Content-Length");
-  const lengthCountsDecodedBytes = !response.headers.has("Content-Encoding");
-  if (contentLength === null || !lengthCountsDecodedBytes) {
-    return 0;
-  }
-
-  return Number(contentLength);
-}
-
-function grow(
-  data: SandboxDownload["data"],
-  size: number,
-  capacity: number,
-): SandboxDownload["data"] {
-  const grown = Buffer.alloc(capacity);
-  grown.set(data.subarray(0, size));
-
-  return grown;
-}
-
-function downloadTooLarge({
-  sandboxId,
-  path,
-  maxSizeBytes,
-}: DownloadLimit): SandboxDownloadTooLargeError {
-  return new SandboxDownloadTooLargeError(
-    `Sandbox ${sandboxId} file ${path} exceeds the ${maxSizeBytes}-byte download limit (maxSizeBytes)`,
-    sandboxId,
-    path,
-    maxSizeBytes,
-  );
 }
 
 async function getResponseError(response: Response, context: string): Promise<Error> {

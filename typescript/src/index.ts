@@ -14,6 +14,8 @@ export {
   type SandboxBuildSource,
   type SandboxBuildStatus,
   SandboxBuildsClient,
+  type SandboxCopyFromOptions,
+  type SandboxCopyFromResult,
   type SandboxCreateInput,
   type SandboxDownload,
   type SandboxDownloadOptions,
