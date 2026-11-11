@@ -39,7 +39,11 @@ func newSandboxTestClient(t *testing.T, proxy http.HandlerFunc) *SandboxClient {
 		_, _ = fmt.Fprintf(w, `{"executionId":"e","expiresAt":"2026-01-01T00:00:00Z","method":%q,"token":"tok","uri":"%s/proxy/%s"}`,
 			method, srv.URL, r.PathValue("op"))
 	}
-	mux.HandleFunc("POST /v1/sandboxes/sbx-1/runs/{op}/token", mint)
+	mux.HandleFunc("POST /v1/sandboxes/sbx-1/runs/{op}/token", func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		require.JSONEq(t, `{}`, string(body))
+		mint(w, r)
+	})
 	mux.HandleFunc("POST /v1/sandboxes/sbx-1/files/{op}/token", mint)
 	mux.HandleFunc("POST /v1/sandboxes", func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)

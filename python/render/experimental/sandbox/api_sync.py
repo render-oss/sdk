@@ -962,15 +962,13 @@ class SyncSandboxApi:
         )
 
     def _mint_run_token(
-        self, sandbox_id: str, owner_id: str, operation: str, command: str
+        self, sandbox_id: str, owner_id: str, operation: str
     ) -> dict[str, Any]:
-        # Command rides along so the API keeps a sanitized copy for the audit trail.
         api_client = self.client.get_httpx_client()
         try:
             response = api_client.post(
                 f"/sandboxes/{sandbox_id}/runs/{operation}/token",
                 params={"ownerId": owner_id},
-                json={"command": command},
             )
         except httpx.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox run")
@@ -1133,7 +1131,7 @@ class SyncSandboxApi:
     def exec_stream(
         self, sandbox_id: str, command: str, owner_id: str, operation: str = "stream"
     ) -> Iterator[SandboxExecEvent]:
-        connection = self._mint_run_token(sandbox_id, owner_id, operation, command)
+        connection = self._mint_run_token(sandbox_id, owner_id, operation)
         token = connection["token"]
         uri = connection["uri"]
         method = connection["method"]

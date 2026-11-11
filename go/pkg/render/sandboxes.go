@@ -483,10 +483,8 @@ func (s *SandboxClient) exec(ctx context.Context, sandboxID, command string, yie
 	if err != nil {
 		return err
 	}
-	// The command rides along on the mint so the API keeps a sanitized copy
-	// for the audit trail.
 	mint, err := s.client.internal.ConnectSandboxRunWithResponse(ctx, sandboxID, "stream",
-		&client.ConnectSandboxRunParams{OwnerId: &ownerID}, client.ConnectSandboxRunJSONRequestBody{Command: &command})
+		&client.ConnectSandboxRunParams{OwnerId: &ownerID}, client.ConnectSandboxRunJSONRequestBody{})
 	if err != nil {
 		return fmt.Errorf("failed to connect sandbox run: %w", err)
 	}

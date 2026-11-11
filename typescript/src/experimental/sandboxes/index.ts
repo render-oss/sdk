@@ -1360,7 +1360,6 @@ export class SandboxesClient {
     sandboxId: string,
     operation: SandboxConnectOperation,
     ownerId?: `tea-${string}`,
-    command?: string,
   ): Promise<components["schemas"]["sandboxConnectResponse"]> {
     const context = "Failed to get connect token";
     try {
@@ -1375,7 +1374,6 @@ export class SandboxesClient {
               ownerId: this.resolveOwnerId(ownerId),
             },
           },
-          ...(command ? { body: { command } } : {}),
         }),
         context,
       );
@@ -1456,7 +1454,7 @@ export class SandboxesClient {
       throw new AbortError();
     }
 
-    const tokenResponse = await this.getRunConnectToken(sandboxId, "stream", ownerId, command);
+    const tokenResponse = await this.getRunConnectToken(sandboxId, "stream", ownerId);
 
     let response: Response;
     try {
