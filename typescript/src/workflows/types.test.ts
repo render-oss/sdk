@@ -331,6 +331,8 @@ function testFlowRunStatus() {
   const pending: "pending" = FlowRunStatus.PENDING;
   const running: "running" = FlowRunStatus.RUNNING;
   const paused: "paused" = FlowRunStatus.PAUSED;
+  const suspended: "suspended" = FlowRunStatus.SUSPENDED;
+  const sleeping: "sleeping" = FlowRunStatus.SLEEPING;
   const succeeded: "succeeded" = FlowRunStatus.SUCCEEDED;
   const failed: "failed" = FlowRunStatus.FAILED;
   const canceled: "canceled" = FlowRunStatus.CANCELED;
