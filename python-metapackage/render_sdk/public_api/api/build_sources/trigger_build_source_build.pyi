@@ -8,6 +8,7 @@ from render.public_api.api.build_sources.trigger_build_source_build import (
     HTTPStatus as HTTPStatus,
     Optional as Optional,
     Response as Response,
+    TriggerBuildSourceBuildBody as TriggerBuildSourceBuildBody,
     Union as Union,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,

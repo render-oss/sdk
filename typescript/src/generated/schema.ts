@@ -536,7 +536,26 @@ export interface paths {
         get: operations["retrieve-sandbox-build"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete sandbox build
+         * @description Deletes one build: one version of an image. The build no longer
+         *     appears in lists, can't be retrieved, and can't start sandboxes,
+         *     including through the image's name. Deleting a deleted build returns 204.
+         *
+         *     409 with `code: image_in_use` while sandboxes that aren't terminated, or
+         *     snapshots that haven't expired, still boot from the build. That includes
+         *     snapshots of sandboxes restored from such snapshots, and paused
+         *     sandboxes. The message lists up to 10 of them. Delete them, or wait for
+         *     them to expire, and retry.
+         *
+         *     404 with `code: build_not_found` if the build doesn't exist or belongs
+         *     to another sandbox group.
+         *
+         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
+         *     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
+         *     well-formed `sbb-` ID.
+         */
+        delete: operations["delete-sandbox-build"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2930,6 +2949,37 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "delete-sandbox-build": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the build */
+                buildId: components["parameters"]["buildId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

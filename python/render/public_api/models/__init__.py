@@ -31,6 +31,7 @@ from .blueprint_patch import BlueprintPATCH
 from .blueprint_with_cursor import BlueprintWithCursor
 from .branch_deleted import BranchDeleted
 from .build import Build
+from .build_clear_cache import BuildClearCache
 from .build_config import BuildConfig
 from .build_config_update import BuildConfigUpdate
 from .build_deploy_end_reason import BuildDeployEndReason
@@ -450,6 +451,7 @@ from .team_member_role import TeamMemberRole
 from .team_member_status import TeamMemberStatus
 from .time_series import TimeSeries
 from .time_series_value import TimeSeriesValue
+from .trigger_build_source_build_body import TriggerBuildSourceBuildBody
 from .update_env_group_secret_file_body import UpdateEnvGroupSecretFileBody
 from .update_registry_credential_body import UpdateRegistryCredentialBody
 from .update_workspace_member_body import UpdateWorkspaceMemberBody
@@ -509,6 +511,7 @@ __all__ = (
     "BlueprintWithCursor",
     "BranchDeleted",
     "Build",
+    "BuildClearCache",
     "BuildConfig",
     "BuildConfigUpdate",
     "BuildDeployEndReason",
@@ -926,6 +929,7 @@ __all__ = (
     "TeamMemberStatus",
     "TimeSeries",
     "TimeSeriesValue",
+    "TriggerBuildSourceBuildBody",
     "UpdateEnvGroupSecretFileBody",
     "UpdateRegistryCredentialBody",
     "UpdateWorkspaceMemberBody",

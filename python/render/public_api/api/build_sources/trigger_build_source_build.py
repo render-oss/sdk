@@ -7,17 +7,27 @@ from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.build import Build
 from ...models.error import Error
+from ...models.trigger_build_source_build_body import TriggerBuildSourceBuildBody
 from ...types import Response
 
 
 def _get_kwargs(
     build_source_id: str,
+    *,
+    body: TriggerBuildSourceBuildBody,
 ) -> dict[str, Any]:
+    headers: dict[str, Any] = {}
+
     _kwargs: dict[str, Any] = {
         "method": "post",
         "url": f"/build-sources/{build_source_id}/builds",
     }
 
+    _kwargs["json"] = body.to_dict()
+
+    headers["Content-Type"] = "application/json"
+
+    _kwargs["headers"] = headers
     return _kwargs
 
 
@@ -85,6 +95,7 @@ def sync_detailed(
     build_source_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: TriggerBuildSourceBuildBody,
 ) -> Response[Union[Build, Error]]:
     """Trigger a build
 
@@ -100,6 +111,7 @@ def sync_detailed(
 
     Args:
         build_source_id (str):
+        body (TriggerBuildSourceBuildBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -111,6 +123,7 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         build_source_id=build_source_id,
+        body=body,
     )
 
     response = client.get_httpx_client().request(
@@ -124,6 +137,7 @@ def sync(
     build_source_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: TriggerBuildSourceBuildBody,
 ) -> Optional[Union[Build, Error]]:
     """Trigger a build
 
@@ -139,6 +153,7 @@ def sync(
 
     Args:
         build_source_id (str):
+        body (TriggerBuildSourceBuildBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -151,6 +166,7 @@ def sync(
     return sync_detailed(
         build_source_id=build_source_id,
         client=client,
+        body=body,
     ).parsed
 
 
@@ -158,6 +174,7 @@ async def asyncio_detailed(
     build_source_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: TriggerBuildSourceBuildBody,
 ) -> Response[Union[Build, Error]]:
     """Trigger a build
 
@@ -173,6 +190,7 @@ async def asyncio_detailed(
 
     Args:
         build_source_id (str):
+        body (TriggerBuildSourceBuildBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -184,6 +202,7 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         build_source_id=build_source_id,
+        body=body,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -195,6 +214,7 @@ async def asyncio(
     build_source_id: str,
     *,
     client: Union[AuthenticatedClient, Client],
+    body: TriggerBuildSourceBuildBody,
 ) -> Optional[Union[Build, Error]]:
     """Trigger a build
 
@@ -210,6 +230,7 @@ async def asyncio(
 
     Args:
         build_source_id (str):
+        body (TriggerBuildSourceBuildBody):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -223,5 +244,6 @@ async def asyncio(
         await asyncio_detailed(
             build_source_id=build_source_id,
             client=client,
+            body=body,
         )
     ).parsed

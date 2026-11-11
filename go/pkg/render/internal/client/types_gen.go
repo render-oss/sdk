@@ -3949,6 +3949,12 @@ type ListBuildsInBuildSourceParams struct {
 	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
+// TriggerBuildSourceBuildJSONBody defines parameters for TriggerBuildSourceBuild.
+type TriggerBuildSourceBuildJSONBody struct {
+	// ClearCache If `clear`, Render clears the build source's build cache before building. This can be useful if you're experiencing issues with your build.
+	ClearCache *externalRef3.BuildClearCache `json:"clearCache,omitempty"`
+}
+
 // GetEnvVarsForBuildSourceParams defines parameters for GetEnvVarsForBuildSource.
 type GetEnvVarsForBuildSourceParams struct {
 	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
@@ -5634,6 +5640,9 @@ type CreateBuildSourceJSONRequestBody = externalRef3.BuildSourcePOSTInput
 
 // UpdateBuildSourceJSONRequestBody defines body for UpdateBuildSource for application/json ContentType.
 type UpdateBuildSourceJSONRequestBody = externalRef3.BuildSourcePATCHInput
+
+// TriggerBuildSourceBuildJSONRequestBody defines body for TriggerBuildSourceBuild for application/json ContentType.
+type TriggerBuildSourceBuildJSONRequestBody TriggerBuildSourceBuildJSONBody
 
 // UpdateEnvVarsForBuildSourceJSONRequestBody defines body for UpdateEnvVarsForBuildSource for application/json ContentType.
 type UpdateEnvVarsForBuildSourceJSONRequestBody = externalRef5.EnvVarInputArray
