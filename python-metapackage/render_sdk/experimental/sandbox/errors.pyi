@@ -3,6 +3,7 @@ from render.experimental.sandbox.errors import (
     BuildNotFoundError as BuildNotFoundError,
     BuildNotReadyError as BuildNotReadyError,
     ClientError as ClientError,
+    CredentialNotFoundError as CredentialNotFoundError,
     ImageFailedError as ImageFailedError,
     ImageNotFoundError as ImageNotFoundError,
     ImageNotReadyError as ImageNotReadyError,

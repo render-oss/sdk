@@ -10,6 +10,7 @@ import {
   SandboxBuildNotFoundError,
   SandboxBuildNotReadyError,
   SandboxCreateWaitError,
+  SandboxCredentialNotFoundError,
   type SandboxDownloadError,
   SandboxEndedError,
   SandboxGroupDefaultNotDeletableError,
@@ -33,6 +34,9 @@ import type { paths } from "../../generated/schema.js";
 import {
   type SandboxBuild,
   type SandboxCreateInput,
+  type SandboxCredential,
+  SandboxCredentialsClient,
+  type SandboxCredentialVersion,
   type SandboxExecEvent,
   SandboxExecStreamError,
   SandboxesClient,
@@ -136,6 +140,27 @@ const IMAGE: SandboxImage = {
   failureReason: null,
   createdAt: "2026-10-01T00:00:00Z",
   finishedAt: null,
+};
+
+// The API's own placeholder, not a template literal.
+// biome-ignore lint/suspicious/noTemplateCurlyInString: the API substitutes ${SECRET}, not JS
+const BEARER_TEMPLATE = "Bearer ${SECRET}";
+
+const CREDENTIAL_VERSION: SandboxCredentialVersion = {
+  id: 2,
+  updatedAt: "2026-10-01T00:00:00Z",
+  updatedBy: "usr-abc",
+  fingerprint: "fp-2",
+};
+
+const CREDENTIAL: SandboxCredential = {
+  id: "openai",
+  domain: "api.openai.com",
+  enabled: true,
+  methods: ["POST"],
+  paths: ["/v1/**"],
+  injection: { type: "header", name: "Authorization", template: BEARER_TEMPLATE },
+  version: CREDENTIAL_VERSION,
 };
 
 const IMAGE_IMPORT_INPUT = {
@@ -1366,6 +1391,316 @@ describe("SandboxesClient", () => {
         expect(apiClient.GET).toHaveBeenCalledWith(IMAGE_GET_PATH, {
           params: { path: { sandboxGroupId: "sbg-123", buildId: IMAGE.id } },
         });
+      });
+    });
+  });
+
+  describe("credentials", () => {
+    const LIST_PATH = "/sandbox-groups/{sandboxGroupId}/credentials";
+    const CREDENTIAL_PATH = "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}";
+    const VERSIONS_PATH = "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/versions";
+    const RESTORE_PATH = "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/restore";
+    const ids = { sandboxGroupId: "sbg-123", credentialId: "openai" };
+    const pathParams = { params: { path: ids } };
+
+    it("is exposed as sandboxes.credentials", () => {
+      const client = new SandboxesClient({} as Client<paths>, "tea-default");
+      expect(client.credentials).toBeInstanceOf(SandboxCredentialsClient);
+    });
+
+    describe("create", () => {
+      it("posts every field and returns the credential", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(
+          client.credentials.create({
+            ...ids,
+            domain: "api.openai.com",
+            value: "sk-secret",
+            injection: { type: "header", name: "Authorization", template: BEARER_TEMPLATE },
+            methods: ["POST"],
+            paths: ["/v1/**"],
+            enabled: false,
+          }),
+        ).resolves.toEqual(CREDENTIAL);
+        expect(apiClient.POST).toHaveBeenCalledWith(LIST_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: {
+            id: "openai",
+            domain: "api.openai.com",
+            value: "sk-secret",
+            injection: { type: "header", name: "Authorization", template: BEARER_TEMPLATE },
+            methods: ["POST"],
+            paths: ["/v1/**"],
+            enabled: false,
+          },
+        });
+      });
+
+      it("enables the credential and leaves out filters by default", async () => {
+        const apiClient = mockApiClient("POST", { status: 201, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.credentials.create({
+          sandboxGroupId: "sbg-123",
+          credentialId: "github",
+          domain: "api.github.com",
+          value: "user:token",
+          injection: { type: "basic" },
+        });
+
+        expect(apiClient.POST).toHaveBeenCalledWith(LIST_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+          body: {
+            id: "github",
+            domain: "api.github.com",
+            value: "user:token",
+            injection: { type: "basic" },
+            enabled: true,
+          },
+        });
+      });
+
+      it.each([404, 409])("throws a plain ClientError for a %i", async (status) => {
+        const apiClient = mockApiClient("POST", { status, error: { message: "rejected" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials
+          .create({
+            ...ids,
+            domain: "api.openai.com",
+            value: "sk-secret",
+            injection: { type: "header", name: "X-Api-Key" },
+          })
+          .catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({
+          statusCode: status,
+          message: "Failed to create credential openai: rejected",
+        });
+      });
+    });
+
+    describe("get", () => {
+      it("retrieves a credential by group and ID", async () => {
+        const apiClient = mockApiClient("GET", { status: 200, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.get(ids)).resolves.toEqual(CREDENTIAL);
+        expect(apiClient.GET).toHaveBeenCalledWith(CREDENTIAL_PATH, pathParams);
+      });
+
+      it("throws SandboxCredentialNotFoundError for a 404", async () => {
+        const apiClient = mockApiClient("GET", { status: 404, error: { message: "not found" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials.get(ids).catch((err) => err);
+        expect(error.constructor).toBe(SandboxCredentialNotFoundError);
+        expect(error).toMatchObject({
+          statusCode: 404,
+          message: "Failed to get credential openai: not found",
+        });
+      });
+
+      it("keeps other errors as plain ClientError", async () => {
+        const apiClient = mockApiClient("GET", {
+          status: 400,
+          error: { message: "bad ID", code: "invalid_sandbox_group_id" },
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials.get(ids).catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({ statusCode: 400, code: "invalid_sandbox_group_id" });
+      });
+    });
+
+    describe("list", () => {
+      it("lists the credentials in a group", async () => {
+        const stripe: SandboxCredential = { ...CREDENTIAL, id: "stripe", domain: "api.stripe.com" };
+        const apiClient = mockApiClient("GET", { status: 200, data: [CREDENTIAL, stripe] });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.list({ sandboxGroupId: "sbg-123" })).resolves.toEqual([
+          CREDENTIAL,
+          stripe,
+        ]);
+        expect(apiClient.GET).toHaveBeenCalledWith(LIST_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123" } },
+        });
+      });
+
+      it("throws a plain ClientError for a missing group", async () => {
+        const apiClient = mockApiClient("GET", { status: 404, error: { message: "not found" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials
+          .list({ sandboxGroupId: "sbg-123" })
+          .catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({
+          statusCode: 404,
+          message: "Failed to list credentials: not found",
+        });
+      });
+    });
+
+    describe("update", () => {
+      it("sends only the fields given", async () => {
+        const apiClient = mockApiClient("PATCH", { status: 200, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.update({ ...ids, enabled: false })).resolves.toEqual(
+          CREDENTIAL,
+        );
+        expect(apiClient.PATCH).toHaveBeenCalledWith(CREDENTIAL_PATH, {
+          ...pathParams,
+          body: { enabled: false },
+        });
+      });
+
+      it("sends empty filters to clear them", async () => {
+        const apiClient = mockApiClient("PATCH", { status: 200, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.credentials.update({ ...ids, methods: [], paths: [] });
+
+        expect(apiClient.PATCH).toHaveBeenCalledWith(CREDENTIAL_PATH, {
+          ...pathParams,
+          body: { methods: [], paths: [] },
+        });
+      });
+
+      it("sends the value, domain and injection", async () => {
+        const apiClient = mockApiClient("PATCH", { status: 200, data: CREDENTIAL });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.credentials.update({
+          ...ids,
+          value: "sk-rotated",
+          domain: "api.example.com",
+          injection: { type: "query", name: "key" },
+        });
+
+        expect(apiClient.PATCH).toHaveBeenCalledWith(CREDENTIAL_PATH, {
+          ...pathParams,
+          body: {
+            value: "sk-rotated",
+            domain: "api.example.com",
+            injection: { type: "query", name: "key" },
+          },
+        });
+      });
+
+      it("throws SandboxCredentialNotFoundError for a 404", async () => {
+        const apiClient = mockApiClient("PATCH", { status: 404, error: { message: "not found" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials
+          .update({ ...ids, enabled: true })
+          .catch((err) => err);
+        expect(error.constructor).toBe(SandboxCredentialNotFoundError);
+      });
+
+      it("throws a ClientError for a bodiless 403 when a change needs an admin", async () => {
+        const apiClient = mockApiClient("PATCH", { status: 403, statusText: "Forbidden" });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials
+          .update({ ...ids, value: "sk-new" })
+          .catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({
+          statusCode: 403,
+          message: "Failed to update credential openai: Forbidden",
+        });
+      });
+    });
+
+    describe("delete", () => {
+      it("deletes a credential", async () => {
+        const apiClient = mockApiClient("DELETE", { status: 202 });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.delete(ids)).resolves.toBeUndefined();
+        expect(apiClient.DELETE).toHaveBeenCalledWith(CREDENTIAL_PATH, pathParams);
+      });
+
+      it.each([404, 429])("throws a plain ClientError for a %i", async (status) => {
+        const apiClient = mockApiClient("DELETE", { status, error: { message: "rejected" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials.delete(ids).catch((err) => err);
+        expect(error.constructor).toBe(ClientError);
+        expect(error).toMatchObject({
+          statusCode: status,
+          message: "Failed to delete credential openai: rejected",
+        });
+      });
+    });
+
+    describe("listVersions", () => {
+      it("lists the versions of a credential", async () => {
+        const restored: SandboxCredentialVersion = {
+          ...CREDENTIAL_VERSION,
+          id: 3,
+          restoredFromVersionId: 1,
+        };
+        const apiClient = mockApiClient("GET", {
+          status: 200,
+          data: [restored, CREDENTIAL_VERSION],
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.listVersions(ids)).resolves.toEqual([
+          restored,
+          CREDENTIAL_VERSION,
+        ]);
+        expect(apiClient.GET).toHaveBeenCalledWith(VERSIONS_PATH, pathParams);
+      });
+
+      it("throws SandboxCredentialNotFoundError for a 404", async () => {
+        const apiClient = mockApiClient("GET", { status: 404, error: { message: "not found" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials.listVersions(ids).catch((err) => err);
+        expect(error.constructor).toBe(SandboxCredentialNotFoundError);
+      });
+    });
+
+    describe("restore", () => {
+      it("posts the version and returns the credential", async () => {
+        const restored: SandboxCredential = {
+          ...CREDENTIAL,
+          version: { ...CREDENTIAL_VERSION, id: 4, restoredFromVersionId: 2 },
+        };
+        const apiClient = mockApiClient("POST", { status: 200, data: restored });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.credentials.restore({ ...ids, versionId: 2 })).resolves.toEqual(
+          restored,
+        );
+        expect(apiClient.POST).toHaveBeenCalledWith(RESTORE_PATH, {
+          ...pathParams,
+          body: { versionId: 2 },
+        });
+      });
+
+      it("throws SandboxCredentialNotFoundError naming the version for a 404", async () => {
+        const apiClient = mockApiClient("POST", {
+          status: 404,
+          error: { message: "sandbox credential version not found" },
+        });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.credentials
+          .restore({ ...ids, versionId: 7 })
+          .catch((err) => err);
+        expect(error.constructor).toBe(SandboxCredentialNotFoundError);
+        expect(error.message).toBe(
+          "Failed to restore credential openai to version 7: sandbox credential version not found",
+        );
       });
     });
   });

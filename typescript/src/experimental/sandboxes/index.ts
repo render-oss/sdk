@@ -8,6 +8,7 @@ import {
   ClientError,
   RenderError,
   SandboxCreateWaitError,
+  SandboxCredentialNotFoundError,
   SandboxEndedError,
   SandboxImageFailedError,
   SandboxImageWaitTimeoutError,
@@ -371,6 +372,88 @@ export type SandboxBuildCreateInput = {
 export type SandboxBuildGetInput = {
   sandboxGroupId: string;
   buildId: string;
+};
+
+/**
+ * A credential that Render adds to matching requests from a sandbox group's sandboxes, so code in
+ * the sandbox never sees the secret. The API never returns the secret value.
+ */
+export type SandboxCredential = components["schemas"]["sandboxCredential"];
+
+/**
+ * How a credential is added to a matching request. `name` is the header, cookie or query
+ * parameter to set; every `type` but `basic` requires it, and `basic` rejects it. `template` wraps
+ * the secret, like `Bearer ${SECRET}`; omit it to send the secret as is. `basic` expects the
+ * secret, after the template, in `username:password` form.
+ */
+export type SandboxCredentialInjection = components["schemas"]["sandboxCredentialInjection"];
+
+/**
+ * One saved configuration of a credential. Two versions in the same sandbox group with the same
+ * `fingerprint` have the same routing, injection and secret value.
+ */
+export type SandboxCredentialVersion = components["schemas"]["sandboxCredentialVersion"];
+
+/** Options for creating a credential. */
+export type SandboxCredentialCreateInput = {
+  sandboxGroupId: string;
+  /** A URL-safe name, case sensitive and unique within the group. */
+  credentialId: string;
+  /** The exact public hostname the credential applies to, like `api.openai.com`. */
+  domain: string;
+  /** The secret, at most 5 KiB. */
+  value: string;
+  injection: SandboxCredentialInjection;
+  /** Narrows the methods that match, like `["POST"]`. Omit to match any. */
+  methods?: string[];
+  /**
+   * Narrows the paths that match, like `["/v1/**"]`. `*` matches one path segment and `**` one or
+   * more. Omit to match any.
+   */
+  paths?: string[];
+  /** Defaults to `true`. */
+  enabled?: boolean;
+};
+
+/** Options for retrieving a credential or listing its versions. */
+export type SandboxCredentialGetInput = {
+  sandboxGroupId: string;
+  credentialId: string;
+};
+
+/** Options for listing the credentials in a sandbox group. */
+export type SandboxCredentialListInput = {
+  sandboxGroupId: string;
+};
+
+/**
+ * Options for changing a credential. Fields left out keep their current value. An empty
+ * `methods` or `paths` array clears that filter, so the credential matches any method or path.
+ */
+export type SandboxCredentialUpdateInput = {
+  sandboxGroupId: string;
+  credentialId: string;
+  /** Needs an admin. */
+  domain?: string;
+  /** Needs an admin. Always creates a new version, even when the value is unchanged. */
+  value?: string;
+  injection?: SandboxCredentialInjection;
+  methods?: string[];
+  paths?: string[];
+  enabled?: boolean;
+};
+
+/** Options for deleting a credential. Deleting a credential that does not exist succeeds. */
+export type SandboxCredentialDeleteInput = {
+  sandboxGroupId: string;
+  credentialId: string;
+};
+
+/** Options for making an earlier version of a credential current again. */
+export type SandboxCredentialRestoreInput = {
+  sandboxGroupId: string;
+  credentialId: string;
+  versionId: number;
 };
 
 /** A sandbox group as returned by the API. */
@@ -763,9 +846,155 @@ export class SandboxBuildsClient {
   }
 }
 
+/**
+ * Credentials that Render adds to requests from a sandbox group's sandboxes, via
+ * `sandboxes.credentials`. Creating, deleting and restoring a credential, and changing its domain
+ * or value, need an admin of the workspace.
+ */
+export class SandboxCredentialsClient {
+  constructor(private readonly apiClient: Client<paths>) {}
+
+  /**
+   * Creates a credential in a sandbox group. A group holds at most 25 credentials. Throws a
+   * `ClientError` with status 409 if the group already has `credentialId`.
+   */
+  async create({
+    sandboxGroupId,
+    credentialId,
+    domain,
+    value,
+    injection,
+    methods,
+    paths,
+    enabled,
+  }: SandboxCredentialCreateInput): Promise<SandboxCredential> {
+    const body: components["schemas"]["sandboxCredentialCreate"] = {
+      id: credentialId,
+      domain,
+      value,
+      injection,
+      enabled: enabled ?? true,
+      ...(methods ? { methods } : {}),
+      ...(paths ? { paths } : {}),
+    };
+    return unwrap(
+      await this.apiClient.POST("/sandbox-groups/{sandboxGroupId}/credentials", {
+        params: { path: { sandboxGroupId } },
+        body,
+      }),
+      `Failed to create credential ${credentialId}`,
+    );
+  }
+
+  /** Retrieves a credential. Throws `SandboxCredentialNotFoundError` if it does not exist. */
+  async get({
+    sandboxGroupId,
+    credentialId,
+  }: SandboxCredentialGetInput): Promise<SandboxCredential> {
+    return unwrap(
+      await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}", {
+        params: { path: { sandboxGroupId, credentialId } },
+      }),
+      `Failed to get credential ${credentialId}`,
+      getCredentialApiError,
+    );
+  }
+
+  /** Lists every credential in a sandbox group, sorted by ID. */
+  async list({ sandboxGroupId }: SandboxCredentialListInput): Promise<SandboxCredential[]> {
+    return unwrap(
+      await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}/credentials", {
+        params: { path: { sandboxGroupId } },
+      }),
+      "Failed to list credentials",
+    );
+  }
+
+  /** Changes a credential. Throws `SandboxCredentialNotFoundError` if it does not exist. */
+  async update({
+    sandboxGroupId,
+    credentialId,
+    domain,
+    value,
+    injection,
+    methods,
+    paths,
+    enabled,
+  }: SandboxCredentialUpdateInput): Promise<SandboxCredential> {
+    const body: components["schemas"]["sandboxCredentialUpdate"] = {
+      ...(domain === undefined ? {} : { domain }),
+      ...(value === undefined ? {} : { value }),
+      ...(injection === undefined ? {} : { injection }),
+      ...(methods === undefined ? {} : { methods }),
+      ...(paths === undefined ? {} : { paths }),
+      ...(enabled === undefined ? {} : { enabled }),
+    };
+    return unwrap(
+      await this.apiClient.PATCH("/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}", {
+        params: { path: { sandboxGroupId, credentialId } },
+        body,
+      }),
+      `Failed to update credential ${credentialId}`,
+      getCredentialApiError,
+    );
+  }
+
+  /** Deletes a credential and its versions. Deleting a credential that does not exist succeeds. */
+  async delete({ sandboxGroupId, credentialId }: SandboxCredentialDeleteInput): Promise<void> {
+    const { error, response } = await this.apiClient.DELETE(
+      "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}",
+      { params: { path: { sandboxGroupId, credentialId } } },
+    );
+    if (error !== undefined || !response.ok) {
+      // A missing credential is not an error here, so a 404 is about the group.
+      throw getTypedApiError(error, response, `Failed to delete credential ${credentialId}`);
+    }
+  }
+
+  /**
+   * Lists the versions of a credential, newest first. The API keeps the current configuration and
+   * the three most recently active earlier ones. Throws `SandboxCredentialNotFoundError` if the
+   * credential does not exist.
+   */
+  async listVersions({
+    sandboxGroupId,
+    credentialId,
+  }: SandboxCredentialGetInput): Promise<SandboxCredentialVersion[]> {
+    return unwrap(
+      await this.apiClient.GET(
+        "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/versions",
+        { params: { path: { sandboxGroupId, credentialId } } },
+      ),
+      `Failed to list versions of credential ${credentialId}`,
+      getCredentialApiError,
+    );
+  }
+
+  /**
+   * Makes an earlier version's configuration and value current again, as a new version whose
+   * `restoredFromVersionId` is `versionId`. Throws `SandboxCredentialNotFoundError` if the
+   * credential or the version does not exist.
+   */
+  async restore({
+    sandboxGroupId,
+    credentialId,
+    versionId,
+  }: SandboxCredentialRestoreInput): Promise<SandboxCredential> {
+    return unwrap(
+      await this.apiClient.POST(
+        "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/restore",
+        { params: { path: { sandboxGroupId, credentialId } }, body: { versionId } },
+      ),
+      `Failed to restore credential ${credentialId} to version ${versionId}`,
+      getCredentialApiError,
+    );
+  }
+}
+
 export class SandboxesClient {
   public readonly snapshots: SandboxSnapshotsClient;
   public readonly images: SandboxImagesClient;
+  public readonly credentials: SandboxCredentialsClient;
   /** @deprecated Use `images`. */
   public readonly builds: SandboxBuildsClient;
   private readonly defaultOwnerId?: string;
@@ -780,6 +1009,7 @@ export class SandboxesClient {
     this.defaultRegion = defaultRegion;
     this.snapshots = new SandboxSnapshotsClient(apiClient, defaultOwnerId);
     this.images = new SandboxImagesClient(apiClient);
+    this.credentials = new SandboxCredentialsClient(apiClient);
     this.builds = new SandboxBuildsClient(apiClient);
   }
 
@@ -1408,6 +1638,23 @@ function getTypedApiError(error: unknown, response: Response, context: string): 
         : response.statusText;
   const code = typeof body?.code === "string" ? body.code : undefined;
   return getApiError(message, response, context, code);
+}
+
+/**
+ * The API sends a credential 404 without a code, and the same 404 for a missing sandbox group, so
+ * only calls whose path names a credential use this.
+ */
+function getCredentialApiError(error: unknown, response: Response, context: string): Error {
+  const apiError = getTypedApiError(error, response, context);
+  if (apiError instanceof ClientError && apiError.statusCode === 404) {
+    return new SandboxCredentialNotFoundError(
+      apiError.message,
+      apiError.statusCode,
+      apiError.response,
+      apiError.code,
+    );
+  }
+  return apiError;
 }
 
 function getSnapshotApiError(error: unknown, response: Response, context: string): Error {

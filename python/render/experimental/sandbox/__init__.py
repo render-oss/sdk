@@ -2,6 +2,7 @@
 
 from render.experimental.sandbox.client import (
     BuildClient,
+    CredentialClient,
     ImageClient,
     SandboxClient,
     SnapshotClient,
@@ -9,6 +10,7 @@ from render.experimental.sandbox.client import (
 from render.experimental.sandbox.errors import (
     BuildNotFoundError,
     BuildNotReadyError,
+    CredentialNotFoundError,
     ImageFailedError,
     ImageNotFoundError,
     ImageNotReadyError,
@@ -34,6 +36,9 @@ from render.experimental.sandbox.errors import (
 from render.experimental.sandbox.types import (
     Build,
     BuildSource,
+    Credential,
+    CredentialInjection,
+    CredentialVersion,
     EgressRule,
     Image,
     ImageList,
@@ -60,6 +65,11 @@ __all__ = [
     "BuildNotFoundError",
     "BuildNotReadyError",
     "BuildSource",
+    "Credential",
+    "CredentialClient",
+    "CredentialInjection",
+    "CredentialNotFoundError",
+    "CredentialVersion",
     "SandboxGroupDefaultNotDeletableError",
     "EgressRule",
     "Image",

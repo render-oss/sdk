@@ -467,6 +467,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandbox-groups/{sandboxGroupId}/credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List sandbox group credentials
+         * @description Returns all credentials in the group, sorted by caller-supplied ID.
+         *     Secret values are never returned, including to admins.
+         */
+        get: operations["list-sandbox-group-credentials"];
+        put?: never;
+        /**
+         * Create sandbox group credential
+         * @description Admin-only. Creates an independent credential with a caller-supplied ID.
+         *     Each sandbox group supports at most 25 credentials and 200 KiB (204800
+         *     bytes) of serialized current credentials, including configuration and
+         *     values. Three distinct prior configurations per credential are retained
+         *     by fingerprint, with a 1 MiB total storage limit including version
+         *     metadata and configurations. Limits are checked before saving. A
+         *     temporary synchronization conflicts return 429.
+         */
+        post: operations["create-sandbox-group-credential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Retrieve sandbox group credential
+         * @description Secret values are never returned, including to admins.
+         *     Credentials are scoped to the addressed sandbox group.
+         */
+        get: operations["retrieve-sandbox-group-credential"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete sandbox group credential
+         * @description Admin-only. Removes the credential if present and synchronizes the
+         *     group's gateway configuration. Repeated deletion requests are accepted.
+         *     A temporary synchronization conflict returns 429.
+         */
+        delete: operations["delete-sandbox-group-credential"];
+        options?: never;
+        head?: never;
+        /**
+         * Update sandbox group credential
+         * @description Admins may update configuration. Developers may update injection,
+         *     method/path filters, and enabled state; destination or value changes
+         *     require an admin. Assigning a value creates a new version; omitting it
+         *     preserves the value. Other omitted fields are preserved; empty methods
+         *     or paths arrays clear their filters. The group's serialized current
+         *     credentials must remain within 200 KiB (204800 bytes). A successful
+         *     response means desired state was saved; runtime reconciliation may still
+         *     be pending. A temporary synchronization conflict returns 429.
+         */
+        patch: operations["update-sandbox-group-credential"];
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List sandbox credential versions
+         * @description Returns version metadata in descending version ID order. Multiple versions may
+         *     share one configuration fingerprint. Metadata is retained while its configuration
+         *     is retained; configurations are evicted by their most recent activation version ID.
+         *     Secret values and the group fingerprint nonce are never returned.
+         */
+        get: operations["list-sandbox-group-credential-versions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sandbox-groups/{sandboxGroupId}/credentials/{credentialId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restore sandbox credential configuration
+         * @description Admin-only. Creates a new current revision from the routing
+         *     configuration, injection configuration, and secret value of a retained
+         *     version. The new revision has an increasing version ID, the restoring
+         *     identity and timestamp, the same fingerprint as the source, and
+         *     restoredFromVersionId identifying the source. Each distinct
+         *     configuration is stored once by fingerprint. The current and three most
+         *     recently active prior configurations are retained. Evicting a
+         *     configuration removes all version metadata referring to it. Values are
+         *     never returned. A temporary synchronization conflict returns 429.
+         */
+        post: operations["restore-sandbox-group-credential"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandbox-groups/{sandboxGroupId}/builds": {
         parameters: {
             query?: never;
@@ -1497,6 +1635,154 @@ export interface components {
              */
             concurrencyLimit: number;
         };
+        /**
+         * @description Caller-supplied URL-safe name, unique within the sandbox group. The names
+         *     `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+         * @example my-inference-key
+         */
+        sandboxCredentialId: string;
+        sandboxCredentialVersion: {
+            /**
+             * Format: int64
+             * @description Monotonically increasing configuration version ID. Updates and restores assign new IDs.
+             */
+            id: number;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Object ID of the authenticated identity that created this configuration version. */
+            updatedBy: string;
+            /**
+             * @description Fingerprint of the complete routing configuration, injection configuration,
+             *     and secret value. Matching fingerprints identify equivalent versions of
+             *     credentials in the same sandbox group. Fingerprints cannot be compared
+             *     across sandbox groups.
+             */
+            fingerprint: string;
+            /**
+             * Format: int64
+             * @description Version restored to create this revision. Omitted for creates and updates.
+             */
+            restoredFromVersionId?: number;
+        };
+        sandboxCredentialInjection: {
+            /**
+             * @description How to inject the credential into a matching request. Basic authentication
+             *     uses the rendered value in username:password form and does not accept name.
+             * @enum {string}
+             */
+            type: "header" | "basic" | "cookie" | "query";
+            /**
+             * @description Required for header, cookie, and query injection. Routing and connection
+             *     headers cannot be targeted.
+             */
+            name?: string;
+            /**
+             * @description Literal template containing 1-5 occurrences of ${SECRET}, such as
+             *     "Bearer ${SECRET}". Each ${SECRET} is replaced directly with the
+             *     assigned secret value. Omit to use the raw secret value.
+             * @example Bearer ${SECRET}
+             */
+            template?: string;
+        };
+        /**
+         * @description Desired credential configuration scoped to one sandbox group. Secret values
+         *     are independent for each credential ID and are never returned, including to admins.
+         */
+        sandboxCredential: {
+            id: components["schemas"]["sandboxCredentialId"];
+            /**
+             * @description Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
+             *     wildcards, and local/internal hostnames are not supported.
+             * @example api.render.com
+             */
+            domain: string;
+            version?: components["schemas"]["sandboxCredentialVersion"];
+            enabled: boolean;
+            /**
+             * @description GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
+             *     An empty list matches any method.
+             */
+            methods: string[];
+            /**
+             * @description Absolute request path patterns. The entire path must match.
+             *     Use * for one nonempty path segment or ** for one or more.
+             *     Wildcards must occupy whole segments. For example, /a/* matches
+             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
+             *     Query strings, fragments, and escaping are not supported in patterns.
+             *     Request query strings do not affect path matching.
+             *     An empty list matches any path.
+             */
+            paths: string[];
+            injection: components["schemas"]["sandboxCredentialInjection"];
+        };
+        sandboxCredentialCreate: {
+            id: components["schemas"]["sandboxCredentialId"];
+            /**
+             * @description Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
+             *     wildcards, and local/internal hostnames are not supported.
+             */
+            domain: string;
+            /**
+             * @description Secret value to store for this credential ID. The largest supported secret
+             *     value is 5 KiB (5120 UTF-8 bytes).
+             */
+            value: string;
+            /** @default true */
+            enabled: boolean;
+            /**
+             * @description GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
+             *     Omitted or empty matches any method.
+             */
+            methods?: string[];
+            /**
+             * @description Absolute request path patterns. The entire path must match.
+             *     Use * for one nonempty path segment or ** for one or more.
+             *     Wildcards must occupy whole segments. For example, /a/* matches
+             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
+             *     Query strings, fragments, and escaping are not supported in patterns.
+             *     Request query strings do not affect path matching.
+             *     Omitted or empty matches any path.
+             */
+            paths?: string[];
+            injection: components["schemas"]["sandboxCredentialInjection"];
+        };
+        /**
+         * @description Omitted fields retain their existing values. Empty methods or paths arrays
+         *     clear those filters. Developers may update injection, methods, paths, and
+         *     enabled state. Changing the destination requires an admin and otherwise
+         *     returns 403. Overwriting a value requires an admin; omitting it has no effect.
+         *     Changes to routing, injection, or enabled state create a new configuration version.
+         *     Overwriting the value also creates a version, even when the value is unchanged.
+         *     The credential ID is immutable.
+         */
+        sandboxCredentialUpdate: {
+            /**
+             * @description Admin-only. At most 5 KiB (5120 UTF-8 bytes). Omit to preserve the
+             *     current value.
+             */
+            value?: string;
+            domain?: string;
+            enabled?: boolean;
+            methods?: string[];
+            /**
+             * @description Absolute request path patterns. The entire path must match.
+             *     Use * for one nonempty path segment or ** for one or more.
+             *     Wildcards must occupy whole segments. For example, /a/* matches
+             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
+             *     Query strings, fragments, and escaping are not supported in patterns.
+             *     Request query strings do not affect path matching.
+             *     An empty list matches any path. Omit to preserve the current filter.
+             */
+            paths?: string[];
+            injection?: components["schemas"]["sandboxCredentialInjection"];
+        };
+        sandboxCredentialRestore: {
+            /**
+             * Format: int64
+             * @description Retained version whose configuration will be used to create a new current revision.
+             */
+            versionId: number;
+        };
         /** @enum {string} */
         sandboxBuildStatus: "pending" | "running" | "succeeded" | "failed";
         sandboxBuild: {
@@ -1771,6 +2057,8 @@ export interface components {
         ownerId: string;
         /** @description The ID of the sandbox group */
         sandboxGroupId: components["schemas"]["sandboxGroupId"];
+        /** @description The ID of the credential. Must be unique within this sandbox group. */
+        credentialId: components["schemas"]["sandboxCredentialId"];
         /** @description The ID of the build */
         buildId: components["schemas"]["sandboxBuildId"];
         /** @description The ID of the snapshot */
@@ -2836,6 +3124,281 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["sandboxGroup"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-sandbox-group-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredential"][];
+                };
+            };
+            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "create-sandbox-group-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sandboxCredentialCreate"];
+            };
+        };
+        responses: {
+            /** @description Desired state saved. Runtime reconciliation may still be pending. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredential"];
+                };
+            };
+            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "retrieve-sandbox-group-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredential"];
+                };
+            };
+            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "delete-sandbox-group-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Credential deletion accepted and gateway configuration synchronized. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "update-sandbox-group-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sandboxCredentialUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredential"];
+                };
+            };
+            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "list-sandbox-group-credential-versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredentialVersion"][];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            409: components["responses"]["409Conflict"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "restore-sandbox-group-credential": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox group */
+                sandboxGroupId: components["parameters"]["sandboxGroupId"];
+                /** @description The ID of the credential. Must be unique within this sandbox group. */
+                credentialId: components["parameters"]["credentialId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["sandboxCredentialRestore"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["sandboxCredential"];
                 };
             };
             400: components["responses"]["400BadRequest"];

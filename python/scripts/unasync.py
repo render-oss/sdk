@@ -85,6 +85,7 @@ CLASS_RENAMES = [
     ("SnapshotClient", "SyncSnapshotClient"),
     ("ImageClient", "SyncImageClient"),
     ("BuildClient", "SyncBuildClient"),
+    ("CredentialClient", "SyncCredentialClient"),
 ]
 
 HEADER = (

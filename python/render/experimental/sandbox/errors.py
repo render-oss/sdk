@@ -67,6 +67,12 @@ class ImageNotReadyError(ClientError):
     still in progress or failed."""
 
 
+class CredentialNotFoundError(ClientError):
+    """Raised when a credential, or the sandbox group it is addressed through,
+    does not exist. restore also raises it for a version_id the credential
+    does not retain."""
+
+
 # Deprecated aliases from when images were called builds.
 BuildNotFoundError = ImageNotFoundError
 BuildNotReadyError = ImageNotReadyError

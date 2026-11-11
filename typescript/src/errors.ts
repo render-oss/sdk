@@ -136,6 +136,18 @@ export class SandboxImageNotReadyError extends ClientError {
   }
 }
 
+/**
+ * The credential, or the sandbox group it is addressed through, does not exist. `restore()` also
+ * throws it for a version the credential does not retain.
+ */
+export class SandboxCredentialNotFoundError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxCredentialNotFoundError";
+    Object.setPrototypeOf(this, SandboxCredentialNotFoundError.prototype);
+  }
+}
+
 /** @deprecated Use `SandboxImageNotFoundError`. */
 export const SandboxBuildNotFoundError = SandboxImageNotFoundError;
 /** @deprecated Use `SandboxImageNotFoundError`. */

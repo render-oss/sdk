@@ -187,6 +187,59 @@ RegistryCredential = RegistryCredentials
 
 
 @dataclass
+class CredentialInjection:
+    """How a credential is added to a sandbox request that matches it.
+
+    type is ``header``, ``cookie``, ``query`` or ``basic``. name is the header,
+    cookie or query parameter to set; it is required for every type but
+    ``basic``, which rejects it. template wraps the secret, like
+    ``Bearer ${SECRET}``, with 1 to 5 occurrences of ``${SECRET}``; omit it to
+    send the secret as is. ``basic`` expects the secret, after the template,
+    in ``username:password`` form.
+    """
+
+    type: str
+    name: str | None = None
+    template: str | None = None
+
+
+@dataclass
+class CredentialVersion:
+    """One saved configuration of a credential.
+
+    fingerprint covers the routing, injection and secret value, so two
+    versions in the same sandbox group with the same fingerprint are
+    equivalent. restored_from_version_id is set when restore created this
+    version.
+    """
+
+    id: int
+    updated_at: datetime
+    updated_by: str
+    fingerprint: str
+    restored_from_version_id: int | None = None
+
+
+@dataclass
+class Credential:
+    """A credential that Render adds to matching requests from a group's sandboxes.
+
+    Sandboxes never see the secret value, and the API never returns it.
+    domain is the exact hostname the credential applies to. methods and paths
+    narrow which requests match; an empty list matches any. In paths, ``*``
+    matches one path segment and ``**`` one or more.
+    """
+
+    id: str
+    domain: str
+    enabled: bool
+    methods: list[str]
+    paths: list[str]
+    injection: CredentialInjection
+    version: CredentialVersion | None = None
+
+
+@dataclass
 class SandboxExecOutput:
     """A chunk of stdout or stderr from an exec stream."""
 

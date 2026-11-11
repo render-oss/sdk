@@ -2,6 +2,9 @@
 from render.experimental.sandbox.types import (
     Build as Build,
     BuildSource as BuildSource,
+    Credential as Credential,
+    CredentialInjection as CredentialInjection,
+    CredentialVersion as CredentialVersion,
     DEFAULT_INTERVAL_SECONDS as DEFAULT_INTERVAL_SECONDS,
     EgressRule as EgressRule,
     Image as Image,

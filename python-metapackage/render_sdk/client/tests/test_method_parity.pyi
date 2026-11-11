@@ -2,6 +2,7 @@
 from render.client.tests.test_method_parity import (
     ASYNC_SYNC_PAIRS as ASYNC_SYNC_PAIRS,
     BuildClient as BuildClient,
+    CredentialClient as CredentialClient,
     ExperimentalService as ExperimentalService,
     ImageClient as ImageClient,
     ObjectApi as ObjectApi,
@@ -12,6 +13,7 @@ from render.client.tests.test_method_parity import (
     SnapshotClient as SnapshotClient,
     StorageService as StorageService,
     SyncBuildClient as SyncBuildClient,
+    SyncCredentialClient as SyncCredentialClient,
     SyncExperimentalService as SyncExperimentalService,
     SyncImageClient as SyncImageClient,
     SyncObjectApi as SyncObjectApi,

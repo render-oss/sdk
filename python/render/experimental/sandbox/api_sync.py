@@ -35,6 +35,7 @@ from render.experimental.sandbox._tar import (
     stat_path,
 )
 from render.experimental.sandbox.errors import (
+    CredentialNotFoundError,
     ImageNotFoundError,
     ImageNotReadyError,
     SandboxDownloadError,
@@ -61,6 +62,9 @@ from render.experimental.sandbox.files import (
     run_blocking,
 )
 from render.experimental.sandbox.types import (
+    Credential,
+    CredentialInjection,
+    CredentialVersion,
     EgressRule,
     Image,
     ImageList,
@@ -81,20 +85,27 @@ from render.public_api.api.sandboxes import (
     create_sandbox,
     create_sandbox_build,
     create_sandbox_group,
+    create_sandbox_group_credential,
     create_sandbox_snapshot,
     delete_sandbox_group,
+    delete_sandbox_group_credential,
     delete_sandbox_snapshot,
     list_sandbox_builds,
+    list_sandbox_group_credential_versions,
+    list_sandbox_group_credentials,
     list_sandbox_groups,
     list_sandbox_snapshots,
     list_sandboxes,
+    restore_sandbox_group_credential,
     retrieve_sandbox,
     retrieve_sandbox_build,
     retrieve_sandbox_group,
+    retrieve_sandbox_group_credential,
     retrieve_sandbox_snapshot,
     set_default_sandbox_group,
     terminate_sandbox,
     update_sandbox_group,
+    update_sandbox_group_credential,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
@@ -105,6 +116,23 @@ from render.public_api.models.sandbox_build_post_registry_credential import (
 )
 from render.public_api.models.sandbox_build_status import SandboxBuildStatus
 from render.public_api.models.sandbox_build_with_cursor import SandboxBuildWithCursor
+from render.public_api.models.sandbox_credential import (
+    SandboxCredential as GeneratedCredential,
+)
+from render.public_api.models.sandbox_credential_create import SandboxCredentialCreate
+from render.public_api.models.sandbox_credential_injection import (
+    SandboxCredentialInjection,
+)
+from render.public_api.models.sandbox_credential_injection_type import (
+    SandboxCredentialInjectionType,
+)
+from render.public_api.models.sandbox_credential_restore import (
+    SandboxCredentialRestore,
+)
+from render.public_api.models.sandbox_credential_update import SandboxCredentialUpdate
+from render.public_api.models.sandbox_credential_version import (
+    SandboxCredentialVersion,
+)
 from render.public_api.models.sandbox_egress_rule import SandboxEgressRule
 from render.public_api.models.sandbox_egress_rule_protocol import (
     SandboxEgressRuleProtocol,
@@ -167,6 +195,8 @@ _SandboxSnapshotWithCursorList = list[SandboxSnapshotWithCursor]
 _SandboxSnapshotStatusList = list[SandboxSnapshotStatus]
 _SandboxBuildWithCursorList = list[SandboxBuildWithCursor]
 _SandboxBuildStatusList = list[SandboxBuildStatus]
+_CredentialList = list[Credential]
+_CredentialVersionList = list[CredentialVersion]
 
 _T = TypeVar("_T")
 _StatusEnum = TypeVar("_StatusEnum", bound=Enum)
@@ -277,6 +307,47 @@ def _to_image(model: GeneratedSandboxBuild) -> Image:
     )
 
 
+def _to_credential_injection(model: SandboxCredentialInjection) -> CredentialInjection:
+    return CredentialInjection(
+        type=model.type_.value,
+        name=_set_or_none(model.name),
+        template=_set_or_none(model.template),
+    )
+
+
+def _to_credential_injection_body(
+    injection: CredentialInjection,
+) -> SandboxCredentialInjection:
+    return SandboxCredentialInjection(
+        type_=SandboxCredentialInjectionType(injection.type),
+        name=injection.name if injection.name is not None else UNSET,
+        template=injection.template if injection.template is not None else UNSET,
+    )
+
+
+def _to_credential_version(model: SandboxCredentialVersion) -> CredentialVersion:
+    return CredentialVersion(
+        id=model.id,
+        updated_at=model.updated_at,
+        updated_by=model.updated_by,
+        fingerprint=model.fingerprint,
+        restored_from_version_id=_set_or_none(model.restored_from_version_id),
+    )
+
+
+def _to_credential(model: GeneratedCredential) -> Credential:
+    version = _set_or_none(model.version)
+    return Credential(
+        id=model.id,
+        domain=model.domain,
+        enabled=model.enabled,
+        methods=list(model.methods),
+        paths=list(model.paths),
+        injection=_to_credential_injection(model.injection),
+        version=_to_credential_version(version) if version is not None else None,
+    )
+
+
 def _normalize_statuses(
     status: str | Sequence[str] | None, status_type: type[_StatusEnum]
 ) -> list[_StatusEnum]:
@@ -346,6 +417,25 @@ def _handle_image_api_error(
         code = _error_body(response.content).code
         if code == _IMAGE_NOT_FOUND_CODE:
             raise ImageNotFoundError(f"image {image_ref} not found", code=code)
+    _handle_sandbox_api_error(response, operation)
+
+
+def _string_list(values: Sequence[str]) -> list[str]:
+    # A str is a Sequence[str], so list("POST") would split it into characters.
+    return [values] if isinstance(values, str) else list(values)
+
+
+def _handle_credential_api_error(
+    response: Response[Any], not_found_message: str, operation: str
+) -> None:
+    # The API sends no code with a credential 404, and the same 404 for a
+    # missing sandbox group, so only paths that name a credential use this.
+    if response.status_code == 404:
+        raise CredentialNotFoundError(
+            not_found_message,
+            code=_error_body(response.content).code,
+            status_code=404,
+        )
     _handle_sandbox_api_error(response, operation)
 
 
@@ -713,6 +803,142 @@ class SyncSandboxApi:
             cursor=cursor if cursor is not None else UNSET,
             limit=limit if limit is not None else UNSET,
         )
+
+    def create_credential(
+        self,
+        sandbox_group_id: str,
+        credential_id: str,
+        domain: str,
+        value: str,
+        injection: CredentialInjection,
+        enabled: bool | None,
+        methods: Sequence[str] | None,
+        paths: Sequence[str] | None,
+    ) -> Credential:
+        body = SandboxCredentialCreate(
+            id=credential_id,
+            domain=domain,
+            value=value,
+            injection=_to_credential_injection_body(injection),
+        )
+        if enabled is not None:
+            body.enabled = enabled
+        if methods is not None:
+            body.methods = _string_list(methods)
+        if paths is not None:
+            body.paths = _string_list(paths)
+        with request_errors("create credential"):
+            response = create_sandbox_group_credential.sync_detailed(
+                sandbox_group_id, client=self.client, body=body
+            )
+        _handle_sandbox_api_error(response, "create credential")
+        if not isinstance(response.parsed, GeneratedCredential):
+            raise RenderError("Failed to create credential: unexpected response type")
+        return _to_credential(response.parsed)
+
+    def get_credential(self, sandbox_group_id: str, credential_id: str) -> Credential:
+        with request_errors("retrieve credential"):
+            response = retrieve_sandbox_group_credential.sync_detailed(
+                sandbox_group_id, credential_id, client=self.client
+            )
+        _handle_credential_api_error(
+            response, f"credential {credential_id} not found", "retrieve credential"
+        )
+        if not isinstance(response.parsed, GeneratedCredential):
+            raise RenderError("Failed to retrieve credential: unexpected response type")
+        return _to_credential(response.parsed)
+
+    def list_credentials(self, sandbox_group_id: str) -> _CredentialList:
+        with request_errors("list credentials"):
+            response = list_sandbox_group_credentials.sync_detailed(
+                sandbox_group_id, client=self.client
+            )
+        _handle_sandbox_api_error(response, "list credentials")
+        parsed = response.parsed
+        if not isinstance(parsed, list):
+            raise RenderError("Failed to list credentials: unexpected response type")
+        return [_to_credential(item) for item in parsed]
+
+    def update_credential(
+        self,
+        sandbox_group_id: str,
+        credential_id: str,
+        value: str | None,
+        domain: str | None,
+        enabled: bool | None,
+        methods: Sequence[str] | None,
+        paths: Sequence[str] | None,
+        injection: CredentialInjection | None,
+    ) -> Credential:
+        body = SandboxCredentialUpdate()
+        if value is not None:
+            body.value = value
+        if domain is not None:
+            body.domain = domain
+        if enabled is not None:
+            body.enabled = enabled
+        if methods is not None:
+            body.methods = _string_list(methods)
+        if paths is not None:
+            body.paths = _string_list(paths)
+        if injection is not None:
+            body.injection = _to_credential_injection_body(injection)
+        with request_errors("update credential"):
+            response = update_sandbox_group_credential.sync_detailed(
+                sandbox_group_id, credential_id, client=self.client, body=body
+            )
+        _handle_credential_api_error(
+            response, f"credential {credential_id} not found", "update credential"
+        )
+        if not isinstance(response.parsed, GeneratedCredential):
+            raise RenderError("Failed to update credential: unexpected response type")
+        return _to_credential(response.parsed)
+
+    def delete_credential(self, sandbox_group_id: str, credential_id: str) -> None:
+        with request_errors("delete credential"):
+            response = delete_sandbox_group_credential.sync_detailed(
+                sandbox_group_id, credential_id, client=self.client
+            )
+        # Deleting a missing credential succeeds, so a 404 is about the group.
+        _handle_sandbox_api_error(response, "delete credential")
+
+    def list_credential_versions(
+        self, sandbox_group_id: str, credential_id: str
+    ) -> _CredentialVersionList:
+        with request_errors("list credential versions"):
+            response = list_sandbox_group_credential_versions.sync_detailed(
+                sandbox_group_id, credential_id, client=self.client
+            )
+        _handle_credential_api_error(
+            response,
+            f"credential {credential_id} not found",
+            "list credential versions",
+        )
+        parsed = response.parsed
+        if not isinstance(parsed, list):
+            raise RenderError(
+                "Failed to list credential versions: unexpected response type"
+            )
+        return [_to_credential_version(item) for item in parsed]
+
+    def restore_credential(
+        self, sandbox_group_id: str, credential_id: str, version_id: int
+    ) -> Credential:
+        with request_errors("restore credential"):
+            response = restore_sandbox_group_credential.sync_detailed(
+                sandbox_group_id,
+                credential_id,
+                client=self.client,
+                body=SandboxCredentialRestore(version_id=version_id),
+            )
+        _handle_credential_api_error(
+            response,
+            f"credential {credential_id} or its version {version_id} not found",
+            "restore credential",
+        )
+        if not isinstance(response.parsed, GeneratedCredential):
+            raise RenderError("Failed to restore credential: unexpected response type")
+        return _to_credential(response.parsed)
 
     def _raise_connect_token_error(
         self, sandbox_id: str, owner_id: str, response: httpx.Response, action: str
