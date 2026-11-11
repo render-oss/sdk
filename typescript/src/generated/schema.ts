@@ -1413,9 +1413,17 @@ export interface components {
             kind: components["schemas"]["sandboxSnapshotKind"];
             name?: components["schemas"]["sandboxSnapshotName"];
             /**
+             * @description How long the snapshot lives after its last use, in seconds. Each time you
+             *     create a sandbox from the snapshot, the snapshot lives for this long again.
+             *     Use 0 to keep the snapshot until you delete it. Omit to use Render's
+             *     default snapshot lifetime. Do not set both `ttlSeconds` and `expiresAt`.
+             */
+            ttlSeconds?: number;
+            /**
              * Format: date-time
-             * @description The time after which the snapshot can no longer be retrieved or restored.
-             *     Must be in the future. Omit to use Render's default snapshot lifetime.
+             * @deprecated
+             * @description Deprecated. Use `ttlSeconds`. Must be in the future. Render sets the TTL
+             *     to the time from the request until `expiresAt`.
              */
             expiresAt?: string;
         };
@@ -1442,9 +1450,17 @@ export interface components {
             /**
              * Format: date-time
              * @description The time after which the snapshot can no longer be retrieved or restored.
-             *     Set by Render when the create request did not specify one.
+             *     Each time you create a sandbox from the snapshot, Render moves this time
+             *     forward so that the snapshot lives for its TTL after that use. For a
+             *     snapshot that does not expire (a TTL of 0), this is 9999-12-31T23:59:59Z.
              */
             expiresAt: string;
+            /**
+             * @description How long the snapshot lives after its last use, in seconds. 0 means the
+             *     snapshot does not expire. Absent for a snapshot that was created before
+             *     snapshots had a TTL. Such a snapshot uses Render's default snapshot lifetime.
+             */
+            ttlSeconds?: number;
             /**
              * Format: int64
              * @description Null until `available`.
@@ -1483,8 +1499,19 @@ export interface components {
              */
             sourceDigest: string;
             status: components["schemas"]["sandboxBuildStatus"];
-            /** @description Why the build failed. Null unless `failed`. */
+            /**
+             * @description Why the build failed. Null unless `failed`. It can include the
+             *     registry's own error text, so show it as detail alongside a
+             *     message chosen from `failureCode` rather than as the headline.
+             */
             failureReason?: string | null;
+            /**
+             * @description Why the build failed, for code to check. Null unless `failed`. The
+             *     sandboxBuildFailureCode schema lists the codes. Treat a code you
+             *     don't recognize as `internal_error`.
+             * @example image_pull_failed
+             */
+            failureCode?: string | null;
             /** Format: date-time */
             createdAt: string;
             /**

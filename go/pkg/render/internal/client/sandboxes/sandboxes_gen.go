@@ -52,6 +52,42 @@ func (e ExecutionType) Valid() bool {
 	}
 }
 
+// Defines values for SandboxBuildFailureCode.
+const (
+	SandboxBuildFailureCodeDeadlineExceeded    SandboxBuildFailureCode = "deadline_exceeded"
+	SandboxBuildFailureCodeImageAccessDenied   SandboxBuildFailureCode = "image_access_denied"
+	SandboxBuildFailureCodeImageNotFound       SandboxBuildFailureCode = "image_not_found"
+	SandboxBuildFailureCodeImagePullFailed     SandboxBuildFailureCode = "image_pull_failed"
+	SandboxBuildFailureCodeInternalError       SandboxBuildFailureCode = "internal_error"
+	SandboxBuildFailureCodeInvalidImage        SandboxBuildFailureCode = "invalid_image"
+	SandboxBuildFailureCodeMissingBootTools    SandboxBuildFailureCode = "missing_boot_tools"
+	SandboxBuildFailureCodeUnsupportedPlatform SandboxBuildFailureCode = "unsupported_platform"
+)
+
+// Valid indicates whether the value is a known member of the SandboxBuildFailureCode enum.
+func (e SandboxBuildFailureCode) Valid() bool {
+	switch e {
+	case SandboxBuildFailureCodeDeadlineExceeded:
+		return true
+	case SandboxBuildFailureCodeImageAccessDenied:
+		return true
+	case SandboxBuildFailureCodeImageNotFound:
+		return true
+	case SandboxBuildFailureCodeImagePullFailed:
+		return true
+	case SandboxBuildFailureCodeInternalError:
+		return true
+	case SandboxBuildFailureCodeInvalidImage:
+		return true
+	case SandboxBuildFailureCodeMissingBootTools:
+		return true
+	case SandboxBuildFailureCodeUnsupportedPlatform:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for SandboxBuildStatus.
 const (
 	SandboxBuildStatusFailed    SandboxBuildStatus = "failed"
@@ -326,7 +362,17 @@ type Sandbox struct {
 type SandboxBuild struct {
 	CreatedAt time.Time `json:"createdAt"`
 
-	// FailureReason Why the build failed. Null unless `failed`.
+	// FailureCode Why the build failed, for code to check. Null unless `failed`. The
+	// sandboxBuildFailureCode schema lists the codes. Treat a code you
+	// don't recognize as `internal_error`.
+	//
+	//
+	// Example: image_pull_failed
+	FailureCode *string `json:"failureCode,omitempty"`
+
+	// FailureReason Why the build failed. Null unless `failed`. It can include the
+	// registry's own error text, so show it as detail alongside a
+	// message chosen from `failureCode` rather than as the headline.
 	FailureReason *string `json:"failureReason,omitempty"`
 
 	// FinishedAt When the build succeeded or failed.
@@ -357,6 +403,9 @@ type SandboxBuild struct {
 	SourceDigest string             `json:"sourceDigest"`
 	Status       SandboxBuildStatus `json:"status"`
 }
+
+// SandboxBuildFailureCode The codes that can appear in a build's `failureCode` field. The field is a plain string so new codes are not breaking changes; this vocabulary exists so generated clients get typed constants.
+type SandboxBuildFailureCode string
 
 // SandboxBuildId Example: sbb-cph1rs3idesc73a2b2mg
 type SandboxBuildId = string
@@ -792,7 +841,9 @@ type SandboxSnapshot struct {
 	Error *string `json:"error,omitempty"`
 
 	// ExpiresAt The time after which the snapshot can no longer be retrieved or restored.
-	// Set by Render when the create request did not specify one.
+	// Each time you create a sandbox from the snapshot, Render moves this time
+	// forward so that the snapshot lives for its TTL after that use. For a
+	// snapshot that does not expire (a TTL of 0), this is 9999-12-31T23:59:59Z.
 	ExpiresAt time.Time `json:"expiresAt"`
 
 	// Id Example: snp-cph1rs3idesc73a2b2mg
@@ -819,6 +870,11 @@ type SandboxSnapshot struct {
 	// SourceSandboxId The sandbox this snapshot was captured from. Lineage only.
 	SourceSandboxId SandboxId             `json:"sourceSandboxId"`
 	Status          SandboxSnapshotStatus `json:"status"`
+
+	// TTLSeconds How long the snapshot lives after its last use, in seconds. 0 means the
+	// snapshot does not expire. Absent for a snapshot that was created before
+	// snapshots had a TTL. Such a snapshot uses Render's default snapshot lifetime.
+	TTLSeconds *int `json:"ttlSeconds,omitempty"`
 }
 
 // SandboxSnapshotId Example: snp-cph1rs3idesc73a2b2mg
@@ -839,8 +895,9 @@ type SandboxSnapshotName = string
 
 // SandboxSnapshotPOST defines model for sandboxSnapshotPOST.
 type SandboxSnapshotPOST struct {
-	// ExpiresAt The time after which the snapshot can no longer be retrieved or restored.
-	// Must be in the future. Omit to use Render's default snapshot lifetime.
+	// ExpiresAt Deprecated. Use `ttlSeconds`. Must be in the future. Render sets the TTL
+	// to the time from the request until `expiresAt`.
+	// Deprecated: Use ttlSeconds instead.
 	ExpiresAt *time.Time           `json:"expiresAt,omitempty"`
 	Kind      *SandboxSnapshotKind `json:"kind,omitempty"`
 
@@ -852,6 +909,12 @@ type SandboxSnapshotPOST struct {
 	//
 	// Example: gold
 	Name *SandboxSnapshotName `json:"name,omitempty"`
+
+	// TTLSeconds How long the snapshot lives after its last use, in seconds. Each time you
+	// create a sandbox from the snapshot, the snapshot lives for this long again.
+	// Use 0 to keep the snapshot until you delete it. Omit to use Render's
+	// default snapshot lifetime. Do not set both `ttlSeconds` and `expiresAt`.
+	TTLSeconds *int `json:"ttlSeconds,omitempty"`
 }
 
 // SandboxSnapshotStatus defines model for sandboxSnapshotStatus.

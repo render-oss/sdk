@@ -28,10 +28,15 @@ class SandboxSnapshot:
         plan (Union[SandboxPlan, str]): Plan of the source sandbox at capture time. See `sandboxPlan` for known values.
         requested_at (datetime.datetime):
         expires_at (datetime.datetime): The time after which the snapshot can no longer be retrieved or restored.
-            Set by Render when the create request did not specify one.
+            Each time you create a sandbox from the snapshot, Render moves this time
+            forward so that the snapshot lives for its TTL after that use. For a
+            snapshot that does not expire (a TTL of 0), this is 9999-12-31T23:59:59Z.
         name (Union[None, Unset, str]): Set at create. Never changes. Null when created without a name.
         captured_at (Union[None, Unset, datetime.datetime]): When the sandbox was frozen for capture. Null until
             `available`.
+        ttl_seconds (Union[Unset, int]): How long the snapshot lives after its last use, in seconds. 0 means the
+            snapshot does not expire. Absent for a snapshot that was created before
+            snapshots had a TTL. Such a snapshot uses Render's default snapshot lifetime.
         size_bytes (Union[None, Unset, int]): Null until `available`.
         error (Union[None, Unset, str]): Null unless `failed`.
     """
@@ -46,6 +51,7 @@ class SandboxSnapshot:
     expires_at: datetime.datetime
     name: Union[None, Unset, str] = UNSET
     captured_at: Union[None, Unset, datetime.datetime] = UNSET
+    ttl_seconds: Union[Unset, int] = UNSET
     size_bytes: Union[None, Unset, int] = UNSET
     error: Union[None, Unset, str] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
@@ -85,6 +91,8 @@ class SandboxSnapshot:
         else:
             captured_at = self.captured_at
 
+        ttl_seconds = self.ttl_seconds
+
         size_bytes: Union[None, Unset, int]
         if isinstance(self.size_bytes, Unset):
             size_bytes = UNSET
@@ -115,6 +123,8 @@ class SandboxSnapshot:
             field_dict["name"] = name
         if captured_at is not UNSET:
             field_dict["capturedAt"] = captured_at
+        if ttl_seconds is not UNSET:
+            field_dict["ttlSeconds"] = ttl_seconds
         if size_bytes is not UNSET:
             field_dict["sizeBytes"] = size_bytes
         if error is not UNSET:
@@ -178,6 +188,8 @@ class SandboxSnapshot:
 
         captured_at = _parse_captured_at(d.pop("capturedAt", UNSET))
 
+        ttl_seconds = d.pop("ttlSeconds", UNSET)
+
         def _parse_size_bytes(data: object) -> Union[None, Unset, int]:
             if data is None:
                 return data
@@ -207,6 +219,7 @@ class SandboxSnapshot:
             expires_at=expires_at,
             name=name,
             captured_at=captured_at,
+            ttl_seconds=ttl_seconds,
             size_bytes=size_bytes,
             error=error,
         )

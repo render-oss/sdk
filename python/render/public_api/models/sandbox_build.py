@@ -27,7 +27,13 @@ class SandboxBuild:
         source_digest (str): The image digest the build converts. Example: sha256:c19d4a1....
         status (SandboxBuildStatus):
         created_at (datetime.datetime):
-        failure_reason (Union[None, Unset, str]): Why the build failed. Null unless `failed`.
+        failure_reason (Union[None, Unset, str]): Why the build failed. Null unless `failed`. It can include the
+            registry's own error text, so show it as detail alongside a
+            message chosen from `failureCode` rather than as the headline.
+        failure_code (Union[None, Unset, str]): Why the build failed, for code to check. Null unless `failed`. The
+            sandboxBuildFailureCode schema lists the codes. Treat a code you
+            don't recognize as `internal_error`.
+             Example: image_pull_failed.
         finished_at (Union[None, Unset, datetime.datetime]): When the build succeeded or failed.
     """
 
@@ -39,6 +45,7 @@ class SandboxBuild:
     status: SandboxBuildStatus
     created_at: datetime.datetime
     failure_reason: Union[None, Unset, str] = UNSET
+    failure_code: Union[None, Unset, str] = UNSET
     finished_at: Union[None, Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -63,6 +70,12 @@ class SandboxBuild:
         else:
             failure_reason = self.failure_reason
 
+        failure_code: Union[None, Unset, str]
+        if isinstance(self.failure_code, Unset):
+            failure_code = UNSET
+        else:
+            failure_code = self.failure_code
+
         finished_at: Union[None, Unset, str]
         if isinstance(self.finished_at, Unset):
             finished_at = UNSET
@@ -86,6 +99,8 @@ class SandboxBuild:
         )
         if failure_reason is not UNSET:
             field_dict["failureReason"] = failure_reason
+        if failure_code is not UNSET:
+            field_dict["failureCode"] = failure_code
         if finished_at is not UNSET:
             field_dict["finishedAt"] = finished_at
 
@@ -119,6 +134,15 @@ class SandboxBuild:
 
         failure_reason = _parse_failure_reason(d.pop("failureReason", UNSET))
 
+        def _parse_failure_code(data: object) -> Union[None, Unset, str]:
+            if data is None:
+                return data
+            if isinstance(data, Unset):
+                return data
+            return cast(Union[None, Unset, str], data)
+
+        failure_code = _parse_failure_code(d.pop("failureCode", UNSET))
+
         def _parse_finished_at(data: object) -> Union[None, Unset, datetime.datetime]:
             if data is None:
                 return data
@@ -145,6 +169,7 @@ class SandboxBuild:
             status=status,
             created_at=created_at,
             failure_reason=failure_reason,
+            failure_code=failure_code,
             finished_at=finished_at,
         )
 

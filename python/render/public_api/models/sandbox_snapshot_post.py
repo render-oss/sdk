@@ -26,13 +26,18 @@ class SandboxSnapshotPOST:
             share a name; the most recently available one is the one the name
             resolves to.
              Example: gold.
-        expires_at (Union[Unset, datetime.datetime]): The time after which the snapshot can no longer be retrieved or
-            restored.
-            Must be in the future. Omit to use Render's default snapshot lifetime.
+        ttl_seconds (Union[Unset, int]): How long the snapshot lives after its last use, in seconds. Each time you
+            create a sandbox from the snapshot, the snapshot lives for this long again.
+            Use 0 to keep the snapshot until you delete it. Omit to use Render's
+            default snapshot lifetime. Do not set both `ttlSeconds` and `expiresAt`.
+        expires_at (Union[Unset, datetime.datetime]): Deprecated. Use `ttlSeconds`. Must be in the future. Render sets
+            the TTL
+            to the time from the request until `expiresAt`.
     """
 
     kind: Union[Unset, SandboxSnapshotKind] = SandboxSnapshotKind.RUNTIME
     name: Union[Unset, str] = UNSET
+    ttl_seconds: Union[Unset, int] = UNSET
     expires_at: Union[Unset, datetime.datetime] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -42,6 +47,8 @@ class SandboxSnapshotPOST:
             kind = self.kind.value
 
         name = self.name
+
+        ttl_seconds = self.ttl_seconds
 
         expires_at: Union[Unset, str] = UNSET
         if not isinstance(self.expires_at, Unset):
@@ -54,6 +61,8 @@ class SandboxSnapshotPOST:
             field_dict["kind"] = kind
         if name is not UNSET:
             field_dict["name"] = name
+        if ttl_seconds is not UNSET:
+            field_dict["ttlSeconds"] = ttl_seconds
         if expires_at is not UNSET:
             field_dict["expiresAt"] = expires_at
 
@@ -71,6 +80,8 @@ class SandboxSnapshotPOST:
 
         name = d.pop("name", UNSET)
 
+        ttl_seconds = d.pop("ttlSeconds", UNSET)
+
         _expires_at = d.pop("expiresAt", UNSET)
         expires_at: Union[Unset, datetime.datetime]
         if isinstance(_expires_at, Unset):
@@ -81,6 +92,7 @@ class SandboxSnapshotPOST:
         sandbox_snapshot_post = cls(
             kind=kind,
             name=name,
+            ttl_seconds=ttl_seconds,
             expires_at=expires_at,
         )
 
