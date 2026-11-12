@@ -40,6 +40,5 @@ from render.experimental.sandbox.client import (
     _CredentialVersionList as _CredentialVersionList,
     _IMAGE_ID_PATTERN as _IMAGE_ID_PATTERN,
     _wait as _wait,
-    datetime as datetime,
     normalize_remote_path as normalize_remote_path,
 )

@@ -1,5 +1,4 @@
 import json
-from datetime import datetime, timezone
 
 import httpx
 import pytest
@@ -37,6 +36,7 @@ CREATING_SNAPSHOT_JSON = {
     "requestedAt": "2026-09-01T00:00:00Z",
     "capturedAt": None,
     "expiresAt": "2026-09-08T00:00:00Z",
+    "ttlSeconds": 3600,
     "sizeBytes": None,
     "error": None,
 }
@@ -109,6 +109,7 @@ async def test_create_omits_kind_by_default_and_returns_creating_snapshot():
     assert snapshot.requested_at.isoformat() == "2026-09-01T00:00:00+00:00"
     assert snapshot.captured_at is None
     assert snapshot.expires_at.isoformat() == "2026-09-08T00:00:00+00:00"
+    assert snapshot.ttl_seconds == 3600
     assert snapshot.size_bytes is None
     assert snapshot.error is None
 
@@ -145,14 +146,8 @@ async def test_create_sends_name_and_returns_it():
 
 
 @pytest.mark.asyncio
-async def test_create_rejects_an_unknown_kind():
-    client = _sandbox_client(_unreachable)
-    with pytest.raises(ValueError, match="bogus"):
-        await client.snapshots.create("sbx-abc", kind="bogus")
-
-
-@pytest.mark.asyncio
-async def test_create_sends_expires_at():
+@pytest.mark.parametrize("ttl_seconds", [3600, 0])
+async def test_create_sends_ttl_seconds_including_zero(ttl_seconds):
     captured = {}
 
     async def handler(request: httpx.Request) -> httpx.Response:
@@ -160,11 +155,57 @@ async def test_create_sends_expires_at():
         return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
-    await client.snapshots.create(
-        "sbx-abc", expires_at=datetime(2026, 9, 8, tzinfo=timezone.utc)
-    )
+    await client.snapshots.create("sbx-abc", ttl_seconds=ttl_seconds)
 
-    assert captured["body"]["expiresAt"].startswith("2026-09-08T00:00:00")
+    assert captured["body"] == {"ttlSeconds": ttl_seconds}
+
+
+@pytest.mark.asyncio
+async def test_create_omits_ttl_seconds_when_not_set():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+
+    client = _sandbox_client(handler)
+    await client.snapshots.create("sbx-abc", name="gold")
+
+    assert "ttlSeconds" not in captured["body"]
+
+
+@pytest.mark.parametrize("ttl_seconds", [3600, 0])
+def test_sync_create_sends_ttl_seconds_including_zero(ttl_seconds):
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+
+    client = _sync_sandbox_client(handler)
+    client.snapshots.create("sbx-abc", ttl_seconds=ttl_seconds)
+
+    assert captured["body"] == {"ttlSeconds": ttl_seconds}
+
+
+def test_sync_create_omits_ttl_seconds_when_not_set():
+    captured = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+
+    client = _sync_sandbox_client(handler)
+    client.snapshots.create("sbx-abc", name="gold")
+
+    assert "ttlSeconds" not in captured["body"]
+
+
+@pytest.mark.asyncio
+async def test_create_rejects_an_unknown_kind():
+    client = _sandbox_client(_unreachable)
+    with pytest.raises(ValueError, match="bogus"):
+        await client.snapshots.create("sbx-abc", kind="bogus")
 
 
 @pytest.mark.asyncio
@@ -272,6 +313,44 @@ async def test_from_id_reads_a_failed_snapshots_error():
 
     assert snapshot.status == "failed"
     assert snapshot.error == "disk full"
+
+
+@pytest.mark.asyncio
+async def test_from_id_returns_a_ttl_of_zero_for_a_snapshot_that_never_expires():
+    never_expires = {
+        **AVAILABLE_SNAPSHOT_JSON,
+        "expiresAt": "9999-12-31T23:59:59Z",
+        "ttlSeconds": 0,
+    }
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=never_expires)
+
+    client = _sandbox_client(handler)
+    snapshot = await client.snapshots.from_id(
+        sandbox_group_id="sbg-abc", snapshot_id="snp-abc"
+    )
+
+    assert snapshot.ttl_seconds == 0
+
+
+@pytest.mark.asyncio
+async def test_from_id_returns_no_ttl_when_the_api_sends_none():
+    without_ttl = {
+        key: value
+        for key, value in AVAILABLE_SNAPSHOT_JSON.items()
+        if key != "ttlSeconds"
+    }
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json=without_ttl)
+
+    client = _sandbox_client(handler)
+    snapshot = await client.snapshots.from_id(
+        sandbox_group_id="sbg-abc", snapshot_id="snp-abc"
+    )
+
+    assert snapshot.ttl_seconds is None
 
 
 @pytest.mark.asyncio

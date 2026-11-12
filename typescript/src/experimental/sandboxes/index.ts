@@ -261,8 +261,12 @@ export type SandboxSnapshotCreateInput = {
   kind?: SandboxSnapshotKind;
   /** Case-sensitive name for this snapshot. May be reused within the sandbox group. */
   name?: string;
-  /** ISO 8601. Omit for Render's default snapshot lifetime. */
-  expiresAt?: string;
+  /**
+   * Seconds the snapshot lives after its last use. Each time you create a sandbox from the
+   * snapshot, it lives for this long again. Use 0 to keep the snapshot until you delete it.
+   * Omit for Render's default snapshot lifetime.
+   */
+  ttlSeconds?: number;
   /** Defaults to the client's owner ID. */
   ownerId?: `tea-${string}`;
   /**
@@ -614,7 +618,7 @@ export class SandboxSnapshotsClient {
     sandboxId,
     kind,
     name,
-    expiresAt,
+    ttlSeconds,
     ownerId,
     wait: waitInput,
   }: SandboxSnapshotCreateInput): Promise<SandboxSnapshot> {
@@ -622,7 +626,7 @@ export class SandboxSnapshotsClient {
     const body = {
       ...(kind ? { kind } : {}),
       ...(name === undefined ? {} : { name }),
-      ...(expiresAt ? { expiresAt } : {}),
+      ...(ttlSeconds === undefined ? {} : { ttlSeconds }),
     } as components["schemas"]["sandboxSnapshotPOST"];
     const snapshot = unwrap(
       await this.apiClient.POST("/sandboxes/{sandboxId}/snapshots", {
@@ -630,7 +634,7 @@ export class SandboxSnapshotsClient {
           path: { sandboxId },
           ...optionalOwnerIdQuery(ownerId, this.defaultOwnerId),
         },
-        ...(kind || name !== undefined || expiresAt ? { body } : {}),
+        ...(kind || name !== undefined || ttlSeconds !== undefined ? { body } : {}),
       }),
       "Failed to create snapshot",
     );

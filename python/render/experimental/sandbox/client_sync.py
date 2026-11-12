@@ -8,7 +8,6 @@ import os
 import re
 import warnings
 from collections.abc import Iterator, Mapping, Sequence
-from datetime import datetime
 from typing import TYPE_CHECKING
 
 from render.client.errors import RenderError
@@ -413,7 +412,7 @@ class SyncSnapshotClient:
         *,
         kind: str | None = None,
         name: str | None = None,
-        expires_at: datetime | None = None,
+        ttl_seconds: int | None = None,
         owner_id: str | None = None,
         wait: bool | SandboxWaitOptions = False,
     ) -> Snapshot:
@@ -421,8 +420,10 @@ class SyncSnapshotClient:
 
         kind is filesystem (the writable filesystem) or runtime (also memory and
         CPU state). name is case sensitive and can be reused within a sandbox
-        group. expires_at must be in the future; omit it for Render's default
-        snapshot lifetime. The snapshot is returned in
+        group. ttl_seconds is the number of seconds the snapshot lives after its
+        last use; each sandbox you create from it starts the time again. Set
+        ttl_seconds to 0 to keep the snapshot until you delete it. Omit it for
+        Render's default snapshot lifetime. The snapshot is returned in
         status creating; call wait_until_available to wait for it. Raises
         SandboxNotFoundError if the sandbox does not exist, and a ClientError
         with code sandbox_not_running if it is not running.
@@ -444,7 +445,7 @@ class SyncSnapshotClient:
             sandbox_id,
             kind,
             name,
-            expires_at,
+            ttl_seconds,
             self._sandboxes._optional_owner_id(owner_id),
         )
         if wait_settings is None:

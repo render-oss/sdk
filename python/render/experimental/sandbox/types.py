@@ -104,7 +104,13 @@ class SandboxGroupList:
 
 @dataclass
 class Snapshot:
-    """A snapshot of a sandbox, as returned by snapshots.create, from_id, and list."""
+    """A snapshot of a sandbox, as returned by snapshots.create, from_id, and list.
+
+    expires_at is when the snapshot can no longer be restored. Each restore moves
+    it forward. ttl_seconds is how long the snapshot lives after its last use. 0
+    means the snapshot never expires. It is None when the API sends none, for a
+    snapshot that was created before snapshots had a TTL.
+    """
 
     id: str
     sandbox_group_id: str
@@ -118,6 +124,7 @@ class Snapshot:
     captured_at: datetime | None = None
     size_bytes: int | None = None
     error: str | None = None
+    ttl_seconds: int | None = None
 
 
 @dataclass

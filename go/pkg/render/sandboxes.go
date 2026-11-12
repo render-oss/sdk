@@ -130,7 +130,11 @@ type SandboxGroupList struct {
 	NextCursor *string
 }
 
-// Snapshot is a snapshot of a sandbox.
+// Snapshot is a snapshot of a sandbox. ExpiresAt is when the snapshot can no
+// longer be restored. Each restore moves it forward. TTLSeconds is how many
+// seconds the snapshot lives after its last use. 0 means the snapshot never
+// expires. It is nil when the API sends none, for a snapshot that was created
+// before snapshots had a TTL.
 type Snapshot struct {
 	ID              string
 	SandboxGroupID  string
@@ -140,6 +144,7 @@ type Snapshot struct {
 	Plan            string
 	RequestedAt     time.Time
 	ExpiresAt       time.Time
+	TTLSeconds      *int
 	Name            *string
 	CapturedAt      *time.Time
 	SizeBytes       *int64
@@ -218,8 +223,11 @@ type CreateSnapshotParams struct {
 	Kind string
 	// Name is case sensitive and can be reused within a sandbox group.
 	Name string
-	// ExpiresAt must be in the future. Nil means Render's default lifetime.
-	ExpiresAt *time.Time
+	// TTLSeconds is how many seconds the snapshot lives after its last use.
+	// Each sandbox you create from the snapshot starts the time again. Zero
+	// keeps the snapshot until you delete it. Nil means Render's default
+	// lifetime.
+	TTLSeconds *int
 }
 
 // ListSnapshotsOptions filters and pages ListSnapshots.
@@ -599,7 +607,7 @@ func sseEvents(r io.Reader, errp *error) iter.Seq2[string, string] {
 // Create captures a snapshot of a running sandbox. The snapshot comes back
 // with status creating; poll FromID until it is available or failed.
 func (s *SnapshotClient) Create(ctx context.Context, sandboxID string, params CreateSnapshotParams) (*Snapshot, error) {
-	body := sandboxes.SandboxSnapshotPOST{ExpiresAt: params.ExpiresAt}
+	body := sandboxes.SandboxSnapshotPOST{TTLSeconds: params.TTLSeconds}
 	if params.Kind != "" {
 		kind := sandboxes.SandboxSnapshotKind(params.Kind)
 		body.Kind = &kind
@@ -767,6 +775,7 @@ func toSnapshot(m sandboxes.SandboxSnapshot) *Snapshot {
 		Plan:            string(m.Plan),
 		RequestedAt:     m.RequestedAt,
 		ExpiresAt:       m.ExpiresAt,
+		TTLSeconds:      m.TTLSeconds,
 		Name:            m.Name,
 		CapturedAt:      m.CapturedAt,
 		SizeBytes:       m.SizeBytes,

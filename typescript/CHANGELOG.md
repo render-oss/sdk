@@ -4,6 +4,16 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- (Sandbox) `snapshots.create()` accepts `ttlSeconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `SandboxSnapshot.ttlSeconds` is the TTL of a snapshot. It is absent for a snapshot that was created before snapshots had a TTL.
+
+### Removed
+
+- **Breaking:** (Sandbox) `snapshots.create()` no longer accepts `expiresAt`. Render sets the snapshot lifetime.
+
 ## [1.8.0] - 2026-11-06
 
 ### Added

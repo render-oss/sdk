@@ -405,7 +405,7 @@ func TestSnapshotCreateKind(t *testing.T) {
 				}
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusAccepted)
-				_, _ = w.Write([]byte(`{"id":"snp-1","sandboxGroupId":"sbg-1","sourceSandboxId":"sbx-1","kind":"runtime","status":"creating","plan":"starter","requestedAt":"2026-01-01T00:00:00Z","expiresAt":"2026-01-08T00:00:00Z"}`))
+				_, _ = w.Write([]byte(`{"id":"snp-1","sandboxGroupId":"sbg-1","sourceSandboxId":"sbx-1","kind":"runtime","status":"creating","plan":"starter","requestedAt":"2026-01-01T00:00:00Z","expiresAt":"2026-01-08T00:00:00Z","ttlSeconds":604800}`))
 			}))
 			defer server.Close()
 			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
@@ -413,8 +413,68 @@ func TestSnapshotCreateKind(t *testing.T) {
 			snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{Kind: tt.kind})
 			require.NoError(t, err)
 			require.Equal(t, "snp-1", snapshot.ID)
+			require.NotNil(t, snapshot.TTLSeconds)
+			require.Equal(t, 604800, *snapshot.TTLSeconds)
 		})
 	}
+}
+
+func TestSnapshotCreateTTLSeconds(t *testing.T) {
+	ttl := func(n int) *int { return &n }
+	tests := []struct {
+		name string
+		ttl  *int
+		wire string
+	}{
+		{"nil omits ttlSeconds", nil, ""},
+		{"positive value", ttl(3600), "3600"},
+		{"zero is sent", ttl(0), "0"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv(UseLocalDev, "")
+			t.Setenv(LocalDevURL, "")
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var body map[string]json.RawMessage
+				require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+				if tt.wire == "" {
+					require.NotContains(t, body, "ttlSeconds")
+				} else {
+					require.JSONEq(t, tt.wire, string(body["ttlSeconds"]))
+				}
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusAccepted)
+				_, _ = w.Write([]byte(`{"id":"snp-1","sandboxGroupId":"sbg-1","sourceSandboxId":"sbx-1","kind":"runtime","status":"creating","plan":"starter","requestedAt":"2026-01-01T00:00:00Z","expiresAt":"2026-01-08T00:00:00Z"}`))
+			}))
+			defer server.Close()
+			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+			require.NoError(t, err)
+
+			snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{TTLSeconds: tt.ttl})
+
+			require.NoError(t, err)
+			require.Nil(t, snapshot.TTLSeconds, "the API sent no ttlSeconds")
+		})
+	}
+}
+
+func TestSnapshotTTLSecondsIsZeroWhenTheSnapshotNeverExpires(t *testing.T) {
+	t.Setenv(UseLocalDev, "")
+	t.Setenv(LocalDevURL, "")
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusAccepted)
+		_, _ = w.Write([]byte(`{"id":"snp-1","sandboxGroupId":"sbg-1","sourceSandboxId":"sbx-1","kind":"runtime","status":"creating","plan":"starter","requestedAt":"2026-01-01T00:00:00Z","expiresAt":"9999-12-31T23:59:59Z","ttlSeconds":0}`))
+	}))
+	defer server.Close()
+	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{})
+
+	require.NoError(t, err)
+	require.NotNil(t, snapshot.TTLSeconds)
+	require.Equal(t, 0, *snapshot.TTLSeconds)
 }
 
 func TestSandboxRejectsInvalidNetworkPolicy(t *testing.T) {

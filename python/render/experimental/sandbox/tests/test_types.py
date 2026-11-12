@@ -81,6 +81,7 @@ def test_snapshot_has_expected_fields():
     assert snapshot.expires_at == datetime(2026, 9, 8)
     assert snapshot.size_bytes is None
     assert snapshot.error is None
+    assert snapshot.ttl_seconds is None
 
 
 def test_snapshot_list_defaults_are_empty():

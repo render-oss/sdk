@@ -7,7 +7,6 @@ import os
 import stat
 from collections.abc import AsyncIterator, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
@@ -284,6 +283,7 @@ def _to_snapshot(model: GeneratedSandboxSnapshot) -> Snapshot:
         expires_at=model.expires_at,
         size_bytes=_set_or_none(model.size_bytes),
         error=_set_or_none(model.error),
+        ttl_seconds=_set_or_none(model.ttl_seconds),
     )
 
 
@@ -655,13 +655,13 @@ class SandboxApi:
         sandbox_id: str,
         kind: str | None,
         name: str | None,
-        expires_at: datetime | None,
+        ttl_seconds: int | None,
         owner_id: str | Unset,
     ) -> Snapshot:
         body = SandboxSnapshotPOST(
             kind=SandboxSnapshotKind(kind) if kind is not None else UNSET,
             name=name if name is not None else UNSET,
-            expires_at=expires_at if expires_at is not None else UNSET,
+            ttl_seconds=ttl_seconds if ttl_seconds is not None else UNSET,
         )
         with request_errors("create snapshot"):
             response = await create_sandbox_snapshot.asyncio_detailed(

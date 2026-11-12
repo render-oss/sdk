@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- (Sandboxes) `snapshots.create()` accepts `ttl_seconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `Snapshot.ttl_seconds` is the TTL of a snapshot. It is `None` for a snapshot that was created before snapshots had a TTL.
+
+### Removed
+
+- **Breaking:** (Sandboxes) `snapshots.create()` no longer accepts `expires_at`. Render sets the snapshot lifetime.
+
 ## [1.8.0] - 2026-11-06
 
 ### Added

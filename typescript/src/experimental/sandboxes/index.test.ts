@@ -124,6 +124,7 @@ const SNAPSHOT: SandboxSnapshot = {
   requestedAt: "2026-09-01T00:00:00Z",
   capturedAt: null,
   expiresAt: "2026-09-08T00:00:00Z",
+  ttlSeconds: 3600,
   sizeBytes: null,
   error: null,
 };
@@ -945,6 +946,24 @@ describe("SandboxesClient", () => {
         expectTypeOf<SandboxSnapshot["name"]>().toEqualTypeOf<string | null | undefined>();
       });
 
+      it("exposes an optional snapshot ttlSeconds", () => {
+        expectTypeOf<SandboxSnapshot["ttlSeconds"]>().toEqualTypeOf<number | undefined>();
+      });
+
+      it("returns a ttlSeconds of 0 for a snapshot that never expires", async () => {
+        const neverExpires: SandboxSnapshot = {
+          ...SNAPSHOT,
+          expiresAt: "9999-12-31T23:59:59Z",
+          ttlSeconds: 0,
+        };
+        const apiClient = mockApiClient("POST", { status: 202, data: neverExpires });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const snapshot = await client.snapshots.create({ sandboxId: "sbx-123" });
+
+        expect(snapshot.ttlSeconds).toBe(0);
+      });
+
       it("captures a snapshot of the requested kind", async () => {
         const apiClient = mockApiClient("POST", { status: 202, data: SNAPSHOT });
         const client = new SandboxesClient(apiClient, "tea-default");
@@ -969,21 +988,6 @@ describe("SandboxesClient", () => {
         });
       });
 
-      it("sends expiresAt so the API applies the requested lifetime", async () => {
-        const apiClient = mockApiClient("POST", { status: 202, data: SNAPSHOT });
-        const client = new SandboxesClient(apiClient, "tea-default");
-
-        await client.snapshots.create({
-          sandboxId: "sbx-123",
-          expiresAt: "2026-09-08T00:00:00Z",
-        });
-
-        expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/snapshots", {
-          params: { path: { sandboxId: "sbx-123" }, query: { ownerId: "tea-default" } },
-          body: { expiresAt: "2026-09-08T00:00:00Z" },
-        });
-      });
-
       it("sends the snapshot name", async () => {
         const namedSnapshot = { ...SNAPSHOT, name: "gold" };
         const apiClient = mockApiClient("POST", { status: 202, data: namedSnapshot });
@@ -997,6 +1001,33 @@ describe("SandboxesClient", () => {
           params: { path: { sandboxId: "sbx-123" }, query: { ownerId: "tea-default" } },
           body: { name: "gold" },
         });
+      });
+
+      it.each([3600, 0])(
+        "sends ttlSeconds %i so the API applies the requested lifetime",
+        async (ttlSeconds) => {
+          const apiClient = mockApiClient("POST", { status: 202, data: SNAPSHOT });
+          const client = new SandboxesClient(apiClient, "tea-default");
+
+          await client.snapshots.create({ sandboxId: "sbx-123", ttlSeconds });
+
+          expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/snapshots", {
+            params: { path: { sandboxId: "sbx-123" }, query: { ownerId: "tea-default" } },
+            body: { ttlSeconds },
+          });
+        },
+      );
+
+      it("omits ttlSeconds so the API applies the default lifetime", async () => {
+        const apiClient = mockApiClient("POST", { status: 202, data: SNAPSHOT });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await client.snapshots.create({ sandboxId: "sbx-123", name: "gold" });
+
+        const post = apiClient.POST as unknown as ReturnType<typeof vi.fn>;
+        const [, init] = post.mock.calls[0];
+        expect(init).toHaveProperty("body.name", "gold");
+        expect(init).not.toHaveProperty("body.ttlSeconds");
       });
 
       const codeRows: {
