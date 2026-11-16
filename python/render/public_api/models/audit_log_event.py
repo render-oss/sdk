@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AuditLogEvent(str, Enum):
+class AuditLogEvent(StrEnum):
     ACCEPTORGINVITEEVENT = "AcceptOrgInviteEvent"
     ACCEPTTEAMINVITEEVENT = "AcceptTeamInviteEvent"
     ADDORGMEMBEREVENT = "AddOrgMemberEvent"

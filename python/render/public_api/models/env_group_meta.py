@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -24,8 +25,8 @@ class EnvGroupMeta:
         owner_id (str):
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
-        service_links (list['EnvGroupLink']): List of serviceIds linked to the envGroup
-        environment_id (Union[Unset, str]):
+        service_links (list[EnvGroupLink]): List of serviceIds linked to the envGroup
+        environment_id (str | Unset):
     """
 
     id: str
@@ -33,8 +34,8 @@ class EnvGroupMeta:
     owner_id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    service_links: list["EnvGroupLink"]
-    environment_id: Union[Unset, str] = UNSET
+    service_links: list[EnvGroupLink]
+    environment_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -74,7 +75,7 @@ class EnvGroupMeta:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.env_group_link import EnvGroupLink
+        from ..models.env_group_link import EnvGroupLink  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -83,9 +84,9 @@ class EnvGroupMeta:
 
         owner_id = d.pop("ownerId")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         service_links = []
         _service_links = d.pop("serviceLinks")

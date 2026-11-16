@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -12,13 +12,13 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    owner_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
@@ -40,8 +40,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["BlueprintWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[BlueprintWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -99,8 +99,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["BlueprintWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[BlueprintWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -111,27 +111,27 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BlueprintWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[BlueprintWithCursor]]:
     """List Blueprints
 
      List Blueprints for the specified workspaces. If no workspaces are provided, returns all Blueprints
     the API key has access to.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BlueprintWithCursor']]]
+        Response[Error | list[BlueprintWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -149,27 +149,27 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BlueprintWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[BlueprintWithCursor] | None:
     """List Blueprints
 
      List Blueprints for the specified workspaces. If no workspaces are provided, returns all Blueprints
     the API key has access to.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BlueprintWithCursor']]
+        Error | list[BlueprintWithCursor]
     """
 
     return sync_detailed(
@@ -182,27 +182,27 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BlueprintWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[BlueprintWithCursor]]:
     """List Blueprints
 
      List Blueprints for the specified workspaces. If no workspaces are provided, returns all Blueprints
     the API key has access to.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BlueprintWithCursor']]]
+        Response[Error | list[BlueprintWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -218,27 +218,27 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BlueprintWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[BlueprintWithCursor] | None:
     """List Blueprints
 
      List Blueprints for the specified workspaces. If no workspaces are provided, returns all Blueprints
     the API key has access to.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BlueprintWithCursor']]
+        Error | list[BlueprintWithCursor]
     """
 
     return (

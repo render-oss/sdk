@@ -6,7 +6,7 @@ Provides simple put/get/delete operations for object storage.
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, BinaryIO, cast
 
-import httpx
+import httpx2
 
 from render.client.errors import ClientError, RenderError
 from render.client.util import handle_httpx_exception, handle_storage_http_error
@@ -159,8 +159,8 @@ class ObjectClient:
         try:
             # Keep default connect/pool timeouts but disable read/write timeouts
             default_timeout_seconds = 5.0
-            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
-            async with httpx.AsyncClient(timeout=timeout) as http_client:
+            timeout = httpx2.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx2.AsyncClient(timeout=timeout) as http_client:
                 response = await http_client.put(
                     presigned.url,
                     headers=headers,
@@ -172,7 +172,7 @@ class ObjectClient:
                 return PutObjectResult(
                     etag=response.headers.get("ETag"),
                 )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             handle_httpx_exception(e, "upload object")
 
     async def get(
@@ -224,8 +224,8 @@ class ObjectClient:
         try:
             # Keep default connect/pool timeouts but disable read/write timeouts
             default_timeout_seconds = 5.0
-            timeout = httpx.Timeout(default_timeout_seconds, read=None, write=None)
-            async with httpx.AsyncClient(timeout=timeout) as http_client:
+            timeout = httpx2.Timeout(default_timeout_seconds, read=None, write=None)
+            async with httpx2.AsyncClient(timeout=timeout) as http_client:
                 response = await http_client.get(presigned.url)
 
                 handle_storage_http_error(response, "download object")
@@ -237,7 +237,7 @@ class ObjectClient:
                     size=len(data),
                     content_type=response.headers.get("Content-Type"),
                 )
-        except httpx.RequestError as e:
+        except httpx2.RequestError as e:
             handle_httpx_exception(e, "download object")
 
     async def delete(

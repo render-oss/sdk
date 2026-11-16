@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,18 +17,18 @@ class AutoscalingStarted:
     Attributes:
         from_instances (int):
         to_instances (int):
-        current_cpu (Union[Unset, int]):
-        target_cpu (Union[Unset, int]):
-        current_memory (Union[Unset, int]):
-        target_memory (Union[Unset, int]):
+        current_cpu (int | Unset):
+        target_cpu (int | Unset):
+        current_memory (int | Unset):
+        target_memory (int | Unset):
     """
 
     from_instances: int
     to_instances: int
-    current_cpu: Union[Unset, int] = UNSET
-    target_cpu: Union[Unset, int] = UNSET
-    current_memory: Union[Unset, int] = UNSET
-    target_memory: Union[Unset, int] = UNSET
+    current_cpu: int | Unset = UNSET
+    target_cpu: int | Unset = UNSET
+    current_memory: int | Unset = UNSET
+    target_memory: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

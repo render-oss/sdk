@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DatabaseStatus(str, Enum):
+class DatabaseStatus(StrEnum):
     AVAILABLE = "available"
     CONFIG_RESTART = "config_restart"
     CREATING = "creating"

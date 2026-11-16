@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -15,20 +16,19 @@ T = TypeVar("T", bound="DiskSnapshot")
 class DiskSnapshot:
     """
     Attributes:
-        created_at (Union[Unset, datetime.datetime]):
-        snapshot_key (Union[Unset, str]):
-        instance_id (Union[Unset, str]): When a service with a disk is scaled, the instanceId is used to identify the
-            instance that the disk is attached to. Each instance's disks get their own snapshots, and can be restored
-            separately.
+        created_at (datetime.datetime | Unset):
+        snapshot_key (str | Unset):
+        instance_id (str | Unset): When a service with a disk is scaled, the instanceId is used to identify the instance
+            that the disk is attached to. Each instance's disks get their own snapshots, and can be restored separately.
     """
 
-    created_at: Union[Unset, datetime.datetime] = UNSET
-    snapshot_key: Union[Unset, str] = UNSET
-    instance_id: Union[Unset, str] = UNSET
+    created_at: datetime.datetime | Unset = UNSET
+    snapshot_key: str | Unset = UNSET
+    instance_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        created_at: Union[Unset, str] = UNSET
+        created_at: str | Unset = UNSET
         if not isinstance(self.created_at, Unset):
             created_at = self.created_at.isoformat()
 
@@ -52,11 +52,11 @@ class DiskSnapshot:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _created_at = d.pop("createdAt", UNSET)
-        created_at: Union[Unset, datetime.datetime]
+        created_at: datetime.datetime | Unset
         if isinstance(_created_at, Unset):
             created_at = UNSET
         else:
-            created_at = isoparse(_created_at)
+            created_at = datetime.datetime.fromisoformat(_created_at)
 
         snapshot_key = d.pop("snapshotKey", UNSET)
 

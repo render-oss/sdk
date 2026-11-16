@@ -1,8 +1,8 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -16,23 +16,23 @@ def _get_kwargs(
     *,
     owner_id: str,
     label: ListLogsValuesLabel,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
     resource: list[str],
-    instance: Union[Unset, list[str]] = UNSET,
-    host: Union[Unset, list[str]] = UNSET,
-    status_code: Union[Unset, list[str]] = UNSET,
-    method: Union[Unset, list[str]] = UNSET,
-    task: Union[Unset, list[str]] = UNSET,
-    task_run: Union[Unset, list[str]] = UNSET,
-    sandbox: Union[Unset, list[str]] = UNSET,
-    build: Union[Unset, list[str]] = UNSET,
-    level: Union[Unset, list[str]] = UNSET,
-    type_: Union[Unset, list[str]] = UNSET,
-    text: Union[Unset, list[str]] = UNSET,
-    path: Union[Unset, list[str]] = UNSET,
-    limit: Union[Unset, int] = 20,
+    instance: list[str] | Unset = UNSET,
+    host: list[str] | Unset = UNSET,
+    status_code: list[str] | Unset = UNSET,
+    method: list[str] | Unset = UNSET,
+    task: list[str] | Unset = UNSET,
+    task_run: list[str] | Unset = UNSET,
+    sandbox: list[str] | Unset = UNSET,
+    build: list[str] | Unset = UNSET,
+    level: list[str] | Unset = UNSET,
+    type_: list[str] | Unset = UNSET,
+    text: list[str] | Unset = UNSET,
+    path: list[str] | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -41,17 +41,17 @@ def _get_kwargs(
     json_label = label.value
     params["label"] = json_label
 
-    json_start_time: Union[Unset, str] = UNSET
+    json_start_time: str | Unset = UNSET
     if not isinstance(start_time, Unset):
         json_start_time = start_time.isoformat()
     params["startTime"] = json_start_time
 
-    json_end_time: Union[Unset, str] = UNSET
+    json_end_time: str | Unset = UNSET
     if not isinstance(end_time, Unset):
         json_end_time = end_time.isoformat()
     params["endTime"] = json_end_time
 
-    json_direction: Union[Unset, str] = UNSET
+    json_direction: str | Unset = UNSET
     if not isinstance(direction, Unset):
         json_direction = direction.value
 
@@ -61,73 +61,73 @@ def _get_kwargs(
 
     params["resource"] = json_resource
 
-    json_instance: Union[Unset, list[str]] = UNSET
+    json_instance: list[str] | Unset = UNSET
     if not isinstance(instance, Unset):
         json_instance = instance
 
     params["instance"] = json_instance
 
-    json_host: Union[Unset, list[str]] = UNSET
+    json_host: list[str] | Unset = UNSET
     if not isinstance(host, Unset):
         json_host = host
 
     params["host"] = json_host
 
-    json_status_code: Union[Unset, list[str]] = UNSET
+    json_status_code: list[str] | Unset = UNSET
     if not isinstance(status_code, Unset):
         json_status_code = status_code
 
     params["statusCode"] = json_status_code
 
-    json_method: Union[Unset, list[str]] = UNSET
+    json_method: list[str] | Unset = UNSET
     if not isinstance(method, Unset):
         json_method = method
 
     params["method"] = json_method
 
-    json_task: Union[Unset, list[str]] = UNSET
+    json_task: list[str] | Unset = UNSET
     if not isinstance(task, Unset):
         json_task = task
 
     params["task"] = json_task
 
-    json_task_run: Union[Unset, list[str]] = UNSET
+    json_task_run: list[str] | Unset = UNSET
     if not isinstance(task_run, Unset):
         json_task_run = task_run
 
     params["taskRun"] = json_task_run
 
-    json_sandbox: Union[Unset, list[str]] = UNSET
+    json_sandbox: list[str] | Unset = UNSET
     if not isinstance(sandbox, Unset):
         json_sandbox = sandbox
 
     params["sandbox"] = json_sandbox
 
-    json_build: Union[Unset, list[str]] = UNSET
+    json_build: list[str] | Unset = UNSET
     if not isinstance(build, Unset):
         json_build = build
 
     params["build"] = json_build
 
-    json_level: Union[Unset, list[str]] = UNSET
+    json_level: list[str] | Unset = UNSET
     if not isinstance(level, Unset):
         json_level = level
 
     params["level"] = json_level
 
-    json_type_: Union[Unset, list[str]] = UNSET
+    json_type_: list[str] | Unset = UNSET
     if not isinstance(type_, Unset):
         json_type_ = type_
 
     params["type"] = json_type_
 
-    json_text: Union[Unset, list[str]] = UNSET
+    json_text: list[str] | Unset = UNSET
     if not isinstance(text, Unset):
         json_text = text
 
     params["text"] = json_text
 
-    json_path: Union[Unset, list[str]] = UNSET
+    json_path: list[str] | Unset = UNSET
     if not isinstance(path, Unset):
         json_path = path
 
@@ -146,9 +146,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list[str]]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | list[str] | None:
     if response.status_code == 200:
         response_200 = cast(list[str], response.json())
 
@@ -205,9 +203,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list[str]]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | list[str]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -218,27 +214,27 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
     label: ListLogsValuesLabel,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
     resource: list[str],
-    instance: Union[Unset, list[str]] = UNSET,
-    host: Union[Unset, list[str]] = UNSET,
-    status_code: Union[Unset, list[str]] = UNSET,
-    method: Union[Unset, list[str]] = UNSET,
-    task: Union[Unset, list[str]] = UNSET,
-    task_run: Union[Unset, list[str]] = UNSET,
-    sandbox: Union[Unset, list[str]] = UNSET,
-    build: Union[Unset, list[str]] = UNSET,
-    level: Union[Unset, list[str]] = UNSET,
-    type_: Union[Unset, list[str]] = UNSET,
-    text: Union[Unset, list[str]] = UNSET,
-    path: Union[Unset, list[str]] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list[str]]]:
+    instance: list[str] | Unset = UNSET,
+    host: list[str] | Unset = UNSET,
+    status_code: list[str] | Unset = UNSET,
+    method: list[str] | Unset = UNSET,
+    task: list[str] | Unset = UNSET,
+    task_run: list[str] | Unset = UNSET,
+    sandbox: list[str] | Unset = UNSET,
+    build: list[str] | Unset = UNSET,
+    level: list[str] | Unset = UNSET,
+    type_: list[str] | Unset = UNSET,
+    text: list[str] | Unset = UNSET,
+    path: list[str] | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[str]]:
     """List log label values
 
      List all values for a given log label in the logs matching the provided filters.
@@ -246,30 +242,30 @@ def sync_detailed(
     Args:
         owner_id (str):
         label (ListLogsValuesLabel):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        direction (Union[Unset, LogDirection]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        direction (LogDirection | Unset):
         resource (list[str]):
-        instance (Union[Unset, list[str]]):
-        host (Union[Unset, list[str]]):
-        status_code (Union[Unset, list[str]]):
-        method (Union[Unset, list[str]]):
-        task (Union[Unset, list[str]]):
-        task_run (Union[Unset, list[str]]):
-        sandbox (Union[Unset, list[str]]):
-        build (Union[Unset, list[str]]):
-        level (Union[Unset, list[str]]):
-        type_ (Union[Unset, list[str]]):
-        text (Union[Unset, list[str]]):
-        path (Union[Unset, list[str]]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        instance (list[str] | Unset):
+        host (list[str] | Unset):
+        status_code (list[str] | Unset):
+        method (list[str] | Unset):
+        task (list[str] | Unset):
+        task_run (list[str] | Unset):
+        sandbox (list[str] | Unset):
+        build (list[str] | Unset):
+        level (list[str] | Unset):
+        type_ (list[str] | Unset):
+        text (list[str] | Unset):
+        path (list[str] | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list[str]]]
+        Response[Error | list[str]]
     """
 
     kwargs = _get_kwargs(
@@ -303,27 +299,27 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
     label: ListLogsValuesLabel,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
     resource: list[str],
-    instance: Union[Unset, list[str]] = UNSET,
-    host: Union[Unset, list[str]] = UNSET,
-    status_code: Union[Unset, list[str]] = UNSET,
-    method: Union[Unset, list[str]] = UNSET,
-    task: Union[Unset, list[str]] = UNSET,
-    task_run: Union[Unset, list[str]] = UNSET,
-    sandbox: Union[Unset, list[str]] = UNSET,
-    build: Union[Unset, list[str]] = UNSET,
-    level: Union[Unset, list[str]] = UNSET,
-    type_: Union[Unset, list[str]] = UNSET,
-    text: Union[Unset, list[str]] = UNSET,
-    path: Union[Unset, list[str]] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list[str]]]:
+    instance: list[str] | Unset = UNSET,
+    host: list[str] | Unset = UNSET,
+    status_code: list[str] | Unset = UNSET,
+    method: list[str] | Unset = UNSET,
+    task: list[str] | Unset = UNSET,
+    task_run: list[str] | Unset = UNSET,
+    sandbox: list[str] | Unset = UNSET,
+    build: list[str] | Unset = UNSET,
+    level: list[str] | Unset = UNSET,
+    type_: list[str] | Unset = UNSET,
+    text: list[str] | Unset = UNSET,
+    path: list[str] | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[str] | None:
     """List log label values
 
      List all values for a given log label in the logs matching the provided filters.
@@ -331,30 +327,30 @@ def sync(
     Args:
         owner_id (str):
         label (ListLogsValuesLabel):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        direction (Union[Unset, LogDirection]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        direction (LogDirection | Unset):
         resource (list[str]):
-        instance (Union[Unset, list[str]]):
-        host (Union[Unset, list[str]]):
-        status_code (Union[Unset, list[str]]):
-        method (Union[Unset, list[str]]):
-        task (Union[Unset, list[str]]):
-        task_run (Union[Unset, list[str]]):
-        sandbox (Union[Unset, list[str]]):
-        build (Union[Unset, list[str]]):
-        level (Union[Unset, list[str]]):
-        type_ (Union[Unset, list[str]]):
-        text (Union[Unset, list[str]]):
-        path (Union[Unset, list[str]]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        instance (list[str] | Unset):
+        host (list[str] | Unset):
+        status_code (list[str] | Unset):
+        method (list[str] | Unset):
+        task (list[str] | Unset):
+        task_run (list[str] | Unset):
+        sandbox (list[str] | Unset):
+        build (list[str] | Unset):
+        level (list[str] | Unset):
+        type_ (list[str] | Unset):
+        text (list[str] | Unset):
+        path (list[str] | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list[str]]
+        Error | list[str]
     """
 
     return sync_detailed(
@@ -383,27 +379,27 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
     label: ListLogsValuesLabel,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
     resource: list[str],
-    instance: Union[Unset, list[str]] = UNSET,
-    host: Union[Unset, list[str]] = UNSET,
-    status_code: Union[Unset, list[str]] = UNSET,
-    method: Union[Unset, list[str]] = UNSET,
-    task: Union[Unset, list[str]] = UNSET,
-    task_run: Union[Unset, list[str]] = UNSET,
-    sandbox: Union[Unset, list[str]] = UNSET,
-    build: Union[Unset, list[str]] = UNSET,
-    level: Union[Unset, list[str]] = UNSET,
-    type_: Union[Unset, list[str]] = UNSET,
-    text: Union[Unset, list[str]] = UNSET,
-    path: Union[Unset, list[str]] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list[str]]]:
+    instance: list[str] | Unset = UNSET,
+    host: list[str] | Unset = UNSET,
+    status_code: list[str] | Unset = UNSET,
+    method: list[str] | Unset = UNSET,
+    task: list[str] | Unset = UNSET,
+    task_run: list[str] | Unset = UNSET,
+    sandbox: list[str] | Unset = UNSET,
+    build: list[str] | Unset = UNSET,
+    level: list[str] | Unset = UNSET,
+    type_: list[str] | Unset = UNSET,
+    text: list[str] | Unset = UNSET,
+    path: list[str] | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[str]]:
     """List log label values
 
      List all values for a given log label in the logs matching the provided filters.
@@ -411,30 +407,30 @@ async def asyncio_detailed(
     Args:
         owner_id (str):
         label (ListLogsValuesLabel):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        direction (Union[Unset, LogDirection]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        direction (LogDirection | Unset):
         resource (list[str]):
-        instance (Union[Unset, list[str]]):
-        host (Union[Unset, list[str]]):
-        status_code (Union[Unset, list[str]]):
-        method (Union[Unset, list[str]]):
-        task (Union[Unset, list[str]]):
-        task_run (Union[Unset, list[str]]):
-        sandbox (Union[Unset, list[str]]):
-        build (Union[Unset, list[str]]):
-        level (Union[Unset, list[str]]):
-        type_ (Union[Unset, list[str]]):
-        text (Union[Unset, list[str]]):
-        path (Union[Unset, list[str]]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        instance (list[str] | Unset):
+        host (list[str] | Unset):
+        status_code (list[str] | Unset):
+        method (list[str] | Unset):
+        task (list[str] | Unset):
+        task_run (list[str] | Unset):
+        sandbox (list[str] | Unset):
+        build (list[str] | Unset):
+        level (list[str] | Unset):
+        type_ (list[str] | Unset):
+        text (list[str] | Unset):
+        path (list[str] | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list[str]]]
+        Response[Error | list[str]]
     """
 
     kwargs = _get_kwargs(
@@ -466,27 +462,27 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
     label: ListLogsValuesLabel,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
     resource: list[str],
-    instance: Union[Unset, list[str]] = UNSET,
-    host: Union[Unset, list[str]] = UNSET,
-    status_code: Union[Unset, list[str]] = UNSET,
-    method: Union[Unset, list[str]] = UNSET,
-    task: Union[Unset, list[str]] = UNSET,
-    task_run: Union[Unset, list[str]] = UNSET,
-    sandbox: Union[Unset, list[str]] = UNSET,
-    build: Union[Unset, list[str]] = UNSET,
-    level: Union[Unset, list[str]] = UNSET,
-    type_: Union[Unset, list[str]] = UNSET,
-    text: Union[Unset, list[str]] = UNSET,
-    path: Union[Unset, list[str]] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list[str]]]:
+    instance: list[str] | Unset = UNSET,
+    host: list[str] | Unset = UNSET,
+    status_code: list[str] | Unset = UNSET,
+    method: list[str] | Unset = UNSET,
+    task: list[str] | Unset = UNSET,
+    task_run: list[str] | Unset = UNSET,
+    sandbox: list[str] | Unset = UNSET,
+    build: list[str] | Unset = UNSET,
+    level: list[str] | Unset = UNSET,
+    type_: list[str] | Unset = UNSET,
+    text: list[str] | Unset = UNSET,
+    path: list[str] | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[str] | None:
     """List log label values
 
      List all values for a given log label in the logs matching the provided filters.
@@ -494,30 +490,30 @@ async def asyncio(
     Args:
         owner_id (str):
         label (ListLogsValuesLabel):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        direction (Union[Unset, LogDirection]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        direction (LogDirection | Unset):
         resource (list[str]):
-        instance (Union[Unset, list[str]]):
-        host (Union[Unset, list[str]]):
-        status_code (Union[Unset, list[str]]):
-        method (Union[Unset, list[str]]):
-        task (Union[Unset, list[str]]):
-        task_run (Union[Unset, list[str]]):
-        sandbox (Union[Unset, list[str]]):
-        build (Union[Unset, list[str]]):
-        level (Union[Unset, list[str]]):
-        type_ (Union[Unset, list[str]]):
-        text (Union[Unset, list[str]]):
-        path (Union[Unset, list[str]]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        instance (list[str] | Unset):
+        host (list[str] | Unset):
+        status_code (list[str] | Unset):
+        method (list[str] | Unset):
+        task (list[str] | Unset):
+        task_run (list[str] | Unset):
+        sandbox (list[str] | Unset):
+        build (list[str] | Unset):
+        level (list[str] | Unset):
+        type_ (list[str] | Unset):
+        text (list[str] | Unset):
+        path (list[str] | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list[str]]
+        Error | list[str]
     """
 
     return (

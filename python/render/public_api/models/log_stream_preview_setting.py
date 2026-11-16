@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class LogStreamPreviewSetting(str, Enum):
+class LogStreamPreviewSetting(StrEnum):
     DROP = "drop"
     SEND = "send"
 

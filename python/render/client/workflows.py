@@ -6,7 +6,7 @@ This module provides the WorkflowsService class for workflow-related API operati
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import httpx2
 
 from render.client import _flow_wait
 from render.client._requests import (
@@ -164,10 +164,10 @@ class WorkflowsService:
         """
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
-        timeout = httpx.Timeout(
+        timeout = httpx2.Timeout(
             connect=5.0, write=5.0, read=None, pool=None
         )  # These can be long lived
-        async with httpx.AsyncClient(timeout=timeout) as http_client:
+        async with httpx2.AsyncClient(timeout=timeout) as http_client:
             headers = kwargs.get("headers", {})
             headers.update(
                 {
@@ -193,7 +193,7 @@ class WorkflowsService:
                     async for event in parse_stream(response.aiter_bytes()):
                         yield event
 
-            except httpx.RequestError as e:
+            except httpx2.RequestError as e:
                 handle_httpx_exception(e, "SSE connection")
 
     async def start_task(

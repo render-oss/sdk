@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class SecretFileWithCursor:
         cursor (str):
     """
 
-    secret_file: "SecretFile"
+    secret_file: SecretFile
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class SecretFileWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.secret_file import SecretFile
+        from ..models.secret_file import SecretFile  # noqa: PLC0415
 
         d = dict(src_dict)
         secret_file = SecretFile.from_dict(d.pop("secretFile"))

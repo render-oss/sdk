@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,26 +19,26 @@ class FlowRunErrorDetails:
     Attributes:
         code (FlowRunErrorDetailsCode):
         message (str):
-        seq (Union[Unset, int]):
-        sub_key (Union[Unset, str]):
-        flow_attempt (Union[Unset, int]):
-        kind (Union[Unset, FlowRunErrorDetailsKind]):
-        expected (Union[Unset, str]):
-        actual (Union[Unset, str]):
-        limit (Union[Unset, int]):
-        value (Union[Unset, int]):
+        seq (int | Unset):
+        sub_key (str | Unset):
+        flow_attempt (int | Unset):
+        kind (FlowRunErrorDetailsKind | Unset):
+        expected (str | Unset):
+        actual (str | Unset):
+        limit (int | Unset):
+        value (int | Unset):
     """
 
     code: FlowRunErrorDetailsCode
     message: str
-    seq: Union[Unset, int] = UNSET
-    sub_key: Union[Unset, str] = UNSET
-    flow_attempt: Union[Unset, int] = UNSET
-    kind: Union[Unset, FlowRunErrorDetailsKind] = UNSET
-    expected: Union[Unset, str] = UNSET
-    actual: Union[Unset, str] = UNSET
-    limit: Union[Unset, int] = UNSET
-    value: Union[Unset, int] = UNSET
+    seq: int | Unset = UNSET
+    sub_key: str | Unset = UNSET
+    flow_attempt: int | Unset = UNSET
+    kind: FlowRunErrorDetailsKind | Unset = UNSET
+    expected: str | Unset = UNSET
+    actual: str | Unset = UNSET
+    limit: int | Unset = UNSET
+    value: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -50,7 +52,7 @@ class FlowRunErrorDetails:
 
         flow_attempt = self.flow_attempt
 
-        kind: Union[Unset, str] = UNSET
+        kind: str | Unset = UNSET
         if not isinstance(self.kind, Unset):
             kind = self.kind.value
 
@@ -103,7 +105,7 @@ class FlowRunErrorDetails:
         flow_attempt = d.pop("flowAttempt", UNSET)
 
         _kind = d.pop("kind", UNSET)
-        kind: Union[Unset, FlowRunErrorDetailsKind]
+        kind: FlowRunErrorDetailsKind | Unset
         if isinstance(_kind, Unset):
             kind = UNSET
         else:

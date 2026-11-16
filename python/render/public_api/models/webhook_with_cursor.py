@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class WebhookWithCursor:
         cursor (str):
     """
 
-    webhook: "Webhook"
+    webhook: Webhook
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class WebhookWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.webhook import Webhook
+        from ..models.webhook import Webhook  # noqa: PLC0415
 
         d = dict(src_dict)
         webhook = Webhook.from_dict(d.pop("webhook"))

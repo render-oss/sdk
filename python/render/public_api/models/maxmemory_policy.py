@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class MaxmemoryPolicy(str, Enum):
+class MaxmemoryPolicy(StrEnum):
     ALLKEYS_LFU = "allkeys_lfu"
     ALLKEYS_LRU = "allkeys_lru"
     ALLKEYS_RANDOM = "allkeys_random"

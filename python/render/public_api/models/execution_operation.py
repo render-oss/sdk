@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ExecutionOperation(str, Enum):
+class ExecutionOperation(StrEnum):
     DOWNLOAD = "download"
     STREAM = "stream"
     SYNC = "sync"

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class FlowRunWithCursor:
         cursor (str):
     """
 
-    flow_run: "FlowRun"
+    flow_run: FlowRun
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class FlowRunWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.flow_run import FlowRun
+        from ..models.flow_run import FlowRun  # noqa: PLC0415
 
         d = dict(src_dict)
         flow_run = FlowRun.from_dict(d.pop("flowRun"))

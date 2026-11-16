@@ -6,10 +6,8 @@ from render.public_api.api.services_headers.list_headers import (
     Error as Error,
     HTTPStatus as HTTPStatus,
     HeaderWithCursor as HeaderWithCursor,
-    Optional as Optional,
     Response as Response,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
@@ -17,6 +15,7 @@ from render.public_api.api.services_headers.list_headers import (
     asyncio as asyncio,
     asyncio_detailed as asyncio_detailed,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

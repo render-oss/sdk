@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -16,18 +18,18 @@ T = TypeVar("T", bound="GetBandwidthSourcesResponse200DataItemLabels")
 class GetBandwidthSourcesResponse200DataItemLabels:
     """
     Attributes:
-        resource (Union[Unset, str]):  Example: srv-abc123.
-        traffic_source (Union[Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource]):  Example: http.
+        resource (str | Unset):  Example: srv-abc123.
+        traffic_source (GetBandwidthSourcesResponse200DataItemLabelsTrafficSource | Unset):  Example: http.
     """
 
-    resource: Union[Unset, str] = UNSET
-    traffic_source: Union[Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource] = UNSET
+    resource: str | Unset = UNSET
+    traffic_source: GetBandwidthSourcesResponse200DataItemLabelsTrafficSource | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         resource = self.resource
 
-        traffic_source: Union[Unset, str] = UNSET
+        traffic_source: str | Unset = UNSET
         if not isinstance(self.traffic_source, Unset):
             traffic_source = self.traffic_source.value
 
@@ -47,7 +49,7 @@ class GetBandwidthSourcesResponse200DataItemLabels:
         resource = d.pop("resource", UNSET)
 
         _traffic_source = d.pop("trafficSource", UNSET)
-        traffic_source: Union[Unset, GetBandwidthSourcesResponse200DataItemLabelsTrafficSource]
+        traffic_source: GetBandwidthSourcesResponse200DataItemLabelsTrafficSource | Unset
         if isinstance(_traffic_source, Unset):
             traffic_source = UNSET
         else:

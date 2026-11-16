@@ -43,7 +43,7 @@ SYNTAX_REPLACEMENTS = [
     ("async with ", "with "),
     ("AsyncIterator", "Iterator"),
     ("asyncio_detailed", "sync_detailed"),
-    ("httpx.AsyncClient", "httpx.Client"),
+    ("httpx2.AsyncClient", "httpx2.Client"),
     ("aiter_bytes", "iter_bytes"),
     ("_file_to_async_iterable", "_file_to_iterable"),
     ("aiter_tar_gzip", "iter_tar_gzip"),

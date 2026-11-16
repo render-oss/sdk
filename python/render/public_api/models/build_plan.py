@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildPlan(str, Enum):
+class BuildPlan(StrEnum):
     PERFORMANCE = "performance"
     STARTER = "starter"
 

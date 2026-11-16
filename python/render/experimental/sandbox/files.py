@@ -27,7 +27,7 @@ _T = TypeVar("_T")
 
 _PARTIAL_PREFIX = ".render-partial-"
 
-# Codings httpx negotiates and decodes before we see the body. Anything else
+# Codings httpx2 negotiates and decodes before we see the body. Anything else
 # arrives as-is, and passing those bytes on means writing them to disk as the
 # file or reading them as a tar, so we refuse instead.
 _DECODED_CODINGS = frozenset({"gzip", "x-gzip"})
@@ -86,9 +86,9 @@ def base_name(name: str) -> str:
 
 
 def check_content_encoding(header: str) -> None:
-    """Refuse a body that arrives under a coding httpx has not already undone.
+    """Refuse a body that arrives under a coding httpx2 has not already undone.
 
-    httpx sets its own Accept-Encoding, transparently decodes a gzip response,
+    httpx2 sets its own Accept-Encoding, transparently decodes a gzip response,
     and leaves the header in place, so gzip here means the body is already
     plain. Content-Type: application/gzip is a payload type, not an encoding,
     and is deliberately not handled here.
@@ -192,7 +192,7 @@ class _TerminatedReader:
     tarfile stops reading at the end-of-archive marker, so a complete archive
     never reaches the end of the stream and never trips this; a truncated one
     does. Nothing else catches that: tarfile reads a stream that simply stopped
-    on a 512-byte boundary as a clean end of archive, and httpx's decompressor
+    on a 512-byte boundary as a clean end of archive, and httpx2's decompressor
     does not check the gzip trailer, so a cut-off transfer would otherwise
     extract part of a tree and report success.
     """

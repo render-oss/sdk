@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -12,13 +12,13 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    task_slug: Union[Unset, list[str]] = UNSET,
-    root_task_run_id: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    task_slug: list[str] | Unset = UNSET,
+    root_task_run_id: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -26,31 +26,31 @@ def _get_kwargs(
 
     params["limit"] = limit
 
-    json_task_slug: Union[Unset, list[str]] = UNSET
+    json_task_slug: list[str] | Unset = UNSET
     if not isinstance(task_slug, Unset):
         json_task_slug = task_slug
 
     params["taskSlug"] = json_task_slug
 
-    json_root_task_run_id: Union[Unset, list[str]] = UNSET
+    json_root_task_run_id: list[str] | Unset = UNSET
     if not isinstance(root_task_run_id, Unset):
         json_root_task_run_id = root_task_run_id
 
     params["rootTaskRunId"] = json_root_task_run_id
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
     params["ownerId"] = json_owner_id
 
-    json_workflow_version_id: Union[Unset, list[str]] = UNSET
+    json_workflow_version_id: list[str] | Unset = UNSET
     if not isinstance(workflow_version_id, Unset):
         json_workflow_version_id = workflow_version_id
 
     params["workflowVersionId"] = json_workflow_version_id
 
-    json_workflow_id: Union[Unset, list[str]] = UNSET
+    json_workflow_id: list[str] | Unset = UNSET
     if not isinstance(workflow_id, Unset):
         json_workflow_id = workflow_id
 
@@ -68,8 +68,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[TaskRunWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -122,8 +122,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[TaskRunWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -134,35 +134,35 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    task_slug: Union[Unset, list[str]] = UNSET,
-    root_task_run_id: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    task_slug: list[str] | Unset = UNSET,
+    root_task_run_id: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[TaskRunWithCursor]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_slug (Union[Unset, list[str]]):
-        root_task_run_id (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        task_slug (list[str] | Unset):
+        root_task_run_id (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TaskRunWithCursor']]]
+        Response[Error | list[TaskRunWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -184,35 +184,35 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    task_slug: Union[Unset, list[str]] = UNSET,
-    root_task_run_id: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    task_slug: list[str] | Unset = UNSET,
+    root_task_run_id: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Error | list[TaskRunWithCursor] | None:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_slug (Union[Unset, list[str]]):
-        root_task_run_id (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        task_slug (list[str] | Unset):
+        root_task_run_id (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TaskRunWithCursor']]
+        Error | list[TaskRunWithCursor]
     """
 
     return sync_detailed(
@@ -229,35 +229,35 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    task_slug: Union[Unset, list[str]] = UNSET,
-    root_task_run_id: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["TaskRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    task_slug: list[str] | Unset = UNSET,
+    root_task_run_id: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[TaskRunWithCursor]]:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_slug (Union[Unset, list[str]]):
-        root_task_run_id (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        task_slug (list[str] | Unset):
+        root_task_run_id (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TaskRunWithCursor']]]
+        Response[Error | list[TaskRunWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -277,35 +277,35 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    task_slug: Union[Unset, list[str]] = UNSET,
-    root_task_run_id: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["TaskRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    task_slug: list[str] | Unset = UNSET,
+    root_task_run_id: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Error | list[TaskRunWithCursor] | None:
     """List task runs
 
      List task runs that match the provided filters. If no filters are provided, all task runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        task_slug (Union[Unset, list[str]]):
-        root_task_run_id (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        task_slug (list[str] | Unset):
+        root_task_run_id (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TaskRunWithCursor']]
+        Error | list[TaskRunWithCursor]
     """
 
     return (

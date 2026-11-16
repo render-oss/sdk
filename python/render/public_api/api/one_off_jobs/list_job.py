@@ -1,8 +1,9 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,15 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     service_id: str,
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    status: Union[Unset, list[JobStatus]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    started_before: Union[Unset, datetime.datetime] = UNSET,
-    started_after: Union[Unset, datetime.datetime] = UNSET,
-    finished_before: Union[Unset, datetime.datetime] = UNSET,
-    finished_after: Union[Unset, datetime.datetime] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    status: list[JobStatus] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    started_before: datetime.datetime | Unset = UNSET,
+    started_after: datetime.datetime | Unset = UNSET,
+    finished_before: datetime.datetime | Unset = UNSET,
+    finished_after: datetime.datetime | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -31,7 +32,7 @@ def _get_kwargs(
 
     params["limit"] = limit
 
-    json_status: Union[Unset, list[str]] = UNSET
+    json_status: list[str] | Unset = UNSET
     if not isinstance(status, Unset):
         json_status = []
         for status_item_data in status:
@@ -40,32 +41,32 @@ def _get_kwargs(
 
     params["status"] = json_status
 
-    json_created_before: Union[Unset, str] = UNSET
+    json_created_before: str | Unset = UNSET
     if not isinstance(created_before, Unset):
         json_created_before = created_before.isoformat()
     params["createdBefore"] = json_created_before
 
-    json_created_after: Union[Unset, str] = UNSET
+    json_created_after: str | Unset = UNSET
     if not isinstance(created_after, Unset):
         json_created_after = created_after.isoformat()
     params["createdAfter"] = json_created_after
 
-    json_started_before: Union[Unset, str] = UNSET
+    json_started_before: str | Unset = UNSET
     if not isinstance(started_before, Unset):
         json_started_before = started_before.isoformat()
     params["startedBefore"] = json_started_before
 
-    json_started_after: Union[Unset, str] = UNSET
+    json_started_after: str | Unset = UNSET
     if not isinstance(started_after, Unset):
         json_started_after = started_after.isoformat()
     params["startedAfter"] = json_started_after
 
-    json_finished_before: Union[Unset, str] = UNSET
+    json_finished_before: str | Unset = UNSET
     if not isinstance(finished_before, Unset):
         json_finished_before = finished_before.isoformat()
     params["finishedBefore"] = json_finished_before
 
-    json_finished_after: Union[Unset, str] = UNSET
+    json_finished_after: str | Unset = UNSET
     if not isinstance(finished_after, Unset):
         json_finished_after = finished_after.isoformat()
     params["finishedAfter"] = json_finished_after
@@ -74,7 +75,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/jobs",
+        "url": "/services/{service_id}/jobs".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -82,8 +85,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["JobWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[JobWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -131,8 +134,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["JobWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[JobWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -144,17 +147,17 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    status: Union[Unset, list[JobStatus]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    started_before: Union[Unset, datetime.datetime] = UNSET,
-    started_after: Union[Unset, datetime.datetime] = UNSET,
-    finished_before: Union[Unset, datetime.datetime] = UNSET,
-    finished_after: Union[Unset, datetime.datetime] = UNSET,
-) -> Response[Union[Error, list["JobWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    status: list[JobStatus] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    started_before: datetime.datetime | Unset = UNSET,
+    started_after: datetime.datetime | Unset = UNSET,
+    finished_before: datetime.datetime | Unset = UNSET,
+    finished_after: datetime.datetime | Unset = UNSET,
+) -> Response[Error | list[JobWithCursor]]:
     """List jobs
 
      List jobs for the provided service that match the provided filters. If no filters are provided, all
@@ -162,22 +165,22 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        status (Union[Unset, list[JobStatus]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        started_before (Union[Unset, datetime.datetime]):
-        started_after (Union[Unset, datetime.datetime]):
-        finished_before (Union[Unset, datetime.datetime]):
-        finished_after (Union[Unset, datetime.datetime]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        status (list[JobStatus] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        started_before (datetime.datetime | Unset):
+        started_after (datetime.datetime | Unset):
+        finished_before (datetime.datetime | Unset):
+        finished_after (datetime.datetime | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['JobWithCursor']]]
+        Response[Error | list[JobWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -203,17 +206,17 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    status: Union[Unset, list[JobStatus]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    started_before: Union[Unset, datetime.datetime] = UNSET,
-    started_after: Union[Unset, datetime.datetime] = UNSET,
-    finished_before: Union[Unset, datetime.datetime] = UNSET,
-    finished_after: Union[Unset, datetime.datetime] = UNSET,
-) -> Optional[Union[Error, list["JobWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    status: list[JobStatus] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    started_before: datetime.datetime | Unset = UNSET,
+    started_after: datetime.datetime | Unset = UNSET,
+    finished_before: datetime.datetime | Unset = UNSET,
+    finished_after: datetime.datetime | Unset = UNSET,
+) -> Error | list[JobWithCursor] | None:
     """List jobs
 
      List jobs for the provided service that match the provided filters. If no filters are provided, all
@@ -221,22 +224,22 @@ def sync(
 
     Args:
         service_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        status (Union[Unset, list[JobStatus]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        started_before (Union[Unset, datetime.datetime]):
-        started_after (Union[Unset, datetime.datetime]):
-        finished_before (Union[Unset, datetime.datetime]):
-        finished_after (Union[Unset, datetime.datetime]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        status (list[JobStatus] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        started_before (datetime.datetime | Unset):
+        started_after (datetime.datetime | Unset):
+        finished_before (datetime.datetime | Unset):
+        finished_after (datetime.datetime | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['JobWithCursor']]
+        Error | list[JobWithCursor]
     """
 
     return sync_detailed(
@@ -257,17 +260,17 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    status: Union[Unset, list[JobStatus]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    started_before: Union[Unset, datetime.datetime] = UNSET,
-    started_after: Union[Unset, datetime.datetime] = UNSET,
-    finished_before: Union[Unset, datetime.datetime] = UNSET,
-    finished_after: Union[Unset, datetime.datetime] = UNSET,
-) -> Response[Union[Error, list["JobWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    status: list[JobStatus] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    started_before: datetime.datetime | Unset = UNSET,
+    started_after: datetime.datetime | Unset = UNSET,
+    finished_before: datetime.datetime | Unset = UNSET,
+    finished_after: datetime.datetime | Unset = UNSET,
+) -> Response[Error | list[JobWithCursor]]:
     """List jobs
 
      List jobs for the provided service that match the provided filters. If no filters are provided, all
@@ -275,22 +278,22 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        status (Union[Unset, list[JobStatus]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        started_before (Union[Unset, datetime.datetime]):
-        started_after (Union[Unset, datetime.datetime]):
-        finished_before (Union[Unset, datetime.datetime]):
-        finished_after (Union[Unset, datetime.datetime]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        status (list[JobStatus] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        started_before (datetime.datetime | Unset):
+        started_after (datetime.datetime | Unset):
+        finished_before (datetime.datetime | Unset):
+        finished_after (datetime.datetime | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['JobWithCursor']]]
+        Response[Error | list[JobWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -314,17 +317,17 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    status: Union[Unset, list[JobStatus]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    started_before: Union[Unset, datetime.datetime] = UNSET,
-    started_after: Union[Unset, datetime.datetime] = UNSET,
-    finished_before: Union[Unset, datetime.datetime] = UNSET,
-    finished_after: Union[Unset, datetime.datetime] = UNSET,
-) -> Optional[Union[Error, list["JobWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    status: list[JobStatus] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    started_before: datetime.datetime | Unset = UNSET,
+    started_after: datetime.datetime | Unset = UNSET,
+    finished_before: datetime.datetime | Unset = UNSET,
+    finished_after: datetime.datetime | Unset = UNSET,
+) -> Error | list[JobWithCursor] | None:
     """List jobs
 
      List jobs for the provided service that match the provided filters. If no filters are provided, all
@@ -332,22 +335,22 @@ async def asyncio(
 
     Args:
         service_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        status (Union[Unset, list[JobStatus]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        started_before (Union[Unset, datetime.datetime]):
-        started_after (Union[Unset, datetime.datetime]):
-        finished_before (Union[Unset, datetime.datetime]):
-        finished_after (Union[Unset, datetime.datetime]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        status (list[JobStatus] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        started_before (datetime.datetime | Unset):
+        started_after (datetime.datetime | Unset):
+        finished_before (datetime.datetime | Unset):
+        finished_after (datetime.datetime | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['JobWithCursor']]
+        Error | list[JobWithCursor]
     """
 
     return (

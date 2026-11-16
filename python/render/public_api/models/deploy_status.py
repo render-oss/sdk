@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DeployStatus(str, Enum):
+class DeployStatus(StrEnum):
     BUILD_FAILED = "build_failed"
     BUILD_IN_PROGRESS = "build_in_progress"
     CANCELED = "canceled"

@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -26,11 +27,11 @@ class EnvGroup:
         owner_id (str):
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
-        service_links (list['EnvGroupLink']): List of serviceIds linked to the envGroup
-        environment_id (Union[Unset, str]):
-        env_vars (Union[Unset, list['EnvVar']]): Omitted if the caller doesn't have the permission to read the
-            environment group's secret values.
-        secret_files (Union[Unset, list['SecretFile']]): Omitted if the caller doesn't have the permission to read the
+        service_links (list[EnvGroupLink]): List of serviceIds linked to the envGroup
+        environment_id (str | Unset):
+        env_vars (list[EnvVar] | Unset): Omitted if the caller doesn't have the permission to read the environment
+            group's secret values.
+        secret_files (list[SecretFile] | Unset): Omitted if the caller doesn't have the permission to read the
             environment group's secret values.
     """
 
@@ -39,10 +40,10 @@ class EnvGroup:
     owner_id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    service_links: list["EnvGroupLink"]
-    environment_id: Union[Unset, str] = UNSET
-    env_vars: Union[Unset, list["EnvVar"]] = UNSET
-    secret_files: Union[Unset, list["SecretFile"]] = UNSET
+    service_links: list[EnvGroupLink]
+    environment_id: str | Unset = UNSET
+    env_vars: list[EnvVar] | Unset = UNSET
+    secret_files: list[SecretFile] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -63,14 +64,14 @@ class EnvGroup:
 
         environment_id = self.environment_id
 
-        env_vars: Union[Unset, list[dict[str, Any]]] = UNSET
+        env_vars: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.env_vars, Unset):
             env_vars = []
             for env_vars_item_data in self.env_vars:
                 env_vars_item = env_vars_item_data.to_dict()
                 env_vars.append(env_vars_item)
 
-        secret_files: Union[Unset, list[dict[str, Any]]] = UNSET
+        secret_files: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.secret_files, Unset):
             secret_files = []
             for secret_files_item_data in self.secret_files:
@@ -100,9 +101,9 @@ class EnvGroup:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.env_group_link import EnvGroupLink
-        from ..models.env_var import EnvVar
-        from ..models.secret_file import SecretFile
+        from ..models.env_group_link import EnvGroupLink  # noqa: PLC0415
+        from ..models.env_var import EnvVar  # noqa: PLC0415
+        from ..models.secret_file import SecretFile  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -111,9 +112,9 @@ class EnvGroup:
 
         owner_id = d.pop("ownerId")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         service_links = []
         _service_links = d.pop("serviceLinks")
@@ -124,19 +125,23 @@ class EnvGroup:
 
         environment_id = d.pop("environmentId", UNSET)
 
-        env_vars = []
         _env_vars = d.pop("envVars", UNSET)
-        for env_vars_item_data in _env_vars or []:
-            env_vars_item = EnvVar.from_dict(env_vars_item_data)
+        env_vars: list[EnvVar] | Unset = UNSET
+        if _env_vars is not UNSET:
+            env_vars = []
+            for env_vars_item_data in _env_vars:
+                env_vars_item = EnvVar.from_dict(env_vars_item_data)
 
-            env_vars.append(env_vars_item)
+                env_vars.append(env_vars_item)
 
-        secret_files = []
         _secret_files = d.pop("secretFiles", UNSET)
-        for secret_files_item_data in _secret_files or []:
-            secret_files_item = SecretFile.from_dict(secret_files_item_data)
+        secret_files: list[SecretFile] | Unset = UNSET
+        if _secret_files is not UNSET:
+            secret_files = []
+            for secret_files_item_data in _secret_files:
+                secret_files_item = SecretFile.from_dict(secret_files_item_data)
 
-            secret_files.append(secret_files_item)
+                secret_files.append(secret_files_item)
 
         env_group = cls(
             id=id,

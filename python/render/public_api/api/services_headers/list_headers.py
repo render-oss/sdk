@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,27 +14,27 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     service_id: str,
     *,
-    path: Union[Unset, list[str]] = UNSET,
-    name: Union[Unset, list[str]] = UNSET,
-    value: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    path: list[str] | Unset = UNSET,
+    name: list[str] | Unset = UNSET,
+    value: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_path: Union[Unset, list[str]] = UNSET
+    json_path: list[str] | Unset = UNSET
     if not isinstance(path, Unset):
         json_path = path
 
     params["path"] = json_path
 
-    json_name: Union[Unset, list[str]] = UNSET
+    json_name: list[str] | Unset = UNSET
     if not isinstance(name, Unset):
         json_name = name
 
     params["name"] = json_name
 
-    json_value: Union[Unset, list[str]] = UNSET
+    json_value: list[str] | Unset = UNSET
     if not isinstance(value, Unset):
         json_value = value
 
@@ -47,7 +48,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/headers",
+        "url": "/services/{service_id}/headers".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -55,8 +58,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["HeaderWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[HeaderWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -114,8 +117,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["HeaderWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[HeaderWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -127,13 +130,13 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    path: Union[Unset, list[str]] = UNSET,
-    name: Union[Unset, list[str]] = UNSET,
-    value: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["HeaderWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    path: list[str] | Unset = UNSET,
+    name: list[str] | Unset = UNSET,
+    value: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[HeaderWithCursor]]:
     """List header rules
 
      List a particular service's response header rules that match the provided filters. If no filters are
@@ -141,18 +144,18 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        path (Union[Unset, list[str]]):
-        name (Union[Unset, list[str]]):
-        value (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        path (list[str] | Unset):
+        name (list[str] | Unset):
+        value (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['HeaderWithCursor']]]
+        Response[Error | list[HeaderWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -174,13 +177,13 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    path: Union[Unset, list[str]] = UNSET,
-    name: Union[Unset, list[str]] = UNSET,
-    value: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["HeaderWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    path: list[str] | Unset = UNSET,
+    name: list[str] | Unset = UNSET,
+    value: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[HeaderWithCursor] | None:
     """List header rules
 
      List a particular service's response header rules that match the provided filters. If no filters are
@@ -188,18 +191,18 @@ def sync(
 
     Args:
         service_id (str):
-        path (Union[Unset, list[str]]):
-        name (Union[Unset, list[str]]):
-        value (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        path (list[str] | Unset):
+        name (list[str] | Unset):
+        value (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['HeaderWithCursor']]
+        Error | list[HeaderWithCursor]
     """
 
     return sync_detailed(
@@ -216,13 +219,13 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    path: Union[Unset, list[str]] = UNSET,
-    name: Union[Unset, list[str]] = UNSET,
-    value: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["HeaderWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    path: list[str] | Unset = UNSET,
+    name: list[str] | Unset = UNSET,
+    value: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[HeaderWithCursor]]:
     """List header rules
 
      List a particular service's response header rules that match the provided filters. If no filters are
@@ -230,18 +233,18 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        path (Union[Unset, list[str]]):
-        name (Union[Unset, list[str]]):
-        value (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        path (list[str] | Unset):
+        name (list[str] | Unset):
+        value (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['HeaderWithCursor']]]
+        Response[Error | list[HeaderWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -261,13 +264,13 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    path: Union[Unset, list[str]] = UNSET,
-    name: Union[Unset, list[str]] = UNSET,
-    value: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["HeaderWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    path: list[str] | Unset = UNSET,
+    name: list[str] | Unset = UNSET,
+    value: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[HeaderWithCursor] | None:
     """List header rules
 
      List a particular service's response header rules that match the provided filters. If no filters are
@@ -275,18 +278,18 @@ async def asyncio(
 
     Args:
         service_id (str):
-        path (Union[Unset, list[str]]):
-        name (Union[Unset, list[str]]):
-        value (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        path (list[str] | Unset):
+        name (list[str] | Unset):
+        value (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['HeaderWithCursor']]
+        Error | list[HeaderWithCursor]
     """
 
     return (

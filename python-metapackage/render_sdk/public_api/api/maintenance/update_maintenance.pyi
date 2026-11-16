@@ -6,9 +6,7 @@ from render.public_api.api.maintenance.update_maintenance import (
     Error as Error,
     HTTPStatus as HTTPStatus,
     MaintenanceRunPATCH as MaintenanceRunPATCH,
-    Optional as Optional,
     Response as Response,
-    Union as Union,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
     _parse_response as _parse_response,
@@ -16,6 +14,7 @@ from render.public_api.api.maintenance.update_maintenance import (
     asyncio_detailed as asyncio_detailed,
     cast as cast,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

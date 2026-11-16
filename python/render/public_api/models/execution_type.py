@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ExecutionType(str, Enum):
+class ExecutionType(StrEnum):
     FILES = "files"
     RUNS = "runs"
 

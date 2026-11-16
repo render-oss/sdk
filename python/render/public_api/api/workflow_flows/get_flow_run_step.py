@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,7 +15,7 @@ def _get_kwargs(
     flow_run_id: str,
     step_seq: int,
     *,
-    step_key: Union[Unset, str] = UNSET,
+    step_key: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -24,7 +25,10 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/flow-runs/{flow_run_id}/steps/{step_seq}",
+        "url": "/flow-runs/{flow_run_id}/steps/{step_seq}".format(
+            flow_run_id=quote(str(flow_run_id), safe=""),
+            step_seq=quote(str(step_seq), safe=""),
+        ),
         "params": params,
     }
 
@@ -32,8 +36,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, FlowRunStepDetails]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | FlowRunStepDetails | None:
     if response.status_code == 200:
         response_200 = FlowRunStepDetails.from_dict(response.json())
 
@@ -81,8 +85,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, FlowRunStepDetails]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | FlowRunStepDetails]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -95,9 +99,9 @@ def sync_detailed(
     flow_run_id: str,
     step_seq: int,
     *,
-    client: Union[AuthenticatedClient, Client],
-    step_key: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, FlowRunStepDetails]]:
+    client: AuthenticatedClient | Client,
+    step_key: str | Unset = UNSET,
+) -> Response[Error | FlowRunStepDetails]:
     """Retrieve flow run step
 
      Retrieve a single step of a flow run, including its input, result and error. A sequence number can
@@ -106,14 +110,14 @@ def sync_detailed(
     Args:
         flow_run_id (str):
         step_seq (int):
-        step_key (Union[Unset, str]):
+        step_key (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, FlowRunStepDetails]]
+        Response[Error | FlowRunStepDetails]
     """
 
     kwargs = _get_kwargs(
@@ -133,9 +137,9 @@ def sync(
     flow_run_id: str,
     step_seq: int,
     *,
-    client: Union[AuthenticatedClient, Client],
-    step_key: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, FlowRunStepDetails]]:
+    client: AuthenticatedClient | Client,
+    step_key: str | Unset = UNSET,
+) -> Error | FlowRunStepDetails | None:
     """Retrieve flow run step
 
      Retrieve a single step of a flow run, including its input, result and error. A sequence number can
@@ -144,14 +148,14 @@ def sync(
     Args:
         flow_run_id (str):
         step_seq (int):
-        step_key (Union[Unset, str]):
+        step_key (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, FlowRunStepDetails]
+        Error | FlowRunStepDetails
     """
 
     return sync_detailed(
@@ -166,9 +170,9 @@ async def asyncio_detailed(
     flow_run_id: str,
     step_seq: int,
     *,
-    client: Union[AuthenticatedClient, Client],
-    step_key: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, FlowRunStepDetails]]:
+    client: AuthenticatedClient | Client,
+    step_key: str | Unset = UNSET,
+) -> Response[Error | FlowRunStepDetails]:
     """Retrieve flow run step
 
      Retrieve a single step of a flow run, including its input, result and error. A sequence number can
@@ -177,14 +181,14 @@ async def asyncio_detailed(
     Args:
         flow_run_id (str):
         step_seq (int):
-        step_key (Union[Unset, str]):
+        step_key (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, FlowRunStepDetails]]
+        Response[Error | FlowRunStepDetails]
     """
 
     kwargs = _get_kwargs(
@@ -202,9 +206,9 @@ async def asyncio(
     flow_run_id: str,
     step_seq: int,
     *,
-    client: Union[AuthenticatedClient, Client],
-    step_key: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, FlowRunStepDetails]]:
+    client: AuthenticatedClient | Client,
+    step_key: str | Unset = UNSET,
+) -> Error | FlowRunStepDetails | None:
     """Retrieve flow run step
 
      Retrieve a single step of a flow run, including its input, result and error. A sequence number can
@@ -213,14 +217,14 @@ async def asyncio(
     Args:
         flow_run_id (str):
         step_seq (int):
-        step_key (Union[Unset, str]):
+        step_key (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, FlowRunStepDetails]
+        Error | FlowRunStepDetails
     """
 
     return (

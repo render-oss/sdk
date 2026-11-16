@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.database_status import DatabaseStatus
 from ..models.redis_plan import RedisPlan
@@ -34,10 +35,10 @@ class Redis:
         name (str): The name of the Redis instance
         owner (Owner):
         options (RedisOptions): Options for a Redis instance
-        ip_allow_list (list['CidrBlockAndDescription']): The IP allow list for the Redis instance
+        ip_allow_list (list[CidrBlockAndDescription]): The IP allow list for the Redis instance
         version (str): The version of Redis
         dashboard_url (str): The URL to view the Redis instance in the Render Dashboard
-        environment_id (Union[Unset, str]): The ID of the environment the Redis instance is associated with
+        environment_id (str | Unset): The ID of the environment the Redis instance is associated with
     """
 
     id: str
@@ -47,12 +48,12 @@ class Redis:
     region: Region
     plan: RedisPlan
     name: str
-    owner: "Owner"
-    options: "RedisOptions"
-    ip_allow_list: list["CidrBlockAndDescription"]
+    owner: Owner
+    options: RedisOptions
+    ip_allow_list: list[CidrBlockAndDescription]
     version: str
     dashboard_url: str
-    environment_id: Union[Unset, str] = UNSET
+    environment_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -110,16 +111,16 @@ class Redis:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.owner import Owner
-        from ..models.redis_options import RedisOptions
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.owner import Owner  # noqa: PLC0415
+        from ..models.redis_options import RedisOptions  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         status = DatabaseStatus(d.pop("status"))
 

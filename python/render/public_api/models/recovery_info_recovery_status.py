@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class RecoveryInfoRecoveryStatus(str, Enum):
+class RecoveryInfoRecoveryStatus(StrEnum):
     AVAILABLE = "AVAILABLE"
     BACKUP_NOT_READY = "BACKUP_NOT_READY"
     NOT_AVAILABLE = "NOT_AVAILABLE"

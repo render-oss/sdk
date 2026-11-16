@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.sandbox_plan import SandboxPlan
 from ..models.sandbox_snapshot_kind import SandboxSnapshotKind
@@ -26,22 +27,21 @@ class SandboxSnapshot:
             can be restored to any plan. A `runtime` snapshot also captures memory and CPU state and must be restored to the
             source sandbox plan.
         status (SandboxSnapshotStatus): The snapshot's current status.
-        plan (Union[SandboxPlan, str]): The source sandbox's compute plan when the snapshot was captured. See
-            `sandboxPlan` for known values.
+        plan (SandboxPlan | str): The source sandbox's compute plan when the snapshot was captured. See `sandboxPlan`
+            for known values.
         requested_at (datetime.datetime): The timestamp when the snapshot was requested, in ISO 8601 format.
         expires_at (datetime.datetime): The timestamp after which the snapshot can no longer be retrieved or restored,
             in ISO 8601 format. Each time you create a sandbox from this snapshot, Render resets its expiration to
             `ttlSeconds` seconds after that use. For snapshots with no expiration (`ttlSeconds: 0`), this is
             `9999-12-31T23:59:59Z`.
-        name (Union[None, Unset, str]): The name assigned when the snapshot was created. Cannot be changed. Null if no
-            name was provided.
-        captured_at (Union[None, Unset, datetime.datetime]): The timestamp when capture completed, in ISO 8601 format.
-            Null until the snapshot is `available`.
-        ttl_seconds (Union[Unset, int]): The snapshot's lifetime after its last use, in seconds. A value of 0 means the
+        name (None | str | Unset): The name assigned when the snapshot was created. Cannot be changed. Null if no name
+            was provided.
+        captured_at (datetime.datetime | None | Unset): The timestamp when capture completed, in ISO 8601 format. Null
+            until the snapshot is `available`.
+        ttl_seconds (int | Unset): The snapshot's lifetime after its last use, in seconds. A value of 0 means the
             snapshot does not expire. If omitted, Render's default snapshot lifetime applies.
-        size_bytes (Union[None, Unset, int]): The size of the snapshot, in bytes. Null until the snapshot is
-            `available`.
-        error (Union[None, Unset, str]): The reason the snapshot failed. Null unless its status is `failed`.
+        size_bytes (int | None | Unset): The size of the snapshot, in bytes. Null until the snapshot is `available`.
+        error (None | str | Unset): The reason the snapshot failed. Null unless its status is `failed`.
     """
 
     id: str
@@ -49,14 +49,14 @@ class SandboxSnapshot:
     source_sandbox_id: str
     kind: SandboxSnapshotKind
     status: SandboxSnapshotStatus
-    plan: Union[SandboxPlan, str]
+    plan: SandboxPlan | str
     requested_at: datetime.datetime
     expires_at: datetime.datetime
-    name: Union[None, Unset, str] = UNSET
-    captured_at: Union[None, Unset, datetime.datetime] = UNSET
-    ttl_seconds: Union[Unset, int] = UNSET
-    size_bytes: Union[None, Unset, int] = UNSET
-    error: Union[None, Unset, str] = UNSET
+    name: None | str | Unset = UNSET
+    captured_at: datetime.datetime | None | Unset = UNSET
+    ttl_seconds: int | Unset = UNSET
+    size_bytes: int | None | Unset = UNSET
+    error: None | str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -80,13 +80,13 @@ class SandboxSnapshot:
 
         expires_at = self.expires_at.isoformat()
 
-        name: Union[None, Unset, str]
+        name: None | str | Unset
         if isinstance(self.name, Unset):
             name = UNSET
         else:
             name = self.name
 
-        captured_at: Union[None, Unset, str]
+        captured_at: None | str | Unset
         if isinstance(self.captured_at, Unset):
             captured_at = UNSET
         elif isinstance(self.captured_at, datetime.datetime):
@@ -96,13 +96,13 @@ class SandboxSnapshot:
 
         ttl_seconds = self.ttl_seconds
 
-        size_bytes: Union[None, Unset, int]
+        size_bytes: int | None | Unset
         if isinstance(self.size_bytes, Unset):
             size_bytes = UNSET
         else:
             size_bytes = self.size_bytes
 
-        error: Union[None, Unset, str]
+        error: None | str | Unset
         if isinstance(self.error, Unset):
             error = UNSET
         else:
@@ -148,33 +148,33 @@ class SandboxSnapshot:
 
         status = SandboxSnapshotStatus(d.pop("status"))
 
-        def _parse_plan(data: object) -> Union[SandboxPlan, str]:
+        def _parse_plan(data: object) -> SandboxPlan | str:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
                 plan_type_0 = SandboxPlan(data)
 
                 return plan_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(Union[SandboxPlan, str], data)
+            return cast(SandboxPlan | str, data)
 
         plan = _parse_plan(d.pop("plan"))
 
-        requested_at = isoparse(d.pop("requestedAt"))
+        requested_at = datetime.datetime.fromisoformat(d.pop("requestedAt"))
 
-        expires_at = isoparse(d.pop("expiresAt"))
+        expires_at = datetime.datetime.fromisoformat(d.pop("expiresAt"))
 
-        def _parse_name(data: object) -> Union[None, Unset, str]:
+        def _parse_name(data: object) -> None | str | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            return cast(None | str | Unset, data)
 
         name = _parse_name(d.pop("name", UNSET))
 
-        def _parse_captured_at(data: object) -> Union[None, Unset, datetime.datetime]:
+        def _parse_captured_at(data: object) -> datetime.datetime | None | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -182,32 +182,32 @@ class SandboxSnapshot:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                captured_at_type_0 = isoparse(data)
+                captured_at_type_0 = datetime.datetime.fromisoformat(data)
 
                 return captured_at_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(Union[None, Unset, datetime.datetime], data)
+            return cast(datetime.datetime | None | Unset, data)
 
         captured_at = _parse_captured_at(d.pop("capturedAt", UNSET))
 
         ttl_seconds = d.pop("ttlSeconds", UNSET)
 
-        def _parse_size_bytes(data: object) -> Union[None, Unset, int]:
+        def _parse_size_bytes(data: object) -> int | None | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, int], data)
+            return cast(int | None | Unset, data)
 
         size_bytes = _parse_size_bytes(d.pop("sizeBytes", UNSET))
 
-        def _parse_error(data: object) -> Union[None, Unset, str]:
+        def _parse_error(data: object) -> None | str | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            return cast(None | str | Unset, data)
 
         error = _parse_error(d.pop("error", UNSET))
 

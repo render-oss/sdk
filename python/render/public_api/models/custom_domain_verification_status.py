@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class CustomDomainVerificationStatus(str, Enum):
+class CustomDomainVerificationStatus(StrEnum):
     UNVERIFIED = "unverified"
     VERIFIED = "verified"
 

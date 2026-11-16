@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -23,30 +25,30 @@ class BuildSourcePOSTInput:
     Attributes:
         owner_id (str):
         name (str):
-        project_id (Union[Unset, str]):
-        git (Union[Unset, BuildSourceGit]):
-        image (Union[Unset, BuildSourceImage]):
-        service_ids (Union[Unset, list[str]]):
-        env_vars (Union[Unset, list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]]):
-        secret_files (Union[Unset, list['SecretFileInput']]): Secret files for the build source's build. Only valid for
-            `git` sources.
-        env_group_ids (Union[Unset, list[str]]): IDs of env groups to link to the build source. Only valid for `git`
-            sources; env groups must belong to the same workspace and must not be scoped to an environment.
+        project_id (str | Unset):
+        git (BuildSourceGit | Unset):
+        image (BuildSourceImage | Unset):
+        service_ids (list[str] | Unset):
+        env_vars (list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset):
+        secret_files (list[SecretFileInput] | Unset): Secret files for the build source's build. Only valid for `git`
+            sources.
+        env_group_ids (list[str] | Unset): IDs of env groups to link to the build source. Only valid for `git` sources;
+            env groups must belong to the same workspace and must not be scoped to an environment.
     """
 
     owner_id: str
     name: str
-    project_id: Union[Unset, str] = UNSET
-    git: Union[Unset, "BuildSourceGit"] = UNSET
-    image: Union[Unset, "BuildSourceImage"] = UNSET
-    service_ids: Union[Unset, list[str]] = UNSET
-    env_vars: Union[Unset, list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]]] = UNSET
-    secret_files: Union[Unset, list["SecretFileInput"]] = UNSET
-    env_group_ids: Union[Unset, list[str]] = UNSET
+    project_id: str | Unset = UNSET
+    git: BuildSourceGit | Unset = UNSET
+    image: BuildSourceImage | Unset = UNSET
+    service_ids: list[str] | Unset = UNSET
+    env_vars: list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset = UNSET
+    secret_files: list[SecretFileInput] | Unset = UNSET
+    env_group_ids: list[str] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.env_var_key_value import EnvVarKeyValue
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
 
         owner_id = self.owner_id
 
@@ -54,19 +56,19 @@ class BuildSourcePOSTInput:
 
         project_id = self.project_id
 
-        git: Union[Unset, dict[str, Any]] = UNSET
+        git: dict[str, Any] | Unset = UNSET
         if not isinstance(self.git, Unset):
             git = self.git.to_dict()
 
-        image: Union[Unset, dict[str, Any]] = UNSET
+        image: dict[str, Any] | Unset = UNSET
         if not isinstance(self.image, Unset):
             image = self.image.to_dict()
 
-        service_ids: Union[Unset, list[str]] = UNSET
+        service_ids: list[str] | Unset = UNSET
         if not isinstance(self.service_ids, Unset):
             service_ids = self.service_ids
 
-        env_vars: Union[Unset, list[dict[str, Any]]] = UNSET
+        env_vars: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.env_vars, Unset):
             env_vars = []
             for componentsschemasenv_var_input_array_item_data in self.env_vars:
@@ -78,14 +80,14 @@ class BuildSourcePOSTInput:
 
                 env_vars.append(componentsschemasenv_var_input_array_item)
 
-        secret_files: Union[Unset, list[dict[str, Any]]] = UNSET
+        secret_files: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.secret_files, Unset):
             secret_files = []
             for secret_files_item_data in self.secret_files:
                 secret_files_item = secret_files_item_data.to_dict()
                 secret_files.append(secret_files_item)
 
-        env_group_ids: Union[Unset, list[str]] = UNSET
+        env_group_ids: list[str] | Unset = UNSET
         if not isinstance(self.env_group_ids, Unset):
             env_group_ids = self.env_group_ids
 
@@ -116,11 +118,11 @@ class BuildSourcePOSTInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_source_git import BuildSourceGit
-        from ..models.build_source_image import BuildSourceImage
-        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue
-        from ..models.env_var_key_value import EnvVarKeyValue
-        from ..models.secret_file_input import SecretFileInput
+        from ..models.build_source_git import BuildSourceGit  # noqa: PLC0415
+        from ..models.build_source_image import BuildSourceImage  # noqa: PLC0415
+        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue  # noqa: PLC0415
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
+        from ..models.secret_file_input import SecretFileInput  # noqa: PLC0415
 
         d = dict(src_dict)
         owner_id = d.pop("ownerId")
@@ -130,14 +132,14 @@ class BuildSourcePOSTInput:
         project_id = d.pop("projectId", UNSET)
 
         _git = d.pop("git", UNSET)
-        git: Union[Unset, BuildSourceGit]
+        git: BuildSourceGit | Unset
         if isinstance(_git, Unset):
             git = UNSET
         else:
             git = BuildSourceGit.from_dict(_git)
 
         _image = d.pop("image", UNSET)
-        image: Union[Unset, BuildSourceImage]
+        image: BuildSourceImage | Unset
         if isinstance(_image, Unset):
             image = UNSET
         else:
@@ -145,39 +147,43 @@ class BuildSourcePOSTInput:
 
         service_ids = cast(list[str], d.pop("serviceIds", UNSET))
 
-        env_vars = []
         _env_vars = d.pop("envVars", UNSET)
-        for componentsschemasenv_var_input_array_item_data in _env_vars or []:
+        env_vars: list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset = UNSET
+        if _env_vars is not UNSET:
+            env_vars = []
+            for componentsschemasenv_var_input_array_item_data in _env_vars:
 
-            def _parse_componentsschemasenv_var_input_array_item(
-                data: object,
-            ) -> Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]:
-                try:
+                def _parse_componentsschemasenv_var_input_array_item(
+                    data: object,
+                ) -> EnvVarKeyGenerateValue | EnvVarKeyValue:
+                    try:
+                        if not isinstance(data, dict):
+                            raise TypeError()
+                        componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+
+                        return componentsschemasenv_var_input_type_0
+                    except (TypeError, ValueError, AttributeError, KeyError):
+                        pass
                     if not isinstance(data, dict):
                         raise TypeError()
-                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+                    componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
 
-                    return componentsschemasenv_var_input_type_0
-                except:  # noqa: E722
-                    pass
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
+                    return componentsschemasenv_var_input_type_1
 
-                return componentsschemasenv_var_input_type_1
+                componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
+                    componentsschemasenv_var_input_array_item_data
+                )
 
-            componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
-                componentsschemasenv_var_input_array_item_data
-            )
+                env_vars.append(componentsschemasenv_var_input_array_item)
 
-            env_vars.append(componentsschemasenv_var_input_array_item)
-
-        secret_files = []
         _secret_files = d.pop("secretFiles", UNSET)
-        for secret_files_item_data in _secret_files or []:
-            secret_files_item = SecretFileInput.from_dict(secret_files_item_data)
+        secret_files: list[SecretFileInput] | Unset = UNSET
+        if _secret_files is not UNSET:
+            secret_files = []
+            for secret_files_item_data in _secret_files:
+                secret_files_item = SecretFileInput.from_dict(secret_files_item_data)
 
-            secret_files.append(secret_files_item)
+                secret_files.append(secret_files_item)
 
         env_group_ids = cast(list[str], d.pop("envGroupIds", UNSET))
 

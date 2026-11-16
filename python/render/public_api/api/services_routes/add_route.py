@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/services/{service_id}/routes",
+        "url": "/services/{service_id}/routes".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -31,9 +34,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Route]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Route | None:
     if response.status_code == 201:
         response_201 = Route.from_dict(response.json())
 
@@ -90,9 +91,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Route]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Route]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -104,9 +103,9 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePost,
-) -> Response[Union[Error, Route]]:
+) -> Response[Error | Route]:
     """Add redirect/rewrite rules
 
      Add redirect/rewrite rules to the service with the provided ID.
@@ -117,10 +116,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Route]]
+        Response[Error | Route]
     """
 
     kwargs = _get_kwargs(
@@ -138,9 +137,9 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePost,
-) -> Optional[Union[Error, Route]]:
+) -> Error | Route | None:
     """Add redirect/rewrite rules
 
      Add redirect/rewrite rules to the service with the provided ID.
@@ -151,10 +150,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Route]
+        Error | Route
     """
 
     return sync_detailed(
@@ -167,9 +166,9 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePost,
-) -> Response[Union[Error, Route]]:
+) -> Response[Error | Route]:
     """Add redirect/rewrite rules
 
      Add redirect/rewrite rules to the service with the provided ID.
@@ -180,10 +179,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Route]]
+        Response[Error | Route]
     """
 
     kwargs = _get_kwargs(
@@ -199,9 +198,9 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePost,
-) -> Optional[Union[Error, Route]]:
+) -> Error | Route | None:
     """Add redirect/rewrite rules
 
      Add redirect/rewrite rules to the service with the provided ID.
@@ -212,10 +211,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Route]
+        Error | Route
     """
 
     return (

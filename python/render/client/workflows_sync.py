@@ -7,7 +7,7 @@ All methods are synchronous (blocking).
 from collections.abc import Iterator
 from typing import TYPE_CHECKING, Any
 
-import httpx
+import httpx2
 
 from render.client import _flow_wait
 from render.client._requests import (
@@ -87,10 +87,10 @@ class SyncWorkflowsService:
         """
         kwargs = _get_kwargs(task_run_ids=task_run_ids)
 
-        timeout = httpx.Timeout(
+        timeout = httpx2.Timeout(
             connect=5.0, write=5.0, read=None, pool=None
         )  # These can be long lived
-        with httpx.Client(timeout=timeout) as http_client:
+        with httpx2.Client(timeout=timeout) as http_client:
             headers = kwargs.get("headers", {})
             headers.update(
                 {
@@ -115,7 +115,7 @@ class SyncWorkflowsService:
 
                     yield from parse_stream(response.iter_bytes())
 
-            except httpx.RequestError as e:
+            except httpx2.RequestError as e:
                 handle_httpx_exception(e, "SSE connection")
 
     def start_task(

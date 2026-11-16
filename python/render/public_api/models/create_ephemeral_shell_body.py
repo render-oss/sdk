@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,13 +15,13 @@ T = TypeVar("T", bound="CreateEphemeralShellBody")
 class CreateEphemeralShellBody:
     """
     Attributes:
-        plan (Union[Unset, str]): The plan to use when creating the ephemeral shell instance.
-        size (Union[Unset, str]): The size to use when creating the ephemeral shell instance.
+        plan (str | Unset): The plan to use when creating the ephemeral shell instance.
+        size (str | Unset): The size to use when creating the ephemeral shell instance.
             Deprecated: use `plan` instead. This field will be removed in a future release.
     """
 
-    plan: Union[Unset, str] = UNSET
-    size: Union[Unset, str] = UNSET
+    plan: str | Unset = UNSET
+    size: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

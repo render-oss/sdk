@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class TaskRunStatus(str, Enum):
+class TaskRunStatus(StrEnum):
     CANCELED = "canceled"
     COMPLETED = "completed"
     FAILED = "failed"

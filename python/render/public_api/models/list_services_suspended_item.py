@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ListServicesSuspendedItem(str, Enum):
+class ListServicesSuspendedItem(StrEnum):
     NOT_SUSPENDED = "not_suspended"
     SUSPENDED = "suspended"
 

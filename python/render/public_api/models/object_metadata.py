@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 T = TypeVar("T", bound="ObjectMetadata")
 
@@ -49,7 +50,7 @@ class ObjectMetadata:
 
         size_bytes = d.pop("sizeBytes")
 
-        last_modified = isoparse(d.pop("lastModified"))
+        last_modified = datetime.datetime.fromisoformat(d.pop("lastModified"))
 
         object_metadata = cls(
             key=key,

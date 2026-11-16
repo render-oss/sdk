@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FlowRunErrorDetailsKind(str, Enum):
+class FlowRunErrorDetailsKind(StrEnum):
     INPUT_HASH = "input_hash"
     TYPE = "type"
     UNKNOWN_TYPE = "unknown_type"

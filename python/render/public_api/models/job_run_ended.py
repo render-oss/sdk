@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,12 +22,12 @@ class JobRunEnded:
     Attributes:
         job_id (str):  Example: job-cph1rs3idesc73a2b2mg.
         status (JobStatus):
-        reason (Union[Unset, FailureReason]):
+        reason (FailureReason | Unset):
     """
 
     job_id: str
     status: JobStatus
-    reason: Union[Unset, "FailureReason"] = UNSET
+    reason: FailureReason | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -33,7 +35,7 @@ class JobRunEnded:
 
         status = self.status.value
 
-        reason: Union[Unset, dict[str, Any]] = UNSET
+        reason: dict[str, Any] | Unset = UNSET
         if not isinstance(self.reason, Unset):
             reason = self.reason.to_dict()
 
@@ -52,7 +54,7 @@ class JobRunEnded:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.failure_reason import FailureReason
+        from ..models.failure_reason import FailureReason  # noqa: PLC0415
 
         d = dict(src_dict)
         job_id = d.pop("jobId")
@@ -60,7 +62,7 @@ class JobRunEnded:
         status = JobStatus(d.pop("status"))
 
         _reason = d.pop("reason", UNSET)
-        reason: Union[Unset, FailureReason]
+        reason: FailureReason | Unset
         if isinstance(_reason, Unset):
             reason = UNSET
         else:

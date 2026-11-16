@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -16,8 +17,8 @@ def _get_kwargs(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
-    body: SandboxConnectRequest,
-    owner_id: Union[Unset, str] = UNSET,
+    body: SandboxConnectRequest | Unset = UNSET,
+    owner_id: str | Unset = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
@@ -29,11 +30,15 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/sandboxes/{sandbox_id}/runs/{operation}/token",
+        "url": "/sandboxes/{sandbox_id}/runs/{operation}/token".format(
+            sandbox_id=quote(str(sandbox_id), safe=""),
+            operation=quote(str(operation), safe=""),
+        ),
         "params": params,
     }
 
-    _kwargs["json"] = body.to_dict()
+    if not isinstance(body, Unset):
+        _kwargs["json"] = body.to_dict()
 
     headers["Content-Type"] = "application/json"
 
@@ -42,8 +47,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, SandboxConnectResponse]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | SandboxConnectResponse | None:
     if response.status_code == 201:
         response_201 = SandboxConnectResponse.from_dict(response.json())
 
@@ -96,8 +101,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, SandboxConnectResponse]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | SandboxConnectResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -110,10 +115,10 @@ def sync_detailed(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: SandboxConnectRequest,
-    owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, SandboxConnectResponse]]:
+    client: AuthenticatedClient | Client,
+    body: SandboxConnectRequest | Unset = UNSET,
+    owner_id: str | Unset = UNSET,
+) -> Response[Error | SandboxConnectResponse]:
     """Create a connect token for a sandbox run
 
      Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
@@ -123,15 +128,15 @@ def sync_detailed(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest):
+        owner_id (str | Unset):
+        body (SandboxConnectRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxConnectResponse]]
+        Response[Error | SandboxConnectResponse]
     """
 
     kwargs = _get_kwargs(
@@ -152,10 +157,10 @@ def sync(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: SandboxConnectRequest,
-    owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, SandboxConnectResponse]]:
+    client: AuthenticatedClient | Client,
+    body: SandboxConnectRequest | Unset = UNSET,
+    owner_id: str | Unset = UNSET,
+) -> Error | SandboxConnectResponse | None:
     """Create a connect token for a sandbox run
 
      Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
@@ -165,15 +170,15 @@ def sync(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest):
+        owner_id (str | Unset):
+        body (SandboxConnectRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxConnectResponse]
+        Error | SandboxConnectResponse
     """
 
     return sync_detailed(
@@ -189,10 +194,10 @@ async def asyncio_detailed(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: SandboxConnectRequest,
-    owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, SandboxConnectResponse]]:
+    client: AuthenticatedClient | Client,
+    body: SandboxConnectRequest | Unset = UNSET,
+    owner_id: str | Unset = UNSET,
+) -> Response[Error | SandboxConnectResponse]:
     """Create a connect token for a sandbox run
 
      Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
@@ -202,15 +207,15 @@ async def asyncio_detailed(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest):
+        owner_id (str | Unset):
+        body (SandboxConnectRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SandboxConnectResponse]]
+        Response[Error | SandboxConnectResponse]
     """
 
     kwargs = _get_kwargs(
@@ -229,10 +234,10 @@ async def asyncio(
     sandbox_id: str,
     operation: ConnectSandboxRunOperation,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: SandboxConnectRequest,
-    owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, SandboxConnectResponse]]:
+    client: AuthenticatedClient | Client,
+    body: SandboxConnectRequest | Unset = UNSET,
+    owner_id: str | Unset = UNSET,
+) -> Error | SandboxConnectResponse | None:
     """Create a connect token for a sandbox run
 
      Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
@@ -242,15 +247,15 @@ async def asyncio(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
-        owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest):
+        owner_id (str | Unset):
+        body (SandboxConnectRequest | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SandboxConnectResponse]
+        Error | SandboxConnectResponse
     """
 
     return (

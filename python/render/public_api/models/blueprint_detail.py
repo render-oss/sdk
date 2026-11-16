@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.status import Status
 from ..types import UNSET, Unset
@@ -32,8 +33,8 @@ class BlueprintDetail:
         repo (str):
         branch (str):
         path (str): Path to the Blueprint file in the repository Example: render.yaml.
-        resources (list['ResourceRef']):
-        last_sync (Union[Unset, datetime.datetime]):
+        resources (list[ResourceRef]):
+        last_sync (datetime.datetime | Unset):
     """
 
     id: str
@@ -44,8 +45,8 @@ class BlueprintDetail:
     repo: str
     branch: str
     path: str
-    resources: list["ResourceRef"]
-    last_sync: Union[Unset, datetime.datetime] = UNSET
+    resources: list[ResourceRef]
+    last_sync: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -70,7 +71,7 @@ class BlueprintDetail:
             resources_item = resources_item_data.to_dict()
             resources.append(resources_item)
 
-        last_sync: Union[Unset, str] = UNSET
+        last_sync: str | Unset = UNSET
         if not isinstance(self.last_sync, Unset):
             last_sync = self.last_sync.isoformat()
 
@@ -96,7 +97,7 @@ class BlueprintDetail:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.resource_ref import ResourceRef
+        from ..models.resource_ref import ResourceRef  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -123,11 +124,11 @@ class BlueprintDetail:
             resources.append(resources_item)
 
         _last_sync = d.pop("lastSync", UNSET)
-        last_sync: Union[Unset, datetime.datetime]
+        last_sync: datetime.datetime | Unset
         if isinstance(_last_sync, Unset):
             last_sync = UNSET
         else:
-            last_sync = isoparse(_last_sync)
+            last_sync = datetime.datetime.fromisoformat(_last_sync)
 
         blueprint_detail = cls(
             id=id,

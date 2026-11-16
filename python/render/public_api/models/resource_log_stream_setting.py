@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,15 +17,15 @@ class ResourceLogStreamSetting:
     """Resource log stream overrides
 
     Attributes:
-        resource_id (Union[Unset, str]): The ID of the resource.
-        endpoint (Union[Unset, str]): The endpoint to stream logs to. Must be present if setting is send. Cannot be
-            present if setting is drop.
-        setting (Union[Unset, LogStreamSetting]): Whether to send logs or drop them.
+        resource_id (str | Unset): The ID of the resource.
+        endpoint (str | Unset): The endpoint to stream logs to. Must be present if setting is send. Cannot be present if
+            setting is drop.
+        setting (LogStreamSetting | Unset): Whether to send logs or drop them.
     """
 
-    resource_id: Union[Unset, str] = UNSET
-    endpoint: Union[Unset, str] = UNSET
-    setting: Union[Unset, LogStreamSetting] = UNSET
+    resource_id: str | Unset = UNSET
+    endpoint: str | Unset = UNSET
+    setting: LogStreamSetting | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -31,7 +33,7 @@ class ResourceLogStreamSetting:
 
         endpoint = self.endpoint
 
-        setting: Union[Unset, str] = UNSET
+        setting: str | Unset = UNSET
         if not isinstance(self.setting, Unset):
             setting = self.setting.value
 
@@ -55,7 +57,7 @@ class ResourceLogStreamSetting:
         endpoint = d.pop("endpoint", UNSET)
 
         _setting = d.pop("setting", UNSET)
-        setting: Union[Unset, LogStreamSetting]
+        setting: LogStreamSetting | Unset
         if isinstance(_setting, Unset):
             setting = UNSET
         else:

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,8 +14,8 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     flow_run_id: str,
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -26,7 +27,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/flow-runs/{flow_run_id}/steps",
+        "url": "/flow-runs/{flow_run_id}/steps".format(
+            flow_run_id=quote(str(flow_run_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -34,8 +37,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, FlowRunStepsPage]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | FlowRunStepsPage | None:
     if response.status_code == 200:
         response_200 = FlowRunStepsPage.from_dict(response.json())
 
@@ -83,8 +86,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, FlowRunStepsPage]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | FlowRunStepsPage]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -96,10 +99,10 @@ def _build_response(
 def sync_detailed(
     flow_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, FlowRunStepsPage]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | FlowRunStepsPage]:
     """List flow run steps
 
      List the steps a flow run has recorded, in the order the flow started them. A page can hold fewer
@@ -107,15 +110,15 @@ def sync_detailed(
 
     Args:
         flow_run_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, FlowRunStepsPage]]
+        Response[Error | FlowRunStepsPage]
     """
 
     kwargs = _get_kwargs(
@@ -134,10 +137,10 @@ def sync_detailed(
 def sync(
     flow_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, FlowRunStepsPage]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | FlowRunStepsPage | None:
     """List flow run steps
 
      List the steps a flow run has recorded, in the order the flow started them. A page can hold fewer
@@ -145,15 +148,15 @@ def sync(
 
     Args:
         flow_run_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, FlowRunStepsPage]
+        Error | FlowRunStepsPage
     """
 
     return sync_detailed(
@@ -167,10 +170,10 @@ def sync(
 async def asyncio_detailed(
     flow_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, FlowRunStepsPage]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | FlowRunStepsPage]:
     """List flow run steps
 
      List the steps a flow run has recorded, in the order the flow started them. A page can hold fewer
@@ -178,15 +181,15 @@ async def asyncio_detailed(
 
     Args:
         flow_run_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, FlowRunStepsPage]]
+        Response[Error | FlowRunStepsPage]
     """
 
     kwargs = _get_kwargs(
@@ -203,10 +206,10 @@ async def asyncio_detailed(
 async def asyncio(
     flow_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, FlowRunStepsPage]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | FlowRunStepsPage | None:
     """List flow run steps
 
      List the steps a flow run has recorded, in the order the flow started them. A page can hold fewer
@@ -214,15 +217,15 @@ async def asyncio(
 
     Args:
         flow_run_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, FlowRunStepsPage]
+        Error | FlowRunStepsPage
     """
 
     return (

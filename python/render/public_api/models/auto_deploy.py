@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AutoDeploy(str, Enum):
+class AutoDeploy(StrEnum):
     NO = "no"
     YES = "yes"
 

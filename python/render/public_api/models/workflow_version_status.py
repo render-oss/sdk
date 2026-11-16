@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class WorkflowVersionStatus(str, Enum):
+class WorkflowVersionStatus(StrEnum):
     BUILDING = "building"
     BUILD_FAILED = "build_failed"
     CREATED = "created"

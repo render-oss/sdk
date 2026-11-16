@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,7 +17,7 @@ class AutoDeployDisabled:
     """
     Attributes:
         reason (str): Why auto-deploy was disabled (manual_deploy, rollback, or setting_change)
-        from_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+        from_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior.
 
             - `commit`: Deploy each time a commit is pushed to the service's linked branch.
             - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
@@ -24,13 +26,13 @@ class AutoDeployDisabled:
     """
 
     reason: str
-    from_trigger: Union[Unset, AutoDeployTrigger] = UNSET
+    from_trigger: AutoDeployTrigger | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         reason = self.reason
 
-        from_trigger: Union[Unset, str] = UNSET
+        from_trigger: str | Unset = UNSET
         if not isinstance(self.from_trigger, Unset):
             from_trigger = self.from_trigger.value
 
@@ -52,7 +54,7 @@ class AutoDeployDisabled:
         reason = d.pop("reason")
 
         _from_trigger = d.pop("fromTrigger", UNSET)
-        from_trigger: Union[Unset, AutoDeployTrigger]
+        from_trigger: AutoDeployTrigger | Unset
         if isinstance(_from_trigger, Unset):
             from_trigger = UNSET
         else:

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GetHttpRequestsAggregateBy(str, Enum):
+class GetHttpRequestsAggregateBy(StrEnum):
     HOST = "host"
     STATUSCODE = "statusCode"
 

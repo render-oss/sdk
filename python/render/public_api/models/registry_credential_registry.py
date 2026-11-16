@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class RegistryCredentialRegistry(str, Enum):
+class RegistryCredentialRegistry(StrEnum):
     AWS_ECR = "AWS_ECR"
     DOCKER = "DOCKER"
     GITHUB = "GITHUB"

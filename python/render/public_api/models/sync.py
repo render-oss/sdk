@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.sync_state import SyncState
 from ..types import UNSET, Unset
@@ -23,15 +24,15 @@ class Sync:
         id (str):  Example: exe-cph1rs3idesc73a2b2mg.
         commit (CommitRef):
         state (SyncState):
-        started_at (Union[Unset, datetime.datetime]):
-        completed_at (Union[Unset, datetime.datetime]):
+        started_at (datetime.datetime | Unset):
+        completed_at (datetime.datetime | Unset):
     """
 
     id: str
-    commit: "CommitRef"
+    commit: CommitRef
     state: SyncState
-    started_at: Union[Unset, datetime.datetime] = UNSET
-    completed_at: Union[Unset, datetime.datetime] = UNSET
+    started_at: datetime.datetime | Unset = UNSET
+    completed_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -41,11 +42,11 @@ class Sync:
 
         state = self.state.value
 
-        started_at: Union[Unset, str] = UNSET
+        started_at: str | Unset = UNSET
         if not isinstance(self.started_at, Unset):
             started_at = self.started_at.isoformat()
 
-        completed_at: Union[Unset, str] = UNSET
+        completed_at: str | Unset = UNSET
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
@@ -67,7 +68,7 @@ class Sync:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.commit_ref import CommitRef
+        from ..models.commit_ref import CommitRef  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -77,18 +78,18 @@ class Sync:
         state = SyncState(d.pop("state"))
 
         _started_at = d.pop("startedAt", UNSET)
-        started_at: Union[Unset, datetime.datetime]
+        started_at: datetime.datetime | Unset
         if isinstance(_started_at, Unset):
             started_at = UNSET
         else:
-            started_at = isoparse(_started_at)
+            started_at = datetime.datetime.fromisoformat(_started_at)
 
         _completed_at = d.pop("completedAt", UNSET)
-        completed_at: Union[Unset, datetime.datetime]
+        completed_at: datetime.datetime | Unset
         if isinstance(_completed_at, Unset):
             completed_at = UNSET
         else:
-            completed_at = isoparse(_completed_at)
+            completed_at = datetime.datetime.fromisoformat(_completed_at)
 
         sync = cls(
             id=id,

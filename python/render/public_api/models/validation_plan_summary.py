@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,44 +15,43 @@ T = TypeVar("T", bound="ValidationPlanSummary")
 class ValidationPlanSummary:
     """
     Attributes:
-        services (Union[Unset, list[str]]): The names of services that would be created as part of the Blueprint.
-        databases (Union[Unset, list[str]]): The names of Render Postgres databases that would be created as part of the
+        services (list[str] | Unset): The names of services that would be created as part of the Blueprint.
+        databases (list[str] | Unset): The names of Render Postgres databases that would be created as part of the
             Blueprint.
-        key_value (Union[Unset, list[str]]): The names of Render Key Value instances that would be created as part of
-            the Blueprint.
-        env_groups (Union[Unset, list[str]]): The names of environment groups that would be created as part of the
+        key_value (list[str] | Unset): The names of Render Key Value instances that would be created as part of the
             Blueprint.
-        workflows (Union[Unset, list[str]]): The names of workflows that would be created as part of the Blueprint.
-        total_actions (Union[Unset, int]): The total number of actions that would be performed by the Blueprint. In
-            addition to created resources, this includes modifications to individual configuration fields.
+        env_groups (list[str] | Unset): The names of environment groups that would be created as part of the Blueprint.
+        workflows (list[str] | Unset): The names of workflows that would be created as part of the Blueprint.
+        total_actions (int | Unset): The total number of actions that would be performed by the Blueprint. In addition
+            to created resources, this includes modifications to individual configuration fields.
     """
 
-    services: Union[Unset, list[str]] = UNSET
-    databases: Union[Unset, list[str]] = UNSET
-    key_value: Union[Unset, list[str]] = UNSET
-    env_groups: Union[Unset, list[str]] = UNSET
-    workflows: Union[Unset, list[str]] = UNSET
-    total_actions: Union[Unset, int] = UNSET
+    services: list[str] | Unset = UNSET
+    databases: list[str] | Unset = UNSET
+    key_value: list[str] | Unset = UNSET
+    env_groups: list[str] | Unset = UNSET
+    workflows: list[str] | Unset = UNSET
+    total_actions: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        services: Union[Unset, list[str]] = UNSET
+        services: list[str] | Unset = UNSET
         if not isinstance(self.services, Unset):
             services = self.services
 
-        databases: Union[Unset, list[str]] = UNSET
+        databases: list[str] | Unset = UNSET
         if not isinstance(self.databases, Unset):
             databases = self.databases
 
-        key_value: Union[Unset, list[str]] = UNSET
+        key_value: list[str] | Unset = UNSET
         if not isinstance(self.key_value, Unset):
             key_value = self.key_value
 
-        env_groups: Union[Unset, list[str]] = UNSET
+        env_groups: list[str] | Unset = UNSET
         if not isinstance(self.env_groups, Unset):
             env_groups = self.env_groups
 
-        workflows: Union[Unset, list[str]] = UNSET
+        workflows: list[str] | Unset = UNSET
         if not isinstance(self.workflows, Unset):
             workflows = self.workflows
 

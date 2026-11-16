@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceEventType(str, Enum):
+class ServiceEventType(StrEnum):
     ARTIFACT_FETCH_FAILED = "artifact_fetch_failed"
     ARTIFACT_SOURCE_CHANGED = "artifact_source_changed"
     AUTOSCALING_CONFIG_CHANGED = "autoscaling_config_changed"

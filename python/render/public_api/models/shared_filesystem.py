@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 T = TypeVar("T", bound="SharedFilesystem")
 
@@ -67,7 +68,7 @@ class SharedFilesystem:
 
         region = d.pop("region")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         shared_filesystem = cls(
             id=id,

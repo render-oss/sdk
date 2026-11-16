@@ -4,7 +4,7 @@ from datetime import datetime
 from io import BytesIO
 from types import SimpleNamespace
 
-import httpx
+import httpx2
 import pytest
 
 from render.experimental.object.client import ObjectClient
@@ -16,15 +16,15 @@ async def test_put_streams_binary_file_objects(mocker):
     content = b"hello world - streamed from file-like object"
     captured: dict[str, bytes | str | None] = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["content_length"] = request.headers.get("content-length")
         captured["body"] = await request.aread()
-        return httpx.Response(200, headers={"ETag": '"test-etag"'})
+        return httpx2.Response(200, headers={"ETag": '"test-etag"'})
 
-    transport = httpx.MockTransport(handler)
-    mock_http_client = httpx.AsyncClient(transport=transport)
+    transport = httpx2.MockTransport(handler)
+    mock_http_client = httpx2.AsyncClient(transport=transport)
     mocker.patch(
-        "render.experimental.object.client.httpx.AsyncClient",
+        "render.experimental.object.client.httpx2.AsyncClient",
         return_value=mock_http_client,
     )
 
@@ -64,15 +64,15 @@ async def test_put_accepts_async_byte_iterators(mocker):
         for chunk in content_chunks:
             yield chunk
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["content_length"] = request.headers.get("content-length")
         captured["body"] = await request.aread()
-        return httpx.Response(200, headers={"ETag": '"test-etag-async"'})
+        return httpx2.Response(200, headers={"ETag": '"test-etag-async"'})
 
-    transport = httpx.MockTransport(handler)
-    mock_http_client = httpx.AsyncClient(transport=transport)
+    transport = httpx2.MockTransport(handler)
+    mock_http_client = httpx2.AsyncClient(transport=transport)
     mocker.patch(
-        "render.experimental.object.client.httpx.AsyncClient",
+        "render.experimental.object.client.httpx2.AsyncClient",
         return_value=mock_http_client,
     )
 

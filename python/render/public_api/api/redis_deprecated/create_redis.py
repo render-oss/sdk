@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -30,9 +30,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, RedisDetail]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | RedisDetail | None:
     if response.status_code == 201:
         response_201 = RedisDetail.from_dict(response.json())
 
@@ -75,8 +73,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, RedisDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | RedisDetail]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -87,9 +85,9 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RedisPOSTInput,
-) -> Response[Union[Error, RedisDetail]]:
+) -> Response[Error | RedisDetail]:
     """Create Redis instance
 
      Create a new Redis instance. This API is deprecated in favor of the Key Value API.
@@ -99,10 +97,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RedisDetail]]
+        Response[Error | RedisDetail]
     """
 
     kwargs = _get_kwargs(
@@ -118,9 +116,9 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RedisPOSTInput,
-) -> Optional[Union[Error, RedisDetail]]:
+) -> Error | RedisDetail | None:
     """Create Redis instance
 
      Create a new Redis instance. This API is deprecated in favor of the Key Value API.
@@ -130,10 +128,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RedisDetail]
+        Error | RedisDetail
     """
 
     return sync_detailed(
@@ -144,9 +142,9 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RedisPOSTInput,
-) -> Response[Union[Error, RedisDetail]]:
+) -> Response[Error | RedisDetail]:
     """Create Redis instance
 
      Create a new Redis instance. This API is deprecated in favor of the Key Value API.
@@ -156,10 +154,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RedisDetail]]
+        Response[Error | RedisDetail]
     """
 
     kwargs = _get_kwargs(
@@ -173,9 +171,9 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RedisPOSTInput,
-) -> Optional[Union[Error, RedisDetail]]:
+) -> Error | RedisDetail | None:
     """Create Redis instance
 
      Create a new Redis instance. This API is deprecated in favor of the Key Value API.
@@ -185,10 +183,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RedisDetail]
+        Error | RedisDetail
     """
 
     return (

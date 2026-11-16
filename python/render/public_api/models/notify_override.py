@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NotifyOverride(str, Enum):
+class NotifyOverride(StrEnum):
     ALL = "all"
     DEFAULT = "default"
     FAILURE = "failure"

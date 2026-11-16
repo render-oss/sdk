@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FlowRunStatus(str, Enum):
+class FlowRunStatus(StrEnum):
     CANCELED = "canceled"
     FAILED = "failed"
     PAUSED = "paused"

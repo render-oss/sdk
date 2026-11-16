@@ -5,7 +5,6 @@ from render.public_api.models.server_restarted import (
     ServerRestarted as ServerRestarted,
     T as T,
     TypeVar as TypeVar,
-    Union as Union,
     _attrs_define as _attrs_define,
     _attrs_field as _attrs_field,
     cast as cast,

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -21,7 +22,10 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/owners/{owner_id}/members/{user_id}",
+        "url": "/owners/{owner_id}/members/{user_id}".format(
+            owner_id=quote(str(owner_id), safe=""),
+            user_id=quote(str(user_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -32,9 +36,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, TeamMember]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | TeamMember | None:
     if response.status_code == 200:
         response_200 = TeamMember.from_dict(response.json())
 
@@ -86,9 +88,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, TeamMember]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | TeamMember]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -101,9 +101,9 @@ def sync_detailed(
     owner_id: str,
     user_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateWorkspaceMemberBody,
-) -> Response[Union[Error, TeamMember]]:
+) -> Response[Error | TeamMember]:
     """Update workspace member role
 
      Update the role of an existing workspace member.
@@ -115,10 +115,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, TeamMember]]
+        Response[Error | TeamMember]
     """
 
     kwargs = _get_kwargs(
@@ -138,9 +138,9 @@ def sync(
     owner_id: str,
     user_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateWorkspaceMemberBody,
-) -> Optional[Union[Error, TeamMember]]:
+) -> Error | TeamMember | None:
     """Update workspace member role
 
      Update the role of an existing workspace member.
@@ -152,10 +152,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, TeamMember]
+        Error | TeamMember
     """
 
     return sync_detailed(
@@ -170,9 +170,9 @@ async def asyncio_detailed(
     owner_id: str,
     user_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateWorkspaceMemberBody,
-) -> Response[Union[Error, TeamMember]]:
+) -> Response[Error | TeamMember]:
     """Update workspace member role
 
      Update the role of an existing workspace member.
@@ -184,10 +184,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, TeamMember]]
+        Response[Error | TeamMember]
     """
 
     kwargs = _get_kwargs(
@@ -205,9 +205,9 @@ async def asyncio(
     owner_id: str,
     user_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateWorkspaceMemberBody,
-) -> Optional[Union[Error, TeamMember]]:
+) -> Error | TeamMember | None:
     """Update workspace member role
 
      Update the role of an existing workspace member.
@@ -219,10 +219,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, TeamMember]
+        Error | TeamMember
     """
 
     return (

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConnectSandboxFilesOperation(str, Enum):
+class ConnectSandboxFilesOperation(StrEnum):
     DOWNLOAD = "download"
     UPLOAD = "upload"
 

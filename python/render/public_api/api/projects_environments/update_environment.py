@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/environments/{environment_id}",
+        "url": "/environments/{environment_id}".format(
+            environment_id=quote(str(environment_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -31,9 +34,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Environment, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Environment | Error | None:
     if response.status_code == 200:
         response_200 = Environment.from_dict(response.json())
 
@@ -76,8 +77,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Environment, Error]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Environment | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -89,9 +90,9 @@ def _build_response(
 def sync_detailed(
     environment_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: EnvironmentPATCHInput,
-) -> Response[Union[Environment, Error]]:
+) -> Response[Environment | Error]:
     """Update environment
 
      Update the details of the environment with the provided ID.
@@ -102,10 +103,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Environment, Error]]
+        Response[Environment | Error]
     """
 
     kwargs = _get_kwargs(
@@ -123,9 +124,9 @@ def sync_detailed(
 def sync(
     environment_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: EnvironmentPATCHInput,
-) -> Optional[Union[Environment, Error]]:
+) -> Environment | Error | None:
     """Update environment
 
      Update the details of the environment with the provided ID.
@@ -136,10 +137,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Environment, Error]
+        Environment | Error
     """
 
     return sync_detailed(
@@ -152,9 +153,9 @@ def sync(
 async def asyncio_detailed(
     environment_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: EnvironmentPATCHInput,
-) -> Response[Union[Environment, Error]]:
+) -> Response[Environment | Error]:
     """Update environment
 
      Update the details of the environment with the provided ID.
@@ -165,10 +166,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Environment, Error]]
+        Response[Environment | Error]
     """
 
     kwargs = _get_kwargs(
@@ -184,9 +185,9 @@ async def asyncio_detailed(
 async def asyncio(
     environment_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: EnvironmentPATCHInput,
-) -> Optional[Union[Environment, Error]]:
+) -> Environment | Error | None:
     """Update environment
 
      Update the details of the environment with the provided ID.
@@ -197,10 +198,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Environment, Error]
+        Environment | Error
     """
 
     return (

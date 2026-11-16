@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Removed
+
+- **Breaking:** Python 3.10 is no longer supported. Use Python 3.11 or later.
+
 ## [1.8.0] - 2026-11-06
 
 Released in lockstep with `render` 1.8.0. This package requires that version and exports

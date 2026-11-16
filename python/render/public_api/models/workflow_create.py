@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -26,23 +28,22 @@ class WorkflowCreate:
         build_config (BuildConfig):
         run_command (str): The command to run the workflow. Cannot be blank.
         region (Region): Defaults to "oregon"
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
-            commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
-            autodeploy.
-        env_vars (Union[Unset, list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]]):
+        auto_deploy_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior. "commit" deploys when a commit is
+            pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables autodeploy.
+        env_vars (list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset):
     """
 
     name: str
     owner_id: str
-    build_config: "BuildConfig"
+    build_config: BuildConfig
     run_command: str
     region: Region
-    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
-    env_vars: Union[Unset, list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]]] = UNSET
+    auto_deploy_trigger: AutoDeployTrigger | Unset = UNSET
+    env_vars: list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.env_var_key_value import EnvVarKeyValue
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
 
         name = self.name
 
@@ -54,11 +55,11 @@ class WorkflowCreate:
 
         region = self.region.value
 
-        auto_deploy_trigger: Union[Unset, str] = UNSET
+        auto_deploy_trigger: str | Unset = UNSET
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
-        env_vars: Union[Unset, list[dict[str, Any]]] = UNSET
+        env_vars: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.env_vars, Unset):
             env_vars = []
             for componentsschemasenv_var_input_array_item_data in self.env_vars:
@@ -90,9 +91,9 @@ class WorkflowCreate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_config import BuildConfig
-        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue
-        from ..models.env_var_key_value import EnvVarKeyValue
+        from ..models.build_config import BuildConfig  # noqa: PLC0415
+        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue  # noqa: PLC0415
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name")
@@ -106,38 +107,40 @@ class WorkflowCreate:
         region = Region(d.pop("region"))
 
         _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
-        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        auto_deploy_trigger: AutoDeployTrigger | Unset
         if isinstance(_auto_deploy_trigger, Unset):
             auto_deploy_trigger = UNSET
         else:
             auto_deploy_trigger = AutoDeployTrigger(_auto_deploy_trigger)
 
-        env_vars = []
         _env_vars = d.pop("envVars", UNSET)
-        for componentsschemasenv_var_input_array_item_data in _env_vars or []:
+        env_vars: list[EnvVarKeyGenerateValue | EnvVarKeyValue] | Unset = UNSET
+        if _env_vars is not UNSET:
+            env_vars = []
+            for componentsschemasenv_var_input_array_item_data in _env_vars:
 
-            def _parse_componentsschemasenv_var_input_array_item(
-                data: object,
-            ) -> Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]:
-                try:
+                def _parse_componentsschemasenv_var_input_array_item(
+                    data: object,
+                ) -> EnvVarKeyGenerateValue | EnvVarKeyValue:
+                    try:
+                        if not isinstance(data, dict):
+                            raise TypeError()
+                        componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+
+                        return componentsschemasenv_var_input_type_0
+                    except (TypeError, ValueError, AttributeError, KeyError):
+                        pass
                     if not isinstance(data, dict):
                         raise TypeError()
-                    componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
+                    componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
 
-                    return componentsschemasenv_var_input_type_0
-                except:  # noqa: E722
-                    pass
-                if not isinstance(data, dict):
-                    raise TypeError()
-                componentsschemasenv_var_input_type_1 = EnvVarKeyGenerateValue.from_dict(data)
+                    return componentsschemasenv_var_input_type_1
 
-                return componentsschemasenv_var_input_type_1
+                componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
+                    componentsschemasenv_var_input_array_item_data
+                )
 
-            componentsschemasenv_var_input_array_item = _parse_componentsschemasenv_var_input_array_item(
-                componentsschemasenv_var_input_array_item_data
-            )
-
-            env_vars.append(componentsschemasenv_var_input_array_item)
+                env_vars.append(componentsschemasenv_var_input_array_item)
 
         workflow_create = cls(
             name=name,

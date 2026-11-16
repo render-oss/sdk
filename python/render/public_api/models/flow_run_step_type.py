@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FlowRunStepType(str, Enum):
+class FlowRunStepType(StrEnum):
     DETACHED = "detached"
     INLINE = "inline"
     SLEEP = "sleep"

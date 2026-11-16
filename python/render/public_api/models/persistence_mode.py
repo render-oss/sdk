@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PersistenceMode(str, Enum):
+class PersistenceMode(StrEnum):
     JOURNAL_SNAPSHOT = "journal_snapshot"
     OFF = "off"
     SNAPSHOT = "snapshot"

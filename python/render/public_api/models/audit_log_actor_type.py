@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AuditLogActorType(str, Enum):
+class AuditLogActorType(StrEnum):
     REST_API = "rest_api"
     SYSTEM = "system"
     USER = "user"

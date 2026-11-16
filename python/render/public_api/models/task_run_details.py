@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.task_run_status import TaskRunStatus
 from ..types import UNSET, Unset
@@ -25,32 +26,32 @@ class TaskRunDetails:
         task_id (str):
         status (TaskRunStatus):
         results (list[Any]):
-        input_ (Union['TaskDataType1', list[Any]]): Input data for a task. Can be either an array (for positional
-            arguments) or an object (for named parameters).
+        input_ (list[Any] | TaskDataType1): Input data for a task. Can be either an array (for positional arguments) or
+            an object (for named parameters).
         parent_task_run_id (str):
         root_task_run_id (str):
         retries (int):
-        attempts (list['TaskAttemptDetails']):
-        error (Union[Unset, str]): Error message if the task run failed.
-        started_at (Union[Unset, datetime.datetime]):
-        completed_at (Union[Unset, datetime.datetime]):
-        parent_task_attempt (Union[Unset, int]): The 0-indexed attempt of the parent task run that spawned this task
-            run. Omitted for root task runs and for task runs created before this field was introduced.
+        attempts (list[TaskAttemptDetails]):
+        error (str | Unset): Error message if the task run failed.
+        started_at (datetime.datetime | Unset):
+        completed_at (datetime.datetime | Unset):
+        parent_task_attempt (int | Unset): The 0-indexed attempt of the parent task run that spawned this task run.
+            Omitted for root task runs and for task runs created before this field was introduced.
     """
 
     id: str
     task_id: str
     status: TaskRunStatus
     results: list[Any]
-    input_: Union["TaskDataType1", list[Any]]
+    input_: list[Any] | TaskDataType1
     parent_task_run_id: str
     root_task_run_id: str
     retries: int
-    attempts: list["TaskAttemptDetails"]
-    error: Union[Unset, str] = UNSET
-    started_at: Union[Unset, datetime.datetime] = UNSET
-    completed_at: Union[Unset, datetime.datetime] = UNSET
-    parent_task_attempt: Union[Unset, int] = UNSET
+    attempts: list[TaskAttemptDetails]
+    error: str | Unset = UNSET
+    started_at: datetime.datetime | Unset = UNSET
+    completed_at: datetime.datetime | Unset = UNSET
+    parent_task_attempt: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,7 +63,7 @@ class TaskRunDetails:
 
         results = self.results
 
-        input_: Union[dict[str, Any], list[Any]]
+        input_: dict[str, Any] | list[Any]
         if isinstance(self.input_, list):
             input_ = self.input_
 
@@ -82,11 +83,11 @@ class TaskRunDetails:
 
         error = self.error
 
-        started_at: Union[Unset, str] = UNSET
+        started_at: str | Unset = UNSET
         if not isinstance(self.started_at, Unset):
             started_at = self.started_at.isoformat()
 
-        completed_at: Union[Unset, str] = UNSET
+        completed_at: str | Unset = UNSET
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
@@ -120,8 +121,8 @@ class TaskRunDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.task_attempt_details import TaskAttemptDetails
-        from ..models.task_data_type_1 import TaskDataType1
+        from ..models.task_attempt_details import TaskAttemptDetails  # noqa: PLC0415
+        from ..models.task_data_type_1 import TaskDataType1  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -132,14 +133,14 @@ class TaskRunDetails:
 
         results = cast(list[Any], d.pop("results"))
 
-        def _parse_input_(data: object) -> Union["TaskDataType1", list[Any]]:
+        def _parse_input_(data: object) -> list[Any] | TaskDataType1:
             try:
                 if not isinstance(data, list):
                     raise TypeError()
                 componentsschemas_task_data_type_0 = cast(list[Any], data)
 
                 return componentsschemas_task_data_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -165,18 +166,18 @@ class TaskRunDetails:
         error = d.pop("error", UNSET)
 
         _started_at = d.pop("startedAt", UNSET)
-        started_at: Union[Unset, datetime.datetime]
+        started_at: datetime.datetime | Unset
         if isinstance(_started_at, Unset):
             started_at = UNSET
         else:
-            started_at = isoparse(_started_at)
+            started_at = datetime.datetime.fromisoformat(_started_at)
 
         _completed_at = d.pop("completedAt", UNSET)
-        completed_at: Union[Unset, datetime.datetime]
+        completed_at: datetime.datetime | Unset
         if isinstance(_completed_at, Unset):
             completed_at = UNSET
         else:
-            completed_at = isoparse(_completed_at)
+            completed_at = datetime.datetime.fromisoformat(_completed_at)
 
         parent_task_attempt = d.pop("parentTaskAttempt", UNSET)
 

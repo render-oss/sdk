@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.sandbox_build_status import SandboxBuildStatus
 from ..types import UNSET, Unset
@@ -28,26 +29,26 @@ class SandboxBuild:
         source_digest (str): The digest of the source image converted by this build. Example: sha256:c19d4a1....
         status (SandboxBuildStatus): The sandbox build's current status.
         created_at (datetime.datetime): The timestamp when the sandbox build was created, in ISO 8601 format.
-        failure_reason (Union[None, Unset, str]): A description of why the build failed. Null unless the status is
-            `failed`. May include error text from the image registry. When displaying errors, use `failureCode` to select
-            the main message and show this value as additional detail.
-        failure_code (Union[None, Unset, str]): A machine-readable reason the build failed. Null unless the status is
+        failure_reason (None | str | Unset): A description of why the build failed. Null unless the status is `failed`.
+            May include error text from the image registry. When displaying errors, use `failureCode` to select the main
+            message and show this value as additional detail.
+        failure_code (None | str | Unset): A machine-readable reason the build failed. Null unless the status is
             `failed`. See `sandboxBuildFailureCode` for known codes. Treat unrecognized codes as `internal_error`.
              Example: image_pull_failed.
-        finished_at (Union[None, Unset, datetime.datetime]): The timestamp when the build succeeded or failed, in ISO
-            8601 format. Null while the build is pending or running.
+        finished_at (datetime.datetime | None | Unset): The timestamp when the build succeeded or failed, in ISO 8601
+            format. Null while the build is pending or running.
     """
 
     id: str
     sandbox_group_id: str
     name: str
-    source: "SandboxBuildSource"
+    source: SandboxBuildSource
     source_digest: str
     status: SandboxBuildStatus
     created_at: datetime.datetime
-    failure_reason: Union[None, Unset, str] = UNSET
-    failure_code: Union[None, Unset, str] = UNSET
-    finished_at: Union[None, Unset, datetime.datetime] = UNSET
+    failure_reason: None | str | Unset = UNSET
+    failure_code: None | str | Unset = UNSET
+    finished_at: datetime.datetime | None | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,19 +66,19 @@ class SandboxBuild:
 
         created_at = self.created_at.isoformat()
 
-        failure_reason: Union[None, Unset, str]
+        failure_reason: None | str | Unset
         if isinstance(self.failure_reason, Unset):
             failure_reason = UNSET
         else:
             failure_reason = self.failure_reason
 
-        failure_code: Union[None, Unset, str]
+        failure_code: None | str | Unset
         if isinstance(self.failure_code, Unset):
             failure_code = UNSET
         else:
             failure_code = self.failure_code
 
-        finished_at: Union[None, Unset, str]
+        finished_at: None | str | Unset
         if isinstance(self.finished_at, Unset):
             finished_at = UNSET
         elif isinstance(self.finished_at, datetime.datetime):
@@ -109,7 +110,7 @@ class SandboxBuild:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_build_source import SandboxBuildSource
+        from ..models.sandbox_build_source import SandboxBuildSource  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -124,27 +125,27 @@ class SandboxBuild:
 
         status = SandboxBuildStatus(d.pop("status"))
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        def _parse_failure_reason(data: object) -> Union[None, Unset, str]:
+        def _parse_failure_reason(data: object) -> None | str | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            return cast(None | str | Unset, data)
 
         failure_reason = _parse_failure_reason(d.pop("failureReason", UNSET))
 
-        def _parse_failure_code(data: object) -> Union[None, Unset, str]:
+        def _parse_failure_code(data: object) -> None | str | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            return cast(None | str | Unset, data)
 
         failure_code = _parse_failure_code(d.pop("failureCode", UNSET))
 
-        def _parse_finished_at(data: object) -> Union[None, Unset, datetime.datetime]:
+        def _parse_finished_at(data: object) -> datetime.datetime | None | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -152,12 +153,12 @@ class SandboxBuild:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                finished_at_type_0 = isoparse(data)
+                finished_at_type_0 = datetime.datetime.fromisoformat(data)
 
                 return finished_at_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(Union[None, Unset, datetime.datetime], data)
+            return cast(datetime.datetime | None | Unset, data)
 
         finished_at = _parse_finished_at(d.pop("finishedAt", UNSET))
 

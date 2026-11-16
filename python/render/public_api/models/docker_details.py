@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,15 +22,15 @@ class DockerDetails:
         docker_command (str):
         docker_context (str):
         dockerfile_path (str):
-        pre_deploy_command (Union[Unset, str]):
-        registry_credential (Union[Unset, RegistryCredential]):
+        pre_deploy_command (str | Unset):
+        registry_credential (RegistryCredential | Unset):
     """
 
     docker_command: str
     docker_context: str
     dockerfile_path: str
-    pre_deploy_command: Union[Unset, str] = UNSET
-    registry_credential: Union[Unset, "RegistryCredential"] = UNSET
+    pre_deploy_command: str | Unset = UNSET
+    registry_credential: RegistryCredential | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -40,7 +42,7 @@ class DockerDetails:
 
         pre_deploy_command = self.pre_deploy_command
 
-        registry_credential: Union[Unset, dict[str, Any]] = UNSET
+        registry_credential: dict[str, Any] | Unset = UNSET
         if not isinstance(self.registry_credential, Unset):
             registry_credential = self.registry_credential.to_dict()
 
@@ -62,7 +64,7 @@ class DockerDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.registry_credential import RegistryCredential
+        from ..models.registry_credential import RegistryCredential  # noqa: PLC0415
 
         d = dict(src_dict)
         docker_command = d.pop("dockerCommand")
@@ -74,7 +76,7 @@ class DockerDetails:
         pre_deploy_command = d.pop("preDeployCommand", UNSET)
 
         _registry_credential = d.pop("registryCredential", UNSET)
-        registry_credential: Union[Unset, RegistryCredential]
+        registry_credential: RegistryCredential | Unset
         if isinstance(_registry_credential, Unset):
             registry_credential = UNSET
         else:

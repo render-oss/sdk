@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,31 +20,30 @@ T = TypeVar("T", bound="WorkflowUpdate")
 class WorkflowUpdate:
     """
     Attributes:
-        name (Union[Unset, str]):
-        build_config (Union[Unset, BuildConfigUpdate]): A partial update to a workflow's build config. Every field is
+        name (str | Unset):
+        build_config (BuildConfigUpdate | Unset): A partial update to a workflow's build config. Every field is
             optional; omitted fields are left unchanged.
-        run_command (Union[Unset, str]): The command to run the workflow. Cannot be blank.
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
-            commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
-            autodeploy.
+        run_command (str | Unset): The command to run the workflow. Cannot be blank.
+        auto_deploy_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior. "commit" deploys when a commit is
+            pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables autodeploy.
     """
 
-    name: Union[Unset, str] = UNSET
-    build_config: Union[Unset, "BuildConfigUpdate"] = UNSET
-    run_command: Union[Unset, str] = UNSET
-    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
+    name: str | Unset = UNSET
+    build_config: BuildConfigUpdate | Unset = UNSET
+    run_command: str | Unset = UNSET
+    auto_deploy_trigger: AutoDeployTrigger | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         name = self.name
 
-        build_config: Union[Unset, dict[str, Any]] = UNSET
+        build_config: dict[str, Any] | Unset = UNSET
         if not isinstance(self.build_config, Unset):
             build_config = self.build_config.to_dict()
 
         run_command = self.run_command
 
-        auto_deploy_trigger: Union[Unset, str] = UNSET
+        auto_deploy_trigger: str | Unset = UNSET
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
@@ -62,13 +63,13 @@ class WorkflowUpdate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_config_update import BuildConfigUpdate
+        from ..models.build_config_update import BuildConfigUpdate  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name", UNSET)
 
         _build_config = d.pop("buildConfig", UNSET)
-        build_config: Union[Unset, BuildConfigUpdate]
+        build_config: BuildConfigUpdate | Unset
         if isinstance(_build_config, Unset):
             build_config = UNSET
         else:
@@ -77,7 +78,7 @@ class WorkflowUpdate:
         run_command = d.pop("runCommand", UNSET)
 
         _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
-        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        auto_deploy_trigger: AutoDeployTrigger | Unset
         if isinstance(_auto_deploy_trigger, Unset):
             auto_deploy_trigger = UNSET
         else:

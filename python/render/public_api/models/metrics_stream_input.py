@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,18 +17,18 @@ class MetricsStreamInput:
     """Input for creating or updating a metrics stream
 
     Attributes:
-        provider (Union[Unset, OtelProviderType]): Provider to send metrics to
-        url (Union[Unset, str]): The endpoint URL to stream metrics to
-        token (Union[Unset, str]): Authentication token for the metrics stream
+        provider (OtelProviderType | Unset): Provider to send metrics to
+        url (str | Unset): The endpoint URL to stream metrics to
+        token (str | Unset): Authentication token for the metrics stream
     """
 
-    provider: Union[Unset, OtelProviderType] = UNSET
-    url: Union[Unset, str] = UNSET
-    token: Union[Unset, str] = UNSET
+    provider: OtelProviderType | Unset = UNSET
+    url: str | Unset = UNSET
+    token: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        provider: Union[Unset, str] = UNSET
+        provider: str | Unset = UNSET
         if not isinstance(self.provider, Unset):
             provider = self.provider.value
 
@@ -50,7 +52,7 @@ class MetricsStreamInput:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _provider = d.pop("provider", UNSET)
-        provider: Union[Unset, OtelProviderType]
+        provider: OtelProviderType | Unset
         if isinstance(_provider, Unset):
             provider = UNSET
         else:

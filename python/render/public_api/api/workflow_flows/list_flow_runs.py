@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,14 +13,14 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    flow_slug: Union[Unset, list[str]] = UNSET,
-    flow_id: Union[Unset, list[str]] = UNSET,
-    status: Union[Unset, list[FlowRunStatus]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    flow_slug: list[str] | Unset = UNSET,
+    flow_id: list[str] | Unset = UNSET,
+    status: list[FlowRunStatus] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -28,19 +28,19 @@ def _get_kwargs(
 
     params["limit"] = limit
 
-    json_flow_slug: Union[Unset, list[str]] = UNSET
+    json_flow_slug: list[str] | Unset = UNSET
     if not isinstance(flow_slug, Unset):
         json_flow_slug = flow_slug
 
     params["flowSlug"] = json_flow_slug
 
-    json_flow_id: Union[Unset, list[str]] = UNSET
+    json_flow_id: list[str] | Unset = UNSET
     if not isinstance(flow_id, Unset):
         json_flow_id = flow_id
 
     params["flowId"] = json_flow_id
 
-    json_status: Union[Unset, list[str]] = UNSET
+    json_status: list[str] | Unset = UNSET
     if not isinstance(status, Unset):
         json_status = []
         for status_item_data in status:
@@ -49,19 +49,19 @@ def _get_kwargs(
 
     params["status"] = json_status
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
     params["ownerId"] = json_owner_id
 
-    json_workflow_version_id: Union[Unset, list[str]] = UNSET
+    json_workflow_version_id: list[str] | Unset = UNSET
     if not isinstance(workflow_version_id, Unset):
         json_workflow_version_id = workflow_version_id
 
     params["workflowVersionId"] = json_workflow_version_id
 
-    json_workflow_id: Union[Unset, list[str]] = UNSET
+    json_workflow_id: list[str] | Unset = UNSET
     if not isinstance(workflow_id, Unset):
         json_workflow_id = workflow_id
 
@@ -79,8 +79,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["FlowRunWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[FlowRunWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -133,8 +133,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["FlowRunWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[FlowRunWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -145,37 +145,37 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    flow_slug: Union[Unset, list[str]] = UNSET,
-    flow_id: Union[Unset, list[str]] = UNSET,
-    status: Union[Unset, list[FlowRunStatus]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["FlowRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    flow_slug: list[str] | Unset = UNSET,
+    flow_id: list[str] | Unset = UNSET,
+    status: list[FlowRunStatus] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[FlowRunWithCursor]]:
     """List flow runs
 
      List flow runs that match the provided filters. If no filters are provided, all flow runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        flow_slug (Union[Unset, list[str]]):
-        flow_id (Union[Unset, list[str]]):
-        status (Union[Unset, list[FlowRunStatus]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        flow_slug (list[str] | Unset):
+        flow_id (list[str] | Unset):
+        status (list[FlowRunStatus] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['FlowRunWithCursor']]]
+        Response[Error | list[FlowRunWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -198,37 +198,37 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    flow_slug: Union[Unset, list[str]] = UNSET,
-    flow_id: Union[Unset, list[str]] = UNSET,
-    status: Union[Unset, list[FlowRunStatus]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["FlowRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    flow_slug: list[str] | Unset = UNSET,
+    flow_id: list[str] | Unset = UNSET,
+    status: list[FlowRunStatus] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Error | list[FlowRunWithCursor] | None:
     """List flow runs
 
      List flow runs that match the provided filters. If no filters are provided, all flow runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        flow_slug (Union[Unset, list[str]]):
-        flow_id (Union[Unset, list[str]]):
-        status (Union[Unset, list[FlowRunStatus]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        flow_slug (list[str] | Unset):
+        flow_id (list[str] | Unset):
+        status (list[FlowRunStatus] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['FlowRunWithCursor']]
+        Error | list[FlowRunWithCursor]
     """
 
     return sync_detailed(
@@ -246,37 +246,37 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    flow_slug: Union[Unset, list[str]] = UNSET,
-    flow_id: Union[Unset, list[str]] = UNSET,
-    status: Union[Unset, list[FlowRunStatus]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["FlowRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    flow_slug: list[str] | Unset = UNSET,
+    flow_id: list[str] | Unset = UNSET,
+    status: list[FlowRunStatus] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[FlowRunWithCursor]]:
     """List flow runs
 
      List flow runs that match the provided filters. If no filters are provided, all flow runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        flow_slug (Union[Unset, list[str]]):
-        flow_id (Union[Unset, list[str]]):
-        status (Union[Unset, list[FlowRunStatus]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        flow_slug (list[str] | Unset):
+        flow_id (list[str] | Unset):
+        status (list[FlowRunStatus] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['FlowRunWithCursor']]]
+        Response[Error | list[FlowRunWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -297,37 +297,37 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    flow_slug: Union[Unset, list[str]] = UNSET,
-    flow_id: Union[Unset, list[str]] = UNSET,
-    status: Union[Unset, list[FlowRunStatus]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["FlowRunWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    flow_slug: list[str] | Unset = UNSET,
+    flow_id: list[str] | Unset = UNSET,
+    status: list[FlowRunStatus] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+) -> Error | list[FlowRunWithCursor] | None:
     """List flow runs
 
      List flow runs that match the provided filters. If no filters are provided, all flow runs accessible
     by the authenticated user are returned.
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        flow_slug (Union[Unset, list[str]]):
-        flow_id (Union[Unset, list[str]]):
-        status (Union[Unset, list[FlowRunStatus]]):
-        owner_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        flow_slug (list[str] | Unset):
+        flow_id (list[str] | Unset):
+        status (list[FlowRunStatus] | Unset):
+        owner_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['FlowRunWithCursor']]
+        Error | list[FlowRunWithCursor]
     """
 
     return (

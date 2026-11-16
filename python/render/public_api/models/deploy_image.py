@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,14 +16,14 @@ class DeployImage:
     """Image information used when creating the deploy. Not present for Git-backed deploys
 
     Attributes:
-        ref (Union[Unset, str]): Image reference used when creating the deploy
-        sha (Union[Unset, str]): SHA that the image reference was resolved to when creating the deploy
-        registry_credential (Union[Unset, str]): Name of credential used to pull the image, if provided
+        ref (str | Unset): Image reference used when creating the deploy
+        sha (str | Unset): SHA that the image reference was resolved to when creating the deploy
+        registry_credential (str | Unset): Name of credential used to pull the image, if provided
     """
 
-    ref: Union[Unset, str] = UNSET
-    sha: Union[Unset, str] = UNSET
-    registry_credential: Union[Unset, str] = UNSET
+    ref: str | Unset = UNSET
+    sha: str | Unset = UNSET
+    registry_credential: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

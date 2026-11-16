@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class NotificationOverrideWithCursor:
         cursor (str):
     """
 
-    override: "NotificationOverride"
+    override: NotificationOverride
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class NotificationOverrideWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.notification_override import NotificationOverride
+        from ..models.notification_override import NotificationOverride  # noqa: PLC0415
 
         d = dict(src_dict)
         override = NotificationOverride.from_dict(d.pop("override"))

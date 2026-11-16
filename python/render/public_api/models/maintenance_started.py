@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -18,7 +20,7 @@ class MaintenanceStarted:
         trigger (MaintenanceTrigger):
     """
 
-    trigger: "MaintenanceTrigger"
+    trigger: MaintenanceTrigger
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -36,7 +38,7 @@ class MaintenanceStarted:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.maintenance_trigger import MaintenanceTrigger
+        from ..models.maintenance_trigger import MaintenanceTrigger  # noqa: PLC0415
 
         d = dict(src_dict)
         trigger = MaintenanceTrigger.from_dict(d.pop("trigger"))

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class TaskRunWithCursor:
         cursor (str):
     """
 
-    task_run: "TaskRun"
+    task_run: TaskRun
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class TaskRunWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.task_run import TaskRun
+        from ..models.task_run import TaskRun  # noqa: PLC0415
 
         d = dict(src_dict)
         task_run = TaskRun.from_dict(d.pop("taskRun"))

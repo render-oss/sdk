@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -22,20 +24,20 @@ T = TypeVar("T", bound="GetBandwidthSourcesResponse200DataItem")
 class GetBandwidthSourcesResponse200DataItem:
     """
     Attributes:
-        labels (Union[Unset, GetBandwidthSourcesResponse200DataItemLabels]):
-        values (Union[Unset, list['GetBandwidthSourcesResponse200DataItemValuesItem']]):
+        labels (GetBandwidthSourcesResponse200DataItemLabels | Unset):
+        values (list[GetBandwidthSourcesResponse200DataItemValuesItem] | Unset):
     """
 
-    labels: Union[Unset, "GetBandwidthSourcesResponse200DataItemLabels"] = UNSET
-    values: Union[Unset, list["GetBandwidthSourcesResponse200DataItemValuesItem"]] = UNSET
+    labels: GetBandwidthSourcesResponse200DataItemLabels | Unset = UNSET
+    values: list[GetBandwidthSourcesResponse200DataItemValuesItem] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        labels: Union[Unset, dict[str, Any]] = UNSET
+        labels: dict[str, Any] | Unset = UNSET
         if not isinstance(self.labels, Unset):
             labels = self.labels.to_dict()
 
-        values: Union[Unset, list[dict[str, Any]]] = UNSET
+        values: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.values, Unset):
             values = []
             for values_item_data in self.values:
@@ -55,26 +57,28 @@ class GetBandwidthSourcesResponse200DataItem:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.get_bandwidth_sources_response_200_data_item_labels import (
-            GetBandwidthSourcesResponse200DataItemLabels,
+            GetBandwidthSourcesResponse200DataItemLabels,  # noqa: PLC0415
         )
         from ..models.get_bandwidth_sources_response_200_data_item_values_item import (
-            GetBandwidthSourcesResponse200DataItemValuesItem,
+            GetBandwidthSourcesResponse200DataItemValuesItem,  # noqa: PLC0415
         )
 
         d = dict(src_dict)
         _labels = d.pop("labels", UNSET)
-        labels: Union[Unset, GetBandwidthSourcesResponse200DataItemLabels]
+        labels: GetBandwidthSourcesResponse200DataItemLabels | Unset
         if isinstance(_labels, Unset):
             labels = UNSET
         else:
             labels = GetBandwidthSourcesResponse200DataItemLabels.from_dict(_labels)
 
-        values = []
         _values = d.pop("values", UNSET)
-        for values_item_data in _values or []:
-            values_item = GetBandwidthSourcesResponse200DataItemValuesItem.from_dict(values_item_data)
+        values: list[GetBandwidthSourcesResponse200DataItemValuesItem] | Unset = UNSET
+        if _values is not UNSET:
+            values = []
+            for values_item_data in _values:
+                values_item = GetBandwidthSourcesResponse200DataItemValuesItem.from_dict(values_item_data)
 
-            values.append(values_item)
+                values.append(values_item)
 
         get_bandwidth_sources_response_200_data_item = cls(
             labels=labels,

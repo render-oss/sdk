@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,15 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/flows/{flow_id}",
+        "url": "/flows/{flow_id}".format(
+            flow_id=quote(str(flow_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Flow]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Flow | None:
     if response.status_code == 200:
         response_200 = Flow.from_dict(response.json())
 
@@ -65,9 +66,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Flow]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Flow]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,8 +78,8 @@ def _build_response(
 def sync_detailed(
     flow_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, Flow]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | Flow]:
     """Retrieve flow
 
      Retrieve the workflow flow with the provided ID.
@@ -90,10 +89,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Flow]]
+        Response[Error | Flow]
     """
 
     kwargs = _get_kwargs(
@@ -110,8 +109,8 @@ def sync_detailed(
 def sync(
     flow_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, Flow]]:
+    client: AuthenticatedClient | Client,
+) -> Error | Flow | None:
     """Retrieve flow
 
      Retrieve the workflow flow with the provided ID.
@@ -121,10 +120,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Flow]
+        Error | Flow
     """
 
     return sync_detailed(
@@ -136,8 +135,8 @@ def sync(
 async def asyncio_detailed(
     flow_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, Flow]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | Flow]:
     """Retrieve flow
 
      Retrieve the workflow flow with the provided ID.
@@ -147,10 +146,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Flow]]
+        Response[Error | Flow]
     """
 
     kwargs = _get_kwargs(
@@ -165,8 +164,8 @@ async def asyncio_detailed(
 async def asyncio(
     flow_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, Flow]]:
+    client: AuthenticatedClient | Client,
+) -> Error | Flow | None:
     """Retrieve flow
 
      Retrieve the workflow flow with the provided ID.
@@ -176,10 +175,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Flow]
+        Error | Flow
     """
 
     return (

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,26 +22,26 @@ class ValidateBlueprintResponse:
     Attributes:
         valid (bool): If `true`, the Blueprint validated successfully. If `false`, at least one validation error
             occurred.
-        errors (Union[Unset, list['ValidationError']]): A list of validation errors. Only present if `valid` is `false`.
-        plan (Union[Unset, ValidationPlanSummary]):
+        errors (list[ValidationError] | Unset): A list of validation errors. Only present if `valid` is `false`.
+        plan (ValidationPlanSummary | Unset):
     """
 
     valid: bool
-    errors: Union[Unset, list["ValidationError"]] = UNSET
-    plan: Union[Unset, "ValidationPlanSummary"] = UNSET
+    errors: list[ValidationError] | Unset = UNSET
+    plan: ValidationPlanSummary | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         valid = self.valid
 
-        errors: Union[Unset, list[dict[str, Any]]] = UNSET
+        errors: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.errors, Unset):
             errors = []
             for errors_item_data in self.errors:
                 errors_item = errors_item_data.to_dict()
                 errors.append(errors_item)
 
-        plan: Union[Unset, dict[str, Any]] = UNSET
+        plan: dict[str, Any] | Unset = UNSET
         if not isinstance(self.plan, Unset):
             plan = self.plan.to_dict()
 
@@ -59,21 +61,23 @@ class ValidateBlueprintResponse:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.validation_error import ValidationError
-        from ..models.validation_plan_summary import ValidationPlanSummary
+        from ..models.validation_error import ValidationError  # noqa: PLC0415
+        from ..models.validation_plan_summary import ValidationPlanSummary  # noqa: PLC0415
 
         d = dict(src_dict)
         valid = d.pop("valid")
 
-        errors = []
         _errors = d.pop("errors", UNSET)
-        for errors_item_data in _errors or []:
-            errors_item = ValidationError.from_dict(errors_item_data)
+        errors: list[ValidationError] | Unset = UNSET
+        if _errors is not UNSET:
+            errors = []
+            for errors_item_data in _errors:
+                errors_item = ValidationError.from_dict(errors_item_data)
 
-            errors.append(errors_item)
+                errors.append(errors_item)
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, ValidationPlanSummary]
+        plan: ValidationPlanSummary | Unset
         if isinstance(_plan, Unset):
             plan = UNSET
         else:

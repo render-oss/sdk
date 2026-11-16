@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,17 +20,17 @@ class SuspenderRemoved:
     """
     Attributes:
         actor (str):
-        resumed_by_user (Union[Unset, SchemasUser]): User who triggered the action
+        resumed_by_user (SchemasUser | Unset): User who triggered the action
     """
 
     actor: str
-    resumed_by_user: Union[Unset, "SchemasUser"] = UNSET
+    resumed_by_user: SchemasUser | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         actor = self.actor
 
-        resumed_by_user: Union[Unset, dict[str, Any]] = UNSET
+        resumed_by_user: dict[str, Any] | Unset = UNSET
         if not isinstance(self.resumed_by_user, Unset):
             resumed_by_user = self.resumed_by_user.to_dict()
 
@@ -46,13 +48,13 @@ class SuspenderRemoved:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.schemas_user import SchemasUser
+        from ..models.schemas_user import SchemasUser  # noqa: PLC0415
 
         d = dict(src_dict)
         actor = d.pop("actor")
 
         _resumed_by_user = d.pop("resumedByUser", UNSET)
-        resumed_by_user: Union[Unset, SchemasUser]
+        resumed_by_user: SchemasUser | Unset
         if isinstance(_resumed_by_user, Unset):
             resumed_by_user = UNSET
         else:

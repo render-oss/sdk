@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -15,14 +16,14 @@ T = TypeVar("T", bound="DeployCommit")
 class DeployCommit:
     """
     Attributes:
-        id (Union[Unset, str]):
-        message (Union[Unset, str]):
-        created_at (Union[Unset, datetime.datetime]):
+        id (str | Unset):
+        message (str | Unset):
+        created_at (datetime.datetime | Unset):
     """
 
-    id: Union[Unset, str] = UNSET
-    message: Union[Unset, str] = UNSET
-    created_at: Union[Unset, datetime.datetime] = UNSET
+    id: str | Unset = UNSET
+    message: str | Unset = UNSET
+    created_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -30,7 +31,7 @@ class DeployCommit:
 
         message = self.message
 
-        created_at: Union[Unset, str] = UNSET
+        created_at: str | Unset = UNSET
         if not isinstance(self.created_at, Unset):
             created_at = self.created_at.isoformat()
 
@@ -54,11 +55,11 @@ class DeployCommit:
         message = d.pop("message", UNSET)
 
         _created_at = d.pop("createdAt", UNSET)
-        created_at: Union[Unset, datetime.datetime]
+        created_at: datetime.datetime | Unset
         if isinstance(_created_at, Unset):
             created_at = UNSET
         else:
-            created_at = isoparse(_created_at)
+            created_at = datetime.datetime.fromisoformat(_created_at)
 
         deploy_commit = cls(
             id=id,

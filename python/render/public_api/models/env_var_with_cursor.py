@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class EnvVarWithCursor:
         cursor (str):
     """
 
-    env_var: "EnvVar"
+    env_var: EnvVar
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class EnvVarWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.env_var import EnvVar
+        from ..models.env_var import EnvVar  # noqa: PLC0415
 
         d = dict(src_dict)
         env_var = EnvVar.from_dict(d.pop("envVar"))

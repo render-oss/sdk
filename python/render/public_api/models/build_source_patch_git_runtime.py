@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildSourcePATCHGitRuntime(str, Enum):
+class BuildSourcePATCHGitRuntime(StrEnum):
     DOCKER = "docker"
     ELIXIR = "elixir"
     GO = "go"

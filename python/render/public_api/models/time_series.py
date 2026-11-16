@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -17,13 +19,13 @@ class TimeSeries:
     """A time series data point
 
     Attributes:
-        labels (list['Label']): List of labels describing the time series
-        values (list['TimeSeriesValue']): The values of the time series
+        labels (list[Label]): List of labels describing the time series
+        values (list[TimeSeriesValue]): The values of the time series
         unit (str):  Example: GB.
     """
 
-    labels: list["Label"]
-    values: list["TimeSeriesValue"]
+    labels: list[Label]
+    values: list[TimeSeriesValue]
     unit: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -54,8 +56,8 @@ class TimeSeries:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.label import Label
-        from ..models.time_series_value import TimeSeriesValue
+        from ..models.label import Label  # noqa: PLC0415
+        from ..models.time_series_value import TimeSeriesValue  # noqa: PLC0415
 
         d = dict(src_dict)
         labels = []

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,23 +22,23 @@ class StartFlowRun:
         flow (str): A flow slug in the format workflow-slug/flow-name. An optional version can be appended (workflow-
             slug/flow-name:version). If no version is provided, the latest version is used. Cannot be blank. Example: my-
             workflow-slug/my-flow.
-        input_ (Union['FlowInputType1', list[Any]]): Input data for a flow. Can be either an array (for positional
-            arguments) or an object (for named parameters).
-        idempotency_key (Union[Unset, str]): A client-generated key that makes starting a task run safe to retry.
-            Repeating a request with the same key within 24 hours returns the task run that the first request started
-            instead of starting another one; the repeated request's input is ignored. Keys are scoped to a workflow. Omit
-            the key to always start a new run. Example: 6b2f1f7a-6a0e-4f6f-9d1a-2b1d0d5f6c11.
+        input_ (FlowInputType1 | list[Any]): Input data for a flow. Can be either an array (for positional arguments) or
+            an object (for named parameters).
+        idempotency_key (str | Unset): A client-generated key that makes starting a task run safe to retry. Repeating a
+            request with the same key within 24 hours returns the task run that the first request started instead of
+            starting another one; the repeated request's input is ignored. Keys are scoped to a workflow. Omit the key to
+            always start a new run. Example: 6b2f1f7a-6a0e-4f6f-9d1a-2b1d0d5f6c11.
     """
 
     flow: str
-    input_: Union["FlowInputType1", list[Any]]
-    idempotency_key: Union[Unset, str] = UNSET
+    input_: FlowInputType1 | list[Any]
+    idempotency_key: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         flow = self.flow
 
-        input_: Union[dict[str, Any], list[Any]]
+        input_: dict[str, Any] | list[Any]
         if isinstance(self.input_, list):
             input_ = self.input_
 
@@ -60,19 +62,19 @@ class StartFlowRun:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.flow_input_type_1 import FlowInputType1
+        from ..models.flow_input_type_1 import FlowInputType1  # noqa: PLC0415
 
         d = dict(src_dict)
         flow = d.pop("flow")
 
-        def _parse_input_(data: object) -> Union["FlowInputType1", list[Any]]:
+        def _parse_input_(data: object) -> FlowInputType1 | list[Any]:
             try:
                 if not isinstance(data, list):
                     raise TypeError()
                 componentsschemas_flow_input_type_0 = cast(list[Any], data)
 
                 return componentsschemas_flow_input_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()

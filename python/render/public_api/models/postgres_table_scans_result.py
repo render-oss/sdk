@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -15,10 +17,10 @@ T = TypeVar("T", bound="PostgresTableScansResult")
 class PostgresTableScansResult:
     """
     Attributes:
-        table_scans (list['PostgresTableScan']):
+        table_scans (list[PostgresTableScan]):
     """
 
-    table_scans: list["PostgresTableScan"]
+    table_scans: list[PostgresTableScan]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -39,7 +41,7 @@ class PostgresTableScansResult:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.postgres_table_scan import PostgresTableScan
+        from ..models.postgres_table_scan import PostgresTableScan  # noqa: PLC0415
 
         d = dict(src_dict)
         table_scans = []

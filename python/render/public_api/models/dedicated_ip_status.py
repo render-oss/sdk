@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DedicatedIPStatus(str, Enum):
+class DedicatedIPStatus(StrEnum):
     CREATING = "CREATING"
     DELETED = "DELETED"
     DELETING = "DELETING"

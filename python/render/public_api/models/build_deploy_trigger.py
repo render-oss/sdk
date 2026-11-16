@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -23,10 +25,10 @@ class BuildDeployTrigger:
         deployed_by_render (bool): Deploy was triggered by Render
         clear_cache (bool): Whether the cache was cleared for the deploy
         rollback (bool): Whether the deploy was triggered by a rollback
-        user (Union[Unset, SchemasUser]): User who triggered the action
-        updated_property (Union[Unset, str]): Updated property that triggered the deploy
-        new_commit (Union[Unset, str]): Commit that triggered the deploy
-        rollback_target_deploy_id (Union[Unset, str]): Deploy ID that was rolled back to
+        user (SchemasUser | Unset): User who triggered the action
+        updated_property (str | Unset): Updated property that triggered the deploy
+        new_commit (str | Unset): Commit that triggered the deploy
+        rollback_target_deploy_id (str | Unset): Deploy ID that was rolled back to
     """
 
     first_build: bool
@@ -35,10 +37,10 @@ class BuildDeployTrigger:
     deployed_by_render: bool
     clear_cache: bool
     rollback: bool
-    user: Union[Unset, "SchemasUser"] = UNSET
-    updated_property: Union[Unset, str] = UNSET
-    new_commit: Union[Unset, str] = UNSET
-    rollback_target_deploy_id: Union[Unset, str] = UNSET
+    user: SchemasUser | Unset = UNSET
+    updated_property: str | Unset = UNSET
+    new_commit: str | Unset = UNSET
+    rollback_target_deploy_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -54,7 +56,7 @@ class BuildDeployTrigger:
 
         rollback = self.rollback
 
-        user: Union[Unset, dict[str, Any]] = UNSET
+        user: dict[str, Any] | Unset = UNSET
         if not isinstance(self.user, Unset):
             user = self.user.to_dict()
 
@@ -89,7 +91,7 @@ class BuildDeployTrigger:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.schemas_user import SchemasUser
+        from ..models.schemas_user import SchemasUser  # noqa: PLC0415
 
         d = dict(src_dict)
         first_build = d.pop("firstBuild")
@@ -105,7 +107,7 @@ class BuildDeployTrigger:
         rollback = d.pop("rollback")
 
         _user = d.pop("user", UNSET)
-        user: Union[Unset, SchemasUser]
+        user: SchemasUser | Unset
         if isinstance(_user, Unset):
             user = UNSET
         else:

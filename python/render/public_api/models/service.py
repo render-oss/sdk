@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.auto_deploy import AutoDeploy
 from ..models.auto_deploy_trigger import AutoDeployTrigger
@@ -48,21 +49,21 @@ class Service:
         suspenders (list[SuspenderType]):
         type_ (ServiceType):
         updated_at (datetime.datetime):
-        service_details (Union['BackgroundWorkerDetails', 'CronJobDetails', 'PrivateServiceDetails',
-            'StaticSiteDetails', 'WebServiceDetails']):
-        build_source_id (Union[Unset, str]):
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+        service_details (BackgroundWorkerDetails | CronJobDetails | PrivateServiceDetails | StaticSiteDetails |
+            WebServiceDetails):
+        build_source_id (str | Unset):
+        auto_deploy_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior.
 
             - `commit`: Deploy each time a commit is pushed to the service's linked branch.
             - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
             pass.
             - `off`: Disable autodeploys.
-        branch (Union[Unset, str]):
-        build_filter (Union[Unset, BuildFilter]):
-        environment_id (Union[Unset, str]):
-        image_path (Union[Unset, str]):
-        registry_credential (Union[Unset, RegistryCredentialSummary]):
-        repo (Union[Unset, str]):  Example: https://github.com/render-examples/flask-hello-world.
+        branch (str | Unset):
+        build_filter (BuildFilter | Unset):
+        environment_id (str | Unset):
+        image_path (str | Unset):
+        registry_credential (RegistryCredentialSummary | Unset):
+        repo (str | Unset):  Example: https://github.com/render-examples/flask-hello-world.
     """
 
     id: str
@@ -78,24 +79,24 @@ class Service:
     suspenders: list[SuspenderType]
     type_: ServiceType
     updated_at: datetime.datetime
-    service_details: Union[
-        "BackgroundWorkerDetails", "CronJobDetails", "PrivateServiceDetails", "StaticSiteDetails", "WebServiceDetails"
-    ]
-    build_source_id: Union[Unset, str] = UNSET
-    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
-    branch: Union[Unset, str] = UNSET
-    build_filter: Union[Unset, "BuildFilter"] = UNSET
-    environment_id: Union[Unset, str] = UNSET
-    image_path: Union[Unset, str] = UNSET
-    registry_credential: Union[Unset, "RegistryCredentialSummary"] = UNSET
-    repo: Union[Unset, str] = UNSET
+    service_details: (
+        BackgroundWorkerDetails | CronJobDetails | PrivateServiceDetails | StaticSiteDetails | WebServiceDetails
+    )
+    build_source_id: str | Unset = UNSET
+    auto_deploy_trigger: AutoDeployTrigger | Unset = UNSET
+    branch: str | Unset = UNSET
+    build_filter: BuildFilter | Unset = UNSET
+    environment_id: str | Unset = UNSET
+    image_path: str | Unset = UNSET
+    registry_credential: RegistryCredentialSummary | Unset = UNSET
+    repo: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.background_worker_details import BackgroundWorkerDetails
-        from ..models.private_service_details import PrivateServiceDetails
-        from ..models.static_site_details import StaticSiteDetails
-        from ..models.web_service_details import WebServiceDetails
+        from ..models.background_worker_details import BackgroundWorkerDetails  # noqa: PLC0415
+        from ..models.private_service_details import PrivateServiceDetails  # noqa: PLC0415
+        from ..models.static_site_details import StaticSiteDetails  # noqa: PLC0415
+        from ..models.web_service_details import WebServiceDetails  # noqa: PLC0415
 
         id = self.id
 
@@ -140,13 +141,13 @@ class Service:
 
         build_source_id = self.build_source_id
 
-        auto_deploy_trigger: Union[Unset, str] = UNSET
+        auto_deploy_trigger: str | Unset = UNSET
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
         branch = self.branch
 
-        build_filter: Union[Unset, dict[str, Any]] = UNSET
+        build_filter: dict[str, Any] | Unset = UNSET
         if not isinstance(self.build_filter, Unset):
             build_filter = self.build_filter.to_dict()
 
@@ -154,7 +155,7 @@ class Service:
 
         image_path = self.image_path
 
-        registry_credential: Union[Unset, dict[str, Any]] = UNSET
+        registry_credential: dict[str, Any] | Unset = UNSET
         if not isinstance(self.registry_credential, Unset):
             registry_credential = self.registry_credential.to_dict()
 
@@ -201,20 +202,20 @@ class Service:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.background_worker_details import BackgroundWorkerDetails
-        from ..models.build_filter import BuildFilter
-        from ..models.cron_job_details import CronJobDetails
-        from ..models.private_service_details import PrivateServiceDetails
-        from ..models.registry_credential_summary import RegistryCredentialSummary
-        from ..models.static_site_details import StaticSiteDetails
-        from ..models.web_service_details import WebServiceDetails
+        from ..models.background_worker_details import BackgroundWorkerDetails  # noqa: PLC0415
+        from ..models.build_filter import BuildFilter  # noqa: PLC0415
+        from ..models.cron_job_details import CronJobDetails  # noqa: PLC0415
+        from ..models.private_service_details import PrivateServiceDetails  # noqa: PLC0415
+        from ..models.registry_credential_summary import RegistryCredentialSummary  # noqa: PLC0415
+        from ..models.static_site_details import StaticSiteDetails  # noqa: PLC0415
+        from ..models.web_service_details import WebServiceDetails  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
         auto_deploy = AutoDeploy(d.pop("autoDeploy"))
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         dashboard_url = d.pop("dashboardUrl")
 
@@ -239,24 +240,18 @@ class Service:
 
         type_ = ServiceType(d.pop("type"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         def _parse_service_details(
             data: object,
-        ) -> Union[
-            "BackgroundWorkerDetails",
-            "CronJobDetails",
-            "PrivateServiceDetails",
-            "StaticSiteDetails",
-            "WebServiceDetails",
-        ]:
+        ) -> BackgroundWorkerDetails | CronJobDetails | PrivateServiceDetails | StaticSiteDetails | WebServiceDetails:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
                 service_details_type_0 = StaticSiteDetails.from_dict(data)
 
                 return service_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -264,7 +259,7 @@ class Service:
                 service_details_type_1 = WebServiceDetails.from_dict(data)
 
                 return service_details_type_1
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -272,7 +267,7 @@ class Service:
                 service_details_type_2 = PrivateServiceDetails.from_dict(data)
 
                 return service_details_type_2
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -280,7 +275,7 @@ class Service:
                 service_details_type_3 = BackgroundWorkerDetails.from_dict(data)
 
                 return service_details_type_3
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -293,7 +288,7 @@ class Service:
         build_source_id = d.pop("buildSourceId", UNSET)
 
         _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
-        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        auto_deploy_trigger: AutoDeployTrigger | Unset
         if isinstance(_auto_deploy_trigger, Unset):
             auto_deploy_trigger = UNSET
         else:
@@ -302,7 +297,7 @@ class Service:
         branch = d.pop("branch", UNSET)
 
         _build_filter = d.pop("buildFilter", UNSET)
-        build_filter: Union[Unset, BuildFilter]
+        build_filter: BuildFilter | Unset
         if isinstance(_build_filter, Unset):
             build_filter = UNSET
         else:
@@ -313,7 +308,7 @@ class Service:
         image_path = d.pop("imagePath", UNSET)
 
         _registry_credential = d.pop("registryCredential", UNSET)
-        registry_credential: Union[Unset, RegistryCredentialSummary]
+        registry_credential: RegistryCredentialSummary | Unset
         if isinstance(_registry_credential, Unset):
             registry_credential = UNSET
         else:

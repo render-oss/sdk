@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class LogDirection(str, Enum):
+class LogDirection(StrEnum):
     BACKWARD = "backward"
     FORWARD = "forward"
 

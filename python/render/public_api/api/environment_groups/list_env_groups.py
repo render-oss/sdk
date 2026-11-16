@@ -1,8 +1,8 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,51 +13,51 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    name: Union[Unset, list[str]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    environment_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    name: list[str] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    environment_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_name: Union[Unset, list[str]] = UNSET
+    json_name: list[str] | Unset = UNSET
     if not isinstance(name, Unset):
         json_name = name
 
     params["name"] = json_name
 
-    json_created_before: Union[Unset, str] = UNSET
+    json_created_before: str | Unset = UNSET
     if not isinstance(created_before, Unset):
         json_created_before = created_before.isoformat()
     params["createdBefore"] = json_created_before
 
-    json_created_after: Union[Unset, str] = UNSET
+    json_created_after: str | Unset = UNSET
     if not isinstance(created_after, Unset):
         json_created_after = created_after.isoformat()
     params["createdAfter"] = json_created_after
 
-    json_updated_before: Union[Unset, str] = UNSET
+    json_updated_before: str | Unset = UNSET
     if not isinstance(updated_before, Unset):
         json_updated_before = updated_before.isoformat()
     params["updatedBefore"] = json_updated_before
 
-    json_updated_after: Union[Unset, str] = UNSET
+    json_updated_after: str | Unset = UNSET
     if not isinstance(updated_after, Unset):
         json_updated_after = updated_after.isoformat()
     params["updatedAfter"] = json_updated_after
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
     params["ownerId"] = json_owner_id
 
-    json_environment_id: Union[Unset, list[str]] = UNSET
+    json_environment_id: list[str] | Unset = UNSET
     if not isinstance(environment_id, Unset):
         json_environment_id = environment_id
 
@@ -79,8 +79,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["EnvGroupMeta"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[EnvGroupMeta] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -128,8 +128,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["EnvGroupMeta"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[EnvGroupMeta]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -140,39 +140,39 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    environment_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["EnvGroupMeta"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    environment_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[EnvGroupMeta]]:
     """List environment groups
 
      List environment groups matching the provided filters. If no filters are provided, all environment
     groups are returned.
 
     Args:
-        name (Union[Unset, list[str]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        owner_id (Union[Unset, list[str]]):
-        environment_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        owner_id (list[str] | Unset):
+        environment_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['EnvGroupMeta']]]
+        Response[Error | list[EnvGroupMeta]]
     """
 
     kwargs = _get_kwargs(
@@ -196,39 +196,39 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    environment_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["EnvGroupMeta"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    environment_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[EnvGroupMeta] | None:
     """List environment groups
 
      List environment groups matching the provided filters. If no filters are provided, all environment
     groups are returned.
 
     Args:
-        name (Union[Unset, list[str]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        owner_id (Union[Unset, list[str]]):
-        environment_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        owner_id (list[str] | Unset):
+        environment_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['EnvGroupMeta']]
+        Error | list[EnvGroupMeta]
     """
 
     return sync_detailed(
@@ -247,39 +247,39 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    environment_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["EnvGroupMeta"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    environment_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[EnvGroupMeta]]:
     """List environment groups
 
      List environment groups matching the provided filters. If no filters are provided, all environment
     groups are returned.
 
     Args:
-        name (Union[Unset, list[str]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        owner_id (Union[Unset, list[str]]):
-        environment_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        owner_id (list[str] | Unset):
+        environment_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['EnvGroupMeta']]]
+        Response[Error | list[EnvGroupMeta]]
     """
 
     kwargs = _get_kwargs(
@@ -301,39 +301,39 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    environment_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["EnvGroupMeta"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    environment_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[EnvGroupMeta] | None:
     """List environment groups
 
      List environment groups matching the provided filters. If no filters are provided, all environment
     groups are returned.
 
     Args:
-        name (Union[Unset, list[str]]):
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        owner_id (Union[Unset, list[str]]):
-        environment_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        owner_id (list[str] | Unset):
+        environment_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['EnvGroupMeta']]
+        Error | list[EnvGroupMeta]
     """
 
     return (

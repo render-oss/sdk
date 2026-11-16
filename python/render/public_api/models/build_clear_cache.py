@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildClearCache(str, Enum):
+class BuildClearCache(StrEnum):
     CLEAR = "clear"
     DO_NOT_CLEAR = "do_not_clear"
 

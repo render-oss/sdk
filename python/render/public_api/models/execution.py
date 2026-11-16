@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.execution_operation import ExecutionOperation
 from ..models.execution_type import ExecutionType
@@ -27,11 +28,11 @@ class Execution:
             user_id (str): The ID of the user the execution token was created for. Example: usr-cph1rs3idesc73a2b2mg.
             started_at (datetime.datetime): The timestamp when the execution token was created, in ISO 8601 format. Example:
                 2026-08-01T10:00:00Z.
-            command (Union[Unset, str]): The command run in the sandbox, or the target path for a file transfer. Command
-                text may be redacted or truncated. Omitted if you do not have permission to view execution commands.
-            stopped_at (Union[Unset, datetime.datetime]): The timestamp when the execution stopped, in ISO 8601 format.
-                Omitted until a result is available. Example: 2026-08-01T10:05:00Z.
-            exit_code (Union[Unset, int]): The execution exit code. Omitted until a result is available.
+            command (str | Unset): The command run in the sandbox, or the target path for a file transfer. Command text may
+                be redacted or truncated. Omitted if you do not have permission to view execution commands.
+            stopped_at (datetime.datetime | Unset): The timestamp when the execution stopped, in ISO 8601 format. Omitted
+                until a result is available. Example: 2026-08-01T10:05:00Z.
+            exit_code (int | Unset): The execution exit code. Omitted until a result is available. Example: 0.
     """
 
     id: str
@@ -40,9 +41,9 @@ class Execution:
     operation: ExecutionOperation
     user_id: str
     started_at: datetime.datetime
-    command: Union[Unset, str] = UNSET
-    stopped_at: Union[Unset, datetime.datetime] = UNSET
-    exit_code: Union[Unset, int] = UNSET
+    command: str | Unset = UNSET
+    stopped_at: datetime.datetime | Unset = UNSET
+    exit_code: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,7 +61,7 @@ class Execution:
 
         command = self.command
 
-        stopped_at: Union[Unset, str] = UNSET
+        stopped_at: str | Unset = UNSET
         if not isinstance(self.stopped_at, Unset):
             stopped_at = self.stopped_at.isoformat()
 
@@ -100,16 +101,16 @@ class Execution:
 
         user_id = d.pop("userId")
 
-        started_at = isoparse(d.pop("startedAt"))
+        started_at = datetime.datetime.fromisoformat(d.pop("startedAt"))
 
         command = d.pop("command", UNSET)
 
         _stopped_at = d.pop("stoppedAt", UNSET)
-        stopped_at: Union[Unset, datetime.datetime]
+        stopped_at: datetime.datetime | Unset
         if isinstance(_stopped_at, Unset):
             stopped_at = UNSET
         else:
-            stopped_at = isoparse(_stopped_at)
+            stopped_at = datetime.datetime.fromisoformat(_stopped_at)
 
         exit_code = d.pop("exitCode", UNSET)
 

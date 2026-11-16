@@ -2,7 +2,7 @@ import asyncio
 import inspect
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import RenderError, ServerError, TimeoutError
@@ -63,26 +63,26 @@ class _Api:
         self.created = created
         self.polled = list(polled)
         self.snapshot = snapshot
-        self.requests: list[httpx.Request] = []
+        self.requests: list[httpx2.Request] = []
 
     @property
     def gets(self):
         return [r for r in self.requests if r.method == "GET"]
 
-    def __call__(self, request: httpx.Request) -> httpx.Response:
+    def __call__(self, request: httpx2.Request) -> httpx2.Response:
         self.requests.append(request)
         if request.method == "POST" and self.snapshot:
-            return httpx.Response(202, json=_snapshot_json(*self.created))
+            return httpx2.Response(202, json=_snapshot_json(*self.created))
         if request.method == "POST":
-            return httpx.Response(201, json=_sandbox_json(self.created))
+            return httpx2.Response(201, json=_sandbox_json(self.created))
         status = self.polled.pop(0) if len(self.polled) > 1 else self.polled[0]
-        if isinstance(status, httpx.Response):
+        if isinstance(status, httpx2.Response):
             return status
         if isinstance(status, Exception):
             raise status
         if self.snapshot:
-            return httpx.Response(200, json=_snapshot_json(*status))
-        return httpx.Response(200, json=_sandbox_json(status))
+            return httpx2.Response(200, json=_snapshot_json(*status))
+        return httpx2.Response(200, json=_sandbox_json(status))
 
 
 @pytest.fixture(params=["async", "sync"])
@@ -91,7 +91,7 @@ def make_client(request):
         internal = AuthenticatedClient(
             base_url="https://api.test/v1",
             token="test-token",
-            httpx_args={"transport": httpx.MockTransport(handler)},
+            httpx_args={"transport": httpx2.MockTransport(handler)},
         )
         cls = SandboxClient if request.param == "async" else SyncSandboxClient
         return cls(internal, default_owner_id="tea-test")
@@ -250,9 +250,9 @@ def _late(clock, *statuses):
 
     def handler(request):
         if request.method == "POST":
-            return httpx.Response(201, json=_sandbox_json("creating"))
+            return httpx2.Response(201, json=_sandbox_json("creating"))
         clock.now += 2
-        return httpx.Response(200, json=_sandbox_json(queue.pop(0)))
+        return httpx2.Response(200, json=_sandbox_json(queue.pop(0)))
 
     return handler
 
@@ -316,7 +316,7 @@ async def test_the_async_deadline_cancels_a_status_check_that_hangs():
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     client = SandboxClient(internal, default_owner_id="tea-test")
 
@@ -330,7 +330,7 @@ async def test_the_async_deadline_cancels_a_status_check_that_hangs():
 
 @pytest.mark.asyncio
 async def test_status_check_errors_propagate_unchanged(make_client, clock):
-    client = make_client(_Api(httpx.Response(404, json={"message": "not found"})))
+    client = make_client(_Api(httpx2.Response(404, json={"message": "not found"})))
 
     with pytest.raises(SandboxNotFoundError):
         await _resolve(client.wait_until_running("sbx-abc"))
@@ -475,13 +475,13 @@ async def test_create_with_wait_wraps_a_sandbox_that_comes_back_errored(
 @pytest.mark.parametrize(
     ("polled", "cause"),
     [
-        (lambda: httpx.Response(503, json={"message": "unavailable"}), ServerError),
+        (lambda: httpx2.Response(503, json={"message": "unavailable"}), ServerError),
         (
-            lambda: httpx.Response(404, json={"message": "not found"}),
+            lambda: httpx2.Response(404, json={"message": "not found"}),
             SandboxNotFoundError,
         ),
-        (lambda: httpx.ConnectError("connection refused"), RenderError),
-        (lambda: httpx.Response(200, content=b"not json"), RenderError),
+        (lambda: httpx2.ConnectError("connection refused"), RenderError),
+        (lambda: httpx2.Response(200, content=b"not json"), RenderError),
         (lambda: "suspended", SandboxNotRunningError),
     ],
     ids=["5xx", "404", "connection", "non-json", "suspended"],
@@ -504,13 +504,13 @@ async def test_create_with_wait_gives_the_id_when_the_wait_fails(
 async def test_create_with_wait_lets_cancellation_through():
     async def handler(request):
         if request.method == "POST":
-            return httpx.Response(201, json=_sandbox_json("creating"))
+            return httpx2.Response(201, json=_sandbox_json("creating"))
         await asyncio.sleep(60)
 
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     client = SandboxClient(internal, default_owner_id="tea-test")
     task = asyncio.ensure_future(client.create(wait=True))
@@ -623,8 +623,8 @@ async def test_snapshot_create_with_wait_gives_both_ids_when_the_capture_fails(
 @pytest.mark.parametrize(
     ("polled", "cause"),
     [
-        (lambda: httpx.Response(503, json={"message": "unavailable"}), ServerError),
-        (lambda: httpx.ConnectError("connection refused"), RenderError),
+        (lambda: httpx2.Response(503, json={"message": "unavailable"}), ServerError),
+        (lambda: httpx2.ConnectError("connection refused"), RenderError),
     ],
     ids=["5xx", "connection"],
 )

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class OwnerType(str, Enum):
+class OwnerType(StrEnum):
     TEAM = "team"
     USER = "user"
 

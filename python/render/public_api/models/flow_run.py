@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.flow_run_status import FlowRunStatus
 from ..types import UNSET, Unset
@@ -19,15 +20,15 @@ class FlowRun:
         id (str):  Example: frn-d0hp8fs9c44c73a6f1qg.
         flow_id (str):  Example: flw-d0hp8fs9c44c73a6f1qg.
         status (FlowRunStatus): The status of a flow run.
-        started_at (Union[Unset, datetime.datetime]):
-        completed_at (Union[Unset, datetime.datetime]):
+        started_at (datetime.datetime | Unset):
+        completed_at (datetime.datetime | Unset):
     """
 
     id: str
     flow_id: str
     status: FlowRunStatus
-    started_at: Union[Unset, datetime.datetime] = UNSET
-    completed_at: Union[Unset, datetime.datetime] = UNSET
+    started_at: datetime.datetime | Unset = UNSET
+    completed_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -37,11 +38,11 @@ class FlowRun:
 
         status = self.status.value
 
-        started_at: Union[Unset, str] = UNSET
+        started_at: str | Unset = UNSET
         if not isinstance(self.started_at, Unset):
             started_at = self.started_at.isoformat()
 
-        completed_at: Union[Unset, str] = UNSET
+        completed_at: str | Unset = UNSET
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
@@ -71,18 +72,18 @@ class FlowRun:
         status = FlowRunStatus(d.pop("status"))
 
         _started_at = d.pop("startedAt", UNSET)
-        started_at: Union[Unset, datetime.datetime]
+        started_at: datetime.datetime | Unset
         if isinstance(_started_at, Unset):
             started_at = UNSET
         else:
-            started_at = isoparse(_started_at)
+            started_at = datetime.datetime.fromisoformat(_started_at)
 
         _completed_at = d.pop("completedAt", UNSET)
-        completed_at: Union[Unset, datetime.datetime]
+        completed_at: datetime.datetime | Unset
         if isinstance(_completed_at, Unset):
             completed_at = UNSET
         else:
-            completed_at = isoparse(_completed_at)
+            completed_at = datetime.datetime.fromisoformat(_completed_at)
 
         flow_run = cls(
             id=id,

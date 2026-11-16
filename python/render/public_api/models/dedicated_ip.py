@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.dedicated_ip_status import DedicatedIPStatus
 from ..models.region import Region
@@ -27,7 +28,7 @@ class DedicatedIP:
         ips (list[str]): The IPv4 addresses assigned to this dedicated IP set.
         status (DedicatedIPStatus): Current status of a dedicated IP set.
         created_at (datetime.datetime): Time the dedicated IP set was created.
-        updated_at (Union[Unset, datetime.datetime]): Time the dedicated IP set was last updated.
+        updated_at (datetime.datetime | Unset): Time the dedicated IP set was last updated.
     """
 
     id: str
@@ -39,7 +40,7 @@ class DedicatedIP:
     ips: list[str]
     status: DedicatedIPStatus
     created_at: datetime.datetime
-    updated_at: Union[Unset, datetime.datetime] = UNSET
+    updated_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -61,7 +62,7 @@ class DedicatedIP:
 
         created_at = self.created_at.isoformat()
 
-        updated_at: Union[Unset, str] = UNSET
+        updated_at: str | Unset = UNSET
         if not isinstance(self.updated_at, Unset):
             updated_at = self.updated_at.isoformat()
 
@@ -104,14 +105,14 @@ class DedicatedIP:
 
         status = DedicatedIPStatus(d.pop("status"))
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         _updated_at = d.pop("updatedAt", UNSET)
-        updated_at: Union[Unset, datetime.datetime]
+        updated_at: datetime.datetime | Unset
         if isinstance(_updated_at, Unset):
             updated_at = UNSET
         else:
-            updated_at = isoparse(_updated_at)
+            updated_at = datetime.datetime.fromisoformat(_updated_at)
 
         dedicated_ip = cls(
             id=id,

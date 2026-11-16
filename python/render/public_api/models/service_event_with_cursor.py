@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -20,7 +22,7 @@ class ServiceEventWithCursor:
         cursor (str):
     """
 
-    event: "ServiceEvent"
+    event: ServiceEvent
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -42,7 +44,7 @@ class ServiceEventWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.service_event import ServiceEvent
+        from ..models.service_event import ServiceEvent  # noqa: PLC0415
 
         d = dict(src_dict)
         event = ServiceEvent.from_dict(d.pop("event"))

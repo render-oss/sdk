@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -16,27 +17,27 @@ class DiskSnapshotRestored:
     """
     Attributes:
         disk_id (str):  Example: dsk-cph1rs3idesc73a2b2mg.
-        triggered_by_user (Union[None, str]):
-        instance_id (Union[Unset, str]): The instance whose disk was restored, when the restore named one. A service
-            instance ID, or the service ID for an older single disk.
-        snapshot_created_at (Union[Unset, datetime.datetime]): When the restored snapshot was taken
+        triggered_by_user (None | str):
+        instance_id (str | Unset): The instance whose disk was restored, when the restore named one. A service instance
+            ID, or the service ID for an older single disk.
+        snapshot_created_at (datetime.datetime | Unset): When the restored snapshot was taken
     """
 
     disk_id: str
-    triggered_by_user: Union[None, str]
-    instance_id: Union[Unset, str] = UNSET
-    snapshot_created_at: Union[Unset, datetime.datetime] = UNSET
+    triggered_by_user: None | str
+    instance_id: str | Unset = UNSET
+    snapshot_created_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         disk_id = self.disk_id
 
-        triggered_by_user: Union[None, str]
+        triggered_by_user: None | str
         triggered_by_user = self.triggered_by_user
 
         instance_id = self.instance_id
 
-        snapshot_created_at: Union[Unset, str] = UNSET
+        snapshot_created_at: str | Unset = UNSET
         if not isinstance(self.snapshot_created_at, Unset):
             snapshot_created_at = self.snapshot_created_at.isoformat()
 
@@ -60,21 +61,21 @@ class DiskSnapshotRestored:
         d = dict(src_dict)
         disk_id = d.pop("diskId")
 
-        def _parse_triggered_by_user(data: object) -> Union[None, str]:
+        def _parse_triggered_by_user(data: object) -> None | str:
             if data is None:
                 return data
-            return cast(Union[None, str], data)
+            return cast(None | str, data)
 
         triggered_by_user = _parse_triggered_by_user(d.pop("triggeredByUser"))
 
         instance_id = d.pop("instanceId", UNSET)
 
         _snapshot_created_at = d.pop("snapshotCreatedAt", UNSET)
-        snapshot_created_at: Union[Unset, datetime.datetime]
+        snapshot_created_at: datetime.datetime | Unset
         if isinstance(_snapshot_created_at, Unset):
             snapshot_created_at = UNSET
         else:
-            snapshot_created_at = isoparse(_snapshot_created_at)
+            snapshot_created_at = datetime.datetime.fromisoformat(_snapshot_created_at)
 
         disk_snapshot_restored = cls(
             disk_id=disk_id,

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -19,7 +20,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/maintenance/{maintenance_run_id}",
+        "url": "/maintenance/{maintenance_run_id}".format(
+            maintenance_run_id=quote(str(maintenance_run_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -30,9 +33,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Any | Error | None:
     if response.status_code == 202:
         response_202 = cast(Any, None)
         return response_202
@@ -73,9 +74,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Any | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -87,9 +86,9 @@ def _build_response(
 def sync_detailed(
     maintenance_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: MaintenanceRunPATCH,
-) -> Response[Union[Any, Error]]:
+) -> Response[Any | Error]:
     """Update maintenance run
 
      Update the maintenance run with the provided ID.
@@ -103,10 +102,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Any | Error]
     """
 
     kwargs = _get_kwargs(
@@ -124,9 +123,9 @@ def sync_detailed(
 def sync(
     maintenance_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: MaintenanceRunPATCH,
-) -> Optional[Union[Any, Error]]:
+) -> Any | Error | None:
     """Update maintenance run
 
      Update the maintenance run with the provided ID.
@@ -140,10 +139,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Any | Error
     """
 
     return sync_detailed(
@@ -156,9 +155,9 @@ def sync(
 async def asyncio_detailed(
     maintenance_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: MaintenanceRunPATCH,
-) -> Response[Union[Any, Error]]:
+) -> Response[Any | Error]:
     """Update maintenance run
 
      Update the maintenance run with the provided ID.
@@ -172,10 +171,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Any | Error]
     """
 
     kwargs = _get_kwargs(
@@ -191,9 +190,9 @@ async def asyncio_detailed(
 async def asyncio(
     maintenance_run_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: MaintenanceRunPATCH,
-) -> Optional[Union[Any, Error]]:
+) -> Any | Error | None:
     """Update maintenance run
 
      Update the maintenance run with the provided ID.
@@ -207,10 +206,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Any | Error
     """
 
     return (

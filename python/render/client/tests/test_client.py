@@ -372,7 +372,7 @@ async def test_await_already_completed_task(
 
 @pytest.fixture
 def mock_httpx_stream(mocker):
-    """Mock httpx.AsyncClient to return a controllable SSE stream.
+    """Mock httpx2.AsyncClient to return a controllable SSE stream.
 
     Returns a list that tests populate with bytes chunks before calling
     task_run_events(). The mock wires up the nested async context managers
@@ -397,7 +397,7 @@ def mock_httpx_stream(mocker):
     client_cm = mocker.AsyncMock()
     client_cm.__aenter__.return_value = mock_http_client
 
-    mocker.patch("render.client.workflows.httpx.AsyncClient", return_value=client_cm)
+    mocker.patch("render.client.workflows.httpx2.AsyncClient", return_value=client_cm)
 
     return chunks, mock_response
 

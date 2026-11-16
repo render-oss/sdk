@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FlowRunErrorDetailsCode(str, Enum):
+class FlowRunErrorDetailsCode(StrEnum):
     FLOW_DETERMINISM_ERROR = "flow_determinism_error"
     FLOW_HISTORY_TOO_LARGE = "flow_history_too_large"
     FLOW_PAYLOAD_TOO_LARGE = "flow_payload_too_large"

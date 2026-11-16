@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class CacheProfile(str, Enum):
+class CacheProfile(StrEnum):
     NO_CACHE = "no-cache"
     ORIGIN_CONTROLLED = "origin-controlled"
     ORIGIN_CONTROLLED_ALL = "origin-controlled-all"

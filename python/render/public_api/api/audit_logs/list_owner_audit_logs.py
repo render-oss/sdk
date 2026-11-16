@@ -1,8 +1,9 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,25 +16,25 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     owner_id: str,
     *,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_start_time: Union[Unset, str] = UNSET
+    json_start_time: str | Unset = UNSET
     if not isinstance(start_time, Unset):
         json_start_time = start_time.isoformat()
     params["startTime"] = json_start_time
 
-    json_end_time: Union[Unset, str] = UNSET
+    json_end_time: str | Unset = UNSET
     if not isinstance(end_time, Unset):
         json_end_time = end_time.isoformat()
     params["endTime"] = json_end_time
 
-    json_direction: Union[Unset, str] = UNSET
+    json_direction: str | Unset = UNSET
     if not isinstance(direction, Unset):
         json_direction = direction.value
 
@@ -47,7 +48,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/owners/{owner_id}/audit-logs",
+        "url": "/owners/{owner_id}/audit-logs".format(
+            owner_id=quote(str(owner_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -55,8 +58,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["AuditLogWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[AuditLogWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -119,8 +122,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["AuditLogWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[AuditLogWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -132,31 +135,31 @@ def _build_response(
 def sync_detailed(
     owner_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["AuditLogWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[AuditLogWithCursor]]:
     """List workspace audit logs
 
      Retrieve audit logs for a specific workspace with optional filtering and pagination.
 
     Args:
         owner_id (str):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2023-01-01T00:00:00Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2023-12-31T23:59:59Z.
-        direction (Union[Unset, LogDirection]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        start_time (datetime.datetime | Unset):  Example: 2023-01-01T00:00:00Z.
+        end_time (datetime.datetime | Unset):  Example: 2023-12-31T23:59:59Z.
+        direction (LogDirection | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['AuditLogWithCursor']]]
+        Response[Error | list[AuditLogWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -178,31 +181,31 @@ def sync_detailed(
 def sync(
     owner_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["AuditLogWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[AuditLogWithCursor] | None:
     """List workspace audit logs
 
      Retrieve audit logs for a specific workspace with optional filtering and pagination.
 
     Args:
         owner_id (str):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2023-01-01T00:00:00Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2023-12-31T23:59:59Z.
-        direction (Union[Unset, LogDirection]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        start_time (datetime.datetime | Unset):  Example: 2023-01-01T00:00:00Z.
+        end_time (datetime.datetime | Unset):  Example: 2023-12-31T23:59:59Z.
+        direction (LogDirection | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['AuditLogWithCursor']]
+        Error | list[AuditLogWithCursor]
     """
 
     return sync_detailed(
@@ -219,31 +222,31 @@ def sync(
 async def asyncio_detailed(
     owner_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["AuditLogWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[AuditLogWithCursor]]:
     """List workspace audit logs
 
      Retrieve audit logs for a specific workspace with optional filtering and pagination.
 
     Args:
         owner_id (str):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2023-01-01T00:00:00Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2023-12-31T23:59:59Z.
-        direction (Union[Unset, LogDirection]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        start_time (datetime.datetime | Unset):  Example: 2023-01-01T00:00:00Z.
+        end_time (datetime.datetime | Unset):  Example: 2023-12-31T23:59:59Z.
+        direction (LogDirection | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['AuditLogWithCursor']]]
+        Response[Error | list[AuditLogWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -263,31 +266,31 @@ async def asyncio_detailed(
 async def asyncio(
     owner_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    direction: Union[Unset, LogDirection] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["AuditLogWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    direction: LogDirection | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[AuditLogWithCursor] | None:
     """List workspace audit logs
 
      Retrieve audit logs for a specific workspace with optional filtering and pagination.
 
     Args:
         owner_id (str):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2023-01-01T00:00:00Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2023-12-31T23:59:59Z.
-        direction (Union[Unset, LogDirection]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        start_time (datetime.datetime | Unset):  Example: 2023-01-01T00:00:00Z.
+        end_time (datetime.datetime | Unset):  Example: 2023-12-31T23:59:59Z.
+        direction (LogDirection | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['AuditLogWithCursor']]
+        Error | list[AuditLogWithCursor]
     """
 
     return (

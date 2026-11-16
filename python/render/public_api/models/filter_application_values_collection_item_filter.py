@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FilterApplicationValuesCollectionItemFilter(str, Enum):
+class FilterApplicationValuesCollectionItemFilter(StrEnum):
     INSTANCE = "instance"
 
     def __str__(self) -> str:

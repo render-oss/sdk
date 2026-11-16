@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -27,7 +29,7 @@ class PreDeployEnded:
     deploy_command_execution_id: str
     deploy_id: str
     pre_deploy_status: EventStatus
-    reason: "BuildDeployEndReason"
+    reason: BuildDeployEndReason
     status: int
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -58,7 +60,7 @@ class PreDeployEnded:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_deploy_end_reason import BuildDeployEndReason
+        from ..models.build_deploy_end_reason import BuildDeployEndReason  # noqa: PLC0415
 
         d = dict(src_dict)
         deploy_command_execution_id = d.pop("deployCommandExecutionId")

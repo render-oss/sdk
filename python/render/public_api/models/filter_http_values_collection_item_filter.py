@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FilterHTTPValuesCollectionItemFilter(str, Enum):
+class FilterHTTPValuesCollectionItemFilter(StrEnum):
     HOST = "host"
     STATUSCODE = "statusCode"
 

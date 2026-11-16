@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,8 +21,8 @@ class AutoscalingCriteria:
         memory (AutoscalingCriteriaPercentage):
     """
 
-    cpu: "AutoscalingCriteriaPercentage"
-    memory: "AutoscalingCriteriaPercentage"
+    cpu: AutoscalingCriteriaPercentage
+    memory: AutoscalingCriteriaPercentage
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -41,7 +43,7 @@ class AutoscalingCriteria:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.autoscaling_criteria_percentage import AutoscalingCriteriaPercentage
+        from ..models.autoscaling_criteria_percentage import AutoscalingCriteriaPercentage  # noqa: PLC0415
 
         d = dict(src_dict)
         cpu = AutoscalingCriteriaPercentage.from_dict(d.pop("cpu"))

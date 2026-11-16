@@ -1,6 +1,6 @@
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import ClientError, RenderError
@@ -56,7 +56,7 @@ def _sandbox_client(handler, *, default_owner_id="tea-test"):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return SandboxClient(internal, default_owner_id=default_owner_id)
 
@@ -67,12 +67,12 @@ def _sync_sandbox_client(handler, *, default_owner_id="tea-test"):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return SyncSandboxClient(internal, default_owner_id=default_owner_id)
 
 
-async def _unreachable(request: httpx.Request) -> httpx.Response:
+async def _unreachable(request: httpx2.Request) -> httpx2.Response:
     raise AssertionError("handler should not be reached")
 
 
@@ -85,12 +85,12 @@ def test_sandbox_client_exposes_snapshots():
 async def test_create_omits_kind_by_default_and_returns_creating_snapshot():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.create("sbx-abc")
@@ -118,10 +118,10 @@ async def test_create_omits_kind_by_default_and_returns_creating_snapshot():
 async def test_create_sends_the_runtime_kind_and_an_explicit_owner_id():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["query"] = dict(request.url.params)
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
     await client.snapshots.create("sbx-abc", kind="runtime", owner_id="tea-other")
@@ -134,9 +134,9 @@ async def test_create_sends_the_runtime_kind_and_an_explicit_owner_id():
 async def test_create_sends_name_and_returns_it():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
+        return httpx2.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.create("sbx-abc", name="gold")
@@ -150,9 +150,9 @@ async def test_create_sends_name_and_returns_it():
 async def test_create_sends_ttl_seconds_including_zero(ttl_seconds):
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
     await client.snapshots.create("sbx-abc", ttl_seconds=ttl_seconds)
@@ -164,9 +164,9 @@ async def test_create_sends_ttl_seconds_including_zero(ttl_seconds):
 async def test_create_omits_ttl_seconds_when_not_set():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
     await client.snapshots.create("sbx-abc", name="gold")
@@ -178,9 +178,9 @@ async def test_create_omits_ttl_seconds_when_not_set():
 def test_sync_create_sends_ttl_seconds_including_zero(ttl_seconds):
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sync_sandbox_client(handler)
     client.snapshots.create("sbx-abc", ttl_seconds=ttl_seconds)
@@ -191,9 +191,9 @@ def test_sync_create_sends_ttl_seconds_including_zero(ttl_seconds):
 def test_sync_create_omits_ttl_seconds_when_not_set():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sync_sandbox_client(handler)
     client.snapshots.create("sbx-abc", name="gold")
@@ -210,8 +210,8 @@ async def test_create_rejects_an_unknown_kind():
 
 @pytest.mark.asyncio
 async def test_create_raises_sandbox_not_found_on_404():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(404, json={"message": "sandbox not found"})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(404, json={"message": "sandbox not found"})
 
     client = _sandbox_client(handler)
     with pytest.raises(SandboxNotFoundError):
@@ -220,8 +220,8 @@ async def test_create_raises_sandbox_not_found_on_404():
 
 @pytest.mark.asyncio
 async def test_create_surfaces_sandbox_not_running_as_a_client_error_with_code():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             409, json={"message": "sandbox is suspended", "code": "sandbox_not_running"}
         )
 
@@ -235,8 +235,8 @@ async def test_create_surfaces_sandbox_not_running_as_a_client_error_with_code()
 
 @pytest.mark.asyncio
 async def test_create_surfaces_invalid_name_as_a_client_error_with_code():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             400,
             json={"message": "invalid snapshot name", "code": "invalid_snapshot_name"},
         )
@@ -251,8 +251,8 @@ async def test_create_surfaces_invalid_name_as_a_client_error_with_code():
 
 @pytest.mark.asyncio
 async def test_from_id_reads_a_plan_unknown_to_the_sdk():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.from_id(
@@ -263,8 +263,8 @@ async def test_from_id_reads_a_plan_unknown_to_the_sdk():
 
 
 def test_sync_from_id_reads_a_plan_unknown_to_the_sdk():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={**AVAILABLE_SNAPSHOT_JSON, "plan": "32c-64g"})
 
     client = _sync_sandbox_client(handler)
     snapshot = client.snapshots.from_id(
@@ -278,11 +278,11 @@ def test_sync_from_id_reads_a_plan_unknown_to_the_sdk():
 async def test_from_id_gets_the_snapshot_from_its_group():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
-        return httpx.Response(200, json=AVAILABLE_SNAPSHOT_JSON)
+        return httpx2.Response(200, json=AVAILABLE_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.from_id(
@@ -302,9 +302,9 @@ async def test_from_id_gets_the_snapshot_from_its_group():
 
 @pytest.mark.asyncio
 async def test_from_id_reads_a_failed_snapshots_error():
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         failed = {**CREATING_SNAPSHOT_JSON, "status": "failed", "error": "disk full"}
-        return httpx.Response(200, json=failed)
+        return httpx2.Response(200, json=failed)
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.from_id(
@@ -323,8 +323,8 @@ async def test_from_id_returns_a_ttl_of_zero_for_a_snapshot_that_never_expires()
         "ttlSeconds": 0,
     }
 
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json=never_expires)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json=never_expires)
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.from_id(
@@ -342,8 +342,8 @@ async def test_from_id_returns_no_ttl_when_the_api_sends_none():
         if key != "ttlSeconds"
     }
 
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json=without_ttl)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json=without_ttl)
 
     client = _sandbox_client(handler)
     snapshot = await client.snapshots.from_id(
@@ -357,7 +357,7 @@ async def test_from_id_returns_no_ttl_when_the_api_sends_none():
 async def test_list_by_group_sends_filters_and_returns_snapshots_and_cursor():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["owner_id"] = request.url.params.get_list("ownerId")
@@ -371,7 +371,7 @@ async def test_list_by_group_sends_filters_and_returns_snapshots_and_cursor():
                 "cursor": "cur-2",
             },
         ]
-        return httpx.Response(200, json=body)
+        return httpx2.Response(200, json=body)
 
     client = _sandbox_client(handler)
     page = await client.snapshots.list(
@@ -393,8 +393,8 @@ async def test_list_by_group_sends_filters_and_returns_snapshots_and_cursor():
 
 @pytest.mark.asyncio
 async def test_list_empty_has_no_cursor():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json=[])
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json=[])
 
     client = _sandbox_client(handler)
     page = await client.snapshots.list(sandbox_group_id="sbg-abc")
@@ -407,9 +407,9 @@ async def test_list_empty_has_no_cursor():
 async def test_list_sends_a_single_status_string_as_one_value():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["status"] = request.url.params.get_list("status")
-        return httpx.Response(200, json=[])
+        return httpx2.Response(200, json=[])
 
     client = _sandbox_client(handler)
     await client.snapshots.list(sandbox_group_id="sbg-abc", status="available")
@@ -421,9 +421,9 @@ async def test_list_sends_a_single_status_string_as_one_value():
 async def test_list_omits_optional_params_when_not_given():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["query"] = dict(request.url.params)
-        return httpx.Response(200, json=[])
+        return httpx2.Response(200, json=[])
 
     client = _sandbox_client(handler)
     await client.snapshots.list(sandbox_group_id="sbg-abc")
@@ -440,8 +440,8 @@ async def test_list_rejects_an_unknown_status():
 
 @pytest.mark.asyncio
 async def test_list_raises_client_error_on_404():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(404, json={"message": "sandbox group not found"})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(404, json={"message": "sandbox group not found"})
 
     client = _sandbox_client(handler)
     with pytest.raises(ClientError, match="sandbox group not found"):
@@ -471,9 +471,9 @@ async def test_list_raises_client_error_on_404():
 async def test_omits_owner_id_when_none_is_configured(status, call):
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["query"] = dict(request.url.params)
-        return httpx.Response(status, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(status, json=CREATING_SNAPSHOT_JSON)
 
     client = _sandbox_client(handler, default_owner_id=None)
     await call(client.snapshots)
@@ -492,11 +492,11 @@ async def test_list_requires_owner_id():
 async def test_delete_sends_delete_and_returns_none():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
-        return httpx.Response(204)
+        return httpx2.Response(204)
 
     client = _sandbox_client(handler)
     await client.snapshots.delete(sandbox_group_id="sbg-abc", snapshot_id="snp-abc")
@@ -645,8 +645,8 @@ def _create_plain(client):
 async def test_maps_api_errors_to_snapshot_error_types(
     call, status, body, error_type, code, match
 ):
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status, json=body)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(status, json=body)
 
     client = _sandbox_client(handler)
     with pytest.raises(ClientError, match=match) as excinfo:
@@ -658,8 +658,8 @@ async def test_maps_api_errors_to_snapshot_error_types(
 
 @pytest.mark.asyncio
 async def test_delete_wraps_non_json_error_response():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(500, text="upstream boom")
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(500, text="upstream boom")
 
     client = _sandbox_client(handler)
     with pytest.raises(RenderError):
@@ -668,7 +668,7 @@ async def test_delete_wraps_non_json_error_response():
 
 @pytest.mark.asyncio
 async def test_create_wraps_unexpected_exceptions_as_render_errors():
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         raise RuntimeError("transport exploded")
 
     client = _sandbox_client(handler)
@@ -682,9 +682,9 @@ async def test_create_wraps_unexpected_exceptions_as_render_errors():
 async def test_sandbox_create_sends_snapshot_id():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     sandbox = await client.create(snapshot_id="snp-abc")
@@ -697,9 +697,9 @@ async def test_sandbox_create_sends_snapshot_id():
 async def test_sandbox_create_sends_snapshot_name():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     sandbox = await client.create(snapshot_name="gold")
@@ -720,9 +720,9 @@ async def test_sandbox_create_rejects_snapshot_id_and_name_together():
 async def test_sandbox_create_omits_snapshot_id_by_default():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     sandbox = await client.create()
@@ -735,11 +735,11 @@ async def test_sandbox_create_omits_snapshot_id_by_default():
 def test_sync_create_posts_kind_and_returns_snapshot():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
+        return httpx2.Response(202, json={**CREATING_SNAPSHOT_JSON, "name": "gold"})
 
     client = _sync_sandbox_client(handler)
     snapshot = client.snapshots.create("sbx-abc", kind="runtime", name="gold")
@@ -755,9 +755,9 @@ def test_sync_create_posts_kind_and_returns_snapshot():
 def test_sync_create_omits_kind_by_default():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(202, json=CREATING_SNAPSHOT_JSON)
+        return httpx2.Response(202, json=CREATING_SNAPSHOT_JSON)
 
     client = _sync_sandbox_client(handler)
     client.snapshots.create("sbx-abc")
@@ -768,10 +768,10 @@ def test_sync_create_omits_kind_by_default():
 def test_sync_list_by_group_returns_snapshots_and_cursor():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["path"] = request.url.path
         captured["status"] = request.url.params.get_list("status")
-        return httpx.Response(
+        return httpx2.Response(
             200, json=[{"snapshot": AVAILABLE_SNAPSHOT_JSON, "cursor": "cur-1"}]
         )
 
@@ -785,8 +785,8 @@ def test_sync_list_by_group_returns_snapshots_and_cursor():
 
 
 def test_sync_delete_raises_not_ready_while_the_snapshot_is_creating():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             409, json={"message": "still creating", "code": "snapshot_creating"}
         )
 
@@ -799,9 +799,9 @@ def test_sync_delete_raises_not_ready_while_the_snapshot_is_creating():
 def test_sync_sandbox_create_sends_snapshot_id():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sync_sandbox_client(handler)
     sandbox = client.create(snapshot_id="snp-abc")
@@ -813,9 +813,9 @@ def test_sync_sandbox_create_sends_snapshot_id():
 def test_sync_sandbox_create_sends_snapshot_name():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sync_sandbox_client(handler)
     sandbox = client.create(snapshot_name="gold")

@@ -2,7 +2,7 @@
 
 The worker path (``from render import Workflows``) deliberately avoids
 loading the REST API client, the public_api models, the auto-generated
-callback API, the experimental object storage code, ``httpx``, and
+callback API, the experimental object storage code, ``httpx2``, and
 ``attrs`` — none of those are needed to define or run a task. Keeping
 the import graph slim is what keeps the workflow path fast.
 
@@ -36,7 +36,9 @@ _FORBIDDEN_ON_WORKER_PATH: tuple[str, ...] = (
     # Third-party HTTP/attribute libraries — only the REST/experimental
     # paths should pull these in, never the worker path.
     "httpx",
+    "httpx2",
     "httpcore",
+    "httpcore2",
     "attr",
     "attrs",
 )

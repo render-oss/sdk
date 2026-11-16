@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GetTaskRunsCompletedState(str, Enum):
+class GetTaskRunsCompletedState(StrEnum):
     FAILED = "failed"
     SUCCEEDED = "succeeded"
 

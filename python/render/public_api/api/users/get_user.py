@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -19,9 +19,7 @@ def _get_kwargs() -> dict[str, Any]:
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, User]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | User | None:
     if response.status_code == 200:
         response_200 = User.from_dict(response.json())
 
@@ -58,9 +56,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, User]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | User]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -71,18 +67,18 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, User]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | User]:
     """Get the authenticated user
 
      Retrieve the user associated with the provided API key.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, User]]
+        Response[Error | User]
     """
 
     kwargs = _get_kwargs()
@@ -96,18 +92,18 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, User]]:
+    client: AuthenticatedClient | Client,
+) -> Error | User | None:
     """Get the authenticated user
 
      Retrieve the user associated with the provided API key.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, User]
+        Error | User
     """
 
     return sync_detailed(
@@ -117,18 +113,18 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, User]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | User]:
     """Get the authenticated user
 
      Retrieve the user associated with the provided API key.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, User]]
+        Response[Error | User]
     """
 
     kwargs = _get_kwargs()
@@ -140,18 +136,18 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, User]]:
+    client: AuthenticatedClient | Client,
+) -> Error | User | None:
     """Get the authenticated user
 
      Retrieve the user associated with the provided API key.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, User]
+        Error | User
     """
 
     return (

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -16,13 +18,13 @@ class SandboxGroupPOST:
     Attributes:
         owner_id (str): The ID of the workspace to create the sandbox group in. Example: tea-cph1rs3idesc73a2b2mg.
         name (str): The sandbox group's name. Must be unique within the workspace. Example: CI agents.
-        region (Union[Unset, str]): The Render region where the group's sandboxes run. Defaults to `oregon`. Default:
+        region (str | Unset): The Render region where the group's sandboxes run. Defaults to `oregon`. Default:
             'oregon'. Example: oregon.
     """
 
     owner_id: str
     name: str
-    region: Union[Unset, str] = "oregon"
+    region: str | Unset = "oregon"
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

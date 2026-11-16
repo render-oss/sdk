@@ -1,7 +1,7 @@
 import inspect
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import ClientError, RateLimitError, RenderError, TimeoutError
@@ -70,7 +70,7 @@ def _sandbox_client(handler, *, default_owner_id="tea-test"):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return SandboxClient(internal, default_owner_id=default_owner_id)
 
@@ -79,7 +79,7 @@ def _sync_sandbox_client(handler, *, default_owner_id="tea-test"):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return SyncSandboxClient(internal, default_owner_id=default_owner_id)
 
@@ -111,7 +111,7 @@ def clock(monkeypatch):
     return now
 
 
-async def _unreachable(request: httpx.Request) -> httpx.Response:
+async def _unreachable(request: httpx2.Request) -> httpx2.Response:
     raise AssertionError("handler should not be reached")
 
 
@@ -124,12 +124,12 @@ def test_sandbox_client_exposes_images():
 async def test_import_posts_name_and_source_and_returns_running_image():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     image = await client.images.import_(
@@ -165,9 +165,9 @@ async def test_import_posts_name_and_source_and_returns_running_image():
 async def test_import_sends_registry_credentials(registry_credentials):
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     await client.images.import_(
@@ -187,9 +187,9 @@ async def test_import_sends_registry_credentials(registry_credentials):
 async def test_import_accepts_a_name_with_the_id_prefix(make_client):
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = make_client(handler)
     await _resolve(
@@ -203,8 +203,8 @@ async def test_import_accepts_a_name_with_the_id_prefix(make_client):
 
 @pytest.mark.asyncio
 async def test_import_returns_the_existing_image_for_a_known_digest():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(201, json=SUCCEEDED_IMAGE_JSON)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(201, json=SUCCEEDED_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     image = await client.images.import_(
@@ -261,8 +261,8 @@ async def test_import_returns_the_existing_image_for_a_known_digest():
     ],
 )
 async def test_import_maps_api_errors(status, body, error_type, code, match):
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status, json=body)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(status, json=body)
 
     client = _sandbox_client(handler)
     with pytest.raises(ClientError, match=match) as excinfo:
@@ -278,11 +278,11 @@ async def test_import_maps_api_errors(status, body, error_type, code, match):
 async def test_from_id_gets_the_image_from_its_group():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
-        return httpx.Response(200, json=SUCCEEDED_IMAGE_JSON)
+        return httpx2.Response(200, json=SUCCEEDED_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     image = await client.images.from_id(sandbox_group_id="sbg-abc", image_id="sbb-abc")
@@ -298,8 +298,8 @@ async def test_from_id_gets_the_image_from_its_group():
 
 @pytest.mark.asyncio
 async def test_from_id_reads_a_failed_images_reason():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json=FAILED_IMAGE_JSON)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json=FAILED_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     image = await client.images.from_id(sandbox_group_id="sbg-abc", image_id="sbb-abc")
@@ -310,8 +310,8 @@ async def test_from_id_reads_a_failed_images_reason():
 
 @pytest.mark.asyncio
 async def test_from_id_raises_not_found_for_a_missing_or_foreign_image():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             404, json={"message": "not found: build", "code": "build_not_found"}
         )
 
@@ -322,8 +322,8 @@ async def test_from_id_raises_not_found_for_a_missing_or_foreign_image():
 
 @pytest.mark.asyncio
 async def test_from_id_wraps_non_json_error_response():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(500, text="upstream boom")
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(500, text="upstream boom")
 
     client = _sandbox_client(handler)
     with pytest.raises(RenderError):
@@ -337,10 +337,10 @@ async def test_from_id_wraps_non_json_error_response():
 async def test_delete_deletes_the_image_from_its_group():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
-        return httpx.Response(204)
+        return httpx2.Response(204)
 
     client = _sandbox_client(handler)
     await client.images.delete(sandbox_group_id="sbg-abc", image_id="sbb-abc")
@@ -358,8 +358,8 @@ async def test_delete_deletes_the_image_from_its_group():
     ],
 )
 async def test_delete_raises_typed_errors(status, code, error_type):
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             status,
             json={"message": "image is in use by 1 sandbox (sbx-1)", "code": code},
         )
@@ -379,11 +379,11 @@ async def test_delete_raises_typed_errors(status, code, error_type):
 async def test_list_returns_a_page_of_images_and_its_cursor(make_client):
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = request.url.query.decode()
-        return httpx.Response(
+        return httpx2.Response(
             200,
             json=[
                 {"build": SUCCEEDED_IMAGE_JSON, "cursor": "c1"},
@@ -417,10 +417,10 @@ async def test_list_returns_a_page_of_images_and_its_cursor(make_client):
 async def test_list_sends_filters(make_client, kwargs, query):
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         params = request.url.params
         captured["query"] = {key: params.get_list(key) for key in params}
-        return httpx.Response(200, json=[])
+        return httpx2.Response(200, json=[])
 
     client = make_client(handler)
     page = await _resolve(client.images.list(sandbox_group_id="sbg-abc", **kwargs))
@@ -439,8 +439,8 @@ async def test_list_rejects_an_unknown_status():
 
 @pytest.mark.asyncio
 async def test_list_raises_for_an_api_error():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             404, json={"message": "not found: sandbox group", "code": "not_found"}
         )
 
@@ -457,10 +457,10 @@ def _image_handler(*statuses):
     queue = list(statuses)
     gets = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         gets.append(request)
         body = queue.pop(0) if len(queue) > 1 else queue[0]
-        return httpx.Response(200, json=body)
+        return httpx2.Response(200, json=body)
 
     return handler, gets
 
@@ -539,9 +539,9 @@ async def test_wait_until_ready_times_out_after_10_minutes_by_default(
 async def test_sandbox_create_sends_an_image_by_id_or_name(image, field, other):
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     sandbox = await client.create(image=image)
@@ -555,9 +555,9 @@ async def test_sandbox_create_sends_an_image_by_id_or_name(image, field, other):
 async def test_sandbox_create_omits_image_fields_by_default():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     await client.create()
@@ -669,8 +669,8 @@ async def test_sandbox_create_rejects_an_image_with_another_source(kwargs):
 async def test_sandbox_create_maps_image_errors(
     image, status, body, error_type, code, match
 ):
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status, json=body)
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(status, json=body)
 
     client = _sandbox_client(handler)
     with pytest.raises(ClientError, match=match) as excinfo:
@@ -682,8 +682,8 @@ async def test_sandbox_create_maps_image_errors(
 
 @pytest.mark.asyncio
 async def test_sandbox_create_snapshot_errors_are_unaffected():
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             404, json={"message": "snapshot not found", "code": "snapshot_not_found"}
         )
 
@@ -699,10 +699,10 @@ async def test_sandbox_create_snapshot_errors_are_unaffected():
 async def test_builds_create_warns_and_imports_the_image():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["path"] = request.url.path
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     assert isinstance(client.builds, BuildClient)
@@ -728,9 +728,9 @@ async def test_builds_create_warns_and_imports_the_image():
 async def test_builds_create_still_sends_a_name_starting_with_sbb(make_client):
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = make_client(handler)
     await _resolve(
@@ -744,9 +744,9 @@ async def test_builds_create_still_sends_a_name_starting_with_sbb(make_client):
 
 @pytest.mark.asyncio
 async def test_builds_from_id_warns_and_gets_the_image():
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         assert request.url.path == "/v1/sandbox-groups/sbg-abc/builds/sbb-abc"
-        return httpx.Response(200, json=SUCCEEDED_IMAGE_JSON)
+        return httpx2.Response(200, json=SUCCEEDED_IMAGE_JSON)
 
     client = _sandbox_client(handler)
     with pytest.warns(DeprecationWarning, match="images.from_id"):
@@ -771,9 +771,9 @@ async def test_sandbox_create_with_a_build_warns_and_still_sends_it(
 ):
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sandbox_client(handler)
     with pytest.warns(DeprecationWarning, match="use image"):
@@ -788,11 +788,11 @@ async def test_sandbox_create_with_a_build_warns_and_still_sends_it(
 def test_sync_import_posts_and_returns_image():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = _sync_sandbox_client(handler)
     image = client.images.import_(
@@ -814,8 +814,8 @@ def test_sync_import_posts_and_returns_image():
 
 
 def test_sync_from_id_raises_not_found():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             404, json={"message": "not found: build", "code": "build_not_found"}
         )
 
@@ -827,9 +827,9 @@ def test_sync_from_id_raises_not_found():
 def test_sync_sandbox_create_sends_an_image_name():
     captured = {}
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["body"] = json.loads(request.content)
-        return httpx.Response(201, json=SANDBOX_JSON)
+        return httpx2.Response(201, json=SANDBOX_JSON)
 
     client = _sync_sandbox_client(handler)
     sandbox = client.create(image="python")
@@ -839,8 +839,8 @@ def test_sync_sandbox_create_sends_an_image_name():
 
 
 def test_sync_sandbox_create_raises_not_ready_for_an_unfinished_image():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             409,
             json={"message": "build has not succeeded", "code": "build_not_succeeded"},
         )
@@ -851,8 +851,8 @@ def test_sync_sandbox_create_raises_not_ready_for_an_unfinished_image():
 
 
 def test_sync_builds_create_warns():
-    def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(201, json=RUNNING_IMAGE_JSON)
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(201, json=RUNNING_IMAGE_JSON)
 
     client = _sync_sandbox_client(handler)
     with pytest.warns(DeprecationWarning):

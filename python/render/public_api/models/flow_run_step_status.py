@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FlowRunStepStatus(str, Enum):
+class FlowRunStepStatus(StrEnum):
     FAILED = "failed"
     RUNNING = "running"
     SUCCEEDED = "succeeded"

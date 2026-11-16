@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -19,7 +21,7 @@ class KeyValueWithCursor:
         cursor (str):
     """
 
-    key_value: "KeyValue"
+    key_value: KeyValue
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -41,7 +43,7 @@ class KeyValueWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.key_value import KeyValue
+        from ..models.key_value import KeyValue  # noqa: PLC0415
 
         d = dict(src_dict)
         key_value = KeyValue.from_dict(d.pop("keyValue"))

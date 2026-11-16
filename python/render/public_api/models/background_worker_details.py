@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -29,7 +31,7 @@ class BackgroundWorkerDetails:
     """
     Attributes:
         env (ServiceEnv): This field has been deprecated, runtime should be used in its place.
-        env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails']):
+        env_specific_details (DockerDetails | NativeEnvironmentDetails):
         num_instances (int): For a *manually* scaled service, this is the number of instances the service is scaled to.
             DOES NOT indicate the number of running instances for an *autoscaled* service.
         plan (Plan): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
@@ -38,36 +40,35 @@ class BackgroundWorkerDetails:
         region (Region): Defaults to "oregon"
         runtime (ServiceRuntime): Runtime
         build_plan (BuildPlan):
-        autoscaling (Union[Unset, AutoscalingConfig]):
-        disk (Union[Unset, Disk]):
-        parent_server (Union[Unset, Resource]):
-        pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
+        autoscaling (AutoscalingConfig | Unset):
+        disk (Disk | Unset):
+        parent_server (Resource | Unset):
+        pull_request_previews_enabled (PullRequestPreviewsEnabled | Unset): This field has been deprecated.
             previews.generation should be used in its place.
-        previews (Union[Unset, Previews]):
-        ssh_address (Union[Unset, str]): The SSH address for the service. Only present for services that have SSH
-            enabled.
-        max_shutdown_delay_seconds (Union[Unset, int]): The maximum amount of time (in seconds) that Render waits for
-            your application process to exit gracefully after sending it a SIGTERM signal.
+        previews (Previews | Unset):
+        ssh_address (str | Unset): The SSH address for the service. Only present for services that have SSH enabled.
+        max_shutdown_delay_seconds (int | Unset): The maximum amount of time (in seconds) that Render waits for your
+            application process to exit gracefully after sending it a SIGTERM signal.
     """
 
     env: ServiceEnv
-    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails"]
+    env_specific_details: DockerDetails | NativeEnvironmentDetails
     num_instances: int
     plan: Plan
     region: Region
     runtime: ServiceRuntime
     build_plan: BuildPlan
-    autoscaling: Union[Unset, "AutoscalingConfig"] = UNSET
-    disk: Union[Unset, "Disk"] = UNSET
-    parent_server: Union[Unset, "Resource"] = UNSET
-    pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
-    previews: Union[Unset, "Previews"] = UNSET
-    ssh_address: Union[Unset, str] = UNSET
-    max_shutdown_delay_seconds: Union[Unset, int] = UNSET
+    autoscaling: AutoscalingConfig | Unset = UNSET
+    disk: Disk | Unset = UNSET
+    parent_server: Resource | Unset = UNSET
+    pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset = UNSET
+    previews: Previews | Unset = UNSET
+    ssh_address: str | Unset = UNSET
+    max_shutdown_delay_seconds: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.docker_details import DockerDetails
+        from ..models.docker_details import DockerDetails  # noqa: PLC0415
 
         env = self.env.value
 
@@ -87,23 +88,23 @@ class BackgroundWorkerDetails:
 
         build_plan = self.build_plan.value
 
-        autoscaling: Union[Unset, dict[str, Any]] = UNSET
+        autoscaling: dict[str, Any] | Unset = UNSET
         if not isinstance(self.autoscaling, Unset):
             autoscaling = self.autoscaling.to_dict()
 
-        disk: Union[Unset, dict[str, Any]] = UNSET
+        disk: dict[str, Any] | Unset = UNSET
         if not isinstance(self.disk, Unset):
             disk = self.disk.to_dict()
 
-        parent_server: Union[Unset, dict[str, Any]] = UNSET
+        parent_server: dict[str, Any] | Unset = UNSET
         if not isinstance(self.parent_server, Unset):
             parent_server = self.parent_server.to_dict()
 
-        pull_request_previews_enabled: Union[Unset, str] = UNSET
+        pull_request_previews_enabled: str | Unset = UNSET
         if not isinstance(self.pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = self.pull_request_previews_enabled.value
 
-        previews: Union[Unset, dict[str, Any]] = UNSET
+        previews: dict[str, Any] | Unset = UNSET
         if not isinstance(self.previews, Unset):
             previews = self.previews.to_dict()
 
@@ -143,24 +144,24 @@ class BackgroundWorkerDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.autoscaling_config import AutoscalingConfig
-        from ..models.disk import Disk
-        from ..models.docker_details import DockerDetails
-        from ..models.native_environment_details import NativeEnvironmentDetails
-        from ..models.previews import Previews
-        from ..models.resource import Resource
+        from ..models.autoscaling_config import AutoscalingConfig  # noqa: PLC0415
+        from ..models.disk import Disk  # noqa: PLC0415
+        from ..models.docker_details import DockerDetails  # noqa: PLC0415
+        from ..models.native_environment_details import NativeEnvironmentDetails  # noqa: PLC0415
+        from ..models.previews import Previews  # noqa: PLC0415
+        from ..models.resource import Resource  # noqa: PLC0415
 
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(data: object) -> DockerDetails | NativeEnvironmentDetails:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
                 componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
 
                 return componentsschemasenv_specific_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -181,35 +182,35 @@ class BackgroundWorkerDetails:
         build_plan = BuildPlan(d.pop("buildPlan"))
 
         _autoscaling = d.pop("autoscaling", UNSET)
-        autoscaling: Union[Unset, AutoscalingConfig]
+        autoscaling: AutoscalingConfig | Unset
         if isinstance(_autoscaling, Unset):
             autoscaling = UNSET
         else:
             autoscaling = AutoscalingConfig.from_dict(_autoscaling)
 
         _disk = d.pop("disk", UNSET)
-        disk: Union[Unset, Disk]
+        disk: Disk | Unset
         if isinstance(_disk, Unset):
             disk = UNSET
         else:
             disk = Disk.from_dict(_disk)
 
         _parent_server = d.pop("parentServer", UNSET)
-        parent_server: Union[Unset, Resource]
+        parent_server: Resource | Unset
         if isinstance(_parent_server, Unset):
             parent_server = UNSET
         else:
             parent_server = Resource.from_dict(_parent_server)
 
         _pull_request_previews_enabled = d.pop("pullRequestPreviewsEnabled", UNSET)
-        pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled]
+        pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
             pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
-        previews: Union[Unset, Previews]
+        previews: Previews | Unset
         if isinstance(_previews, Unset):
             previews = UNSET
         else:

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,13 +16,15 @@ from ...types import Response
 def _get_kwargs(
     build_source_id: str,
     *,
-    body: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]],
+    body: list[EnvVarKeyGenerateValue | EnvVarKeyValue],
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/build-sources/{build_source_id}/env-vars",
+        "url": "/build-sources/{build_source_id}/env-vars".format(
+            build_source_id=quote(str(build_source_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = []
@@ -41,8 +44,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["EnvVarWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[EnvVarWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -105,8 +108,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["EnvVarWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[EnvVarWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -118,9 +121,9 @@ def _build_response(
 def sync_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]],
-) -> Response[Union[Error, list["EnvVarWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[EnvVarKeyGenerateValue | EnvVarKeyValue],
+) -> Response[Error | list[EnvVarWithCursor]]:
     """Update environment variables
 
      Replace all environment variables for a build source with the provided list of environment
@@ -128,14 +131,14 @@ def sync_detailed(
 
     Args:
         build_source_id (str):
-        body (list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]):
+        body (list[EnvVarKeyGenerateValue | EnvVarKeyValue]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['EnvVarWithCursor']]]
+        Response[Error | list[EnvVarWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -153,9 +156,9 @@ def sync_detailed(
 def sync(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]],
-) -> Optional[Union[Error, list["EnvVarWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[EnvVarKeyGenerateValue | EnvVarKeyValue],
+) -> Error | list[EnvVarWithCursor] | None:
     """Update environment variables
 
      Replace all environment variables for a build source with the provided list of environment
@@ -163,14 +166,14 @@ def sync(
 
     Args:
         build_source_id (str):
-        body (list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]):
+        body (list[EnvVarKeyGenerateValue | EnvVarKeyValue]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['EnvVarWithCursor']]
+        Error | list[EnvVarWithCursor]
     """
 
     return sync_detailed(
@@ -183,9 +186,9 @@ def sync(
 async def asyncio_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]],
-) -> Response[Union[Error, list["EnvVarWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[EnvVarKeyGenerateValue | EnvVarKeyValue],
+) -> Response[Error | list[EnvVarWithCursor]]:
     """Update environment variables
 
      Replace all environment variables for a build source with the provided list of environment
@@ -193,14 +196,14 @@ async def asyncio_detailed(
 
     Args:
         build_source_id (str):
-        body (list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]):
+        body (list[EnvVarKeyGenerateValue | EnvVarKeyValue]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['EnvVarWithCursor']]]
+        Response[Error | list[EnvVarWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -216,9 +219,9 @@ async def asyncio_detailed(
 async def asyncio(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]],
-) -> Optional[Union[Error, list["EnvVarWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[EnvVarKeyGenerateValue | EnvVarKeyValue],
+) -> Error | list[EnvVarWithCursor] | None:
     """Update environment variables
 
      Replace all environment variables for a build source with the provided list of environment
@@ -226,14 +229,14 @@ async def asyncio(
 
     Args:
         build_source_id (str):
-        body (list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]):
+        body (list[EnvVarKeyGenerateValue | EnvVarKeyValue]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['EnvVarWithCursor']]
+        Error | list[EnvVarWithCursor]
     """
 
     return (

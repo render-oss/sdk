@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class EventStatus(str, Enum):
+class EventStatus(StrEnum):
     CANCELED = "canceled"
     FAILED = "failed"
     SUCCEEDED = "succeeded"

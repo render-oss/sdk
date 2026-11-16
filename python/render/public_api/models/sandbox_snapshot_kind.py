@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxSnapshotKind(str, Enum):
+class SandboxSnapshotKind(StrEnum):
     FILESYSTEM = "filesystem"
     RUNTIME = "runtime"
 

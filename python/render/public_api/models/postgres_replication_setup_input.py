@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,16 +17,16 @@ class PostgresReplicationSetupInput:
     Attributes:
         schema_name (str): Schema to replicate.
         database_name (str): Database to replicate.
-        all_tables_publication_name (Union[Unset, str]): Publication name to create.
-        replication_slot_name (Union[Unset, str]): Replication slot name to create.
-        restart_now (Union[Unset, bool]): Immediately enqueue a restart to apply.
+        all_tables_publication_name (str | Unset): Publication name to create.
+        replication_slot_name (str | Unset): Replication slot name to create.
+        restart_now (bool | Unset): Immediately enqueue a restart to apply.
     """
 
     schema_name: str
     database_name: str
-    all_tables_publication_name: Union[Unset, str] = UNSET
-    replication_slot_name: Union[Unset, str] = UNSET
-    restart_now: Union[Unset, bool] = UNSET
+    all_tables_publication_name: str | Unset = UNSET
+    replication_slot_name: str | Unset = UNSET
+    restart_now: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

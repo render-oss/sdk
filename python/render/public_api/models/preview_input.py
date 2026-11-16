@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -19,16 +21,16 @@ class PreviewInput:
             `docker.io/library/nginx:latest`, then valid values are: `docker.io/library/nginx:<any tag or SHA>`,
             `library/nginx:<any tag or SHA>`, or `nginx:<any tag or SHA>`. Note that the path must match (only the tag or
             SHA can vary). Example: docker.io/library/nginx:latest.
-        name (Union[Unset, str]): A name for the service preview instance. If not specified, Render generates the name
-            using the base service's name and the specified tag or SHA. Example: preview.
-        plan (Union[Unset, Plan]): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no
+        name (str | Unset): A name for the service preview instance. If not specified, Render generates the name using
+            the base service's name and the specified tag or SHA. Example: preview.
+        plan (Plan | Unset): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no
             longer offered for new services. Note that base services on any paid compute plan can't create preview instances
             with the `free` plan. Example: starter.
     """
 
     image_path: str
-    name: Union[Unset, str] = UNSET
-    plan: Union[Unset, Plan] = UNSET
+    name: str | Unset = UNSET
+    plan: Plan | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -36,7 +38,7 @@ class PreviewInput:
 
         name = self.name
 
-        plan: Union[Unset, str] = UNSET
+        plan: str | Unset = UNSET
         if not isinstance(self.plan, Unset):
             plan = self.plan.value
 
@@ -62,7 +64,7 @@ class PreviewInput:
         name = d.pop("name", UNSET)
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, Plan]
+        plan: Plan | Unset
         if isinstance(_plan, Unset):
             plan = UNSET
         else:

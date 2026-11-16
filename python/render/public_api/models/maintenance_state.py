@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class MaintenanceState(str, Enum):
+class MaintenanceState(StrEnum):
     CANCELLED = "cancelled"
     FAILED = "failed"
     IN_PROGRESS = "in_progress"

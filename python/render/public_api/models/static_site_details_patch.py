@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,22 +22,22 @@ T = TypeVar("T", bound="StaticSiteDetailsPATCH")
 class StaticSiteDetailsPATCH:
     """
     Attributes:
-        build_command (Union[Unset, str]):
-        publish_path (Union[Unset, str]):
-        pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
+        build_command (str | Unset):
+        publish_path (str | Unset):
+        pull_request_previews_enabled (PullRequestPreviewsEnabled | Unset): This field has been deprecated.
             previews.generation should be used in its place.
-        previews (Union[Unset, Previews]):
-        render_subdomain_policy (Union[Unset, RenderSubdomainPolicy]): Controls whether render.com subdomains are
-            available for the service
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        previews (Previews | Unset):
+        render_subdomain_policy (RenderSubdomainPolicy | Unset): Controls whether render.com subdomains are available
+            for the service
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
     """
 
-    build_command: Union[Unset, str] = UNSET
-    publish_path: Union[Unset, str] = UNSET
-    pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
-    previews: Union[Unset, "Previews"] = UNSET
-    render_subdomain_policy: Union[Unset, RenderSubdomainPolicy] = UNSET
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    build_command: str | Unset = UNSET
+    publish_path: str | Unset = UNSET
+    pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset = UNSET
+    previews: Previews | Unset = UNSET
+    render_subdomain_policy: RenderSubdomainPolicy | Unset = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -43,19 +45,19 @@ class StaticSiteDetailsPATCH:
 
         publish_path = self.publish_path
 
-        pull_request_previews_enabled: Union[Unset, str] = UNSET
+        pull_request_previews_enabled: str | Unset = UNSET
         if not isinstance(self.pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = self.pull_request_previews_enabled.value
 
-        previews: Union[Unset, dict[str, Any]] = UNSET
+        previews: dict[str, Any] | Unset = UNSET
         if not isinstance(self.previews, Unset):
             previews = self.previews.to_dict()
 
-        render_subdomain_policy: Union[Unset, str] = UNSET
+        render_subdomain_policy: str | Unset = UNSET
         if not isinstance(self.render_subdomain_policy, Unset):
             render_subdomain_policy = self.render_subdomain_policy.value
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
@@ -82,8 +84,8 @@ class StaticSiteDetailsPATCH:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.previews import Previews
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.previews import Previews  # noqa: PLC0415
 
         d = dict(src_dict)
         build_command = d.pop("buildCommand", UNSET)
@@ -91,32 +93,34 @@ class StaticSiteDetailsPATCH:
         publish_path = d.pop("publishPath", UNSET)
 
         _pull_request_previews_enabled = d.pop("pullRequestPreviewsEnabled", UNSET)
-        pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled]
+        pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
             pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
-        previews: Union[Unset, Previews]
+        previews: Previews | Unset
         if isinstance(_previews, Unset):
             previews = UNSET
         else:
             previews = Previews.from_dict(_previews)
 
         _render_subdomain_policy = d.pop("renderSubdomainPolicy", UNSET)
-        render_subdomain_policy: Union[Unset, RenderSubdomainPolicy]
+        render_subdomain_policy: RenderSubdomainPolicy | Unset
         if isinstance(_render_subdomain_policy, Unset):
             render_subdomain_policy = UNSET
         else:
             render_subdomain_policy = RenderSubdomainPolicy(_render_subdomain_policy)
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         static_site_details_patch = cls(
             build_command=build_command,

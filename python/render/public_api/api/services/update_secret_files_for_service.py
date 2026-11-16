@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,13 +15,15 @@ from ...types import Response
 def _get_kwargs(
     service_id: str,
     *,
-    body: list["SecretFileInput"],
+    body: list[SecretFileInput],
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/services/{service_id}/secret-files",
+        "url": "/services/{service_id}/secret-files".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = []
@@ -35,8 +38,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["SecretFileWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[SecretFileWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -99,8 +102,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["SecretFileWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[SecretFileWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -112,9 +115,9 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["SecretFileInput"],
-) -> Response[Union[Error, list["SecretFileWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[SecretFileInput],
+) -> Response[Error | list[SecretFileWithCursor]]:
     """Update secret files
 
      Replace all secret files for a service with the provided list of secret files.
@@ -126,14 +129,14 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        body (list['SecretFileInput']):
+        body (list[SecretFileInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SecretFileWithCursor']]]
+        Response[Error | list[SecretFileWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -151,9 +154,9 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["SecretFileInput"],
-) -> Optional[Union[Error, list["SecretFileWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[SecretFileInput],
+) -> Error | list[SecretFileWithCursor] | None:
     """Update secret files
 
      Replace all secret files for a service with the provided list of secret files.
@@ -165,14 +168,14 @@ def sync(
 
     Args:
         service_id (str):
-        body (list['SecretFileInput']):
+        body (list[SecretFileInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SecretFileWithCursor']]
+        Error | list[SecretFileWithCursor]
     """
 
     return sync_detailed(
@@ -185,9 +188,9 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["SecretFileInput"],
-) -> Response[Union[Error, list["SecretFileWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[SecretFileInput],
+) -> Response[Error | list[SecretFileWithCursor]]:
     """Update secret files
 
      Replace all secret files for a service with the provided list of secret files.
@@ -199,14 +202,14 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        body (list['SecretFileInput']):
+        body (list[SecretFileInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SecretFileWithCursor']]]
+        Response[Error | list[SecretFileWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -222,9 +225,9 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["SecretFileInput"],
-) -> Optional[Union[Error, list["SecretFileWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[SecretFileInput],
+) -> Error | list[SecretFileWithCursor] | None:
     """Update secret files
 
      Replace all secret files for a service with the provided list of secret files.
@@ -236,14 +239,14 @@ async def asyncio(
 
     Args:
         service_id (str):
-        body (list['SecretFileInput']):
+        body (list[SecretFileInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SecretFileWithCursor']]
+        Error | list[SecretFileWithCursor]
     """
 
     return (

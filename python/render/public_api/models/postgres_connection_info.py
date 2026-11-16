@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,16 +19,16 @@ class PostgresConnectionInfo:
         internal_connection_string (str):
         external_connection_string (str):
         psql_command (str):
-        internal_connection_pool_string (Union[Unset, str]):
-        external_connection_pool_string (Union[Unset, str]):
+        internal_connection_pool_string (str | Unset):
+        external_connection_pool_string (str | Unset):
     """
 
     password: str
     internal_connection_string: str
     external_connection_string: str
     psql_command: str
-    internal_connection_pool_string: Union[Unset, str] = UNSET
-    external_connection_pool_string: Union[Unset, str] = UNSET
+    internal_connection_pool_string: str | Unset = UNSET
+    external_connection_pool_string: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GetTaskRunsCompletedAggregateBy(str, Enum):
+class GetTaskRunsCompletedAggregateBy(StrEnum):
     STATE = "state"
 
     def __str__(self) -> str:

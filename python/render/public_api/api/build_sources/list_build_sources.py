@@ -1,8 +1,8 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,26 +13,26 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    name: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    project_id: Union[Unset, str] = UNSET,
-    include_previews: Union[Unset, bool] = True,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    name: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    project_id: str | Unset = UNSET,
+    include_previews: bool | Unset = True,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_name: Union[Unset, list[str]] = UNSET
+    json_name: list[str] | Unset = UNSET
     if not isinstance(name, Unset):
         json_name = name
 
     params["name"] = json_name
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
@@ -42,22 +42,22 @@ def _get_kwargs(
 
     params["includePreviews"] = include_previews
 
-    json_created_before: Union[Unset, str] = UNSET
+    json_created_before: str | Unset = UNSET
     if not isinstance(created_before, Unset):
         json_created_before = created_before.isoformat()
     params["createdBefore"] = json_created_before
 
-    json_created_after: Union[Unset, str] = UNSET
+    json_created_after: str | Unset = UNSET
     if not isinstance(created_after, Unset):
         json_created_after = created_after.isoformat()
     params["createdAfter"] = json_created_after
 
-    json_updated_before: Union[Unset, str] = UNSET
+    json_updated_before: str | Unset = UNSET
     if not isinstance(updated_before, Unset):
         json_updated_before = updated_before.isoformat()
     params["updatedBefore"] = json_updated_before
 
-    json_updated_after: Union[Unset, str] = UNSET
+    json_updated_after: str | Unset = UNSET
     if not isinstance(updated_after, Unset):
         json_updated_after = updated_after.isoformat()
     params["updatedAfter"] = json_updated_after
@@ -78,8 +78,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["BuildSourceWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[BuildSourceWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -117,8 +117,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["BuildSourceWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[BuildSourceWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -129,41 +129,41 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    project_id: Union[Unset, str] = UNSET,
-    include_previews: Union[Unset, bool] = True,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BuildSourceWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    project_id: str | Unset = UNSET,
+    include_previews: bool | Unset = True,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[BuildSourceWithCursor]]:
     """List build sources
 
      List build sources matching the provided filters. If `ownerId` is
     omitted, returns build sources across every workspace you can view.
 
     Args:
-        name (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        project_id (Union[Unset, str]):
-        include_previews (Union[Unset, bool]):  Default: True.
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        project_id (str | Unset):
+        include_previews (bool | Unset):  Default: True.
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BuildSourceWithCursor']]]
+        Response[Error | list[BuildSourceWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -188,41 +188,41 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    project_id: Union[Unset, str] = UNSET,
-    include_previews: Union[Unset, bool] = True,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BuildSourceWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    project_id: str | Unset = UNSET,
+    include_previews: bool | Unset = True,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[BuildSourceWithCursor] | None:
     """List build sources
 
      List build sources matching the provided filters. If `ownerId` is
     omitted, returns build sources across every workspace you can view.
 
     Args:
-        name (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        project_id (Union[Unset, str]):
-        include_previews (Union[Unset, bool]):  Default: True.
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        project_id (str | Unset):
+        include_previews (bool | Unset):  Default: True.
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BuildSourceWithCursor']]
+        Error | list[BuildSourceWithCursor]
     """
 
     return sync_detailed(
@@ -242,41 +242,41 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    project_id: Union[Unset, str] = UNSET,
-    include_previews: Union[Unset, bool] = True,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["BuildSourceWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    project_id: str | Unset = UNSET,
+    include_previews: bool | Unset = True,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[BuildSourceWithCursor]]:
     """List build sources
 
      List build sources matching the provided filters. If `ownerId` is
     omitted, returns build sources across every workspace you can view.
 
     Args:
-        name (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        project_id (Union[Unset, str]):
-        include_previews (Union[Unset, bool]):  Default: True.
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        project_id (str | Unset):
+        include_previews (bool | Unset):  Default: True.
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['BuildSourceWithCursor']]]
+        Response[Error | list[BuildSourceWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -299,41 +299,41 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    project_id: Union[Unset, str] = UNSET,
-    include_previews: Union[Unset, bool] = True,
-    created_before: Union[Unset, datetime.datetime] = UNSET,
-    created_after: Union[Unset, datetime.datetime] = UNSET,
-    updated_before: Union[Unset, datetime.datetime] = UNSET,
-    updated_after: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["BuildSourceWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    owner_id: list[str] | Unset = UNSET,
+    project_id: str | Unset = UNSET,
+    include_previews: bool | Unset = True,
+    created_before: datetime.datetime | Unset = UNSET,
+    created_after: datetime.datetime | Unset = UNSET,
+    updated_before: datetime.datetime | Unset = UNSET,
+    updated_after: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[BuildSourceWithCursor] | None:
     """List build sources
 
      List build sources matching the provided filters. If `ownerId` is
     omitted, returns build sources across every workspace you can view.
 
     Args:
-        name (Union[Unset, list[str]]):
-        owner_id (Union[Unset, list[str]]):
-        project_id (Union[Unset, str]):
-        include_previews (Union[Unset, bool]):  Default: True.
-        created_before (Union[Unset, datetime.datetime]):
-        created_after (Union[Unset, datetime.datetime]):
-        updated_before (Union[Unset, datetime.datetime]):
-        updated_after (Union[Unset, datetime.datetime]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        owner_id (list[str] | Unset):
+        project_id (str | Unset):
+        include_previews (bool | Unset):  Default: True.
+        created_before (datetime.datetime | Unset):
+        created_after (datetime.datetime | Unset):
+        updated_before (datetime.datetime | Unset):
+        updated_after (datetime.datetime | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['BuildSourceWithCursor']]
+        Error | list[BuildSourceWithCursor]
     """
 
     return (

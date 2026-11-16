@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.event_type import EventType
 from ..types import UNSET, Unset
@@ -20,18 +21,18 @@ class WebhookEvent:
         event_id (str): the id of the event that triggered the webhook
         event_type (EventType):
         sent_at (datetime.datetime):
-        status_code (Union[Unset, int]):
-        response_body (Union[Unset, str]):
-        error (Union[Unset, str]): error is populated when an error occurs without a response such as a timeout
+        status_code (int | Unset):
+        response_body (str | Unset):
+        error (str | Unset): error is populated when an error occurs without a response such as a timeout
     """
 
     id: str
     event_id: str
     event_type: EventType
     sent_at: datetime.datetime
-    status_code: Union[Unset, int] = UNSET
-    response_body: Union[Unset, str] = UNSET
-    error: Union[Unset, str] = UNSET
+    status_code: int | Unset = UNSET
+    response_body: str | Unset = UNSET
+    error: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -77,7 +78,7 @@ class WebhookEvent:
 
         event_type = EventType(d.pop("eventType"))
 
-        sent_at = isoparse(d.pop("sentAt"))
+        sent_at = datetime.datetime.fromisoformat(d.pop("sentAt"))
 
         status_code = d.pop("statusCode", UNSET)
 

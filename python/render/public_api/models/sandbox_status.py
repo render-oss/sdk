@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxStatus(str, Enum):
+class SandboxStatus(StrEnum):
     CREATING = "creating"
     ERRORED = "errored"
     RESUMING = "resuming"

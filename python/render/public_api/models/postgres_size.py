@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,18 +16,18 @@ class PostgresSize:
     """The size of an index, table, or database.
 
     Attributes:
-        database (Union[Unset, str]):
-        schema (Union[Unset, str]):
-        table (Union[Unset, str]):
-        index (Union[Unset, str]):
-        bytes_ (Union[Unset, int]):
+        database (str | Unset):
+        schema (str | Unset):
+        table (str | Unset):
+        index (str | Unset):
+        bytes_ (int | Unset):
     """
 
-    database: Union[Unset, str] = UNSET
-    schema: Union[Unset, str] = UNSET
-    table: Union[Unset, str] = UNSET
-    index: Union[Unset, str] = UNSET
-    bytes_: Union[Unset, int] = UNSET
+    database: str | Unset = UNSET
+    schema: str | Unset = UNSET
+    table: str | Unset = UNSET
+    index: str | Unset = UNSET
+    bytes_: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

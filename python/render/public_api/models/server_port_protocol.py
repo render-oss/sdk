@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServerPortProtocol(str, Enum):
+class ServerPortProtocol(StrEnum):
     TCP = "TCP"
     UDP = "UDP"
 

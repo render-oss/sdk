@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ListRoutesTypeItem(str, Enum):
+class ListRoutesTypeItem(StrEnum):
     REDIRECT = "redirect"
     REWRITE = "rewrite"
 

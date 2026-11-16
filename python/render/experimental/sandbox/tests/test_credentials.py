@@ -2,7 +2,7 @@ import inspect
 import json
 from datetime import datetime, timezone
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import ClientError, RateLimitError
@@ -61,7 +61,7 @@ def _client(client_type, handler):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return client_type(internal, default_owner_id="tea-test")
 
@@ -76,18 +76,18 @@ async def _resolve(value):
 
 
 def _capture(captured, status, body=None):
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["body"] = json.loads(request.content) if request.content else None
         if body is None:
-            return httpx.Response(status)
-        return httpx.Response(status, json=body)
+            return httpx2.Response(status)
+        return httpx2.Response(status, json=body)
 
     return handler
 
 
-def _unreachable(request: httpx.Request) -> httpx.Response:
+def _unreachable(request: httpx2.Request) -> httpx2.Response:
     raise AssertionError("handler should not be reached")
 
 

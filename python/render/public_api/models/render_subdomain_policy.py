@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class RenderSubdomainPolicy(str, Enum):
+class RenderSubdomainPolicy(StrEnum):
     DISABLED = "disabled"
     ENABLED = "enabled"
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,20 +17,20 @@ T = TypeVar("T", bound="NotificationServiceOverridePATCH")
 class NotificationServiceOverridePATCH:
     """
     Attributes:
-        preview_notifications_enabled (Union[Unset, NotifyPreviewOverride]):
-        notifications_to_send (Union[Unset, NotifyOverride]):
+        preview_notifications_enabled (NotifyPreviewOverride | Unset):
+        notifications_to_send (NotifyOverride | Unset):
     """
 
-    preview_notifications_enabled: Union[Unset, NotifyPreviewOverride] = UNSET
-    notifications_to_send: Union[Unset, NotifyOverride] = UNSET
+    preview_notifications_enabled: NotifyPreviewOverride | Unset = UNSET
+    notifications_to_send: NotifyOverride | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        preview_notifications_enabled: Union[Unset, str] = UNSET
+        preview_notifications_enabled: str | Unset = UNSET
         if not isinstance(self.preview_notifications_enabled, Unset):
             preview_notifications_enabled = self.preview_notifications_enabled.value
 
-        notifications_to_send: Union[Unset, str] = UNSET
+        notifications_to_send: str | Unset = UNSET
         if not isinstance(self.notifications_to_send, Unset):
             notifications_to_send = self.notifications_to_send.value
 
@@ -46,14 +48,14 @@ class NotificationServiceOverridePATCH:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _preview_notifications_enabled = d.pop("previewNotificationsEnabled", UNSET)
-        preview_notifications_enabled: Union[Unset, NotifyPreviewOverride]
+        preview_notifications_enabled: NotifyPreviewOverride | Unset
         if isinstance(_preview_notifications_enabled, Unset):
             preview_notifications_enabled = UNSET
         else:
             preview_notifications_enabled = NotifyPreviewOverride(_preview_notifications_enabled)
 
         _notifications_to_send = d.pop("notificationsToSend", UNSET)
-        notifications_to_send: Union[Unset, NotifyOverride]
+        notifications_to_send: NotifyOverride | Unset
         if isinstance(_notifications_to_send, Unset):
             notifications_to_send = UNSET
         else:

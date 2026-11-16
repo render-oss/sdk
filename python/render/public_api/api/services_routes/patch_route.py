@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -21,7 +22,10 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/services/{service_id}/routes/{route_id}",
+        "url": "/services/{service_id}/routes/{route_id}".format(
+            service_id=quote(str(service_id), safe=""),
+            route_id=quote(str(route_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -33,8 +37,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, PatchRouteResponse200]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | PatchRouteResponse200 | None:
     if response.status_code == 200:
         response_200 = PatchRouteResponse200.from_dict(response.json())
 
@@ -87,8 +91,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, PatchRouteResponse200]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | PatchRouteResponse200]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -101,9 +105,9 @@ def sync_detailed(
     service_id: str,
     route_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePatch,
-) -> Response[Union[Error, PatchRouteResponse200]]:
+) -> Response[Error | PatchRouteResponse200]:
     """Update redirect/rewrite rule priority
 
      Update the priority for a particular redirect/rewrite rule.
@@ -121,10 +125,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PatchRouteResponse200]]
+        Response[Error | PatchRouteResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -144,9 +148,9 @@ def sync(
     service_id: str,
     route_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePatch,
-) -> Optional[Union[Error, PatchRouteResponse200]]:
+) -> Error | PatchRouteResponse200 | None:
     """Update redirect/rewrite rule priority
 
      Update the priority for a particular redirect/rewrite rule.
@@ -164,10 +168,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PatchRouteResponse200]
+        Error | PatchRouteResponse200
     """
 
     return sync_detailed(
@@ -182,9 +186,9 @@ async def asyncio_detailed(
     service_id: str,
     route_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePatch,
-) -> Response[Union[Error, PatchRouteResponse200]]:
+) -> Response[Error | PatchRouteResponse200]:
     """Update redirect/rewrite rule priority
 
      Update the priority for a particular redirect/rewrite rule.
@@ -202,10 +206,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PatchRouteResponse200]]
+        Response[Error | PatchRouteResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -223,9 +227,9 @@ async def asyncio(
     service_id: str,
     route_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: RoutePatch,
-) -> Optional[Union[Error, PatchRouteResponse200]]:
+) -> Error | PatchRouteResponse200 | None:
     """Update redirect/rewrite rule priority
 
      Update the priority for a particular redirect/rewrite rule.
@@ -243,10 +247,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PatchRouteResponse200]
+        Error | PatchRouteResponse200
     """
 
     return (

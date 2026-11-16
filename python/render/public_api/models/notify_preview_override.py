@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NotifyPreviewOverride(str, Enum):
+class NotifyPreviewOverride(StrEnum):
     DEFAULT = "default"
     FALSE = "false"
     TRUE = "true"

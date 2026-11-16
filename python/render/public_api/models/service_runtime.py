@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceRuntime(str, Enum):
+class ServiceRuntime(StrEnum):
     DOCKER = "docker"
     ELIXIR = "elixir"
     GO = "go"

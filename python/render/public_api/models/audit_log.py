@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.audit_log_event import AuditLogEvent
 from ..models.audit_log_status import AuditLogStatus
@@ -34,8 +35,8 @@ class AuditLog:
     timestamp: datetime.datetime
     event: AuditLogEvent
     status: AuditLogStatus
-    actor: "AuditLogActor"
-    metadata: "AuditLogMetadata"
+    actor: AuditLogActor
+    metadata: AuditLogMetadata
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -68,13 +69,13 @@ class AuditLog:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.audit_log_actor import AuditLogActor
-        from ..models.audit_log_metadata import AuditLogMetadata
+        from ..models.audit_log_actor import AuditLogActor  # noqa: PLC0415
+        from ..models.audit_log_metadata import AuditLogMetadata  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
-        timestamp = isoparse(d.pop("timestamp"))
+        timestamp = datetime.datetime.fromisoformat(d.pop("timestamp"))
 
         event = AuditLogEvent(d.pop("event"))
 

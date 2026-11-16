@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ListLogsValuesLabel(str, Enum):
+class ListLogsValuesLabel(StrEnum):
     HOST = "host"
     INSTANCE = "instance"
     LEVEL = "level"

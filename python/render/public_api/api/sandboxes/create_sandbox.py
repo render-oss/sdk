@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -30,9 +30,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Sandbox]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Sandbox | None:
     if response.status_code == 201:
         response_201 = Sandbox.from_dict(response.json())
 
@@ -84,9 +82,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Sandbox]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Sandbox]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -97,9 +93,9 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Response[Union[Error, Sandbox]]:
+) -> Response[Error | Sandbox]:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -112,10 +108,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Error | Sandbox]
     """
 
     kwargs = _get_kwargs(
@@ -131,9 +127,9 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Optional[Union[Error, Sandbox]]:
+) -> Error | Sandbox | None:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -146,10 +142,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Error | Sandbox
     """
 
     return sync_detailed(
@@ -160,9 +156,9 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Response[Union[Error, Sandbox]]:
+) -> Response[Error | Sandbox]:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -175,10 +171,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Sandbox]]
+        Response[Error | Sandbox]
     """
 
     kwargs = _get_kwargs(
@@ -192,9 +188,9 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Optional[Union[Error, Sandbox]]:
+) -> Error | Sandbox | None:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -207,10 +203,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Sandbox]
+        Error | Sandbox
     """
 
     return (

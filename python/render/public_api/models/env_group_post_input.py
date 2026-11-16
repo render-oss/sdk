@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -21,22 +23,22 @@ class EnvGroupPOSTInput:
     Attributes:
         name (str):
         owner_id (str):
-        env_vars (list[Union['EnvVarKeyGenerateValue', 'EnvVarKeyValue']]):
-        secret_files (Union[Unset, list['SecretFileInput']]):
-        service_ids (Union[Unset, list[str]]):
-        environment_id (Union[Unset, str]):
+        env_vars (list[EnvVarKeyGenerateValue | EnvVarKeyValue]):
+        secret_files (list[SecretFileInput] | Unset):
+        service_ids (list[str] | Unset):
+        environment_id (str | Unset):
     """
 
     name: str
     owner_id: str
-    env_vars: list[Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]]
-    secret_files: Union[Unset, list["SecretFileInput"]] = UNSET
-    service_ids: Union[Unset, list[str]] = UNSET
-    environment_id: Union[Unset, str] = UNSET
+    env_vars: list[EnvVarKeyGenerateValue | EnvVarKeyValue]
+    secret_files: list[SecretFileInput] | Unset = UNSET
+    service_ids: list[str] | Unset = UNSET
+    environment_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.env_var_key_value import EnvVarKeyValue
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
 
         name = self.name
 
@@ -52,14 +54,14 @@ class EnvGroupPOSTInput:
 
             env_vars.append(componentsschemasenv_var_input_array_item)
 
-        secret_files: Union[Unset, list[dict[str, Any]]] = UNSET
+        secret_files: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.secret_files, Unset):
             secret_files = []
             for secret_files_item_data in self.secret_files:
                 secret_files_item = secret_files_item_data.to_dict()
                 secret_files.append(secret_files_item)
 
-        service_ids: Union[Unset, list[str]] = UNSET
+        service_ids: list[str] | Unset = UNSET
         if not isinstance(self.service_ids, Unset):
             service_ids = self.service_ids
 
@@ -85,9 +87,9 @@ class EnvGroupPOSTInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue
-        from ..models.env_var_key_value import EnvVarKeyValue
-        from ..models.secret_file_input import SecretFileInput
+        from ..models.env_var_key_generate_value import EnvVarKeyGenerateValue  # noqa: PLC0415
+        from ..models.env_var_key_value import EnvVarKeyValue  # noqa: PLC0415
+        from ..models.secret_file_input import SecretFileInput  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name")
@@ -100,14 +102,14 @@ class EnvGroupPOSTInput:
 
             def _parse_componentsschemasenv_var_input_array_item(
                 data: object,
-            ) -> Union["EnvVarKeyGenerateValue", "EnvVarKeyValue"]:
+            ) -> EnvVarKeyGenerateValue | EnvVarKeyValue:
                 try:
                     if not isinstance(data, dict):
                         raise TypeError()
                     componentsschemasenv_var_input_type_0 = EnvVarKeyValue.from_dict(data)
 
                     return componentsschemasenv_var_input_type_0
-                except:  # noqa: E722
+                except (TypeError, ValueError, AttributeError, KeyError):
                     pass
                 if not isinstance(data, dict):
                     raise TypeError()
@@ -121,12 +123,14 @@ class EnvGroupPOSTInput:
 
             env_vars.append(componentsschemasenv_var_input_array_item)
 
-        secret_files = []
         _secret_files = d.pop("secretFiles", UNSET)
-        for secret_files_item_data in _secret_files or []:
-            secret_files_item = SecretFileInput.from_dict(secret_files_item_data)
+        secret_files: list[SecretFileInput] | Unset = UNSET
+        if _secret_files is not UNSET:
+            secret_files = []
+            for secret_files_item_data in _secret_files:
+                secret_files_item = SecretFileInput.from_dict(secret_files_item_data)
 
-            secret_files.append(secret_files_item)
+                secret_files.append(secret_files_item)
 
         service_ids = cast(list[str], d.pop("serviceIds", UNSET))
 

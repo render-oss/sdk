@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AutoDeployTrigger(str, Enum):
+class AutoDeployTrigger(StrEnum):
     CHECKSPASS = "checksPass"
     COMMIT = "commit"
     OFF = "off"

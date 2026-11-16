@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -21,7 +22,7 @@ class DiskDetails:
         mount_path (str):
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
-        service_id (Union[Unset, str]):
+        service_id (str | Unset):
     """
 
     id: str
@@ -30,7 +31,7 @@ class DiskDetails:
     mount_path: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    service_id: Union[Unset, str] = UNSET
+    service_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -76,9 +77,9 @@ class DiskDetails:
 
         mount_path = d.pop("mountPath")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         service_id = d.pop("serviceId", UNSET)
 

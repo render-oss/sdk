@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,7 +13,7 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     *,
     task_run_ids: list[str],
-    accept: Union[Unset, StreamTaskRunsEventsAccept] = UNSET,
+    accept: StreamTaskRunsEventsAccept | Unset = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
     if not isinstance(accept, Unset):
@@ -37,9 +37,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, str]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | str | None:
     if response.status_code == 200:
         response_200 = response.text
         return response_200
@@ -85,9 +83,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, str]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | str]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -98,10 +94,10 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     task_run_ids: list[str],
-    accept: Union[Unset, StreamTaskRunsEventsAccept] = UNSET,
-) -> Response[Union[Error, str]]:
+    accept: StreamTaskRunsEventsAccept | Unset = UNSET,
+) -> Response[Error | str]:
     """Stream realtime events (SSE)
 
      Establishes a unidirectional event stream. The server sends events as lines
@@ -123,14 +119,14 @@ def sync_detailed(
 
     Args:
         task_run_ids (list[str]):  Example: ['trn-1234', 'trn-5678'].
-        accept (Union[Unset, StreamTaskRunsEventsAccept]):
+        accept (StreamTaskRunsEventsAccept | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, str]]
+        Response[Error | str]
     """
 
     kwargs = _get_kwargs(
@@ -147,10 +143,10 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     task_run_ids: list[str],
-    accept: Union[Unset, StreamTaskRunsEventsAccept] = UNSET,
-) -> Optional[Union[Error, str]]:
+    accept: StreamTaskRunsEventsAccept | Unset = UNSET,
+) -> Error | str | None:
     """Stream realtime events (SSE)
 
      Establishes a unidirectional event stream. The server sends events as lines
@@ -172,14 +168,14 @@ def sync(
 
     Args:
         task_run_ids (list[str]):  Example: ['trn-1234', 'trn-5678'].
-        accept (Union[Unset, StreamTaskRunsEventsAccept]):
+        accept (StreamTaskRunsEventsAccept | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, str]
+        Error | str
     """
 
     return sync_detailed(
@@ -191,10 +187,10 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     task_run_ids: list[str],
-    accept: Union[Unset, StreamTaskRunsEventsAccept] = UNSET,
-) -> Response[Union[Error, str]]:
+    accept: StreamTaskRunsEventsAccept | Unset = UNSET,
+) -> Response[Error | str]:
     """Stream realtime events (SSE)
 
      Establishes a unidirectional event stream. The server sends events as lines
@@ -216,14 +212,14 @@ async def asyncio_detailed(
 
     Args:
         task_run_ids (list[str]):  Example: ['trn-1234', 'trn-5678'].
-        accept (Union[Unset, StreamTaskRunsEventsAccept]):
+        accept (StreamTaskRunsEventsAccept | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, str]]
+        Response[Error | str]
     """
 
     kwargs = _get_kwargs(
@@ -238,10 +234,10 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     task_run_ids: list[str],
-    accept: Union[Unset, StreamTaskRunsEventsAccept] = UNSET,
-) -> Optional[Union[Error, str]]:
+    accept: StreamTaskRunsEventsAccept | Unset = UNSET,
+) -> Error | str | None:
     """Stream realtime events (SSE)
 
      Establishes a unidirectional event stream. The server sends events as lines
@@ -263,14 +259,14 @@ async def asyncio(
 
     Args:
         task_run_ids (list[str]):  Example: ['trn-1234', 'trn-5678'].
-        accept (Union[Unset, StreamTaskRunsEventsAccept]):
+        accept (StreamTaskRunsEventsAccept | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, str]
+        Error | str
     """
 
     return (

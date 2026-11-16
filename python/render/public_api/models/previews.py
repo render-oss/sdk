@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,14 +16,14 @@ T = TypeVar("T", bound="Previews")
 class Previews:
     """
     Attributes:
-        generation (Union[Unset, PreviewsGeneration]): Defaults to "off" Default: PreviewsGeneration.OFF.
+        generation (PreviewsGeneration | Unset): Defaults to "off" Default: PreviewsGeneration.OFF.
     """
 
-    generation: Union[Unset, PreviewsGeneration] = PreviewsGeneration.OFF
+    generation: PreviewsGeneration | Unset = PreviewsGeneration.OFF
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        generation: Union[Unset, str] = UNSET
+        generation: str | Unset = UNSET
         if not isinstance(self.generation, Unset):
             generation = self.generation.value
 
@@ -37,7 +39,7 @@ class Previews:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _generation = d.pop("generation", UNSET)
-        generation: Union[Unset, PreviewsGeneration]
+        generation: PreviewsGeneration | Unset
         if isinstance(_generation, Unset):
             generation = UNSET
         else:

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SuspenderType(str, Enum):
+class SuspenderType(StrEnum):
     ADMIN = "admin"
     BILLING = "billing"
     HIPAA_ENABLEMENT = "hipaa_enablement"

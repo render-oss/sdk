@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,17 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/workflowversions/{workflow_version_id}",
+        "url": "/workflowversions/{workflow_version_id}".format(
+            workflow_version_id=quote(str(workflow_version_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, WorkflowVersion]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | WorkflowVersion | None:
     if response.status_code == 200:
         response_200 = WorkflowVersion.from_dict(response.json())
 
@@ -66,8 +69,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, WorkflowVersion]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | WorkflowVersion]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,8 +82,8 @@ def _build_response(
 def sync_detailed(
     workflow_version_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, WorkflowVersion]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | WorkflowVersion]:
     """Retrieve workflow version
 
      Retrieve the specific workflow service version with the provided ID.
@@ -90,10 +93,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, WorkflowVersion]]
+        Response[Error | WorkflowVersion]
     """
 
     kwargs = _get_kwargs(
@@ -110,8 +113,8 @@ def sync_detailed(
 def sync(
     workflow_version_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, WorkflowVersion]]:
+    client: AuthenticatedClient | Client,
+) -> Error | WorkflowVersion | None:
     """Retrieve workflow version
 
      Retrieve the specific workflow service version with the provided ID.
@@ -121,10 +124,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, WorkflowVersion]
+        Error | WorkflowVersion
     """
 
     return sync_detailed(
@@ -136,8 +139,8 @@ def sync(
 async def asyncio_detailed(
     workflow_version_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, WorkflowVersion]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | WorkflowVersion]:
     """Retrieve workflow version
 
      Retrieve the specific workflow service version with the provided ID.
@@ -147,10 +150,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, WorkflowVersion]]
+        Response[Error | WorkflowVersion]
     """
 
     kwargs = _get_kwargs(
@@ -165,8 +168,8 @@ async def asyncio_detailed(
 async def asyncio(
     workflow_version_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, WorkflowVersion]]:
+    client: AuthenticatedClient | Client,
+) -> Error | WorkflowVersion | None:
     """Retrieve workflow version
 
      Retrieve the specific workflow service version with the provided ID.
@@ -176,10 +179,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, WorkflowVersion]
+        Error | WorkflowVersion
     """
 
     return (

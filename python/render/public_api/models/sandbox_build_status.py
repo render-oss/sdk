@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxBuildStatus(str, Enum):
+class SandboxBuildStatus(StrEnum):
     FAILED = "failed"
     PENDING = "pending"
     RUNNING = "running"

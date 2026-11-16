@@ -1,8 +1,8 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,19 +13,19 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_start_time: Union[Unset, str] = UNSET
+    json_start_time: str | Unset = UNSET
     if not isinstance(start_time, Unset):
         json_start_time = start_time.isoformat()
     params["startTime"] = json_start_time
 
-    json_end_time: Union[Unset, str] = UNSET
+    json_end_time: str | Unset = UNSET
     if not isinstance(end_time, Unset):
         json_end_time = end_time.isoformat()
     params["endTime"] = json_end_time
@@ -46,8 +46,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | GetBandwidthSourcesResponse200 | None:
     if response.status_code == 200:
         response_200 = GetBandwidthSourcesResponse200.from_dict(response.json())
 
@@ -70,8 +70,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | GetBandwidthSourcesResponse200]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -82,12 +82,12 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+) -> Response[Error | GetBandwidthSourcesResponse200]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -98,17 +98,17 @@ def sync_detailed(
     Queries for earlier dates will return a 400 Bad Request error.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resource (Union[Unset, str]):  Example: srv-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resource (str | Unset):  Example: srv-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetBandwidthSourcesResponse200]]
+        Response[Error | GetBandwidthSourcesResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -127,12 +127,12 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+) -> Error | GetBandwidthSourcesResponse200 | None:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -143,17 +143,17 @@ def sync(
     Queries for earlier dates will return a 400 Bad Request error.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resource (Union[Unset, str]):  Example: srv-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resource (str | Unset):  Example: srv-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetBandwidthSourcesResponse200]
+        Error | GetBandwidthSourcesResponse200
     """
 
     return sync_detailed(
@@ -167,12 +167,12 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, GetBandwidthSourcesResponse200]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+) -> Response[Error | GetBandwidthSourcesResponse200]:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -183,17 +183,17 @@ async def asyncio_detailed(
     Queries for earlier dates will return a 400 Bad Request error.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resource (Union[Unset, str]):  Example: srv-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resource (str | Unset):  Example: srv-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetBandwidthSourcesResponse200]]
+        Response[Error | GetBandwidthSourcesResponse200]
     """
 
     kwargs = _get_kwargs(
@@ -210,12 +210,12 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, GetBandwidthSourcesResponse200]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+) -> Error | GetBandwidthSourcesResponse200 | None:
     """Get bandwidth usage breakdown by traffic source
 
      Get bandwidth usage for one or more resources broken down by traffic source (HTTP, WebSocket, NAT,
@@ -226,17 +226,17 @@ async def asyncio(
     Queries for earlier dates will return a 400 Bad Request error.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resource (Union[Unset, str]):  Example: srv-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resource (str | Unset):  Example: srv-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetBandwidthSourcesResponse200]
+        Error | GetBandwidthSourcesResponse200
     """
 
     return (

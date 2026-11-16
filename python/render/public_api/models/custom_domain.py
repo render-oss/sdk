@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.custom_domain_domain_type import CustomDomainDomainType
 from ..models.custom_domain_verification_status import CustomDomainVerificationStatus
@@ -28,7 +29,7 @@ class CustomDomain:
         redirect_for_name (str):
         verification_status (CustomDomainVerificationStatus):
         created_at (datetime.datetime):
-        server (Union[Unset, CustomDomainServer]):
+        server (CustomDomainServer | Unset):
     """
 
     id: str
@@ -38,7 +39,7 @@ class CustomDomain:
     redirect_for_name: str
     verification_status: CustomDomainVerificationStatus
     created_at: datetime.datetime
-    server: Union[Unset, "CustomDomainServer"] = UNSET
+    server: CustomDomainServer | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -56,7 +57,7 @@ class CustomDomain:
 
         created_at = self.created_at.isoformat()
 
-        server: Union[Unset, dict[str, Any]] = UNSET
+        server: dict[str, Any] | Unset = UNSET
         if not isinstance(self.server, Unset):
             server = self.server.to_dict()
 
@@ -80,7 +81,7 @@ class CustomDomain:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.custom_domain_server import CustomDomainServer
+        from ..models.custom_domain_server import CustomDomainServer  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -95,10 +96,10 @@ class CustomDomain:
 
         verification_status = CustomDomainVerificationStatus(d.pop("verificationStatus"))
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         _server = d.pop("server", UNSET)
-        server: Union[Unset, CustomDomainServer]
+        server: CustomDomainServer | Unset
         if isinstance(_server, Unset):
             server = UNSET
         else:

@@ -5,7 +5,6 @@ from render.public_api.models.validation_plan_summary import (
     T as T,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     ValidationPlanSummary as ValidationPlanSummary,
     _attrs_define as _attrs_define,

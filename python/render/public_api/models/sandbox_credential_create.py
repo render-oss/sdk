@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -28,25 +30,24 @@ class SandboxCredentialCreate:
         value (str): The secret value to store, up to 5 KiB (5120 UTF-8 bytes).
         injection (SandboxCredentialInjection): Settings for injecting the secret value into matching outbound HTTPS
             requests.
-        enabled (Union[Unset, bool]): Whether this credential is enabled for injection. Defaults to `true`. Default:
-            True.
-        methods (Union[Unset, list[str]]): The HTTP methods to match for credential injection. Supported methods are
-            GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. Omit or provide an empty list to
-            match any method.
-        paths (Union[Unset, list[str]]): The request path patterns to match for credential injection. Each pattern must
-            match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments.
-            Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`.
-            Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do
-            not affect matching. Omit or provide an empty list to match any path.
+        enabled (bool | Unset): Whether this credential is enabled for injection. Defaults to `true`. Default: True.
+        methods (list[str] | Unset): The HTTP methods to match for credential injection. Supported methods are GET,
+            HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. Omit or provide an empty list to match any
+            method.
+        paths (list[str] | Unset): The request path patterns to match for credential injection. Each pattern must match
+            the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must
+            occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches
+            `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect
+            matching. Omit or provide an empty list to match any path.
     """
 
     id: str
     domain: str
     value: str
-    injection: "SandboxCredentialInjection"
-    enabled: Union[Unset, bool] = True
-    methods: Union[Unset, list[str]] = UNSET
-    paths: Union[Unset, list[str]] = UNSET
+    injection: SandboxCredentialInjection
+    enabled: bool | Unset = True
+    methods: list[str] | Unset = UNSET
+    paths: list[str] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,11 +61,11 @@ class SandboxCredentialCreate:
 
         enabled = self.enabled
 
-        methods: Union[Unset, list[str]] = UNSET
+        methods: list[str] | Unset = UNSET
         if not isinstance(self.methods, Unset):
             methods = self.methods
 
-        paths: Union[Unset, list[str]] = UNSET
+        paths: list[str] | Unset = UNSET
         if not isinstance(self.paths, Unset):
             paths = self.paths
 
@@ -89,7 +90,7 @@ class SandboxCredentialCreate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_credential_injection import SandboxCredentialInjection
+        from ..models.sandbox_credential_injection import SandboxCredentialInjection  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class KeyValuePlan(str, Enum):
+class KeyValuePlan(StrEnum):
     CUSTOM = "custom"
     FREE = "free"
     PRO = "pro"

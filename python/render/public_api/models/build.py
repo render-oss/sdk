@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -24,20 +25,20 @@ class Build:
         build_source_id (str):
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
-        build_run (Union[Unset, BuildRun]): The Render build run that produced this build. Present when the build source
-            is currently build-based. Mutually exclusive with `image`.
-        image (Union[Unset, SchemasImage]): Present when the build source is currently image-based. Mutually exclusive
-            with `buildRun`.
-        assets_deleted_at (Union[Unset, datetime.datetime]):
+        build_run (BuildRun | Unset): The Render build run that produced this build. Present when the build source is
+            currently build-based. Mutually exclusive with `image`.
+        image (SchemasImage | Unset): Present when the build source is currently image-based. Mutually exclusive with
+            `buildRun`.
+        assets_deleted_at (datetime.datetime | Unset):
     """
 
     id: str
     build_source_id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    build_run: Union[Unset, "BuildRun"] = UNSET
-    image: Union[Unset, "SchemasImage"] = UNSET
-    assets_deleted_at: Union[Unset, datetime.datetime] = UNSET
+    build_run: BuildRun | Unset = UNSET
+    image: SchemasImage | Unset = UNSET
+    assets_deleted_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,15 +50,15 @@ class Build:
 
         updated_at = self.updated_at.isoformat()
 
-        build_run: Union[Unset, dict[str, Any]] = UNSET
+        build_run: dict[str, Any] | Unset = UNSET
         if not isinstance(self.build_run, Unset):
             build_run = self.build_run.to_dict()
 
-        image: Union[Unset, dict[str, Any]] = UNSET
+        image: dict[str, Any] | Unset = UNSET
         if not isinstance(self.image, Unset):
             image = self.image.to_dict()
 
-        assets_deleted_at: Union[Unset, str] = UNSET
+        assets_deleted_at: str | Unset = UNSET
         if not isinstance(self.assets_deleted_at, Unset):
             assets_deleted_at = self.assets_deleted_at.isoformat()
 
@@ -82,38 +83,38 @@ class Build:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_run import BuildRun
-        from ..models.schemas_image import SchemasImage
+        from ..models.build_run import BuildRun  # noqa: PLC0415
+        from ..models.schemas_image import SchemasImage  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
         build_source_id = d.pop("buildSourceId")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         _build_run = d.pop("buildRun", UNSET)
-        build_run: Union[Unset, BuildRun]
+        build_run: BuildRun | Unset
         if isinstance(_build_run, Unset):
             build_run = UNSET
         else:
             build_run = BuildRun.from_dict(_build_run)
 
         _image = d.pop("image", UNSET)
-        image: Union[Unset, SchemasImage]
+        image: SchemasImage | Unset
         if isinstance(_image, Unset):
             image = UNSET
         else:
             image = SchemasImage.from_dict(_image)
 
         _assets_deleted_at = d.pop("assetsDeletedAt", UNSET)
-        assets_deleted_at: Union[Unset, datetime.datetime]
+        assets_deleted_at: datetime.datetime | Unset
         if isinstance(_assets_deleted_at, Unset):
             assets_deleted_at = UNSET
         else:
-            assets_deleted_at = isoparse(_assets_deleted_at)
+            assets_deleted_at = datetime.datetime.fromisoformat(_assets_deleted_at)
 
         build = cls(
             id=id,

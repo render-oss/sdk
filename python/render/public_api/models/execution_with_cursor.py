@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -22,7 +24,7 @@ class ExecutionWithCursor:
         cursor (str):
     """
 
-    execution: "Execution"
+    execution: Execution
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -44,7 +46,7 @@ class ExecutionWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.execution import Execution
+        from ..models.execution import Execution  # noqa: PLC0415
 
         d = dict(src_dict)
         execution = Execution.from_dict(d.pop("execution"))

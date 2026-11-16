@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,13 +15,13 @@ T = TypeVar("T", bound="ArtifactSourceChanged")
 class ArtifactSourceChanged:
     """
     Attributes:
-        from_build_source_id (Union[Unset, str]): The previously linked build source. Absent when the service was newly
+        from_build_source_id (str | Unset): The previously linked build source. Absent when the service was newly
             attached.
-        to_build_source_id (Union[Unset, str]): The newly linked build source. Absent when the service was detached.
+        to_build_source_id (str | Unset): The newly linked build source. Absent when the service was detached.
     """
 
-    from_build_source_id: Union[Unset, str] = UNSET
-    to_build_source_id: Union[Unset, str] = UNSET
+    from_build_source_id: str | Unset = UNSET
+    to_build_source_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

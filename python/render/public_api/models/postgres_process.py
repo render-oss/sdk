@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -16,35 +17,35 @@ class PostgresProcess:
     """A single live process from pg_stat_activity.
 
     Attributes:
-        pid (Union[Unset, int]):
-        database_name (Union[Unset, str]):
-        username (Union[Unset, str]):
-        application_name (Union[Unset, str]):
-        client_addr (Union[Unset, str]):
-        backend_start (Union[Unset, datetime.datetime]):
-        query_start (Union[Unset, datetime.datetime]):
-        state (Union[Unset, str]):
-        wait_event (Union[Unset, str]):
-        wait_event_type (Union[Unset, str]):
-        query (Union[Unset, str]):
-        duration (Union[Unset, float]): Duration of the query, in seconds.
-        is_leader (Union[Unset, bool]): Whether this process is running against the primary instance of a highly
-            available database.
+        pid (int | Unset):
+        database_name (str | Unset):
+        username (str | Unset):
+        application_name (str | Unset):
+        client_addr (str | Unset):
+        backend_start (datetime.datetime | Unset):
+        query_start (datetime.datetime | Unset):
+        state (str | Unset):
+        wait_event (str | Unset):
+        wait_event_type (str | Unset):
+        query (str | Unset):
+        duration (float | Unset): Duration of the query, in seconds.
+        is_leader (bool | Unset): Whether this process is running against the primary instance of a highly available
+            database.
     """
 
-    pid: Union[Unset, int] = UNSET
-    database_name: Union[Unset, str] = UNSET
-    username: Union[Unset, str] = UNSET
-    application_name: Union[Unset, str] = UNSET
-    client_addr: Union[Unset, str] = UNSET
-    backend_start: Union[Unset, datetime.datetime] = UNSET
-    query_start: Union[Unset, datetime.datetime] = UNSET
-    state: Union[Unset, str] = UNSET
-    wait_event: Union[Unset, str] = UNSET
-    wait_event_type: Union[Unset, str] = UNSET
-    query: Union[Unset, str] = UNSET
-    duration: Union[Unset, float] = UNSET
-    is_leader: Union[Unset, bool] = UNSET
+    pid: int | Unset = UNSET
+    database_name: str | Unset = UNSET
+    username: str | Unset = UNSET
+    application_name: str | Unset = UNSET
+    client_addr: str | Unset = UNSET
+    backend_start: datetime.datetime | Unset = UNSET
+    query_start: datetime.datetime | Unset = UNSET
+    state: str | Unset = UNSET
+    wait_event: str | Unset = UNSET
+    wait_event_type: str | Unset = UNSET
+    query: str | Unset = UNSET
+    duration: float | Unset = UNSET
+    is_leader: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,11 +59,11 @@ class PostgresProcess:
 
         client_addr = self.client_addr
 
-        backend_start: Union[Unset, str] = UNSET
+        backend_start: str | Unset = UNSET
         if not isinstance(self.backend_start, Unset):
             backend_start = self.backend_start.isoformat()
 
-        query_start: Union[Unset, str] = UNSET
+        query_start: str | Unset = UNSET
         if not isinstance(self.query_start, Unset):
             query_start = self.query_start.isoformat()
 
@@ -124,18 +125,18 @@ class PostgresProcess:
         client_addr = d.pop("clientAddr", UNSET)
 
         _backend_start = d.pop("backendStart", UNSET)
-        backend_start: Union[Unset, datetime.datetime]
+        backend_start: datetime.datetime | Unset
         if isinstance(_backend_start, Unset):
             backend_start = UNSET
         else:
-            backend_start = isoparse(_backend_start)
+            backend_start = datetime.datetime.fromisoformat(_backend_start)
 
         _query_start = d.pop("queryStart", UNSET)
-        query_start: Union[Unset, datetime.datetime]
+        query_start: datetime.datetime | Unset
         if isinstance(_query_start, Unset):
             query_start = UNSET
         else:
-            query_start = isoparse(_query_start)
+            query_start = datetime.datetime.fromisoformat(_query_start)
 
         state = d.pop("state", UNSET)
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,19 +17,19 @@ class BuildConfigUpdate:
     """A partial update to a workflow's build config. Every field is optional; omitted fields are left unchanged.
 
     Attributes:
-        branch (Union[Unset, str]): The branch to use for the build, if applicable.
-        build_command (Union[Unset, str]): The command to run to build the workflow. Required for every runtime except
-            docker, which builds from its Dockerfile.
-        repo (Union[Unset, str]): The repository URL to use for the build. Cannot be blank.
-        root_dir (Union[Unset, str]): The root directory of the repository to use for the build, if applicable.
-        runtime (Union[Unset, Runtime]): The runtime environment for the workflow (e.g., node, python, etc.).
+        branch (str | Unset): The branch to use for the build, if applicable.
+        build_command (str | Unset): The command to run to build the workflow. Required for every runtime except docker,
+            which builds from its Dockerfile.
+        repo (str | Unset): The repository URL to use for the build. Cannot be blank.
+        root_dir (str | Unset): The root directory of the repository to use for the build, if applicable.
+        runtime (Runtime | Unset): The runtime environment for the workflow (e.g., node, python, etc.).
     """
 
-    branch: Union[Unset, str] = UNSET
-    build_command: Union[Unset, str] = UNSET
-    repo: Union[Unset, str] = UNSET
-    root_dir: Union[Unset, str] = UNSET
-    runtime: Union[Unset, Runtime] = UNSET
+    branch: str | Unset = UNSET
+    build_command: str | Unset = UNSET
+    repo: str | Unset = UNSET
+    root_dir: str | Unset = UNSET
+    runtime: Runtime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -39,7 +41,7 @@ class BuildConfigUpdate:
 
         root_dir = self.root_dir
 
-        runtime: Union[Unset, str] = UNSET
+        runtime: str | Unset = UNSET
         if not isinstance(self.runtime, Unset):
             runtime = self.runtime.value
 
@@ -71,7 +73,7 @@ class BuildConfigUpdate:
         root_dir = d.pop("rootDir", UNSET)
 
         _runtime = d.pop("runtime", UNSET)
-        runtime: Union[Unset, Runtime]
+        runtime: Runtime | Unset
         if isinstance(_runtime, Unset):
             runtime = UNSET
         else:

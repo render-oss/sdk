@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,8 +16,8 @@ def _get_kwargs(
     owner_id: str,
     region: Region,
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -28,7 +29,10 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/objects/{owner_id}/{region}",
+        "url": "/objects/{owner_id}/{region}".format(
+            owner_id=quote(str(owner_id), safe=""),
+            region=quote(str(region), safe=""),
+        ),
         "params": params,
     }
 
@@ -36,8 +40,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, ListObjectsResponse]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | ListObjectsResponse | None:
     if response.status_code == 200:
         response_200 = ListObjectsResponse.from_dict(response.json())
 
@@ -80,8 +84,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, ListObjectsResponse]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | ListObjectsResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -94,10 +98,10 @@ def sync_detailed(
     owner_id: str,
     region: Region,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, ListObjectsResponse]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | ListObjectsResponse]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -105,15 +109,15 @@ def sync_detailed(
     Args:
         owner_id (str):
         region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ListObjectsResponse]]
+        Response[Error | ListObjectsResponse]
     """
 
     kwargs = _get_kwargs(
@@ -134,10 +138,10 @@ def sync(
     owner_id: str,
     region: Region,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, ListObjectsResponse]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | ListObjectsResponse | None:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -145,15 +149,15 @@ def sync(
     Args:
         owner_id (str):
         region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ListObjectsResponse]
+        Error | ListObjectsResponse
     """
 
     return sync_detailed(
@@ -169,10 +173,10 @@ async def asyncio_detailed(
     owner_id: str,
     region: Region,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, ListObjectsResponse]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | ListObjectsResponse]:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -180,15 +184,15 @@ async def asyncio_detailed(
     Args:
         owner_id (str):
         region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ListObjectsResponse]]
+        Response[Error | ListObjectsResponse]
     """
 
     kwargs = _get_kwargs(
@@ -207,10 +211,10 @@ async def asyncio(
     owner_id: str,
     region: Region,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, ListObjectsResponse]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | ListObjectsResponse | None:
     """List objects
 
      List objects in the specified region for a workspace.
@@ -218,15 +222,15 @@ async def asyncio(
     Args:
         owner_id (str):
         region (Region): Defaults to "oregon"
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ListObjectsResponse]
+        Error | ListObjectsResponse
     """
 
     return (

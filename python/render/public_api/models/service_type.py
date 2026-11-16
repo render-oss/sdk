@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceType(str, Enum):
+class ServiceType(StrEnum):
     BACKGROUND_WORKER = "background_worker"
     CRON_JOB = "cron_job"
     PRIVATE_SERVICE = "private_service"

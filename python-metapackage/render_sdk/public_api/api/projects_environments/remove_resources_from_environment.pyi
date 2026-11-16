@@ -5,10 +5,8 @@ from render.public_api.api.projects_environments.remove_resources_from_environme
     Client as Client,
     Error as Error,
     HTTPStatus as HTTPStatus,
-    Optional as Optional,
     Response as Response,
     UNSET as UNSET,
-    Union as Union,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
     _parse_response as _parse_response,
@@ -16,6 +14,7 @@ from render.public_api.api.projects_environments.remove_resources_from_environme
     asyncio_detailed as asyncio_detailed,
     cast as cast,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

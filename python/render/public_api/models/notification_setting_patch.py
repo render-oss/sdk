@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,14 +16,14 @@ T = TypeVar("T", bound="NotificationSettingPATCH")
 class NotificationSettingPATCH:
     """
     Attributes:
-        email_enabled (Union[Unset, bool]):
-        preview_notifications_enabled (Union[Unset, bool]):
-        notifications_to_send (Union[Unset, NotifySettingV2]):
+        email_enabled (bool | Unset):
+        preview_notifications_enabled (bool | Unset):
+        notifications_to_send (NotifySettingV2 | Unset):
     """
 
-    email_enabled: Union[Unset, bool] = UNSET
-    preview_notifications_enabled: Union[Unset, bool] = UNSET
-    notifications_to_send: Union[Unset, NotifySettingV2] = UNSET
+    email_enabled: bool | Unset = UNSET
+    preview_notifications_enabled: bool | Unset = UNSET
+    notifications_to_send: NotifySettingV2 | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -29,7 +31,7 @@ class NotificationSettingPATCH:
 
         preview_notifications_enabled = self.preview_notifications_enabled
 
-        notifications_to_send: Union[Unset, str] = UNSET
+        notifications_to_send: str | Unset = UNSET
         if not isinstance(self.notifications_to_send, Unset):
             notifications_to_send = self.notifications_to_send.value
 
@@ -53,7 +55,7 @@ class NotificationSettingPATCH:
         preview_notifications_enabled = d.pop("previewNotificationsEnabled", UNSET)
 
         _notifications_to_send = d.pop("notificationsToSend", UNSET)
-        notifications_to_send: Union[Unset, NotifySettingV2]
+        notifications_to_send: NotifySettingV2 | Unset
         if isinstance(_notifications_to_send, Unset):
             notifications_to_send = UNSET
         else:

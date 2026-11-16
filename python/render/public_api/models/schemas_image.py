@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,18 +16,18 @@ class SchemasImage:
     """Present when the build source is currently image-based. Mutually exclusive with `buildRun`.
 
     Attributes:
-        image_version_id (Union[Unset, str]):
-        sha (Union[Unset, str]):
-        ref (Union[Unset, str]):
-        image_url (Union[Unset, str]):
-        registry_credential_id (Union[Unset, str]):
+        image_version_id (str | Unset):
+        sha (str | Unset):
+        ref (str | Unset):
+        image_url (str | Unset):
+        registry_credential_id (str | Unset):
     """
 
-    image_version_id: Union[Unset, str] = UNSET
-    sha: Union[Unset, str] = UNSET
-    ref: Union[Unset, str] = UNSET
-    image_url: Union[Unset, str] = UNSET
-    registry_credential_id: Union[Unset, str] = UNSET
+    image_version_id: str | Unset = UNSET
+    sha: str | Unset = UNSET
+    ref: str | Unset = UNSET
+    image_url: str | Unset = UNSET
+    registry_credential_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

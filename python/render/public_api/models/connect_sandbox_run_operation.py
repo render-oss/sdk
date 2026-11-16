@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConnectSandboxRunOperation(str, Enum):
+class ConnectSandboxRunOperation(StrEnum):
     STREAM = "stream"
     SYNC = "sync"
 

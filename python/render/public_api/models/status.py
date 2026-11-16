@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Status(str, Enum):
+class Status(StrEnum):
     CREATED = "created"
     ERROR = "error"
     IN_SYNC = "in_sync"

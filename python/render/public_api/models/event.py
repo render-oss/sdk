@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.event_type import EventType
 
@@ -92,173 +93,173 @@ class Event:
         timestamp (datetime.datetime):
         service_id (str):
         type_ (EventType):
-        details (Union['ArtifactFetchFailed', 'ArtifactSourceChanged', 'AutoDeployDisabled', 'AutoDeployEnabled',
-            'AutoscalingConfigChanged', 'AutoscalingEnded', 'AutoscalingStarted', 'BranchDeleted', 'BuildEnded',
-            'BuildStarted', 'CommitIgnored', 'CronJobRunEnded', 'CronJobRunStarted', 'DeployEnded', 'DeployStarted',
-            'DiskCreated', 'DiskDeleted', 'DiskSnapshotRestored', 'DiskUpdated', 'EdgeCacheDisabled', 'EdgeCacheEnabled',
-            'EdgeCachePurged', 'ImagePullFailed', 'InitialDeployHookEnded', 'InitialDeployHookStarted',
-            'InstanceCountChanged', 'InstanceTypeChanged', 'JobRunEnded', 'KeyValueAvailable', 'KeyValueConfigRestart',
-            'KeyValueUnhealthy', 'MaintenanceEnded', 'MaintenanceModeEnabled', 'MaintenanceModeURIUpdated',
-            'MaintenanceStarted', 'PipelineMinutesExhausted', 'PostgresAvailable', 'PostgresBackupCompleted',
-            'PostgresBackupFailed', 'PostgresBackupStarted', 'PostgresClusterLeaderChanged',
-            'PostgresConnectionPoolChanged', 'PostgresConnectionPoolEnabledChanged', 'PostgresCreated',
-            'PostgresDiskSizeChanged', 'PostgresHAStatusChanged', 'PostgresPITRCheckpointCompleted',
-            'PostgresPITRCheckpointFailed', 'PostgresPITRCheckpointStarted', 'PostgresReadReplicaStale',
-            'PostgresReadReplicasChanged', 'PostgresRestarted', 'PostgresUnavailable', 'PostgresUpgradeFailed',
-            'PostgresUpgradeStarted', 'PostgresUpgradeSucceeded', 'PreDeployEnded', 'PreDeployStarted', 'ServerAvailable',
-            'ServerFailed', 'ServerHardwareFailure', 'ServerRestarted', 'ServiceDiskUsageHigh', 'ServiceDiskUsageRecovered',
-            'ServiceResumed', 'ServiceSuspended', 'SuspenderAdded', 'SuspenderRemoved', 'ZeroDowntimeRedeployEnded',
-            'ZeroDowntimeRedeployStarted']):
+        details (ArtifactFetchFailed | ArtifactSourceChanged | AutoDeployDisabled | AutoDeployEnabled |
+            AutoscalingConfigChanged | AutoscalingEnded | AutoscalingStarted | BranchDeleted | BuildEnded | BuildStarted |
+            CommitIgnored | CronJobRunEnded | CronJobRunStarted | DeployEnded | DeployStarted | DiskCreated | DiskDeleted |
+            DiskSnapshotRestored | DiskUpdated | EdgeCacheDisabled | EdgeCacheEnabled | EdgeCachePurged | ImagePullFailed |
+            InitialDeployHookEnded | InitialDeployHookStarted | InstanceCountChanged | InstanceTypeChanged | JobRunEnded |
+            KeyValueAvailable | KeyValueConfigRestart | KeyValueUnhealthy | MaintenanceEnded | MaintenanceModeEnabled |
+            MaintenanceModeURIUpdated | MaintenanceStarted | PipelineMinutesExhausted | PostgresAvailable |
+            PostgresBackupCompleted | PostgresBackupFailed | PostgresBackupStarted | PostgresClusterLeaderChanged |
+            PostgresConnectionPoolChanged | PostgresConnectionPoolEnabledChanged | PostgresCreated | PostgresDiskSizeChanged
+            | PostgresHAStatusChanged | PostgresPITRCheckpointCompleted | PostgresPITRCheckpointFailed |
+            PostgresPITRCheckpointStarted | PostgresReadReplicasChanged | PostgresReadReplicaStale | PostgresRestarted |
+            PostgresUnavailable | PostgresUpgradeFailed | PostgresUpgradeStarted | PostgresUpgradeSucceeded | PreDeployEnded
+            | PreDeployStarted | ServerAvailable | ServerFailed | ServerHardwareFailure | ServerRestarted |
+            ServiceDiskUsageHigh | ServiceDiskUsageRecovered | ServiceResumed | ServiceSuspended | SuspenderAdded |
+            SuspenderRemoved | ZeroDowntimeRedeployEnded | ZeroDowntimeRedeployStarted):
     """
 
     id: str
     timestamp: datetime.datetime
     service_id: str
     type_: EventType
-    details: Union[
-        "ArtifactFetchFailed",
-        "ArtifactSourceChanged",
-        "AutoDeployDisabled",
-        "AutoDeployEnabled",
-        "AutoscalingConfigChanged",
-        "AutoscalingEnded",
-        "AutoscalingStarted",
-        "BranchDeleted",
-        "BuildEnded",
-        "BuildStarted",
-        "CommitIgnored",
-        "CronJobRunEnded",
-        "CronJobRunStarted",
-        "DeployEnded",
-        "DeployStarted",
-        "DiskCreated",
-        "DiskDeleted",
-        "DiskSnapshotRestored",
-        "DiskUpdated",
-        "EdgeCacheDisabled",
-        "EdgeCacheEnabled",
-        "EdgeCachePurged",
-        "ImagePullFailed",
-        "InitialDeployHookEnded",
-        "InitialDeployHookStarted",
-        "InstanceCountChanged",
-        "InstanceTypeChanged",
-        "JobRunEnded",
-        "KeyValueAvailable",
-        "KeyValueConfigRestart",
-        "KeyValueUnhealthy",
-        "MaintenanceEnded",
-        "MaintenanceModeEnabled",
-        "MaintenanceModeURIUpdated",
-        "MaintenanceStarted",
-        "PipelineMinutesExhausted",
-        "PostgresAvailable",
-        "PostgresBackupCompleted",
-        "PostgresBackupFailed",
-        "PostgresBackupStarted",
-        "PostgresClusterLeaderChanged",
-        "PostgresConnectionPoolChanged",
-        "PostgresConnectionPoolEnabledChanged",
-        "PostgresCreated",
-        "PostgresDiskSizeChanged",
-        "PostgresHAStatusChanged",
-        "PostgresPITRCheckpointCompleted",
-        "PostgresPITRCheckpointFailed",
-        "PostgresPITRCheckpointStarted",
-        "PostgresReadReplicaStale",
-        "PostgresReadReplicasChanged",
-        "PostgresRestarted",
-        "PostgresUnavailable",
-        "PostgresUpgradeFailed",
-        "PostgresUpgradeStarted",
-        "PostgresUpgradeSucceeded",
-        "PreDeployEnded",
-        "PreDeployStarted",
-        "ServerAvailable",
-        "ServerFailed",
-        "ServerHardwareFailure",
-        "ServerRestarted",
-        "ServiceDiskUsageHigh",
-        "ServiceDiskUsageRecovered",
-        "ServiceResumed",
-        "ServiceSuspended",
-        "SuspenderAdded",
-        "SuspenderRemoved",
-        "ZeroDowntimeRedeployEnded",
-        "ZeroDowntimeRedeployStarted",
-    ]
+    details: (
+        ArtifactFetchFailed
+        | ArtifactSourceChanged
+        | AutoDeployDisabled
+        | AutoDeployEnabled
+        | AutoscalingConfigChanged
+        | AutoscalingEnded
+        | AutoscalingStarted
+        | BranchDeleted
+        | BuildEnded
+        | BuildStarted
+        | CommitIgnored
+        | CronJobRunEnded
+        | CronJobRunStarted
+        | DeployEnded
+        | DeployStarted
+        | DiskCreated
+        | DiskDeleted
+        | DiskSnapshotRestored
+        | DiskUpdated
+        | EdgeCacheDisabled
+        | EdgeCacheEnabled
+        | EdgeCachePurged
+        | ImagePullFailed
+        | InitialDeployHookEnded
+        | InitialDeployHookStarted
+        | InstanceCountChanged
+        | InstanceTypeChanged
+        | JobRunEnded
+        | KeyValueAvailable
+        | KeyValueConfigRestart
+        | KeyValueUnhealthy
+        | MaintenanceEnded
+        | MaintenanceModeEnabled
+        | MaintenanceModeURIUpdated
+        | MaintenanceStarted
+        | PipelineMinutesExhausted
+        | PostgresAvailable
+        | PostgresBackupCompleted
+        | PostgresBackupFailed
+        | PostgresBackupStarted
+        | PostgresClusterLeaderChanged
+        | PostgresConnectionPoolChanged
+        | PostgresConnectionPoolEnabledChanged
+        | PostgresCreated
+        | PostgresDiskSizeChanged
+        | PostgresHAStatusChanged
+        | PostgresPITRCheckpointCompleted
+        | PostgresPITRCheckpointFailed
+        | PostgresPITRCheckpointStarted
+        | PostgresReadReplicasChanged
+        | PostgresReadReplicaStale
+        | PostgresRestarted
+        | PostgresUnavailable
+        | PostgresUpgradeFailed
+        | PostgresUpgradeStarted
+        | PostgresUpgradeSucceeded
+        | PreDeployEnded
+        | PreDeployStarted
+        | ServerAvailable
+        | ServerFailed
+        | ServerHardwareFailure
+        | ServerRestarted
+        | ServiceDiskUsageHigh
+        | ServiceDiskUsageRecovered
+        | ServiceResumed
+        | ServiceSuspended
+        | SuspenderAdded
+        | SuspenderRemoved
+        | ZeroDowntimeRedeployEnded
+        | ZeroDowntimeRedeployStarted
+    )
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.artifact_fetch_failed import ArtifactFetchFailed
-        from ..models.artifact_source_changed import ArtifactSourceChanged
-        from ..models.auto_deploy_disabled import AutoDeployDisabled
-        from ..models.auto_deploy_enabled import AutoDeployEnabled
-        from ..models.autoscaling_config_changed import AutoscalingConfigChanged
-        from ..models.autoscaling_ended import AutoscalingEnded
-        from ..models.autoscaling_started import AutoscalingStarted
-        from ..models.branch_deleted import BranchDeleted
-        from ..models.build_ended import BuildEnded
-        from ..models.build_started import BuildStarted
-        from ..models.commit_ignored import CommitIgnored
-        from ..models.cron_job_run_ended import CronJobRunEnded
-        from ..models.cron_job_run_started import CronJobRunStarted
-        from ..models.deploy_ended import DeployEnded
-        from ..models.deploy_started import DeployStarted
-        from ..models.disk_created import DiskCreated
-        from ..models.disk_deleted import DiskDeleted
-        from ..models.disk_snapshot_restored import DiskSnapshotRestored
-        from ..models.disk_updated import DiskUpdated
-        from ..models.edge_cache_disabled import EdgeCacheDisabled
-        from ..models.edge_cache_enabled import EdgeCacheEnabled
-        from ..models.edge_cache_purged import EdgeCachePurged
-        from ..models.image_pull_failed import ImagePullFailed
-        from ..models.initial_deploy_hook_ended import InitialDeployHookEnded
-        from ..models.initial_deploy_hook_started import InitialDeployHookStarted
-        from ..models.instance_count_changed import InstanceCountChanged
-        from ..models.instance_type_changed import InstanceTypeChanged
-        from ..models.job_run_ended import JobRunEnded
-        from ..models.key_value_available import KeyValueAvailable
-        from ..models.key_value_config_restart import KeyValueConfigRestart
-        from ..models.maintenance_ended import MaintenanceEnded
-        from ..models.maintenance_mode_enabled import MaintenanceModeEnabled
-        from ..models.maintenance_mode_uri_updated import MaintenanceModeURIUpdated
-        from ..models.maintenance_started import MaintenanceStarted
-        from ..models.pipeline_minutes_exhausted import PipelineMinutesExhausted
-        from ..models.postgres_available import PostgresAvailable
-        from ..models.postgres_backup_completed import PostgresBackupCompleted
-        from ..models.postgres_backup_failed import PostgresBackupFailed
-        from ..models.postgres_backup_started import PostgresBackupStarted
-        from ..models.postgres_cluster_leader_changed import PostgresClusterLeaderChanged
-        from ..models.postgres_connection_pool_changed import PostgresConnectionPoolChanged
-        from ..models.postgres_connection_pool_enabled_changed import PostgresConnectionPoolEnabledChanged
-        from ..models.postgres_created import PostgresCreated
-        from ..models.postgres_disk_size_changed import PostgresDiskSizeChanged
-        from ..models.postgres_ha_status_changed import PostgresHAStatusChanged
-        from ..models.postgres_pitr_checkpoint_completed import PostgresPITRCheckpointCompleted
-        from ..models.postgres_pitr_checkpoint_failed import PostgresPITRCheckpointFailed
-        from ..models.postgres_pitr_checkpoint_started import PostgresPITRCheckpointStarted
-        from ..models.postgres_read_replica_stale import PostgresReadReplicaStale
-        from ..models.postgres_read_replicas_changed import PostgresReadReplicasChanged
-        from ..models.postgres_restarted import PostgresRestarted
-        from ..models.postgres_unavailable import PostgresUnavailable
-        from ..models.postgres_upgrade_failed import PostgresUpgradeFailed
-        from ..models.postgres_upgrade_started import PostgresUpgradeStarted
-        from ..models.postgres_upgrade_succeeded import PostgresUpgradeSucceeded
-        from ..models.pre_deploy_ended import PreDeployEnded
-        from ..models.pre_deploy_started import PreDeployStarted
-        from ..models.server_available import ServerAvailable
-        from ..models.server_failed import ServerFailed
-        from ..models.server_hardware_failure import ServerHardwareFailure
-        from ..models.server_restarted import ServerRestarted
-        from ..models.service_disk_usage_high import ServiceDiskUsageHigh
-        from ..models.service_disk_usage_recovered import ServiceDiskUsageRecovered
-        from ..models.service_resumed import ServiceResumed
-        from ..models.service_suspended import ServiceSuspended
-        from ..models.suspender_added import SuspenderAdded
-        from ..models.suspender_removed import SuspenderRemoved
-        from ..models.zero_downtime_redeploy_ended import ZeroDowntimeRedeployEnded
-        from ..models.zero_downtime_redeploy_started import ZeroDowntimeRedeployStarted
+        from ..models.artifact_fetch_failed import ArtifactFetchFailed  # noqa: PLC0415
+        from ..models.artifact_source_changed import ArtifactSourceChanged  # noqa: PLC0415
+        from ..models.auto_deploy_disabled import AutoDeployDisabled  # noqa: PLC0415
+        from ..models.auto_deploy_enabled import AutoDeployEnabled  # noqa: PLC0415
+        from ..models.autoscaling_config_changed import AutoscalingConfigChanged  # noqa: PLC0415
+        from ..models.autoscaling_ended import AutoscalingEnded  # noqa: PLC0415
+        from ..models.autoscaling_started import AutoscalingStarted  # noqa: PLC0415
+        from ..models.branch_deleted import BranchDeleted  # noqa: PLC0415
+        from ..models.build_ended import BuildEnded  # noqa: PLC0415
+        from ..models.build_started import BuildStarted  # noqa: PLC0415
+        from ..models.commit_ignored import CommitIgnored  # noqa: PLC0415
+        from ..models.cron_job_run_ended import CronJobRunEnded  # noqa: PLC0415
+        from ..models.cron_job_run_started import CronJobRunStarted  # noqa: PLC0415
+        from ..models.deploy_ended import DeployEnded  # noqa: PLC0415
+        from ..models.deploy_started import DeployStarted  # noqa: PLC0415
+        from ..models.disk_created import DiskCreated  # noqa: PLC0415
+        from ..models.disk_deleted import DiskDeleted  # noqa: PLC0415
+        from ..models.disk_snapshot_restored import DiskSnapshotRestored  # noqa: PLC0415
+        from ..models.disk_updated import DiskUpdated  # noqa: PLC0415
+        from ..models.edge_cache_disabled import EdgeCacheDisabled  # noqa: PLC0415
+        from ..models.edge_cache_enabled import EdgeCacheEnabled  # noqa: PLC0415
+        from ..models.edge_cache_purged import EdgeCachePurged  # noqa: PLC0415
+        from ..models.image_pull_failed import ImagePullFailed  # noqa: PLC0415
+        from ..models.initial_deploy_hook_ended import InitialDeployHookEnded  # noqa: PLC0415
+        from ..models.initial_deploy_hook_started import InitialDeployHookStarted  # noqa: PLC0415
+        from ..models.instance_count_changed import InstanceCountChanged  # noqa: PLC0415
+        from ..models.instance_type_changed import InstanceTypeChanged  # noqa: PLC0415
+        from ..models.job_run_ended import JobRunEnded  # noqa: PLC0415
+        from ..models.key_value_available import KeyValueAvailable  # noqa: PLC0415
+        from ..models.key_value_config_restart import KeyValueConfigRestart  # noqa: PLC0415
+        from ..models.maintenance_ended import MaintenanceEnded  # noqa: PLC0415
+        from ..models.maintenance_mode_enabled import MaintenanceModeEnabled  # noqa: PLC0415
+        from ..models.maintenance_mode_uri_updated import MaintenanceModeURIUpdated  # noqa: PLC0415
+        from ..models.maintenance_started import MaintenanceStarted  # noqa: PLC0415
+        from ..models.pipeline_minutes_exhausted import PipelineMinutesExhausted  # noqa: PLC0415
+        from ..models.postgres_available import PostgresAvailable  # noqa: PLC0415
+        from ..models.postgres_backup_completed import PostgresBackupCompleted  # noqa: PLC0415
+        from ..models.postgres_backup_failed import PostgresBackupFailed  # noqa: PLC0415
+        from ..models.postgres_backup_started import PostgresBackupStarted  # noqa: PLC0415
+        from ..models.postgres_cluster_leader_changed import PostgresClusterLeaderChanged  # noqa: PLC0415
+        from ..models.postgres_connection_pool_changed import PostgresConnectionPoolChanged  # noqa: PLC0415
+        from ..models.postgres_connection_pool_enabled_changed import (
+            PostgresConnectionPoolEnabledChanged,  # noqa: PLC0415
+        )
+        from ..models.postgres_created import PostgresCreated  # noqa: PLC0415
+        from ..models.postgres_disk_size_changed import PostgresDiskSizeChanged  # noqa: PLC0415
+        from ..models.postgres_ha_status_changed import PostgresHAStatusChanged  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_completed import PostgresPITRCheckpointCompleted  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_failed import PostgresPITRCheckpointFailed  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_started import PostgresPITRCheckpointStarted  # noqa: PLC0415
+        from ..models.postgres_read_replica_stale import PostgresReadReplicaStale  # noqa: PLC0415
+        from ..models.postgres_read_replicas_changed import PostgresReadReplicasChanged  # noqa: PLC0415
+        from ..models.postgres_restarted import PostgresRestarted  # noqa: PLC0415
+        from ..models.postgres_unavailable import PostgresUnavailable  # noqa: PLC0415
+        from ..models.postgres_upgrade_failed import PostgresUpgradeFailed  # noqa: PLC0415
+        from ..models.postgres_upgrade_started import PostgresUpgradeStarted  # noqa: PLC0415
+        from ..models.postgres_upgrade_succeeded import PostgresUpgradeSucceeded  # noqa: PLC0415
+        from ..models.pre_deploy_ended import PreDeployEnded  # noqa: PLC0415
+        from ..models.pre_deploy_started import PreDeployStarted  # noqa: PLC0415
+        from ..models.server_available import ServerAvailable  # noqa: PLC0415
+        from ..models.server_failed import ServerFailed  # noqa: PLC0415
+        from ..models.server_hardware_failure import ServerHardwareFailure  # noqa: PLC0415
+        from ..models.server_restarted import ServerRestarted  # noqa: PLC0415
+        from ..models.service_disk_usage_high import ServiceDiskUsageHigh  # noqa: PLC0415
+        from ..models.service_disk_usage_recovered import ServiceDiskUsageRecovered  # noqa: PLC0415
+        from ..models.service_resumed import ServiceResumed  # noqa: PLC0415
+        from ..models.service_suspended import ServiceSuspended  # noqa: PLC0415
+        from ..models.suspender_added import SuspenderAdded  # noqa: PLC0415
+        from ..models.suspender_removed import SuspenderRemoved  # noqa: PLC0415
+        from ..models.zero_downtime_redeploy_ended import ZeroDowntimeRedeployEnded  # noqa: PLC0415
+        from ..models.zero_downtime_redeploy_started import ZeroDowntimeRedeployStarted  # noqa: PLC0415
 
         id = self.id
 
@@ -426,81 +427,83 @@ class Event:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.artifact_fetch_failed import ArtifactFetchFailed
-        from ..models.artifact_source_changed import ArtifactSourceChanged
-        from ..models.auto_deploy_disabled import AutoDeployDisabled
-        from ..models.auto_deploy_enabled import AutoDeployEnabled
-        from ..models.autoscaling_config_changed import AutoscalingConfigChanged
-        from ..models.autoscaling_ended import AutoscalingEnded
-        from ..models.autoscaling_started import AutoscalingStarted
-        from ..models.branch_deleted import BranchDeleted
-        from ..models.build_ended import BuildEnded
-        from ..models.build_started import BuildStarted
-        from ..models.commit_ignored import CommitIgnored
-        from ..models.cron_job_run_ended import CronJobRunEnded
-        from ..models.cron_job_run_started import CronJobRunStarted
-        from ..models.deploy_ended import DeployEnded
-        from ..models.deploy_started import DeployStarted
-        from ..models.disk_created import DiskCreated
-        from ..models.disk_deleted import DiskDeleted
-        from ..models.disk_snapshot_restored import DiskSnapshotRestored
-        from ..models.disk_updated import DiskUpdated
-        from ..models.edge_cache_disabled import EdgeCacheDisabled
-        from ..models.edge_cache_enabled import EdgeCacheEnabled
-        from ..models.edge_cache_purged import EdgeCachePurged
-        from ..models.image_pull_failed import ImagePullFailed
-        from ..models.initial_deploy_hook_ended import InitialDeployHookEnded
-        from ..models.initial_deploy_hook_started import InitialDeployHookStarted
-        from ..models.instance_count_changed import InstanceCountChanged
-        from ..models.instance_type_changed import InstanceTypeChanged
-        from ..models.job_run_ended import JobRunEnded
-        from ..models.key_value_available import KeyValueAvailable
-        from ..models.key_value_config_restart import KeyValueConfigRestart
-        from ..models.key_value_unhealthy import KeyValueUnhealthy
-        from ..models.maintenance_ended import MaintenanceEnded
-        from ..models.maintenance_mode_enabled import MaintenanceModeEnabled
-        from ..models.maintenance_mode_uri_updated import MaintenanceModeURIUpdated
-        from ..models.maintenance_started import MaintenanceStarted
-        from ..models.pipeline_minutes_exhausted import PipelineMinutesExhausted
-        from ..models.postgres_available import PostgresAvailable
-        from ..models.postgres_backup_completed import PostgresBackupCompleted
-        from ..models.postgres_backup_failed import PostgresBackupFailed
-        from ..models.postgres_backup_started import PostgresBackupStarted
-        from ..models.postgres_cluster_leader_changed import PostgresClusterLeaderChanged
-        from ..models.postgres_connection_pool_changed import PostgresConnectionPoolChanged
-        from ..models.postgres_connection_pool_enabled_changed import PostgresConnectionPoolEnabledChanged
-        from ..models.postgres_created import PostgresCreated
-        from ..models.postgres_disk_size_changed import PostgresDiskSizeChanged
-        from ..models.postgres_ha_status_changed import PostgresHAStatusChanged
-        from ..models.postgres_pitr_checkpoint_completed import PostgresPITRCheckpointCompleted
-        from ..models.postgres_pitr_checkpoint_failed import PostgresPITRCheckpointFailed
-        from ..models.postgres_pitr_checkpoint_started import PostgresPITRCheckpointStarted
-        from ..models.postgres_read_replica_stale import PostgresReadReplicaStale
-        from ..models.postgres_read_replicas_changed import PostgresReadReplicasChanged
-        from ..models.postgres_restarted import PostgresRestarted
-        from ..models.postgres_unavailable import PostgresUnavailable
-        from ..models.postgres_upgrade_failed import PostgresUpgradeFailed
-        from ..models.postgres_upgrade_started import PostgresUpgradeStarted
-        from ..models.postgres_upgrade_succeeded import PostgresUpgradeSucceeded
-        from ..models.pre_deploy_ended import PreDeployEnded
-        from ..models.pre_deploy_started import PreDeployStarted
-        from ..models.server_available import ServerAvailable
-        from ..models.server_failed import ServerFailed
-        from ..models.server_hardware_failure import ServerHardwareFailure
-        from ..models.server_restarted import ServerRestarted
-        from ..models.service_disk_usage_high import ServiceDiskUsageHigh
-        from ..models.service_disk_usage_recovered import ServiceDiskUsageRecovered
-        from ..models.service_resumed import ServiceResumed
-        from ..models.service_suspended import ServiceSuspended
-        from ..models.suspender_added import SuspenderAdded
-        from ..models.suspender_removed import SuspenderRemoved
-        from ..models.zero_downtime_redeploy_ended import ZeroDowntimeRedeployEnded
-        from ..models.zero_downtime_redeploy_started import ZeroDowntimeRedeployStarted
+        from ..models.artifact_fetch_failed import ArtifactFetchFailed  # noqa: PLC0415
+        from ..models.artifact_source_changed import ArtifactSourceChanged  # noqa: PLC0415
+        from ..models.auto_deploy_disabled import AutoDeployDisabled  # noqa: PLC0415
+        from ..models.auto_deploy_enabled import AutoDeployEnabled  # noqa: PLC0415
+        from ..models.autoscaling_config_changed import AutoscalingConfigChanged  # noqa: PLC0415
+        from ..models.autoscaling_ended import AutoscalingEnded  # noqa: PLC0415
+        from ..models.autoscaling_started import AutoscalingStarted  # noqa: PLC0415
+        from ..models.branch_deleted import BranchDeleted  # noqa: PLC0415
+        from ..models.build_ended import BuildEnded  # noqa: PLC0415
+        from ..models.build_started import BuildStarted  # noqa: PLC0415
+        from ..models.commit_ignored import CommitIgnored  # noqa: PLC0415
+        from ..models.cron_job_run_ended import CronJobRunEnded  # noqa: PLC0415
+        from ..models.cron_job_run_started import CronJobRunStarted  # noqa: PLC0415
+        from ..models.deploy_ended import DeployEnded  # noqa: PLC0415
+        from ..models.deploy_started import DeployStarted  # noqa: PLC0415
+        from ..models.disk_created import DiskCreated  # noqa: PLC0415
+        from ..models.disk_deleted import DiskDeleted  # noqa: PLC0415
+        from ..models.disk_snapshot_restored import DiskSnapshotRestored  # noqa: PLC0415
+        from ..models.disk_updated import DiskUpdated  # noqa: PLC0415
+        from ..models.edge_cache_disabled import EdgeCacheDisabled  # noqa: PLC0415
+        from ..models.edge_cache_enabled import EdgeCacheEnabled  # noqa: PLC0415
+        from ..models.edge_cache_purged import EdgeCachePurged  # noqa: PLC0415
+        from ..models.image_pull_failed import ImagePullFailed  # noqa: PLC0415
+        from ..models.initial_deploy_hook_ended import InitialDeployHookEnded  # noqa: PLC0415
+        from ..models.initial_deploy_hook_started import InitialDeployHookStarted  # noqa: PLC0415
+        from ..models.instance_count_changed import InstanceCountChanged  # noqa: PLC0415
+        from ..models.instance_type_changed import InstanceTypeChanged  # noqa: PLC0415
+        from ..models.job_run_ended import JobRunEnded  # noqa: PLC0415
+        from ..models.key_value_available import KeyValueAvailable  # noqa: PLC0415
+        from ..models.key_value_config_restart import KeyValueConfigRestart  # noqa: PLC0415
+        from ..models.key_value_unhealthy import KeyValueUnhealthy  # noqa: PLC0415
+        from ..models.maintenance_ended import MaintenanceEnded  # noqa: PLC0415
+        from ..models.maintenance_mode_enabled import MaintenanceModeEnabled  # noqa: PLC0415
+        from ..models.maintenance_mode_uri_updated import MaintenanceModeURIUpdated  # noqa: PLC0415
+        from ..models.maintenance_started import MaintenanceStarted  # noqa: PLC0415
+        from ..models.pipeline_minutes_exhausted import PipelineMinutesExhausted  # noqa: PLC0415
+        from ..models.postgres_available import PostgresAvailable  # noqa: PLC0415
+        from ..models.postgres_backup_completed import PostgresBackupCompleted  # noqa: PLC0415
+        from ..models.postgres_backup_failed import PostgresBackupFailed  # noqa: PLC0415
+        from ..models.postgres_backup_started import PostgresBackupStarted  # noqa: PLC0415
+        from ..models.postgres_cluster_leader_changed import PostgresClusterLeaderChanged  # noqa: PLC0415
+        from ..models.postgres_connection_pool_changed import PostgresConnectionPoolChanged  # noqa: PLC0415
+        from ..models.postgres_connection_pool_enabled_changed import (
+            PostgresConnectionPoolEnabledChanged,  # noqa: PLC0415
+        )
+        from ..models.postgres_created import PostgresCreated  # noqa: PLC0415
+        from ..models.postgres_disk_size_changed import PostgresDiskSizeChanged  # noqa: PLC0415
+        from ..models.postgres_ha_status_changed import PostgresHAStatusChanged  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_completed import PostgresPITRCheckpointCompleted  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_failed import PostgresPITRCheckpointFailed  # noqa: PLC0415
+        from ..models.postgres_pitr_checkpoint_started import PostgresPITRCheckpointStarted  # noqa: PLC0415
+        from ..models.postgres_read_replica_stale import PostgresReadReplicaStale  # noqa: PLC0415
+        from ..models.postgres_read_replicas_changed import PostgresReadReplicasChanged  # noqa: PLC0415
+        from ..models.postgres_restarted import PostgresRestarted  # noqa: PLC0415
+        from ..models.postgres_unavailable import PostgresUnavailable  # noqa: PLC0415
+        from ..models.postgres_upgrade_failed import PostgresUpgradeFailed  # noqa: PLC0415
+        from ..models.postgres_upgrade_started import PostgresUpgradeStarted  # noqa: PLC0415
+        from ..models.postgres_upgrade_succeeded import PostgresUpgradeSucceeded  # noqa: PLC0415
+        from ..models.pre_deploy_ended import PreDeployEnded  # noqa: PLC0415
+        from ..models.pre_deploy_started import PreDeployStarted  # noqa: PLC0415
+        from ..models.server_available import ServerAvailable  # noqa: PLC0415
+        from ..models.server_failed import ServerFailed  # noqa: PLC0415
+        from ..models.server_hardware_failure import ServerHardwareFailure  # noqa: PLC0415
+        from ..models.server_restarted import ServerRestarted  # noqa: PLC0415
+        from ..models.service_disk_usage_high import ServiceDiskUsageHigh  # noqa: PLC0415
+        from ..models.service_disk_usage_recovered import ServiceDiskUsageRecovered  # noqa: PLC0415
+        from ..models.service_resumed import ServiceResumed  # noqa: PLC0415
+        from ..models.service_suspended import ServiceSuspended  # noqa: PLC0415
+        from ..models.suspender_added import SuspenderAdded  # noqa: PLC0415
+        from ..models.suspender_removed import SuspenderRemoved  # noqa: PLC0415
+        from ..models.zero_downtime_redeploy_ended import ZeroDowntimeRedeployEnded  # noqa: PLC0415
+        from ..models.zero_downtime_redeploy_started import ZeroDowntimeRedeployStarted  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
-        timestamp = isoparse(d.pop("timestamp"))
+        timestamp = datetime.datetime.fromisoformat(d.pop("timestamp"))
 
         service_id = d.pop("serviceId")
 
@@ -508,85 +511,85 @@ class Event:
 
         def _parse_details(
             data: object,
-        ) -> Union[
-            "ArtifactFetchFailed",
-            "ArtifactSourceChanged",
-            "AutoDeployDisabled",
-            "AutoDeployEnabled",
-            "AutoscalingConfigChanged",
-            "AutoscalingEnded",
-            "AutoscalingStarted",
-            "BranchDeleted",
-            "BuildEnded",
-            "BuildStarted",
-            "CommitIgnored",
-            "CronJobRunEnded",
-            "CronJobRunStarted",
-            "DeployEnded",
-            "DeployStarted",
-            "DiskCreated",
-            "DiskDeleted",
-            "DiskSnapshotRestored",
-            "DiskUpdated",
-            "EdgeCacheDisabled",
-            "EdgeCacheEnabled",
-            "EdgeCachePurged",
-            "ImagePullFailed",
-            "InitialDeployHookEnded",
-            "InitialDeployHookStarted",
-            "InstanceCountChanged",
-            "InstanceTypeChanged",
-            "JobRunEnded",
-            "KeyValueAvailable",
-            "KeyValueConfigRestart",
-            "KeyValueUnhealthy",
-            "MaintenanceEnded",
-            "MaintenanceModeEnabled",
-            "MaintenanceModeURIUpdated",
-            "MaintenanceStarted",
-            "PipelineMinutesExhausted",
-            "PostgresAvailable",
-            "PostgresBackupCompleted",
-            "PostgresBackupFailed",
-            "PostgresBackupStarted",
-            "PostgresClusterLeaderChanged",
-            "PostgresConnectionPoolChanged",
-            "PostgresConnectionPoolEnabledChanged",
-            "PostgresCreated",
-            "PostgresDiskSizeChanged",
-            "PostgresHAStatusChanged",
-            "PostgresPITRCheckpointCompleted",
-            "PostgresPITRCheckpointFailed",
-            "PostgresPITRCheckpointStarted",
-            "PostgresReadReplicaStale",
-            "PostgresReadReplicasChanged",
-            "PostgresRestarted",
-            "PostgresUnavailable",
-            "PostgresUpgradeFailed",
-            "PostgresUpgradeStarted",
-            "PostgresUpgradeSucceeded",
-            "PreDeployEnded",
-            "PreDeployStarted",
-            "ServerAvailable",
-            "ServerFailed",
-            "ServerHardwareFailure",
-            "ServerRestarted",
-            "ServiceDiskUsageHigh",
-            "ServiceDiskUsageRecovered",
-            "ServiceResumed",
-            "ServiceSuspended",
-            "SuspenderAdded",
-            "SuspenderRemoved",
-            "ZeroDowntimeRedeployEnded",
-            "ZeroDowntimeRedeployStarted",
-        ]:
+        ) -> (
+            ArtifactFetchFailed
+            | ArtifactSourceChanged
+            | AutoDeployDisabled
+            | AutoDeployEnabled
+            | AutoscalingConfigChanged
+            | AutoscalingEnded
+            | AutoscalingStarted
+            | BranchDeleted
+            | BuildEnded
+            | BuildStarted
+            | CommitIgnored
+            | CronJobRunEnded
+            | CronJobRunStarted
+            | DeployEnded
+            | DeployStarted
+            | DiskCreated
+            | DiskDeleted
+            | DiskSnapshotRestored
+            | DiskUpdated
+            | EdgeCacheDisabled
+            | EdgeCacheEnabled
+            | EdgeCachePurged
+            | ImagePullFailed
+            | InitialDeployHookEnded
+            | InitialDeployHookStarted
+            | InstanceCountChanged
+            | InstanceTypeChanged
+            | JobRunEnded
+            | KeyValueAvailable
+            | KeyValueConfigRestart
+            | KeyValueUnhealthy
+            | MaintenanceEnded
+            | MaintenanceModeEnabled
+            | MaintenanceModeURIUpdated
+            | MaintenanceStarted
+            | PipelineMinutesExhausted
+            | PostgresAvailable
+            | PostgresBackupCompleted
+            | PostgresBackupFailed
+            | PostgresBackupStarted
+            | PostgresClusterLeaderChanged
+            | PostgresConnectionPoolChanged
+            | PostgresConnectionPoolEnabledChanged
+            | PostgresCreated
+            | PostgresDiskSizeChanged
+            | PostgresHAStatusChanged
+            | PostgresPITRCheckpointCompleted
+            | PostgresPITRCheckpointFailed
+            | PostgresPITRCheckpointStarted
+            | PostgresReadReplicasChanged
+            | PostgresReadReplicaStale
+            | PostgresRestarted
+            | PostgresUnavailable
+            | PostgresUpgradeFailed
+            | PostgresUpgradeStarted
+            | PostgresUpgradeSucceeded
+            | PreDeployEnded
+            | PreDeployStarted
+            | ServerAvailable
+            | ServerFailed
+            | ServerHardwareFailure
+            | ServerRestarted
+            | ServiceDiskUsageHigh
+            | ServiceDiskUsageRecovered
+            | ServiceResumed
+            | ServiceSuspended
+            | SuspenderAdded
+            | SuspenderRemoved
+            | ZeroDowntimeRedeployEnded
+            | ZeroDowntimeRedeployStarted
+        ):
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
                 componentsschemasservice_event_details_type_0 = ArtifactFetchFailed.from_dict(data)
 
                 return componentsschemasservice_event_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -594,7 +597,7 @@ class Event:
                 componentsschemasservice_event_details_type_1 = ArtifactSourceChanged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_1
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -602,7 +605,7 @@ class Event:
                 componentsschemasservice_event_details_type_2 = AutoscalingConfigChanged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_2
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -610,7 +613,7 @@ class Event:
                 componentsschemasservice_event_details_type_3 = AutoscalingEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_3
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -618,7 +621,7 @@ class Event:
                 componentsschemasservice_event_details_type_4 = AutoscalingStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_4
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -626,7 +629,7 @@ class Event:
                 componentsschemasservice_event_details_type_5 = BranchDeleted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_5
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -634,7 +637,7 @@ class Event:
                 componentsschemasservice_event_details_type_6 = BuildEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_6
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -642,7 +645,7 @@ class Event:
                 componentsschemasservice_event_details_type_7 = BuildStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_7
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -650,7 +653,7 @@ class Event:
                 componentsschemasservice_event_details_type_8 = CommitIgnored.from_dict(data)
 
                 return componentsschemasservice_event_details_type_8
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -658,7 +661,7 @@ class Event:
                 componentsschemasservice_event_details_type_9 = CronJobRunEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_9
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -666,7 +669,7 @@ class Event:
                 componentsschemasservice_event_details_type_10 = CronJobRunStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_10
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -674,7 +677,7 @@ class Event:
                 componentsschemasservice_event_details_type_11 = DeployEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_11
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -682,7 +685,7 @@ class Event:
                 componentsschemasservice_event_details_type_12 = DeployStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_12
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -690,7 +693,7 @@ class Event:
                 componentsschemasservice_event_details_type_13 = DiskCreated.from_dict(data)
 
                 return componentsschemasservice_event_details_type_13
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -698,7 +701,7 @@ class Event:
                 componentsschemasservice_event_details_type_14 = DiskUpdated.from_dict(data)
 
                 return componentsschemasservice_event_details_type_14
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -706,7 +709,7 @@ class Event:
                 componentsschemasservice_event_details_type_15 = DiskDeleted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_15
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -714,7 +717,7 @@ class Event:
                 componentsschemasservice_event_details_type_16 = DiskSnapshotRestored.from_dict(data)
 
                 return componentsschemasservice_event_details_type_16
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -722,7 +725,7 @@ class Event:
                 componentsschemasservice_event_details_type_17 = ServiceDiskUsageHigh.from_dict(data)
 
                 return componentsschemasservice_event_details_type_17
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -730,7 +733,7 @@ class Event:
                 componentsschemasservice_event_details_type_18 = ServiceDiskUsageRecovered.from_dict(data)
 
                 return componentsschemasservice_event_details_type_18
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -738,7 +741,7 @@ class Event:
                 componentsschemasservice_event_details_type_19 = ImagePullFailed.from_dict(data)
 
                 return componentsschemasservice_event_details_type_19
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -746,7 +749,7 @@ class Event:
                 componentsschemasservice_event_details_type_20 = InitialDeployHookStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_20
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -754,7 +757,7 @@ class Event:
                 componentsschemasservice_event_details_type_21 = InitialDeployHookEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_21
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -762,7 +765,7 @@ class Event:
                 componentsschemasservice_event_details_type_22 = InstanceCountChanged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_22
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -770,7 +773,7 @@ class Event:
                 componentsschemasservice_event_details_type_23 = JobRunEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_23
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -778,7 +781,7 @@ class Event:
                 componentsschemasservice_event_details_type_24 = MaintenanceModeEnabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_24
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -786,7 +789,7 @@ class Event:
                 componentsschemasservice_event_details_type_25 = MaintenanceModeURIUpdated.from_dict(data)
 
                 return componentsschemasservice_event_details_type_25
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -794,7 +797,7 @@ class Event:
                 componentsschemasservice_event_details_type_26 = MaintenanceEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_26
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -802,7 +805,7 @@ class Event:
                 componentsschemasservice_event_details_type_27 = MaintenanceStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_27
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -810,7 +813,7 @@ class Event:
                 componentsschemasservice_event_details_type_28 = PipelineMinutesExhausted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_28
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -818,7 +821,7 @@ class Event:
                 componentsschemasservice_event_details_type_29 = InstanceTypeChanged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_29
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -826,7 +829,7 @@ class Event:
                 componentsschemasservice_event_details_type_30 = PreDeployEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_30
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -834,7 +837,7 @@ class Event:
                 componentsschemasservice_event_details_type_31 = PreDeployStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_31
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -842,7 +845,7 @@ class Event:
                 componentsschemasservice_event_details_type_32 = ServerAvailable.from_dict(data)
 
                 return componentsschemasservice_event_details_type_32
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -850,7 +853,7 @@ class Event:
                 componentsschemasservice_event_details_type_33 = ServerFailed.from_dict(data)
 
                 return componentsschemasservice_event_details_type_33
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -858,7 +861,7 @@ class Event:
                 componentsschemasservice_event_details_type_34 = ServerHardwareFailure.from_dict(data)
 
                 return componentsschemasservice_event_details_type_34
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -866,7 +869,7 @@ class Event:
                 componentsschemasservice_event_details_type_35 = ServerRestarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_35
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -874,7 +877,7 @@ class Event:
                 componentsschemasservice_event_details_type_36 = ServiceResumed.from_dict(data)
 
                 return componentsschemasservice_event_details_type_36
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -882,7 +885,7 @@ class Event:
                 componentsschemasservice_event_details_type_37 = ServiceSuspended.from_dict(data)
 
                 return componentsschemasservice_event_details_type_37
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -890,7 +893,7 @@ class Event:
                 componentsschemasservice_event_details_type_38 = SuspenderAdded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_38
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -898,7 +901,7 @@ class Event:
                 componentsschemasservice_event_details_type_39 = SuspenderRemoved.from_dict(data)
 
                 return componentsschemasservice_event_details_type_39
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -906,7 +909,7 @@ class Event:
                 componentsschemasservice_event_details_type_40 = ZeroDowntimeRedeployEnded.from_dict(data)
 
                 return componentsschemasservice_event_details_type_40
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -914,7 +917,7 @@ class Event:
                 componentsschemasservice_event_details_type_41 = ZeroDowntimeRedeployStarted.from_dict(data)
 
                 return componentsschemasservice_event_details_type_41
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -922,7 +925,7 @@ class Event:
                 componentsschemasservice_event_details_type_42 = EdgeCacheDisabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_42
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -930,7 +933,7 @@ class Event:
                 componentsschemasservice_event_details_type_43 = EdgeCacheEnabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_43
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -938,7 +941,7 @@ class Event:
                 componentsschemasservice_event_details_type_44 = EdgeCachePurged.from_dict(data)
 
                 return componentsschemasservice_event_details_type_44
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -946,7 +949,7 @@ class Event:
                 componentsschemasservice_event_details_type_45 = AutoDeployDisabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_45
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -954,7 +957,7 @@ class Event:
                 componentsschemasservice_event_details_type_46 = AutoDeployEnabled.from_dict(data)
 
                 return componentsschemasservice_event_details_type_46
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -962,7 +965,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_0 = PostgresAvailable.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -970,7 +973,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_1 = PostgresBackupCompleted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_1
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -978,7 +981,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_2 = PostgresBackupFailed.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_2
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -986,7 +989,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_3 = PostgresBackupStarted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_3
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -994,7 +997,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_4 = PostgresClusterLeaderChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_4
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1002,7 +1005,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_5 = PostgresConnectionPoolChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_5
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1010,7 +1013,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_6 = PostgresConnectionPoolEnabledChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_6
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1018,7 +1021,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_7 = PostgresCreated.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_7
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1026,7 +1029,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_8 = PostgresDiskSizeChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_8
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1034,7 +1037,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_9 = PostgresHAStatusChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_9
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1042,7 +1045,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_10 = PostgresReadReplicasChanged.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_10
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1050,7 +1053,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_11 = PostgresRestarted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_11
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1058,7 +1061,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_12 = PostgresUnavailable.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_12
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1066,7 +1069,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_13 = PostgresUpgradeFailed.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_13
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1074,7 +1077,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_14 = PostgresUpgradeStarted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_14
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1082,7 +1085,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_15 = PostgresUpgradeSucceeded.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_15
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1090,7 +1093,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_16 = PostgresPITRCheckpointStarted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_16
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1098,7 +1101,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_17 = PostgresPITRCheckpointFailed.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_17
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1106,7 +1109,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_18 = PostgresPITRCheckpointCompleted.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_18
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1114,7 +1117,7 @@ class Event:
                 componentsschemaspostgres_event_details_type_19 = PostgresReadReplicaStale.from_dict(data)
 
                 return componentsschemaspostgres_event_details_type_19
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1122,7 +1125,7 @@ class Event:
                 componentsschemaskey_value_event_details_type_0 = KeyValueAvailable.from_dict(data)
 
                 return componentsschemaskey_value_event_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -1130,7 +1133,7 @@ class Event:
                 componentsschemaskey_value_event_details_type_1 = KeyValueConfigRestart.from_dict(data)
 
                 return componentsschemaskey_value_event_details_type_1
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()

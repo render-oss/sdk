@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,16 +19,16 @@ T = TypeVar("T", bound="ServiceAndDeploy")
 class ServiceAndDeploy:
     """
     Attributes:
-        service (Union[Unset, Service]):
-        deploy_id (Union[Unset, str]):
+        service (Service | Unset):
+        deploy_id (str | Unset):
     """
 
-    service: Union[Unset, "Service"] = UNSET
-    deploy_id: Union[Unset, str] = UNSET
+    service: Service | Unset = UNSET
+    deploy_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        service: Union[Unset, dict[str, Any]] = UNSET
+        service: dict[str, Any] | Unset = UNSET
         if not isinstance(self.service, Unset):
             service = self.service.to_dict()
 
@@ -44,11 +46,11 @@ class ServiceAndDeploy:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.service import Service
+        from ..models.service import Service  # noqa: PLC0415
 
         d = dict(src_dict)
         _service = d.pop("service", UNSET)
-        service: Union[Unset, Service]
+        service: Service | Unset
         if isinstance(_service, Unset):
             service = UNSET
         else:

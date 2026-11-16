@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.cron_job_run_status import CronJobRunStatus
 from ..types import UNSET, Unset
@@ -19,18 +20,18 @@ class CronJobRun:
     Attributes:
         id (str): The ID of the run
         status (CronJobRunStatus):
-        started_at (Union[Unset, datetime.datetime]):  Example: 2021-07-15T07:20:05.777035-07:00.
-        finished_at (Union[Unset, datetime.datetime]):  Example: 2021-07-15T07:20:05.777035-07:00.
-        triggered_by (Union[Unset, str]): user who triggered the cron job run
-        canceled_by (Union[Unset, str]): user who canceled the cron job run
+        started_at (datetime.datetime | Unset):  Example: 2021-07-15T07:20:05.777035-07:00.
+        finished_at (datetime.datetime | Unset):  Example: 2021-07-15T07:20:05.777035-07:00.
+        triggered_by (str | Unset): user who triggered the cron job run
+        canceled_by (str | Unset): user who canceled the cron job run
     """
 
     id: str
     status: CronJobRunStatus
-    started_at: Union[Unset, datetime.datetime] = UNSET
-    finished_at: Union[Unset, datetime.datetime] = UNSET
-    triggered_by: Union[Unset, str] = UNSET
-    canceled_by: Union[Unset, str] = UNSET
+    started_at: datetime.datetime | Unset = UNSET
+    finished_at: datetime.datetime | Unset = UNSET
+    triggered_by: str | Unset = UNSET
+    canceled_by: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -38,11 +39,11 @@ class CronJobRun:
 
         status = self.status.value
 
-        started_at: Union[Unset, str] = UNSET
+        started_at: str | Unset = UNSET
         if not isinstance(self.started_at, Unset):
             started_at = self.started_at.isoformat()
 
-        finished_at: Union[Unset, str] = UNSET
+        finished_at: str | Unset = UNSET
         if not isinstance(self.finished_at, Unset):
             finished_at = self.finished_at.isoformat()
 
@@ -77,18 +78,18 @@ class CronJobRun:
         status = CronJobRunStatus(d.pop("status"))
 
         _started_at = d.pop("startedAt", UNSET)
-        started_at: Union[Unset, datetime.datetime]
+        started_at: datetime.datetime | Unset
         if isinstance(_started_at, Unset):
             started_at = UNSET
         else:
-            started_at = isoparse(_started_at)
+            started_at = datetime.datetime.fromisoformat(_started_at)
 
         _finished_at = d.pop("finishedAt", UNSET)
-        finished_at: Union[Unset, datetime.datetime]
+        finished_at: datetime.datetime | Unset
         if isinstance(_finished_at, Unset):
             finished_at = UNSET
         else:
-            finished_at = isoparse(_finished_at)
+            finished_at = datetime.datetime.fromisoformat(_finished_at)
 
         triggered_by = d.pop("triggeredBy", UNSET)
 

@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.build_plan import BuildPlan
 from ..models.plan import Plan
@@ -26,7 +27,7 @@ class CronJobDetails:
     """
     Attributes:
         env (ServiceEnv): This field has been deprecated, runtime should be used in its place.
-        env_specific_details (Union['DockerDetails', 'NativeEnvironmentDetails']):
+        env_specific_details (DockerDetails | NativeEnvironmentDetails):
         plan (Plan): The compute plan to use. Legacy variants (`*_legacy`) identify grandfathered plans no longer
             offered for new services. Note that base services on any paid compute plan can't create preview instances with
             the `free` plan. Example: starter.
@@ -34,21 +35,21 @@ class CronJobDetails:
         runtime (ServiceRuntime): Runtime
         schedule (str):
         build_plan (BuildPlan):
-        last_successful_run_at (Union[Unset, datetime.datetime]):
+        last_successful_run_at (datetime.datetime | Unset):
     """
 
     env: ServiceEnv
-    env_specific_details: Union["DockerDetails", "NativeEnvironmentDetails"]
+    env_specific_details: DockerDetails | NativeEnvironmentDetails
     plan: Plan
     region: Region
     runtime: ServiceRuntime
     schedule: str
     build_plan: BuildPlan
-    last_successful_run_at: Union[Unset, datetime.datetime] = UNSET
+    last_successful_run_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.docker_details import DockerDetails
+        from ..models.docker_details import DockerDetails  # noqa: PLC0415
 
         env = self.env.value
 
@@ -68,7 +69,7 @@ class CronJobDetails:
 
         build_plan = self.build_plan.value
 
-        last_successful_run_at: Union[Unset, str] = UNSET
+        last_successful_run_at: str | Unset = UNSET
         if not isinstance(self.last_successful_run_at, Unset):
             last_successful_run_at = self.last_successful_run_at.isoformat()
 
@@ -92,20 +93,20 @@ class CronJobDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.docker_details import DockerDetails
-        from ..models.native_environment_details import NativeEnvironmentDetails
+        from ..models.docker_details import DockerDetails  # noqa: PLC0415
+        from ..models.native_environment_details import NativeEnvironmentDetails  # noqa: PLC0415
 
         d = dict(src_dict)
         env = ServiceEnv(d.pop("env"))
 
-        def _parse_env_specific_details(data: object) -> Union["DockerDetails", "NativeEnvironmentDetails"]:
+        def _parse_env_specific_details(data: object) -> DockerDetails | NativeEnvironmentDetails:
             try:
                 if not isinstance(data, dict):
                     raise TypeError()
                 componentsschemasenv_specific_details_type_0 = DockerDetails.from_dict(data)
 
                 return componentsschemasenv_specific_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -126,11 +127,11 @@ class CronJobDetails:
         build_plan = BuildPlan(d.pop("buildPlan"))
 
         _last_successful_run_at = d.pop("lastSuccessfulRunAt", UNSET)
-        last_successful_run_at: Union[Unset, datetime.datetime]
+        last_successful_run_at: datetime.datetime | Unset
         if isinstance(_last_successful_run_at, Unset):
             last_successful_run_at = UNSET
         else:
-            last_successful_run_at = isoparse(_last_successful_run_at)
+            last_successful_run_at = datetime.datetime.fromisoformat(_last_successful_run_at)
 
         cron_job_details = cls(
             env=env,

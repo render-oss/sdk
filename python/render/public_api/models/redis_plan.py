@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class RedisPlan(str, Enum):
+class RedisPlan(StrEnum):
     CUSTOM = "custom"
     FREE = "free"
     PRO = "pro"

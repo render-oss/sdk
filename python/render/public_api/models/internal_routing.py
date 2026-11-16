@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class InternalRouting(str, Enum):
+class InternalRouting(StrEnum):
     IPONLY = "ipOnly"
 
     def __str__(self) -> str:

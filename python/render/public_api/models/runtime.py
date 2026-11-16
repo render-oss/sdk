@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Runtime(str, Enum):
+class Runtime(StrEnum):
     ELIXIR = "elixir"
     GO = "go"
     NODE = "node"

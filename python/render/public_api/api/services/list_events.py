@@ -1,8 +1,9 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,26 +16,26 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     service_id: str,
     *,
-    type_: Union[Unset, ServiceEventType] = UNSET,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    type_: ServiceEventType | Unset = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_type_: Union[Unset, str] = UNSET
+    json_type_: str | Unset = UNSET
     if not isinstance(type_, Unset):
         json_type_ = type_.value
 
     params["type"] = json_type_
 
-    json_start_time: Union[Unset, str] = UNSET
+    json_start_time: str | Unset = UNSET
     if not isinstance(start_time, Unset):
         json_start_time = start_time.isoformat()
     params["startTime"] = json_start_time
 
-    json_end_time: Union[Unset, str] = UNSET
+    json_end_time: str | Unset = UNSET
     if not isinstance(end_time, Unset):
         json_end_time = end_time.isoformat()
     params["endTime"] = json_end_time
@@ -47,7 +48,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/events",
+        "url": "/services/{service_id}/events".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -55,8 +58,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["ServiceEventWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[ServiceEventWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -104,8 +107,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["ServiceEventWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[ServiceEventWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -117,31 +120,31 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, ServiceEventType] = UNSET,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ServiceEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: ServiceEventType | Unset = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ServiceEventWithCursor]]:
     """List events
 
      List recent events that occurred for the service with the provided ID.
 
     Args:
         service_id (str):
-        type_ (Union[Unset, ServiceEventType]):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (ServiceEventType | Unset):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ServiceEventWithCursor']]]
+        Response[Error | list[ServiceEventWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -163,31 +166,31 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, ServiceEventType] = UNSET,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ServiceEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: ServiceEventType | Unset = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ServiceEventWithCursor] | None:
     """List events
 
      List recent events that occurred for the service with the provided ID.
 
     Args:
         service_id (str):
-        type_ (Union[Unset, ServiceEventType]):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (ServiceEventType | Unset):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ServiceEventWithCursor']]
+        Error | list[ServiceEventWithCursor]
     """
 
     return sync_detailed(
@@ -204,31 +207,31 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, ServiceEventType] = UNSET,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ServiceEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: ServiceEventType | Unset = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ServiceEventWithCursor]]:
     """List events
 
      List recent events that occurred for the service with the provided ID.
 
     Args:
         service_id (str):
-        type_ (Union[Unset, ServiceEventType]):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (ServiceEventType | Unset):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ServiceEventWithCursor']]]
+        Response[Error | list[ServiceEventWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -248,31 +251,31 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, ServiceEventType] = UNSET,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ServiceEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: ServiceEventType | Unset = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ServiceEventWithCursor] | None:
     """List events
 
      List recent events that occurred for the service with the provided ID.
 
     Args:
         service_id (str):
-        type_ (Union[Unset, ServiceEventType]):
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (ServiceEventType | Unset):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ServiceEventWithCursor']]
+        Error | list[ServiceEventWithCursor]
     """
 
     return (

@@ -1,29 +1,33 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.build import Build
 from ...models.error import Error
 from ...models.trigger_build_source_build_body import TriggerBuildSourceBuildBody
-from ...types import Response
+from ...types import UNSET, Response, Unset
 
 
 def _get_kwargs(
     build_source_id: str,
     *,
-    body: TriggerBuildSourceBuildBody,
+    body: TriggerBuildSourceBuildBody | Unset = UNSET,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/build-sources/{build_source_id}/builds",
+        "url": "/build-sources/{build_source_id}/builds".format(
+            build_source_id=quote(str(build_source_id), safe=""),
+        ),
     }
 
-    _kwargs["json"] = body.to_dict()
+    if not isinstance(body, Unset):
+        _kwargs["json"] = body.to_dict()
 
     headers["Content-Type"] = "application/json"
 
@@ -31,9 +35,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Build, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Build | Error | None:
     if response.status_code == 201:
         response_201 = Build.from_dict(response.json())
 
@@ -80,9 +82,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Build, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Build | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -94,9 +94,9 @@ def _build_response(
 def sync_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TriggerBuildSourceBuildBody,
-) -> Response[Union[Build, Error]]:
+    client: AuthenticatedClient | Client,
+    body: TriggerBuildSourceBuildBody | Unset = UNSET,
+) -> Response[Build | Error]:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
@@ -111,14 +111,14 @@ def sync_detailed(
 
     Args:
         build_source_id (str):
-        body (TriggerBuildSourceBuildBody):
+        body (TriggerBuildSourceBuildBody | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Build, Error]]
+        Response[Build | Error]
     """
 
     kwargs = _get_kwargs(
@@ -136,9 +136,9 @@ def sync_detailed(
 def sync(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TriggerBuildSourceBuildBody,
-) -> Optional[Union[Build, Error]]:
+    client: AuthenticatedClient | Client,
+    body: TriggerBuildSourceBuildBody | Unset = UNSET,
+) -> Build | Error | None:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
@@ -153,14 +153,14 @@ def sync(
 
     Args:
         build_source_id (str):
-        body (TriggerBuildSourceBuildBody):
+        body (TriggerBuildSourceBuildBody | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Build, Error]
+        Build | Error
     """
 
     return sync_detailed(
@@ -173,9 +173,9 @@ def sync(
 async def asyncio_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TriggerBuildSourceBuildBody,
-) -> Response[Union[Build, Error]]:
+    client: AuthenticatedClient | Client,
+    body: TriggerBuildSourceBuildBody | Unset = UNSET,
+) -> Response[Build | Error]:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
@@ -190,14 +190,14 @@ async def asyncio_detailed(
 
     Args:
         build_source_id (str):
-        body (TriggerBuildSourceBuildBody):
+        body (TriggerBuildSourceBuildBody | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Build, Error]]
+        Response[Build | Error]
     """
 
     kwargs = _get_kwargs(
@@ -213,9 +213,9 @@ async def asyncio_detailed(
 async def asyncio(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: TriggerBuildSourceBuildBody,
-) -> Optional[Union[Build, Error]]:
+    client: AuthenticatedClient | Client,
+    body: TriggerBuildSourceBuildBody | Unset = UNSET,
+) -> Build | Error | None:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
@@ -230,14 +230,14 @@ async def asyncio(
 
     Args:
         build_source_id (str):
-        body (TriggerBuildSourceBuildBody):
+        body (TriggerBuildSourceBuildBody | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Build, Error]
+        Build | Error
     """
 
     return (

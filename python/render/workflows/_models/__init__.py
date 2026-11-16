@@ -8,5 +8,5 @@ the classes the runner parses off the wire.
 
 The package depends only on the standard library so it can sit on the
 worker hot path — defining or running a task does not pull in
-``httpx`` or ``attrs``.
+``httpx2`` or ``attrs``.
 """

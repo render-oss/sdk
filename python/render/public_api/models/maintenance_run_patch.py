@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -15,15 +16,15 @@ T = TypeVar("T", bound="MaintenanceRunPATCH")
 class MaintenanceRunPATCH:
     """
     Attributes:
-        scheduled_at (Union[Unset, datetime.datetime]): The date-time at which the maintenance is scheduled to start.
-            This must be before the pendingMaintenanceBy date-time.
+        scheduled_at (datetime.datetime | Unset): The date-time at which the maintenance is scheduled to start. This
+            must be before the pendingMaintenanceBy date-time.
     """
 
-    scheduled_at: Union[Unset, datetime.datetime] = UNSET
+    scheduled_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        scheduled_at: Union[Unset, str] = UNSET
+        scheduled_at: str | Unset = UNSET
         if not isinstance(self.scheduled_at, Unset):
             scheduled_at = self.scheduled_at.isoformat()
 
@@ -39,11 +40,11 @@ class MaintenanceRunPATCH:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _scheduled_at = d.pop("scheduledAt", UNSET)
-        scheduled_at: Union[Unset, datetime.datetime]
+        scheduled_at: datetime.datetime | Unset
         if isinstance(_scheduled_at, Unset):
             scheduled_at = UNSET
         else:
-            scheduled_at = isoparse(_scheduled_at)
+            scheduled_at = datetime.datetime.fromisoformat(_scheduled_at)
 
         maintenance_run_patch = cls(
             scheduled_at=scheduled_at,

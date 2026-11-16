@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,14 +19,14 @@ T = TypeVar("T", bound="GetBandwidthSourcesResponse200")
 class GetBandwidthSourcesResponse200:
     """
     Attributes:
-        data (Union[Unset, list['GetBandwidthSourcesResponse200DataItem']]):
+        data (list[GetBandwidthSourcesResponse200DataItem] | Unset):
     """
 
-    data: Union[Unset, list["GetBandwidthSourcesResponse200DataItem"]] = UNSET
+    data: list[GetBandwidthSourcesResponse200DataItem] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        data: Union[Unset, list[dict[str, Any]]] = UNSET
+        data: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.data, Unset):
             data = []
             for data_item_data in self.data:
@@ -41,15 +43,19 @@ class GetBandwidthSourcesResponse200:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.get_bandwidth_sources_response_200_data_item import GetBandwidthSourcesResponse200DataItem
+        from ..models.get_bandwidth_sources_response_200_data_item import (
+            GetBandwidthSourcesResponse200DataItem,  # noqa: PLC0415
+        )
 
         d = dict(src_dict)
-        data = []
         _data = d.pop("data", UNSET)
-        for data_item_data in _data or []:
-            data_item = GetBandwidthSourcesResponse200DataItem.from_dict(data_item_data)
+        data: list[GetBandwidthSourcesResponse200DataItem] | Unset = UNSET
+        if _data is not UNSET:
+            data = []
+            for data_item_data in _data:
+                data_item = GetBandwidthSourcesResponse200DataItem.from_dict(data_item_data)
 
-            data.append(data_item)
+                data.append(data_item)
 
         get_bandwidth_sources_response_200 = cls(
             data=data,

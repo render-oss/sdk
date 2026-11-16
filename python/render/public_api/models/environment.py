@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -28,7 +30,7 @@ class Environment:
         protected_status (ProtectedStatus): Indicates whether an environment is `unprotected` or `protected`. Only admin
             users can perform destructive actions in `protected` environments.
         network_isolation_enabled (bool): Indicates whether network connections across environments are allowed.
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
     """
 
     id: str
@@ -40,7 +42,7 @@ class Environment:
     env_group_ids: list[str]
     protected_status: ProtectedStatus
     network_isolation_enabled: bool
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,7 +64,7 @@ class Environment:
 
         network_isolation_enabled = self.network_isolation_enabled
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
@@ -91,7 +93,7 @@ class Environment:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -112,12 +114,14 @@ class Environment:
 
         network_isolation_enabled = d.pop("networkIsolationEnabled")
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         environment = cls(
             id=id,

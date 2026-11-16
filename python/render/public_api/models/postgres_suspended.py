@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PostgresSuspended(str, Enum):
+class PostgresSuspended(StrEnum):
     NOT_SUSPENDED = "not_suspended"
     SUSPENDED = "suspended"
 

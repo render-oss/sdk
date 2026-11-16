@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 T = TypeVar("T", bound="GetObjectOutput")
 
@@ -44,7 +45,7 @@ class GetObjectOutput:
         d = dict(src_dict)
         url = d.pop("url")
 
-        expires_at = isoparse(d.pop("expiresAt"))
+        expires_at = datetime.datetime.fromisoformat(d.pop("expiresAt"))
 
         get_object_output = cls(
             url=url,

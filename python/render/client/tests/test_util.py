@@ -1,6 +1,6 @@
 import json
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import ClientError, RenderError, ServerError, TimeoutError
@@ -82,7 +82,7 @@ async def test_retry_with_backoff_success_after_failure_with_exempted_exception(
 
 
 def test_handle_http_error_4xx():
-    response = httpx.Response(
+    response = httpx2.Response(
         status_code=404, json={"message": "Not found"}, text="Not found"
     )
     with pytest.raises(
@@ -93,7 +93,7 @@ def test_handle_http_error_4xx():
 
 @pytest.mark.parametrize("status_code", [404, 408, 429])
 def test_error_handlers_set_the_status_code_on_client_errors(status_code):
-    httpx_response = httpx.Response(status_code=status_code, text="error")
+    httpx_response = httpx2.Response(status_code=status_code, text="error")
     api_response = Response(
         status_code=status_code,
         content=b"",
@@ -112,7 +112,7 @@ def test_error_handlers_set_the_status_code_on_client_errors(status_code):
 
 
 def test_handle_http_error_5xx():
-    response = httpx.Response(
+    response = httpx2.Response(
         status_code=500,
         json={"error": "Internal server error"},
         text="Internal server error",
@@ -124,13 +124,13 @@ def test_handle_http_error_5xx():
 
 
 def test_handle_httpx_exception_timeout():
-    exception = httpx.TimeoutException("Request timed out")
+    exception = httpx2.TimeoutException("Request timed out")
     with pytest.raises(TimeoutError, match="HTTP request timed out"):
         handle_httpx_exception(exception, "HTTP request")
 
 
 def test_handle_httpx_exception_remote_protocol_error():
-    exception = httpx.RemoteProtocolError(
+    exception = httpx2.RemoteProtocolError(
         "Server disconnected without sending a response."
     )
     with pytest.raises(ServerError, match="failed due to network error"):
@@ -243,7 +243,7 @@ def test_handle_wrapper_exception_reraises_render_error():
 
 
 def test_handle_wrapper_exception_httpx_request_error():
-    exc = httpx.TimeoutException("timed out")
+    exc = httpx2.TimeoutException("timed out")
     with pytest.raises(TimeoutError, match="op timed out"):
         _handle_wrapper_exception(exc, "op")
 
@@ -287,7 +287,7 @@ def test_request_errors_reraises_render_error():
 
 def test_request_errors_translates_httpx_request_error():
     with pytest.raises(TimeoutError, match="op timed out"), request_errors("op"):
-        raise httpx.TimeoutException("timed out")
+        raise httpx2.TimeoutException("timed out")
 
 
 def test_request_errors_wraps_unexpected_error():
@@ -313,7 +313,7 @@ class TestHandleStorageHttpError:
             "/NmQR0znt4/0=</HostId></Error>"
         )
 
-        response = httpx.Response(status_code=404, text=s3_xml_error)
+        response = httpx2.Response(status_code=404, text=s3_xml_error)
 
         with pytest.raises(ClientError) as exc_info:
             handle_storage_http_error(response, "download object")
@@ -338,7 +338,7 @@ class TestHandleStorageHttpError:
             "<Details>render-objects-bucket/some/path</Details></Error>"
         )
 
-        response = httpx.Response(status_code=403, text=gcs_error)
+        response = httpx2.Response(status_code=403, text=gcs_error)
 
         with pytest.raises(ClientError) as exc_info:
             handle_storage_http_error(response, "upload object")
@@ -355,7 +355,7 @@ class TestHandleStorageHttpError:
 
     def test_500_server_error(self):
         """Verify 5xx errors raise ServerError with sanitized message."""
-        response = httpx.Response(
+        response = httpx2.Response(
             status_code=500,
             text="Internal Server Error: connection to storage backend failed",
         )
@@ -376,7 +376,7 @@ class TestHandleStorageHttpError:
     def test_413_payload_too_large(self):
         """Verify 413 errors are handled with appropriate message."""
         xml_error = '<?xml version="1.0"?><Error><Code>EntityTooLarge</Code><MaxSizeAllowed>5368709120</MaxSizeAllowed></Error>'
-        response = httpx.Response(status_code=413, text=xml_error)
+        response = httpx2.Response(status_code=413, text=xml_error)
 
         with pytest.raises(ClientError) as exc_info:
             handle_storage_http_error(response, "upload object")
@@ -390,6 +390,6 @@ class TestHandleStorageHttpError:
 
     def test_success_response_does_not_raise(self):
         """Verify successful responses don't raise exceptions."""
-        response = httpx.Response(status_code=200, text="OK")
+        response = httpx2.Response(status_code=200, text="OK")
         # Should not raise
         handle_storage_http_error(response, "download object")

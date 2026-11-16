@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -16,15 +17,16 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/env-vars/{env_var_key}",
+        "url": "/services/{service_id}/env-vars/{env_var_key}".format(
+            service_id=quote(str(service_id), safe=""),
+            env_var_key=quote(str(env_var_key), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[EnvVar, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> EnvVar | Error | None:
     if response.status_code == 200:
         response_200 = EnvVar.from_dict(response.json())
 
@@ -76,9 +78,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[EnvVar, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[EnvVar | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -91,8 +91,8 @@ def sync_detailed(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[EnvVar, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[EnvVar | Error]:
     """Retrieve environment variable
 
      Retrieve a particular environment variable for a particular service.
@@ -106,10 +106,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvVar, Error]]
+        Response[EnvVar | Error]
     """
 
     kwargs = _get_kwargs(
@@ -128,8 +128,8 @@ def sync(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[EnvVar, Error]]:
+    client: AuthenticatedClient | Client,
+) -> EnvVar | Error | None:
     """Retrieve environment variable
 
      Retrieve a particular environment variable for a particular service.
@@ -143,10 +143,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvVar, Error]
+        EnvVar | Error
     """
 
     return sync_detailed(
@@ -160,8 +160,8 @@ async def asyncio_detailed(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[EnvVar, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[EnvVar | Error]:
     """Retrieve environment variable
 
      Retrieve a particular environment variable for a particular service.
@@ -175,10 +175,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvVar, Error]]
+        Response[EnvVar | Error]
     """
 
     kwargs = _get_kwargs(
@@ -195,8 +195,8 @@ async def asyncio(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[EnvVar, Error]]:
+    client: AuthenticatedClient | Client,
+) -> EnvVar | Error | None:
     """Retrieve environment variable
 
      Retrieve a particular environment variable for a particular service.
@@ -210,10 +210,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvVar, Error]
+        EnvVar | Error
     """
 
     return (

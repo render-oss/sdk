@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,13 +17,13 @@ class LogStreamResourceUpdate:
     """
     Attributes:
         setting (LogStreamSetting): Whether to send logs or drop them.
-        endpoint (Union[Unset, str]): The endpoint to stream logs to.
-        token (Union[Unset, str]): The optional token to authenticate the log stream.
+        endpoint (str | Unset): The endpoint to stream logs to.
+        token (str | Unset): The optional token to authenticate the log stream.
     """
 
     setting: LogStreamSetting
-    endpoint: Union[Unset, str] = UNSET
-    token: Union[Unset, str] = UNSET
+    endpoint: str | Unset = UNSET
+    token: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

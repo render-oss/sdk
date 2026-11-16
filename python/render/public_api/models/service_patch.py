@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -25,60 +27,60 @@ T = TypeVar("T", bound="ServicePATCH")
 class ServicePATCH:
     """
     Attributes:
-        build_source_id (Union[Unset, str]):
-        auto_deploy (Union[Unset, AutoDeploy]): Deprecated: use `autoDeployTrigger` instead. You can't set both
-            `autoDeploy` and `autoDeployTrigger` in the same request.
+        build_source_id (str | Unset):
+        auto_deploy (AutoDeploy | Unset): Deprecated: use `autoDeployTrigger` instead. You can't set both `autoDeploy`
+            and `autoDeployTrigger` in the same request.
 
             - `yes` is equivalent to `autoDeployTrigger: commit`.
             - `no` is equivalent to `autoDeployTrigger: off`.
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior.
+        auto_deploy_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior.
 
             - `commit`: Deploy each time a commit is pushed to the service's linked branch.
             - `checksPass`: Deploy each time a commit is pushed to the linked branch, but only after the commit's CI checks
             pass.
             - `off`: Disable autodeploys.
-        repo (Union[Unset, str]):
-        branch (Union[Unset, str]):
-        image (Union[Unset, Image]):
-        name (Union[Unset, str]):
-        build_filter (Union[Unset, BuildFilter]):
-        root_dir (Union[Unset, str]):
-        service_details (Union['BackgroundWorkerDetailsPATCH', 'CronJobDetailsPATCH', 'PrivateServiceDetailsPATCH',
-            'StaticSiteDetailsPATCH', 'WebServiceDetailsPATCH', Unset]):
+        repo (str | Unset):
+        branch (str | Unset):
+        image (Image | Unset):
+        name (str | Unset):
+        build_filter (BuildFilter | Unset):
+        root_dir (str | Unset):
+        service_details (BackgroundWorkerDetailsPATCH | CronJobDetailsPATCH | PrivateServiceDetailsPATCH |
+            StaticSiteDetailsPATCH | Unset | WebServiceDetailsPATCH):
     """
 
-    build_source_id: Union[Unset, str] = UNSET
-    auto_deploy: Union[Unset, AutoDeploy] = UNSET
-    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
-    repo: Union[Unset, str] = UNSET
-    branch: Union[Unset, str] = UNSET
-    image: Union[Unset, "Image"] = UNSET
-    name: Union[Unset, str] = UNSET
-    build_filter: Union[Unset, "BuildFilter"] = UNSET
-    root_dir: Union[Unset, str] = UNSET
-    service_details: Union[
-        "BackgroundWorkerDetailsPATCH",
-        "CronJobDetailsPATCH",
-        "PrivateServiceDetailsPATCH",
-        "StaticSiteDetailsPATCH",
-        "WebServiceDetailsPATCH",
-        Unset,
-    ] = UNSET
+    build_source_id: str | Unset = UNSET
+    auto_deploy: AutoDeploy | Unset = UNSET
+    auto_deploy_trigger: AutoDeployTrigger | Unset = UNSET
+    repo: str | Unset = UNSET
+    branch: str | Unset = UNSET
+    image: Image | Unset = UNSET
+    name: str | Unset = UNSET
+    build_filter: BuildFilter | Unset = UNSET
+    root_dir: str | Unset = UNSET
+    service_details: (
+        BackgroundWorkerDetailsPATCH
+        | CronJobDetailsPATCH
+        | PrivateServiceDetailsPATCH
+        | StaticSiteDetailsPATCH
+        | Unset
+        | WebServiceDetailsPATCH
+    ) = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH
-        from ..models.private_service_details_patch import PrivateServiceDetailsPATCH
-        from ..models.static_site_details_patch import StaticSiteDetailsPATCH
-        from ..models.web_service_details_patch import WebServiceDetailsPATCH
+        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH  # noqa: PLC0415
+        from ..models.private_service_details_patch import PrivateServiceDetailsPATCH  # noqa: PLC0415
+        from ..models.static_site_details_patch import StaticSiteDetailsPATCH  # noqa: PLC0415
+        from ..models.web_service_details_patch import WebServiceDetailsPATCH  # noqa: PLC0415
 
         build_source_id = self.build_source_id
 
-        auto_deploy: Union[Unset, str] = UNSET
+        auto_deploy: str | Unset = UNSET
         if not isinstance(self.auto_deploy, Unset):
             auto_deploy = self.auto_deploy.value
 
-        auto_deploy_trigger: Union[Unset, str] = UNSET
+        auto_deploy_trigger: str | Unset = UNSET
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
@@ -86,19 +88,19 @@ class ServicePATCH:
 
         branch = self.branch
 
-        image: Union[Unset, dict[str, Any]] = UNSET
+        image: dict[str, Any] | Unset = UNSET
         if not isinstance(self.image, Unset):
             image = self.image.to_dict()
 
         name = self.name
 
-        build_filter: Union[Unset, dict[str, Any]] = UNSET
+        build_filter: dict[str, Any] | Unset = UNSET
         if not isinstance(self.build_filter, Unset):
             build_filter = self.build_filter.to_dict()
 
         root_dir = self.root_dir
 
-        service_details: Union[Unset, dict[str, Any]]
+        service_details: dict[str, Any] | Unset
         if isinstance(self.service_details, Unset):
             service_details = UNSET
         elif isinstance(self.service_details, StaticSiteDetailsPATCH):
@@ -140,26 +142,26 @@ class ServicePATCH:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH
-        from ..models.build_filter import BuildFilter
-        from ..models.cron_job_details_patch import CronJobDetailsPATCH
-        from ..models.image import Image
-        from ..models.private_service_details_patch import PrivateServiceDetailsPATCH
-        from ..models.static_site_details_patch import StaticSiteDetailsPATCH
-        from ..models.web_service_details_patch import WebServiceDetailsPATCH
+        from ..models.background_worker_details_patch import BackgroundWorkerDetailsPATCH  # noqa: PLC0415
+        from ..models.build_filter import BuildFilter  # noqa: PLC0415
+        from ..models.cron_job_details_patch import CronJobDetailsPATCH  # noqa: PLC0415
+        from ..models.image import Image  # noqa: PLC0415
+        from ..models.private_service_details_patch import PrivateServiceDetailsPATCH  # noqa: PLC0415
+        from ..models.static_site_details_patch import StaticSiteDetailsPATCH  # noqa: PLC0415
+        from ..models.web_service_details_patch import WebServiceDetailsPATCH  # noqa: PLC0415
 
         d = dict(src_dict)
         build_source_id = d.pop("buildSourceId", UNSET)
 
         _auto_deploy = d.pop("autoDeploy", UNSET)
-        auto_deploy: Union[Unset, AutoDeploy]
+        auto_deploy: AutoDeploy | Unset
         if isinstance(_auto_deploy, Unset):
             auto_deploy = UNSET
         else:
             auto_deploy = AutoDeploy(_auto_deploy)
 
         _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
-        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        auto_deploy_trigger: AutoDeployTrigger | Unset
         if isinstance(_auto_deploy_trigger, Unset):
             auto_deploy_trigger = UNSET
         else:
@@ -170,7 +172,7 @@ class ServicePATCH:
         branch = d.pop("branch", UNSET)
 
         _image = d.pop("image", UNSET)
-        image: Union[Unset, Image]
+        image: Image | Unset
         if isinstance(_image, Unset):
             image = UNSET
         else:
@@ -179,7 +181,7 @@ class ServicePATCH:
         name = d.pop("name", UNSET)
 
         _build_filter = d.pop("buildFilter", UNSET)
-        build_filter: Union[Unset, BuildFilter]
+        build_filter: BuildFilter | Unset
         if isinstance(_build_filter, Unset):
             build_filter = UNSET
         else:
@@ -189,14 +191,14 @@ class ServicePATCH:
 
         def _parse_service_details(
             data: object,
-        ) -> Union[
-            "BackgroundWorkerDetailsPATCH",
-            "CronJobDetailsPATCH",
-            "PrivateServiceDetailsPATCH",
-            "StaticSiteDetailsPATCH",
-            "WebServiceDetailsPATCH",
-            Unset,
-        ]:
+        ) -> (
+            BackgroundWorkerDetailsPATCH
+            | CronJobDetailsPATCH
+            | PrivateServiceDetailsPATCH
+            | StaticSiteDetailsPATCH
+            | Unset
+            | WebServiceDetailsPATCH
+        ):
             if isinstance(data, Unset):
                 return data
             try:
@@ -205,7 +207,7 @@ class ServicePATCH:
                 service_details_type_0 = StaticSiteDetailsPATCH.from_dict(data)
 
                 return service_details_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -213,7 +215,7 @@ class ServicePATCH:
                 service_details_type_1 = WebServiceDetailsPATCH.from_dict(data)
 
                 return service_details_type_1
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -221,7 +223,7 @@ class ServicePATCH:
                 service_details_type_2 = PrivateServiceDetailsPATCH.from_dict(data)
 
                 return service_details_type_2
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             try:
                 if not isinstance(data, dict):
@@ -229,7 +231,7 @@ class ServicePATCH:
                 service_details_type_3 = BackgroundWorkerDetailsPATCH.from_dict(data)
 
                 return service_details_type_3
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()

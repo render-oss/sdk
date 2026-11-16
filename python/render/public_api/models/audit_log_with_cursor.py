@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -20,7 +22,7 @@ class AuditLogWithCursor:
     """
 
     cursor: str
-    audit_log: "AuditLog"
+    audit_log: AuditLog
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -41,7 +43,7 @@ class AuditLogWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.audit_log import AuditLog
+        from ..models.audit_log import AuditLog  # noqa: PLC0415
 
         d = dict(src_dict)
         cursor = d.pop("cursor")

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union, cast
+from typing import Any, cast
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -19,7 +20,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/postgres/{postgres_id}/credentials",
+        "url": "/postgres/{postgres_id}/credentials".format(
+            postgres_id=quote(str(postgres_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -30,9 +33,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Any, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Any | Error | None:
     if response.status_code == 202:
         response_202 = cast(Any, None)
         return response_202
@@ -88,9 +89,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Any, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Any | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -102,13 +101,13 @@ def _build_response(
 def sync_detailed(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: CredentialCreateInput,
-) -> Response[Union[Any, Error]]:
-    r"""Create PostgreSQL User
+) -> Response[Any | Error]:
+    """Create PostgreSQL User
 
      Create a new PostgreSQL user for the Render Postgres instance with the provided ID. This becomes the
-    database's new \"default\" user.
+    database's new "default" user.
 
     Args:
         postgres_id (str):
@@ -116,10 +115,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Any | Error]
     """
 
     kwargs = _get_kwargs(
@@ -137,13 +136,13 @@ def sync_detailed(
 def sync(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: CredentialCreateInput,
-) -> Optional[Union[Any, Error]]:
-    r"""Create PostgreSQL User
+) -> Any | Error | None:
+    """Create PostgreSQL User
 
      Create a new PostgreSQL user for the Render Postgres instance with the provided ID. This becomes the
-    database's new \"default\" user.
+    database's new "default" user.
 
     Args:
         postgres_id (str):
@@ -151,10 +150,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Any | Error
     """
 
     return sync_detailed(
@@ -167,13 +166,13 @@ def sync(
 async def asyncio_detailed(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: CredentialCreateInput,
-) -> Response[Union[Any, Error]]:
-    r"""Create PostgreSQL User
+) -> Response[Any | Error]:
+    """Create PostgreSQL User
 
      Create a new PostgreSQL user for the Render Postgres instance with the provided ID. This becomes the
-    database's new \"default\" user.
+    database's new "default" user.
 
     Args:
         postgres_id (str):
@@ -181,10 +180,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Any, Error]]
+        Response[Any | Error]
     """
 
     kwargs = _get_kwargs(
@@ -200,13 +199,13 @@ async def asyncio_detailed(
 async def asyncio(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: CredentialCreateInput,
-) -> Optional[Union[Any, Error]]:
-    r"""Create PostgreSQL User
+) -> Any | Error | None:
+    """Create PostgreSQL User
 
      Create a new PostgreSQL user for the Render Postgres instance with the provided ID. This becomes the
-    database's new \"default\" user.
+    database's new "default" user.
 
     Args:
         postgres_id (str):
@@ -214,10 +213,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Any, Error]
+        Any | Error
     """
 
     return (

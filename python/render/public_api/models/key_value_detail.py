@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.database_status import DatabaseStatus
 from ..models.key_value_plan import KeyValuePlan
@@ -35,10 +36,10 @@ class KeyValueDetail:
         name (str): The name of the Key Value instance
         owner (Owner):
         options (KeyValueOptions): Options for a Key Value instance
-        ip_allow_list (list['CidrBlockAndDescription']): The IP allow list for the Key Value instance
+        ip_allow_list (list[CidrBlockAndDescription]): The IP allow list for the Key Value instance
         version (str): The version of Key Value
-        environment_id (Union[Unset, str]): The ID of the environment the Key Value instance is associated with
-        maintenance (Union[Unset, MaintenanceRun]):
+        environment_id (str | Unset): The ID of the environment the Key Value instance is associated with
+        maintenance (MaintenanceRun | Unset):
     """
 
     id: str
@@ -48,12 +49,12 @@ class KeyValueDetail:
     region: Region
     plan: KeyValuePlan
     name: str
-    owner: "Owner"
-    options: "KeyValueOptions"
-    ip_allow_list: list["CidrBlockAndDescription"]
+    owner: Owner
+    options: KeyValueOptions
+    ip_allow_list: list[CidrBlockAndDescription]
     version: str
-    environment_id: Union[Unset, str] = UNSET
-    maintenance: Union[Unset, "MaintenanceRun"] = UNSET
+    environment_id: str | Unset = UNSET
+    maintenance: MaintenanceRun | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -84,7 +85,7 @@ class KeyValueDetail:
 
         environment_id = self.environment_id
 
-        maintenance: Union[Unset, dict[str, Any]] = UNSET
+        maintenance: dict[str, Any] | Unset = UNSET
         if not isinstance(self.maintenance, Unset):
             maintenance = self.maintenance.to_dict()
 
@@ -114,17 +115,17 @@ class KeyValueDetail:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.key_value_options import KeyValueOptions
-        from ..models.maintenance_run import MaintenanceRun
-        from ..models.owner import Owner
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.key_value_options import KeyValueOptions  # noqa: PLC0415
+        from ..models.maintenance_run import MaintenanceRun  # noqa: PLC0415
+        from ..models.owner import Owner  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         status = DatabaseStatus(d.pop("status"))
 
@@ -150,7 +151,7 @@ class KeyValueDetail:
         environment_id = d.pop("environmentId", UNSET)
 
         _maintenance = d.pop("maintenance", UNSET)
-        maintenance: Union[Unset, MaintenanceRun]
+        maintenance: MaintenanceRun | Unset
         if isinstance(_maintenance, Unset):
             maintenance = UNSET
         else:

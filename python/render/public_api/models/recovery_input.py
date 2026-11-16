@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -15,32 +16,31 @@ T = TypeVar("T", bound="RecoveryInput")
 class RecoveryInput:
     """
     Attributes:
-        restore_name (Union[Unset, str]): Name of the new database.
-        restore_time (Union[Unset, datetime.datetime]): The point in time to restore the database to. See `/recovery-
-            info` for restore availability
-        datadog_api_key (Union[Unset, str]): Datadog API key to use for monitoring the new database. Defaults to the API
-            key of the original database. Use an empty string to prevent copying of the API key to the new database.
-        datadog_site (Union[Unset, str]): Datadog region code to use for monitoring the new database. Defaults to the
-            region code of the original database. Use an empty string to prevent copying of the region code to the new
-            database.
-        plan (Union[Unset, str]): The plan to use for the new database. Defaults to the same plan as the original
-            database. Cannot be a lower tier plan than the original database.
-        environment_id (Union[Unset, str]): The environment to create the new database in. Defaults to the environment
-            of the original database.
+        restore_name (str | Unset): Name of the new database.
+        restore_time (datetime.datetime | Unset): The point in time to restore the database to. See `/recovery-info` for
+            restore availability
+        datadog_api_key (str | Unset): Datadog API key to use for monitoring the new database. Defaults to the API key
+            of the original database. Use an empty string to prevent copying of the API key to the new database.
+        datadog_site (str | Unset): Datadog region code to use for monitoring the new database. Defaults to the region
+            code of the original database. Use an empty string to prevent copying of the region code to the new database.
+        plan (str | Unset): The plan to use for the new database. Defaults to the same plan as the original database.
+            Cannot be a lower tier plan than the original database.
+        environment_id (str | Unset): The environment to create the new database in. Defaults to the environment of the
+            original database.
     """
 
-    restore_name: Union[Unset, str] = UNSET
-    restore_time: Union[Unset, datetime.datetime] = UNSET
-    datadog_api_key: Union[Unset, str] = UNSET
-    datadog_site: Union[Unset, str] = UNSET
-    plan: Union[Unset, str] = UNSET
-    environment_id: Union[Unset, str] = UNSET
+    restore_name: str | Unset = UNSET
+    restore_time: datetime.datetime | Unset = UNSET
+    datadog_api_key: str | Unset = UNSET
+    datadog_site: str | Unset = UNSET
+    plan: str | Unset = UNSET
+    environment_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         restore_name = self.restore_name
 
-        restore_time: Union[Unset, str] = UNSET
+        restore_time: str | Unset = UNSET
         if not isinstance(self.restore_time, Unset):
             restore_time = self.restore_time.isoformat()
 
@@ -76,11 +76,11 @@ class RecoveryInput:
         restore_name = d.pop("restoreName", UNSET)
 
         _restore_time = d.pop("restoreTime", UNSET)
-        restore_time: Union[Unset, datetime.datetime]
+        restore_time: datetime.datetime | Unset
         if isinstance(_restore_time, Unset):
             restore_time = UNSET
         else:
-            restore_time = isoparse(_restore_time)
+            restore_time = datetime.datetime.fromisoformat(_restore_time)
 
         datadog_api_key = d.pop("datadogApiKey", UNSET)
 

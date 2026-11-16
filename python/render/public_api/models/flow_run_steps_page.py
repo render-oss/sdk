@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,15 +19,14 @@ T = TypeVar("T", bound="FlowRunStepsPage")
 class FlowRunStepsPage:
     """
     Attributes:
-        steps (list['FlowRunStep']):
+        steps (list[FlowRunStep]):
         has_more (bool): Whether another page of steps follows this one.
-        cursor (Union[Unset, str]): Pass as the `cursor` query parameter to fetch the next page. Absent on the last
-            page.
+        cursor (str | Unset): Pass as the `cursor` query parameter to fetch the next page. Absent on the last page.
     """
 
-    steps: list["FlowRunStep"]
+    steps: list[FlowRunStep]
     has_more: bool
-    cursor: Union[Unset, str] = UNSET
+    cursor: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -53,7 +54,7 @@ class FlowRunStepsPage:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.flow_run_step import FlowRunStep
+        from ..models.flow_run_step import FlowRunStep  # noqa: PLC0415
 
         d = dict(src_dict)
         steps = []

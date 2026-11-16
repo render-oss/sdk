@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -21,14 +23,14 @@ class CronJobRunEnded:
     Attributes:
         cron_job_run_id (str):
         status (CronJobRunStatus):
-        reason (Union[Unset, FailureReason]):
-        user (Union[Unset, SchemasUser]): User who triggered the action
+        reason (FailureReason | Unset):
+        user (SchemasUser | Unset): User who triggered the action
     """
 
     cron_job_run_id: str
     status: CronJobRunStatus
-    reason: Union[Unset, "FailureReason"] = UNSET
-    user: Union[Unset, "SchemasUser"] = UNSET
+    reason: FailureReason | Unset = UNSET
+    user: SchemasUser | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -36,11 +38,11 @@ class CronJobRunEnded:
 
         status = self.status.value
 
-        reason: Union[Unset, dict[str, Any]] = UNSET
+        reason: dict[str, Any] | Unset = UNSET
         if not isinstance(self.reason, Unset):
             reason = self.reason.to_dict()
 
-        user: Union[Unset, dict[str, Any]] = UNSET
+        user: dict[str, Any] | Unset = UNSET
         if not isinstance(self.user, Unset):
             user = self.user.to_dict()
 
@@ -61,8 +63,8 @@ class CronJobRunEnded:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.failure_reason import FailureReason
-        from ..models.schemas_user import SchemasUser
+        from ..models.failure_reason import FailureReason  # noqa: PLC0415
+        from ..models.schemas_user import SchemasUser  # noqa: PLC0415
 
         d = dict(src_dict)
         cron_job_run_id = d.pop("cronJobRunId")
@@ -70,14 +72,14 @@ class CronJobRunEnded:
         status = CronJobRunStatus(d.pop("status"))
 
         _reason = d.pop("reason", UNSET)
-        reason: Union[Unset, FailureReason]
+        reason: FailureReason | Unset
         if isinstance(_reason, Unset):
             reason = UNSET
         else:
             reason = FailureReason.from_dict(_reason)
 
         _user = d.pop("user", UNSET)
-        user: Union[Unset, SchemasUser]
+        user: SchemasUser | Unset
         if isinstance(_user, Unset):
             user = UNSET
         else:

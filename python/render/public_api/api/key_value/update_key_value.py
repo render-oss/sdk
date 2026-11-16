@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/key-value/{redis_id}",
+        "url": "/key-value/{redis_id}".format(
+            redis_id=quote(str(redis_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -32,8 +35,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, KeyValueDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | KeyValueDetail | None:
     if response.status_code == 200:
         response_200 = KeyValueDetail.from_dict(response.json())
 
@@ -81,8 +84,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, KeyValueDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | KeyValueDetail]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -94,9 +97,9 @@ def _build_response(
 def sync_detailed(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: KeyValuePATCHInput,
-) -> Response[Union[Error, KeyValueDetail]]:
+) -> Response[Error | KeyValueDetail]:
     """Update Key Value instance
 
      Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
@@ -108,10 +111,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, KeyValueDetail]]
+        Response[Error | KeyValueDetail]
     """
 
     kwargs = _get_kwargs(
@@ -129,9 +132,9 @@ def sync_detailed(
 def sync(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: KeyValuePATCHInput,
-) -> Optional[Union[Error, KeyValueDetail]]:
+) -> Error | KeyValueDetail | None:
     """Update Key Value instance
 
      Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
@@ -143,10 +146,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, KeyValueDetail]
+        Error | KeyValueDetail
     """
 
     return sync_detailed(
@@ -159,9 +162,9 @@ def sync(
 async def asyncio_detailed(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: KeyValuePATCHInput,
-) -> Response[Union[Error, KeyValueDetail]]:
+) -> Response[Error | KeyValueDetail]:
     """Update Key Value instance
 
      Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
@@ -173,10 +176,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, KeyValueDetail]]
+        Response[Error | KeyValueDetail]
     """
 
     kwargs = _get_kwargs(
@@ -192,9 +195,9 @@ async def asyncio_detailed(
 async def asyncio(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: KeyValuePATCHInput,
-) -> Optional[Union[Error, KeyValueDetail]]:
+) -> Error | KeyValueDetail | None:
     """Update Key Value instance
 
      Update a Key Value instance by ID. Note that changing your plan, max memory policy, or persistence
@@ -206,10 +209,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, KeyValueDetail]
+        Error | KeyValueDetail
     """
 
     return (

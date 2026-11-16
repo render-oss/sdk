@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -22,17 +24,17 @@ class Owner:
         name (str):
         email (str):
         type_ (OwnerType):
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
-        two_factor_auth_enabled (Union[Unset, bool]): Whether two-factor authentication is enabled for the owner. Only
-            present if `type` is `user`.
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
+        two_factor_auth_enabled (bool | Unset): Whether two-factor authentication is enabled for the owner. Only present
+            if `type` is `user`.
     """
 
     id: str
     name: str
     email: str
     type_: OwnerType
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
-    two_factor_auth_enabled: Union[Unset, bool] = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+    two_factor_auth_enabled: bool | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -44,7 +46,7 @@ class Owner:
 
         type_ = self.type_.value
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
@@ -72,7 +74,7 @@ class Owner:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -83,12 +85,14 @@ class Owner:
 
         type_ = OwnerType(d.pop("type"))
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         two_factor_auth_enabled = d.pop("twoFactorAuthEnabled", UNSET)
 

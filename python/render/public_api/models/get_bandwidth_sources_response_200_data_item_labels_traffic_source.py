@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GetBandwidthSourcesResponse200DataItemLabelsTrafficSource(str, Enum):
+class GetBandwidthSourcesResponse200DataItemLabelsTrafficSource(StrEnum):
     HTTP = "http"
     NAT = "nat"
     PRIVATELINK = "privatelink"

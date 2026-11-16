@@ -297,7 +297,7 @@ def test_list_task_runs_success(
 
 @pytest.fixture
 def mock_httpx_stream(mocker):
-    """Mock httpx.Client to return a controllable SSE stream.
+    """Mock httpx2.Client to return a controllable SSE stream.
 
     Returns a list that tests populate with bytes chunks before calling
     task_run_events(). The mock wires up the nested context managers
@@ -323,7 +323,7 @@ def mock_httpx_stream(mocker):
     client_cm.__enter__ = mocker.Mock(return_value=mock_http_client)
     client_cm.__exit__ = mocker.Mock(return_value=False)
 
-    mocker.patch("render.client.workflows_sync.httpx.Client", return_value=client_cm)
+    mocker.patch("render.client.workflows_sync.httpx2.Client", return_value=client_cm)
 
     return chunks, mock_response
 

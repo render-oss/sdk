@@ -200,7 +200,9 @@ _FORBIDDEN_ON_WORKER_PATH: tuple[str, ...] = (
     "render_sdk.experimental",
     # Third-party HTTP/attribute libraries.
     "httpx",
+    "httpx2",
     "httpcore",
+    "httpcore2",
     "attr",
     "attrs",
 )
@@ -221,7 +223,7 @@ _ALLOWED_ON_WORKER_PATH: frozenset[str] = frozenset(
 def test_worker_path_stays_slim_through_the_mirror() -> None:
     """`from render_sdk import Workflows` must load no more than the real
     worker path does — no REST client, no models, no experimental code, no
-    httpx/attrs — under either package spelling."""
+    httpx2/attrs — under either package spelling."""
     code = (
         "import sys\n"
         "from render_sdk import Workflows\n"

@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.database_role import DatabaseRole
 from ..models.database_status import DatabaseStatus
@@ -31,7 +32,7 @@ class PostgresDetail:
     """
     Attributes:
         id (str):
-        ip_allow_list (list['CidrBlockAndDescription']):
+        ip_allow_list (list[CidrBlockAndDescription]):
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
         dashboard_url (str): The URL to view the Postgres instance in the Render Dashboard
@@ -42,7 +43,7 @@ class PostgresDetail:
         owner (Owner):
         plan (PostgresPlans):
         region (Region): Defaults to "oregon"
-        read_replicas (list['ReadReplica']):
+        read_replicas (list[ReadReplica]):
         role (DatabaseRole):
         status (DatabaseStatus):
         version (PostgresVersion): The PostgreSQL version
@@ -50,17 +51,17 @@ class PostgresDetail:
         suspenders (list[SuspenderType]):
         disk_autoscaling_enabled (bool):
         connection_pool (str): What connection pool to use (if any) out of 'pgbouncer' and 'none'
-        expires_at (Union[Unset, datetime.datetime]): The time at which the database will be expire. Applies to free
-            tier databases only.
-        environment_id (Union[Unset, str]):
-        maintenance (Union[Unset, MaintenanceRun]):
-        disk_size_gb (Union[Unset, int]):
-        parameter_overrides (Union[Unset, PostgresParameterOverrides]):
-        primary_postgres_id (Union[Unset, str]):
+        expires_at (datetime.datetime | Unset): The time at which the database will be expire. Applies to free tier
+            databases only.
+        environment_id (str | Unset):
+        maintenance (MaintenanceRun | Unset):
+        disk_size_gb (int | Unset):
+        parameter_overrides (PostgresParameterOverrides | Unset):
+        primary_postgres_id (str | Unset):
     """
 
     id: str
-    ip_allow_list: list["CidrBlockAndDescription"]
+    ip_allow_list: list[CidrBlockAndDescription]
     created_at: datetime.datetime
     updated_at: datetime.datetime
     dashboard_url: str
@@ -68,10 +69,10 @@ class PostgresDetail:
     database_user: str
     high_availability_enabled: bool
     name: str
-    owner: "Owner"
+    owner: Owner
     plan: PostgresPlans
     region: Region
-    read_replicas: list["ReadReplica"]
+    read_replicas: list[ReadReplica]
     role: DatabaseRole
     status: DatabaseStatus
     version: PostgresVersion
@@ -79,12 +80,12 @@ class PostgresDetail:
     suspenders: list[SuspenderType]
     disk_autoscaling_enabled: bool
     connection_pool: str
-    expires_at: Union[Unset, datetime.datetime] = UNSET
-    environment_id: Union[Unset, str] = UNSET
-    maintenance: Union[Unset, "MaintenanceRun"] = UNSET
-    disk_size_gb: Union[Unset, int] = UNSET
-    parameter_overrides: Union[Unset, "PostgresParameterOverrides"] = UNSET
-    primary_postgres_id: Union[Unset, str] = UNSET
+    expires_at: datetime.datetime | Unset = UNSET
+    environment_id: str | Unset = UNSET
+    maintenance: MaintenanceRun | Unset = UNSET
+    disk_size_gb: int | Unset = UNSET
+    parameter_overrides: PostgresParameterOverrides | Unset = UNSET
+    primary_postgres_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -137,19 +138,19 @@ class PostgresDetail:
 
         connection_pool = self.connection_pool
 
-        expires_at: Union[Unset, str] = UNSET
+        expires_at: str | Unset = UNSET
         if not isinstance(self.expires_at, Unset):
             expires_at = self.expires_at.isoformat()
 
         environment_id = self.environment_id
 
-        maintenance: Union[Unset, dict[str, Any]] = UNSET
+        maintenance: dict[str, Any] | Unset = UNSET
         if not isinstance(self.maintenance, Unset):
             maintenance = self.maintenance.to_dict()
 
         disk_size_gb = self.disk_size_gb
 
-        parameter_overrides: Union[Unset, dict[str, Any]] = UNSET
+        parameter_overrides: dict[str, Any] | Unset = UNSET
         if not isinstance(self.parameter_overrides, Unset):
             parameter_overrides = self.parameter_overrides.to_dict()
 
@@ -198,11 +199,11 @@ class PostgresDetail:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.maintenance_run import MaintenanceRun
-        from ..models.owner import Owner
-        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
-        from ..models.read_replica import ReadReplica
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.maintenance_run import MaintenanceRun  # noqa: PLC0415
+        from ..models.owner import Owner  # noqa: PLC0415
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides  # noqa: PLC0415
+        from ..models.read_replica import ReadReplica  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -214,9 +215,9 @@ class PostgresDetail:
 
             ip_allow_list.append(ip_allow_list_item)
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         dashboard_url = d.pop("dashboardUrl")
 
@@ -261,16 +262,16 @@ class PostgresDetail:
         connection_pool = d.pop("connectionPool")
 
         _expires_at = d.pop("expiresAt", UNSET)
-        expires_at: Union[Unset, datetime.datetime]
+        expires_at: datetime.datetime | Unset
         if isinstance(_expires_at, Unset):
             expires_at = UNSET
         else:
-            expires_at = isoparse(_expires_at)
+            expires_at = datetime.datetime.fromisoformat(_expires_at)
 
         environment_id = d.pop("environmentId", UNSET)
 
         _maintenance = d.pop("maintenance", UNSET)
-        maintenance: Union[Unset, MaintenanceRun]
+        maintenance: MaintenanceRun | Unset
         if isinstance(_maintenance, Unset):
             maintenance = UNSET
         else:
@@ -279,7 +280,7 @@ class PostgresDetail:
         disk_size_gb = d.pop("diskSizeGB", UNSET)
 
         _parameter_overrides = d.pop("parameterOverrides", UNSET)
-        parameter_overrides: Union[Unset, PostgresParameterOverrides]
+        parameter_overrides: PostgresParameterOverrides | Unset
         if isinstance(_parameter_overrides, Unset):
             parameter_overrides = UNSET
         else:

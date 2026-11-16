@@ -75,10 +75,8 @@ from render.public_api.models.event import (
     T as T,
     TYPE_CHECKING as TYPE_CHECKING,
     TypeVar as TypeVar,
-    Union as Union,
     ZeroDowntimeRedeployEnded as ZeroDowntimeRedeployEnded,
     ZeroDowntimeRedeployStarted as ZeroDowntimeRedeployStarted,
     _attrs_define as _attrs_define,
     _attrs_field as _attrs_field,
-    isoparse as isoparse,
 )

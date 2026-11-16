@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -12,20 +12,20 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    name: Union[Unset, list[str]] = UNSET,
-    email: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    name: list[str] | Unset = UNSET,
+    email: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_name: Union[Unset, list[str]] = UNSET
+    json_name: list[str] | Unset = UNSET
     if not isinstance(name, Unset):
         json_name = name
 
     params["name"] = json_name
 
-    json_email: Union[Unset, list[str]] = UNSET
+    json_email: list[str] | Unset = UNSET
     if not isinstance(email, Unset):
         json_email = email
 
@@ -47,8 +47,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["OwnerWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[OwnerWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -91,8 +91,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["OwnerWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[OwnerWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -103,29 +103,29 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    email: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["OwnerWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    email: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[OwnerWithCursor]]:
     """List workspaces
 
      List the workspaces that your API key has access to, optionally filtered by name or owner email
     address.
 
     Args:
-        name (Union[Unset, list[str]]):
-        email (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        email (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['OwnerWithCursor']]]
+        Response[Error | list[OwnerWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -144,29 +144,29 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    email: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["OwnerWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    email: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[OwnerWithCursor] | None:
     """List workspaces
 
      List the workspaces that your API key has access to, optionally filtered by name or owner email
     address.
 
     Args:
-        name (Union[Unset, list[str]]):
-        email (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        email (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['OwnerWithCursor']]
+        Error | list[OwnerWithCursor]
     """
 
     return sync_detailed(
@@ -180,29 +180,29 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    email: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["OwnerWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    email: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[OwnerWithCursor]]:
     """List workspaces
 
      List the workspaces that your API key has access to, optionally filtered by name or owner email
     address.
 
     Args:
-        name (Union[Unset, list[str]]):
-        email (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        email (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['OwnerWithCursor']]]
+        Response[Error | list[OwnerWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -219,29 +219,29 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    name: Union[Unset, list[str]] = UNSET,
-    email: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["OwnerWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    name: list[str] | Unset = UNSET,
+    email: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[OwnerWithCursor] | None:
     """List workspaces
 
      List the workspaces that your API key has access to, optionally filtered by name or owner email
     address.
 
     Args:
-        name (Union[Unset, list[str]]):
-        email (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        name (list[str] | Unset):
+        email (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['OwnerWithCursor']]
+        Error | list[OwnerWithCursor]
     """
 
     return (

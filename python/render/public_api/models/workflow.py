@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.auto_deploy_trigger import AutoDeployTrigger
 from ..models.region import Region
@@ -29,13 +30,12 @@ class Workflow:
         build_config (BuildConfig):
         run_command (str): Command to run the workflow.
         region (Region): Defaults to "oregon"
-        environment_id (Union[Unset, str]):
-        slug (Union[Unset, str]):
-        auto_deploy_trigger (Union[Unset, AutoDeployTrigger]): Controls autodeploy behavior. "commit" deploys when a
-            commit is pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables
-            autodeploy.
-        default_version_id (Union[Unset, str]): ID of the workflow version that new task runs use by default. Omitted
-            until a version has been registered.
+        environment_id (str | Unset):
+        slug (str | Unset):
+        auto_deploy_trigger (AutoDeployTrigger | Unset): Controls autodeploy behavior. "commit" deploys when a commit is
+            pushed to the branch. "checksPass" waits for CI checks to pass before deploying. "off" disables autodeploy.
+        default_version_id (str | Unset): ID of the workflow version that new task runs use by default. Omitted until a
+            version has been registered.
     """
 
     id: str
@@ -43,13 +43,13 @@ class Workflow:
     owner_id: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    build_config: "BuildConfig"
+    build_config: BuildConfig
     run_command: str
     region: Region
-    environment_id: Union[Unset, str] = UNSET
-    slug: Union[Unset, str] = UNSET
-    auto_deploy_trigger: Union[Unset, AutoDeployTrigger] = UNSET
-    default_version_id: Union[Unset, str] = UNSET
+    environment_id: str | Unset = UNSET
+    slug: str | Unset = UNSET
+    auto_deploy_trigger: AutoDeployTrigger | Unset = UNSET
+    default_version_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -73,7 +73,7 @@ class Workflow:
 
         slug = self.slug
 
-        auto_deploy_trigger: Union[Unset, str] = UNSET
+        auto_deploy_trigger: str | Unset = UNSET
         if not isinstance(self.auto_deploy_trigger, Unset):
             auto_deploy_trigger = self.auto_deploy_trigger.value
 
@@ -106,7 +106,7 @@ class Workflow:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.build_config import BuildConfig
+        from ..models.build_config import BuildConfig  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -115,9 +115,9 @@ class Workflow:
 
         owner_id = d.pop("ownerId")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         build_config = BuildConfig.from_dict(d.pop("buildConfig"))
 
@@ -130,7 +130,7 @@ class Workflow:
         slug = d.pop("slug", UNSET)
 
         _auto_deploy_trigger = d.pop("autoDeployTrigger", UNSET)
-        auto_deploy_trigger: Union[Unset, AutoDeployTrigger]
+        auto_deploy_trigger: AutoDeployTrigger | Unset
         if isinstance(_auto_deploy_trigger, Unset):
             auto_deploy_trigger = UNSET
         else:

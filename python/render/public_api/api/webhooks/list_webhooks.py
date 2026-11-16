@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -12,9 +12,9 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    owner_id: Union[Unset, list[str]] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    owner_id: list[str] | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -22,7 +22,7 @@ def _get_kwargs(
 
     params["limit"] = limit
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
@@ -40,8 +40,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["WebhookWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[WebhookWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -89,8 +89,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["WebhookWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[WebhookWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -101,26 +101,26 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    owner_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["WebhookWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    owner_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[WebhookWithCursor]]:
     """List webhooks
 
      List webhooks
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        owner_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WebhookWithCursor']]]
+        Response[Error | list[WebhookWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -138,26 +138,26 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    owner_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["WebhookWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    owner_id: list[str] | Unset = UNSET,
+) -> Error | list[WebhookWithCursor] | None:
     """List webhooks
 
      List webhooks
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        owner_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WebhookWithCursor']]
+        Error | list[WebhookWithCursor]
     """
 
     return sync_detailed(
@@ -170,26 +170,26 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    owner_id: Union[Unset, list[str]] = UNSET,
-) -> Response[Union[Error, list["WebhookWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    owner_id: list[str] | Unset = UNSET,
+) -> Response[Error | list[WebhookWithCursor]]:
     """List webhooks
 
      List webhooks
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        owner_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WebhookWithCursor']]]
+        Response[Error | list[WebhookWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -205,26 +205,26 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    owner_id: Union[Unset, list[str]] = UNSET,
-) -> Optional[Union[Error, list["WebhookWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    owner_id: list[str] | Unset = UNSET,
+) -> Error | list[WebhookWithCursor] | None:
     """List webhooks
 
      List webhooks
 
     Args:
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        owner_id (Union[Unset, list[str]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WebhookWithCursor']]
+        Error | list[WebhookWithCursor]
     """
 
     return (

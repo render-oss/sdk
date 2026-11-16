@@ -7,5 +7,4 @@ from render.public_api.models.get_object_output import (
     TypeVar as TypeVar,
     _attrs_define as _attrs_define,
     _attrs_field as _attrs_field,
-    isoparse as isoparse,
 )

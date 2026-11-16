@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DeployMode(str, Enum):
+class DeployMode(StrEnum):
     BUILD_AND_DEPLOY = "build_and_deploy"
     DEPLOY_ONLY = "deploy_only"
 

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ErrorCode(str, Enum):
+class ErrorCode(StrEnum):
     BUILD_NOT_FOUND = "build_not_found"
     BUILD_NOT_SUCCEEDED = "build_not_succeeded"
     BUILD_SOURCE_REGION_MISMATCH = "build_source_region_mismatch"

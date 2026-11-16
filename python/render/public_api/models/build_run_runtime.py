@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildRunRuntime(str, Enum):
+class BuildRunRuntime(StrEnum):
     DOCKER = "docker"
     ELIXIR = "elixir"
     GO = "go"

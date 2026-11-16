@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -18,15 +19,19 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/objects/{owner_id}/{region}/{key}",
+        "url": "/objects/{owner_id}/{region}/{key}".format(
+            owner_id=quote(str(owner_id), safe=""),
+            region=quote(str(region), safe=""),
+            key=quote(str(key), safe=""),
+        ),
     }
 
     return _kwargs
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, GetObjectOutput]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | GetObjectOutput | None:
     if response.status_code == 200:
         response_200 = GetObjectOutput.from_dict(response.json())
 
@@ -69,8 +74,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, GetObjectOutput]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | GetObjectOutput]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -84,8 +89,8 @@ def sync_detailed(
     region: Region,
     key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, GetObjectOutput]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | GetObjectOutput]:
     """Get presigned URL to download an object
 
      Returns a presigned URL for downloading the object at the specified key.
@@ -98,10 +103,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetObjectOutput]]
+        Response[Error | GetObjectOutput]
     """
 
     kwargs = _get_kwargs(
@@ -122,8 +127,8 @@ def sync(
     region: Region,
     key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, GetObjectOutput]]:
+    client: AuthenticatedClient | Client,
+) -> Error | GetObjectOutput | None:
     """Get presigned URL to download an object
 
      Returns a presigned URL for downloading the object at the specified key.
@@ -136,10 +141,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetObjectOutput]
+        Error | GetObjectOutput
     """
 
     return sync_detailed(
@@ -155,8 +160,8 @@ async def asyncio_detailed(
     region: Region,
     key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, GetObjectOutput]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | GetObjectOutput]:
     """Get presigned URL to download an object
 
      Returns a presigned URL for downloading the object at the specified key.
@@ -169,10 +174,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GetObjectOutput]]
+        Response[Error | GetObjectOutput]
     """
 
     kwargs = _get_kwargs(
@@ -191,8 +196,8 @@ async def asyncio(
     region: Region,
     key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, GetObjectOutput]]:
+    client: AuthenticatedClient | Client,
+) -> Error | GetObjectOutput | None:
     """Get presigned URL to download an object
 
      Returns a presigned URL for downloading the object at the specified key.
@@ -205,10 +210,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GetObjectOutput]
+        Error | GetObjectOutput
     """
 
     return (

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ListCustomDomainsDomainType(str, Enum):
+class ListCustomDomainsDomainType(StrEnum):
     APEX = "apex"
     SUBDOMAIN = "subdomain"
 

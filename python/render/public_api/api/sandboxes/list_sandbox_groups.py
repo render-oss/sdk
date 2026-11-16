@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,8 +13,8 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     *,
     owner_id: str,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -36,8 +36,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[SandboxGroupWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -90,8 +90,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[SandboxGroupWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -102,11 +102,11 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = UNSET,
-) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = UNSET,
+) -> Response[Error | list[SandboxGroupWithCursor]]:
     """List sandbox groups
 
      List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
@@ -115,15 +115,15 @@ def sync_detailed(
 
     Args:
         owner_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]):
+        cursor (str | Unset):
+        limit (int | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SandboxGroupWithCursor']]]
+        Response[Error | list[SandboxGroupWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -141,11 +141,11 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = UNSET,
-) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = UNSET,
+) -> Error | list[SandboxGroupWithCursor] | None:
     """List sandbox groups
 
      List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
@@ -154,15 +154,15 @@ def sync(
 
     Args:
         owner_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]):
+        cursor (str | Unset):
+        limit (int | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SandboxGroupWithCursor']]
+        Error | list[SandboxGroupWithCursor]
     """
 
     return sync_detailed(
@@ -175,11 +175,11 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = UNSET,
-) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = UNSET,
+) -> Response[Error | list[SandboxGroupWithCursor]]:
     """List sandbox groups
 
      List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
@@ -188,15 +188,15 @@ async def asyncio_detailed(
 
     Args:
         owner_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]):
+        cursor (str | Unset):
+        limit (int | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SandboxGroupWithCursor']]]
+        Response[Error | list[SandboxGroupWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -212,11 +212,11 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = UNSET,
-) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = UNSET,
+) -> Error | list[SandboxGroupWithCursor] | None:
     """List sandbox groups
 
      List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
@@ -225,15 +225,15 @@ async def asyncio(
 
     Args:
         owner_id (str):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]):
+        cursor (str | Unset):
+        limit (int | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SandboxGroupWithCursor']]
+        Error | list[SandboxGroupWithCursor]
     """
 
     return (

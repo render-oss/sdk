@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,23 +15,23 @@ T = TypeVar("T", bound="BlueprintPATCH")
 class BlueprintPATCH:
     """
     Attributes:
-        name (Union[Unset, str]):
-        auto_sync (Union[Unset, bool]): Configuration value that controls whether or not this blueprint will be re-
-            synced on each git push to the configured branch.
+        name (str | Unset):
+        auto_sync (bool | Unset): Configuration value that controls whether or not this blueprint will be re-synced on
+            each git push to the configured branch.
             Even when true, autoSync will not apply when the blueprint has the Created status, which indicates its first
             sync has not yet been approved.
             Other conditions, such as a locked workspace, can also prevent automatic syncing even when this is true.
-        path (Union[Unset, str]): Path to the Blueprint file in the repository Example: render.yaml.
-        branch (Union[Unset, str]): The Git branch to read the Blueprint file from. Requires Blueprint onboarding early
+        path (str | Unset): Path to the Blueprint file in the repository Example: render.yaml.
+        branch (str | Unset): The Git branch to read the Blueprint file from. Requires Blueprint onboarding early
             access.
             The branch must contain a Blueprint file at the configured path.
             Updating this field does not plan a sync.
     """
 
-    name: Union[Unset, str] = UNSET
-    auto_sync: Union[Unset, bool] = UNSET
-    path: Union[Unset, str] = UNSET
-    branch: Union[Unset, str] = UNSET
+    name: str | Unset = UNSET
+    auto_sync: bool | Unset = UNSET
+    path: str | Unset = UNSET
+    branch: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

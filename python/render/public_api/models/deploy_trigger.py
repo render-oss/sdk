@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DeployTrigger(str, Enum):
+class DeployTrigger(StrEnum):
     API = "api"
     BLUEPRINT_SYNC = "blueprint_sync"
     DEPLOYED_BY_RENDER = "deployed_by_render"

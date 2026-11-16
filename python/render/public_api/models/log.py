@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 if TYPE_CHECKING:
     from ..models.log_label import LogLabel
@@ -21,13 +22,13 @@ class Log:
         id (str): A unique ID of the log entry
         message (str): The message of the log entry
         timestamp (datetime.datetime): The timestamp of the log entry
-        labels (list['LogLabel']):
+        labels (list[LogLabel]):
     """
 
     id: str
     message: str
     timestamp: datetime.datetime
-    labels: list["LogLabel"]
+    labels: list[LogLabel]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -57,14 +58,14 @@ class Log:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.log_label import LogLabel
+        from ..models.log_label import LogLabel  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
         message = d.pop("message")
 
-        timestamp = isoparse(d.pop("timestamp"))
+        timestamp = datetime.datetime.fromisoformat(d.pop("timestamp"))
 
         labels = []
         _labels = d.pop("labels")

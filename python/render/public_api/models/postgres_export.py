@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -17,12 +18,12 @@ class PostgresExport:
     Attributes:
         id (str):
         created_at (datetime.datetime):
-        url (Union[Unset, str]): URL to download the Postgres export
+        url (str | Unset): URL to download the Postgres export
     """
 
     id: str
     created_at: datetime.datetime
-    url: Union[Unset, str] = UNSET
+    url: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -50,7 +51,7 @@ class PostgresExport:
         d = dict(src_dict)
         id = d.pop("id")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         url = d.pop("url", UNSET)
 

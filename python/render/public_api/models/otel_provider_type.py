@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class OtelProviderType(str, Enum):
+class OtelProviderType(StrEnum):
     BETTER_STACK = "BETTER_STACK"
     CUSTOM = "CUSTOM"
     DATADOG = "DATADOG"

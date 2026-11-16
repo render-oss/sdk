@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -16,13 +18,13 @@ class Image:
         owner_id (str): The ID of the owner for this image. This should match the owner of the service as well as the
             owner of any specified registry credential.
         image_path (str): Path to the image used for this server (e.g docker.io/library/nginx:latest).
-        registry_credential_id (Union[Unset, str]): Optional reference to the registry credential passed to the image
+        registry_credential_id (str | Unset): Optional reference to the registry credential passed to the image
             repository to retrieve this image.
     """
 
     owner_id: str
     image_path: str
-    registry_credential_id: Union[Unset, str] = UNSET
+    registry_credential_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

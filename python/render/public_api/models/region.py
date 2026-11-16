@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Region(str, Enum):
+class Region(StrEnum):
     FRANKFURT = "frankfurt"
     OHIO = "ohio"
     OREGON = "oregon"

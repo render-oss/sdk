@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -31,8 +31,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, PostgresDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | PostgresDetail | None:
     if response.status_code == 201:
         response_201 = PostgresDetail.from_dict(response.json())
 
@@ -75,8 +75,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, PostgresDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | PostgresDetail]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -87,9 +87,9 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: PostgresPOSTInput,
-) -> Response[Union[Error, PostgresDetail]]:
+) -> Response[Error | PostgresDetail]:
     """Create Postgres instance
 
      Create a new Postgres instance.
@@ -99,10 +99,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PostgresDetail]]
+        Response[Error | PostgresDetail]
     """
 
     kwargs = _get_kwargs(
@@ -118,9 +118,9 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: PostgresPOSTInput,
-) -> Optional[Union[Error, PostgresDetail]]:
+) -> Error | PostgresDetail | None:
     """Create Postgres instance
 
      Create a new Postgres instance.
@@ -130,10 +130,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PostgresDetail]
+        Error | PostgresDetail
     """
 
     return sync_detailed(
@@ -144,9 +144,9 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: PostgresPOSTInput,
-) -> Response[Union[Error, PostgresDetail]]:
+) -> Response[Error | PostgresDetail]:
     """Create Postgres instance
 
      Create a new Postgres instance.
@@ -156,10 +156,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PostgresDetail]]
+        Response[Error | PostgresDetail]
     """
 
     kwargs = _get_kwargs(
@@ -173,9 +173,9 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: PostgresPOSTInput,
-) -> Optional[Union[Error, PostgresDetail]]:
+) -> Error | PostgresDetail | None:
     """Create Postgres instance
 
      Create a new Postgres instance.
@@ -185,10 +185,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PostgresDetail]
+        Error | PostgresDetail
     """
 
     return (

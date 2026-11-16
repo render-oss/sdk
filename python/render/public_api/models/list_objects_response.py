@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,14 +19,14 @@ T = TypeVar("T", bound="ListObjectsResponse")
 class ListObjectsResponse:
     """
     Attributes:
-        items (list['ObjectWithCursor']):
+        items (list[ObjectWithCursor]):
         has_next (bool): Whether there are more results after this page.
-        next_cursor (Union[Unset, str]): Cursor to fetch the next page. Only present when hasNext is true.
+        next_cursor (str | Unset): Cursor to fetch the next page. Only present when hasNext is true.
     """
 
-    items: list["ObjectWithCursor"]
+    items: list[ObjectWithCursor]
     has_next: bool
-    next_cursor: Union[Unset, str] = UNSET
+    next_cursor: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -52,7 +54,7 @@ class ListObjectsResponse:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.object_with_cursor import ObjectWithCursor
+        from ..models.object_with_cursor import ObjectWithCursor  # noqa: PLC0415
 
         d = dict(src_dict)
         items = []

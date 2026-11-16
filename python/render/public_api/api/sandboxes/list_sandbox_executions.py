@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,9 +14,9 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     sandbox_id: str,
     *,
-    owner_id: Union[Unset, str] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    owner_id: str | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -29,7 +30,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/sandboxes/{sandbox_id}/execs",
+        "url": "/sandboxes/{sandbox_id}/execs".format(
+            sandbox_id=quote(str(sandbox_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -37,8 +40,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[ExecutionWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -91,8 +94,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[ExecutionWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -104,27 +107,27 @@ def _build_response(
 def sync_detailed(
     sandbox_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ExecutionWithCursor]]:
     """List executions
 
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (str | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ExecutionWithCursor']]]
+        Response[Error | list[ExecutionWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -144,27 +147,27 @@ def sync_detailed(
 def sync(
     sandbox_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ExecutionWithCursor] | None:
     """List executions
 
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (str | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ExecutionWithCursor']]
+        Error | list[ExecutionWithCursor]
     """
 
     return sync_detailed(
@@ -179,27 +182,27 @@ def sync(
 async def asyncio_detailed(
     sandbox_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ExecutionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ExecutionWithCursor]]:
     """List executions
 
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (str | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ExecutionWithCursor']]]
+        Response[Error | list[ExecutionWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -217,27 +220,27 @@ async def asyncio_detailed(
 async def asyncio(
     sandbox_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ExecutionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ExecutionWithCursor] | None:
     """List executions
 
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (str | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ExecutionWithCursor']]
+        Error | list[ExecutionWithCursor]
     """
 
     return (

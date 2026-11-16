@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -21,38 +23,38 @@ class KeyValuePATCHInput:
     """Input type for updating a Key Value instance
 
     Attributes:
-        name (Union[Unset, str]): The name of the Key Value instance
-        plan (Union[Unset, KeyValuePlan]):
-        maxmemory_policy (Union[Unset, MaxmemoryPolicy]): The eviction policy for the Key Value instance
-        persistence_mode (Union[Unset, PersistenceMode]): The persistence mode for the Key Value instance. The default
-            for paid instances is journal_snapshot (both journaling and snapshots). Only turn off persistence if you're
-            using this Key Value instance as a cache and are okay with losing data. Free instances do not have persistence.
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        name (str | Unset): The name of the Key Value instance
+        plan (KeyValuePlan | Unset):
+        maxmemory_policy (MaxmemoryPolicy | Unset): The eviction policy for the Key Value instance
+        persistence_mode (PersistenceMode | Unset): The persistence mode for the Key Value instance. The default for
+            paid instances is journal_snapshot (both journaling and snapshots). Only turn off persistence if you're using
+            this Key Value instance as a cache and are okay with losing data. Free instances do not have persistence.
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
     """
 
-    name: Union[Unset, str] = UNSET
-    plan: Union[Unset, KeyValuePlan] = UNSET
-    maxmemory_policy: Union[Unset, MaxmemoryPolicy] = UNSET
-    persistence_mode: Union[Unset, PersistenceMode] = UNSET
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    name: str | Unset = UNSET
+    plan: KeyValuePlan | Unset = UNSET
+    maxmemory_policy: MaxmemoryPolicy | Unset = UNSET
+    persistence_mode: PersistenceMode | Unset = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         name = self.name
 
-        plan: Union[Unset, str] = UNSET
+        plan: str | Unset = UNSET
         if not isinstance(self.plan, Unset):
             plan = self.plan.value
 
-        maxmemory_policy: Union[Unset, str] = UNSET
+        maxmemory_policy: str | Unset = UNSET
         if not isinstance(self.maxmemory_policy, Unset):
             maxmemory_policy = self.maxmemory_policy.value
 
-        persistence_mode: Union[Unset, str] = UNSET
+        persistence_mode: str | Unset = UNSET
         if not isinstance(self.persistence_mode, Unset):
             persistence_mode = self.persistence_mode.value
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
@@ -77,38 +79,40 @@ class KeyValuePATCHInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name", UNSET)
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, KeyValuePlan]
+        plan: KeyValuePlan | Unset
         if isinstance(_plan, Unset):
             plan = UNSET
         else:
             plan = KeyValuePlan(_plan)
 
         _maxmemory_policy = d.pop("maxmemoryPolicy", UNSET)
-        maxmemory_policy: Union[Unset, MaxmemoryPolicy]
+        maxmemory_policy: MaxmemoryPolicy | Unset
         if isinstance(_maxmemory_policy, Unset):
             maxmemory_policy = UNSET
         else:
             maxmemory_policy = MaxmemoryPolicy(_maxmemory_policy)
 
         _persistence_mode = d.pop("persistenceMode", UNSET)
-        persistence_mode: Union[Unset, PersistenceMode]
+        persistence_mode: PersistenceMode | Unset
         if isinstance(_persistence_mode, Unset):
             persistence_mode = UNSET
         else:
             persistence_mode = PersistenceMode(_persistence_mode)
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         key_value_patch_input = cls(
             name=name,

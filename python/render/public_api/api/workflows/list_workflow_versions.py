@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -12,27 +12,27 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
     params["ownerId"] = json_owner_id
 
-    json_workflow_id: Union[Unset, list[str]] = UNSET
+    json_workflow_id: list[str] | Unset = UNSET
     if not isinstance(workflow_id, Unset):
         json_workflow_id = workflow_id
 
     params["workflowID"] = json_workflow_id
 
-    json_workflow_version_id: Union[Unset, list[str]] = UNSET
+    json_workflow_version_id: list[str] | Unset = UNSET
     if not isinstance(workflow_version_id, Unset):
         json_workflow_version_id = workflow_version_id
 
@@ -54,8 +54,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[WorkflowVersionWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -103,8 +103,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[WorkflowVersionWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -115,30 +115,30 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[WorkflowVersionWithCursor]]:
     """List workflow versions
 
      List known versions of the workflow service with the provided ID.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WorkflowVersionWithCursor']]]
+        Response[Error | list[WorkflowVersionWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -158,30 +158,30 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[WorkflowVersionWithCursor] | None:
     """List workflow versions
 
      List known versions of the workflow service with the provided ID.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WorkflowVersionWithCursor']]
+        Error | list[WorkflowVersionWithCursor]
     """
 
     return sync_detailed(
@@ -196,30 +196,30 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[WorkflowVersionWithCursor]]:
     """List workflow versions
 
      List known versions of the workflow service with the provided ID.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WorkflowVersionWithCursor']]]
+        Response[Error | list[WorkflowVersionWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -237,30 +237,30 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    workflow_id: Union[Unset, list[str]] = UNSET,
-    workflow_version_id: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["WorkflowVersionWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    workflow_id: list[str] | Unset = UNSET,
+    workflow_version_id: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[WorkflowVersionWithCursor] | None:
     """List workflow versions
 
      List known versions of the workflow service with the provided ID.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        workflow_id (Union[Unset, list[str]]):
-        workflow_version_id (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        workflow_id (list[str] | Unset):
+        workflow_version_id (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WorkflowVersionWithCursor']]
+        Error | list[WorkflowVersionWithCursor]
     """
 
     return (

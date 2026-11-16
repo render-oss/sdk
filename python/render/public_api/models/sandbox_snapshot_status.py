@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxSnapshotStatus(str, Enum):
+class SandboxSnapshotStatus(StrEnum):
     AVAILABLE = "available"
     CREATING = "creating"
     FAILED = "failed"

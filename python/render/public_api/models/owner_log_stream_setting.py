@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,14 +17,14 @@ class OwnerLogStreamSetting:
     """Owner log stream settings
 
     Attributes:
-        owner_id (Union[Unset, str]): The ID of the owner.
-        endpoint (Union[Unset, str]): The endpoint to stream logs to.
-        preview (Union[Unset, LogStreamPreviewSetting]): Whether to send logs or drop them.
+        owner_id (str | Unset): The ID of the owner.
+        endpoint (str | Unset): The endpoint to stream logs to.
+        preview (LogStreamPreviewSetting | Unset): Whether to send logs or drop them.
     """
 
-    owner_id: Union[Unset, str] = UNSET
-    endpoint: Union[Unset, str] = UNSET
-    preview: Union[Unset, LogStreamPreviewSetting] = UNSET
+    owner_id: str | Unset = UNSET
+    endpoint: str | Unset = UNSET
+    preview: LogStreamPreviewSetting | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -30,7 +32,7 @@ class OwnerLogStreamSetting:
 
         endpoint = self.endpoint
 
-        preview: Union[Unset, str] = UNSET
+        preview: str | Unset = UNSET
         if not isinstance(self.preview, Unset):
             preview = self.preview.value
 
@@ -54,7 +56,7 @@ class OwnerLogStreamSetting:
         endpoint = d.pop("endpoint", UNSET)
 
         _preview = d.pop("preview", UNSET)
-        preview: Union[Unset, LogStreamPreviewSetting]
+        preview: LogStreamPreviewSetting | Unset
         if isinstance(_preview, Unset):
             preview = UNSET
         else:

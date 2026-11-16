@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -24,31 +26,30 @@ class SandboxCredentialUpdate:
     the secret value is unchanged. The credential ID cannot be changed.
 
         Attributes:
-            value (Union[Unset, str]): The replacement secret value, up to 5 KiB (5120 UTF-8 bytes). Requires an admin. Omit
-                to preserve the current value.
-            domain (Union[Unset, str]): The destination hostname to match for credential injection. Must be a public DNS
-                hostname. Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or
-                internal hostnames are not supported. Omit to preserve the current hostname.
-            enabled (Union[Unset, bool]): Whether this credential is enabled for injection. Omit to preserve the current
-                setting.
-            methods (Union[Unset, list[str]]): The HTTP methods to match for credential injection. Supported methods are
-                GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method.
-                Omit to preserve the current filter.
-            paths (Union[Unset, list[str]]): The request path patterns to match for credential injection. Each pattern must
-                match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments.
-                Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`.
-                Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do
-                not affect matching. An empty list matches any path. Omit to preserve the current filter.
-            injection (Union[Unset, SandboxCredentialInjection]): Settings for injecting the secret value into matching
-                outbound HTTPS requests.
+            value (str | Unset): The replacement secret value, up to 5 KiB (5120 UTF-8 bytes). Requires an admin. Omit to
+                preserve the current value.
+            domain (str | Unset): The destination hostname to match for credential injection. Must be a public DNS hostname.
+                Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal
+                hostnames are not supported. Omit to preserve the current hostname.
+            enabled (bool | Unset): Whether this credential is enabled for injection. Omit to preserve the current setting.
+            methods (list[str] | Unset): The HTTP methods to match for credential injection. Supported methods are GET,
+                HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method. Omit to
+                preserve the current filter.
+            paths (list[str] | Unset): The request path patterns to match for credential injection. Each pattern must match
+                the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must
+                occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches
+                `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect
+                matching. An empty list matches any path. Omit to preserve the current filter.
+            injection (SandboxCredentialInjection | Unset): Settings for injecting the secret value into matching outbound
+                HTTPS requests.
     """
 
-    value: Union[Unset, str] = UNSET
-    domain: Union[Unset, str] = UNSET
-    enabled: Union[Unset, bool] = UNSET
-    methods: Union[Unset, list[str]] = UNSET
-    paths: Union[Unset, list[str]] = UNSET
-    injection: Union[Unset, "SandboxCredentialInjection"] = UNSET
+    value: str | Unset = UNSET
+    domain: str | Unset = UNSET
+    enabled: bool | Unset = UNSET
+    methods: list[str] | Unset = UNSET
+    paths: list[str] | Unset = UNSET
+    injection: SandboxCredentialInjection | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -58,15 +59,15 @@ class SandboxCredentialUpdate:
 
         enabled = self.enabled
 
-        methods: Union[Unset, list[str]] = UNSET
+        methods: list[str] | Unset = UNSET
         if not isinstance(self.methods, Unset):
             methods = self.methods
 
-        paths: Union[Unset, list[str]] = UNSET
+        paths: list[str] | Unset = UNSET
         if not isinstance(self.paths, Unset):
             paths = self.paths
 
-        injection: Union[Unset, dict[str, Any]] = UNSET
+        injection: dict[str, Any] | Unset = UNSET
         if not isinstance(self.injection, Unset):
             injection = self.injection.to_dict()
 
@@ -90,7 +91,7 @@ class SandboxCredentialUpdate:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_credential_injection import SandboxCredentialInjection
+        from ..models.sandbox_credential_injection import SandboxCredentialInjection  # noqa: PLC0415
 
         d = dict(src_dict)
         value = d.pop("value", UNSET)
@@ -104,7 +105,7 @@ class SandboxCredentialUpdate:
         paths = cast(list[str], d.pop("paths", UNSET))
 
         _injection = d.pop("injection", UNSET)
-        injection: Union[Unset, SandboxCredentialInjection]
+        injection: SandboxCredentialInjection | Unset
         if isinstance(_injection, Unset):
             injection = UNSET
         else:

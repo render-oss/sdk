@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.flow_run_status import FlowRunStatus
 from ..types import UNSET, Unset
@@ -25,27 +26,27 @@ class FlowRunDetails:
         id (str):  Example: frn-d0hp8fs9c44c73a6f1qg.
         flow_id (str):  Example: flw-d0hp8fs9c44c73a6f1qg.
         status (FlowRunStatus): The status of a flow run.
-        input_ (Union['FlowInputType1', list[Any]]): Input data for a flow. Can be either an array (for positional
-            arguments) or an object (for named parameters).
+        input_ (FlowInputType1 | list[Any]): Input data for a flow. Can be either an array (for positional arguments) or
+            an object (for named parameters).
         results (list[Any]):
-        attempts (list['FlowRunAttempt']): The flow run's attempts. A flow run gets a new attempt when it resumes after
+        attempts (list[FlowRunAttempt]): The flow run's attempts. A flow run gets a new attempt when it resumes after
             its process is interrupted; it replays completed steps instead of rerunning them.
-        started_at (Union[Unset, datetime.datetime]):
-        completed_at (Union[Unset, datetime.datetime]):
-        error (Union[Unset, str]): Error message if the flow run failed.
-        error_details (Union[Unset, FlowRunErrorDetails]):
+        started_at (datetime.datetime | Unset):
+        completed_at (datetime.datetime | Unset):
+        error (str | Unset): Error message if the flow run failed.
+        error_details (FlowRunErrorDetails | Unset):
     """
 
     id: str
     flow_id: str
     status: FlowRunStatus
-    input_: Union["FlowInputType1", list[Any]]
+    input_: FlowInputType1 | list[Any]
     results: list[Any]
-    attempts: list["FlowRunAttempt"]
-    started_at: Union[Unset, datetime.datetime] = UNSET
-    completed_at: Union[Unset, datetime.datetime] = UNSET
-    error: Union[Unset, str] = UNSET
-    error_details: Union[Unset, "FlowRunErrorDetails"] = UNSET
+    attempts: list[FlowRunAttempt]
+    started_at: datetime.datetime | Unset = UNSET
+    completed_at: datetime.datetime | Unset = UNSET
+    error: str | Unset = UNSET
+    error_details: FlowRunErrorDetails | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -55,7 +56,7 @@ class FlowRunDetails:
 
         status = self.status.value
 
-        input_: Union[dict[str, Any], list[Any]]
+        input_: dict[str, Any] | list[Any]
         if isinstance(self.input_, list):
             input_ = self.input_
 
@@ -69,17 +70,17 @@ class FlowRunDetails:
             attempts_item = attempts_item_data.to_dict()
             attempts.append(attempts_item)
 
-        started_at: Union[Unset, str] = UNSET
+        started_at: str | Unset = UNSET
         if not isinstance(self.started_at, Unset):
             started_at = self.started_at.isoformat()
 
-        completed_at: Union[Unset, str] = UNSET
+        completed_at: str | Unset = UNSET
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
         error = self.error
 
-        error_details: Union[Unset, dict[str, Any]] = UNSET
+        error_details: dict[str, Any] | Unset = UNSET
         if not isinstance(self.error_details, Unset):
             error_details = self.error_details.to_dict()
 
@@ -108,9 +109,9 @@ class FlowRunDetails:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.flow_input_type_1 import FlowInputType1
-        from ..models.flow_run_attempt import FlowRunAttempt
-        from ..models.flow_run_error_details import FlowRunErrorDetails
+        from ..models.flow_input_type_1 import FlowInputType1  # noqa: PLC0415
+        from ..models.flow_run_attempt import FlowRunAttempt  # noqa: PLC0415
+        from ..models.flow_run_error_details import FlowRunErrorDetails  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -119,14 +120,14 @@ class FlowRunDetails:
 
         status = FlowRunStatus(d.pop("status"))
 
-        def _parse_input_(data: object) -> Union["FlowInputType1", list[Any]]:
+        def _parse_input_(data: object) -> FlowInputType1 | list[Any]:
             try:
                 if not isinstance(data, list):
                     raise TypeError()
                 componentsschemas_flow_input_type_0 = cast(list[Any], data)
 
                 return componentsschemas_flow_input_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -146,23 +147,23 @@ class FlowRunDetails:
             attempts.append(attempts_item)
 
         _started_at = d.pop("startedAt", UNSET)
-        started_at: Union[Unset, datetime.datetime]
+        started_at: datetime.datetime | Unset
         if isinstance(_started_at, Unset):
             started_at = UNSET
         else:
-            started_at = isoparse(_started_at)
+            started_at = datetime.datetime.fromisoformat(_started_at)
 
         _completed_at = d.pop("completedAt", UNSET)
-        completed_at: Union[Unset, datetime.datetime]
+        completed_at: datetime.datetime | Unset
         if isinstance(_completed_at, Unset):
             completed_at = UNSET
         else:
-            completed_at = isoparse(_completed_at)
+            completed_at = datetime.datetime.fromisoformat(_completed_at)
 
         error = d.pop("error", UNSET)
 
         _error_details = d.pop("errorDetails", UNSET)
-        error_details: Union[Unset, FlowRunErrorDetails]
+        error_details: FlowRunErrorDetails | Unset
         if isinstance(_error_details, Unset):
             error_details = UNSET
         else:

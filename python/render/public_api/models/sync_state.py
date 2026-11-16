@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SyncState(str, Enum):
+class SyncState(StrEnum):
     CREATED = "created"
     ERROR = "error"
     PENDING = "pending"

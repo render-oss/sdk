@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NotifySetting(str, Enum):
+class NotifySetting(StrEnum):
     DEFAULT = "default"
     IGNORE = "ignore"
     NOTIFY = "notify"

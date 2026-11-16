@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -41,8 +43,8 @@ class SandboxCredential:
                 matching. An empty list matches any path.
             injection (SandboxCredentialInjection): Settings for injecting the secret value into matching outbound HTTPS
                 requests.
-            version (Union[Unset, SandboxCredentialVersion]): Metadata for a credential version. These endpoints do not
-                return secret values.
+            version (SandboxCredentialVersion | Unset): Metadata for a credential version. These endpoints do not return
+                secret values.
     """
 
     id: str
@@ -50,8 +52,8 @@ class SandboxCredential:
     enabled: bool
     methods: list[str]
     paths: list[str]
-    injection: "SandboxCredentialInjection"
-    version: Union[Unset, "SandboxCredentialVersion"] = UNSET
+    injection: SandboxCredentialInjection
+    version: SandboxCredentialVersion | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -67,7 +69,7 @@ class SandboxCredential:
 
         injection = self.injection.to_dict()
 
-        version: Union[Unset, dict[str, Any]] = UNSET
+        version: dict[str, Any] | Unset = UNSET
         if not isinstance(self.version, Unset):
             version = self.version.to_dict()
 
@@ -90,8 +92,8 @@ class SandboxCredential:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_credential_injection import SandboxCredentialInjection
-        from ..models.sandbox_credential_version import SandboxCredentialVersion
+        from ..models.sandbox_credential_injection import SandboxCredentialInjection  # noqa: PLC0415
+        from ..models.sandbox_credential_version import SandboxCredentialVersion  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
@@ -107,7 +109,7 @@ class SandboxCredential:
         injection = SandboxCredentialInjection.from_dict(d.pop("injection"))
 
         _version = d.pop("version", UNSET)
-        version: Union[Unset, SandboxCredentialVersion]
+        version: SandboxCredentialVersion | Unset
         if isinstance(_version, Unset):
             version = UNSET
         else:

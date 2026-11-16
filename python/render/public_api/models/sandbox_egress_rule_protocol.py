@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxEgressRuleProtocol(str, Enum):
+class SandboxEgressRuleProtocol(StrEnum):
     HTTPS = "https"
 
     def __str__(self) -> str:

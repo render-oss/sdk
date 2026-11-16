@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -21,30 +23,30 @@ class BuildSourceGit:
     Attributes:
         runtime (BuildSourceGitRuntime): Build runtime for the build source. Static sites are not supported for build
             sources.
-        branch (Union[Unset, str]):
-        build_command (Union[Unset, str]):
-        build_filter (Union[Unset, SchemasBuildFilter]): Glob patterns matched against files changed by a commit. When
-            set, a commit only triggers a build when at least one changed file matches `paths` and none match
-            `ignoredPaths`. Useful for monorepos where a single repo backs many services.
-        docker_context (Union[Unset, str]): Directory passed to `docker build` as the build context, relative to the
+        branch (str | Unset):
+        build_command (str | Unset):
+        build_filter (SchemasBuildFilter | Unset): Glob patterns matched against files changed by a commit. When set, a
+            commit only triggers a build when at least one changed file matches `paths` and none match `ignoredPaths`.
+            Useful for monorepos where a single repo backs many services.
+        docker_context (str | Unset): Directory passed to `docker build` as the build context, relative to the
             repository root. Only valid for the `docker` runtime. Defaults to ".".
-        dockerfile_path (Union[Unset, str]):
-        registry_credential_id (Union[Unset, str]):
-        region (Union[Unset, BuildSourceGitRegion]): Defaults to "oregon" Default: BuildSourceGitRegion.OREGON.
-        repo_url (Union[Unset, str]):
-        root_dir (Union[Unset, str]):
+        dockerfile_path (str | Unset):
+        registry_credential_id (str | Unset):
+        region (BuildSourceGitRegion | Unset): Defaults to "oregon" Default: BuildSourceGitRegion.OREGON.
+        repo_url (str | Unset):
+        root_dir (str | Unset):
     """
 
     runtime: BuildSourceGitRuntime
-    branch: Union[Unset, str] = UNSET
-    build_command: Union[Unset, str] = UNSET
-    build_filter: Union[Unset, "SchemasBuildFilter"] = UNSET
-    docker_context: Union[Unset, str] = UNSET
-    dockerfile_path: Union[Unset, str] = UNSET
-    registry_credential_id: Union[Unset, str] = UNSET
-    region: Union[Unset, BuildSourceGitRegion] = BuildSourceGitRegion.OREGON
-    repo_url: Union[Unset, str] = UNSET
-    root_dir: Union[Unset, str] = UNSET
+    branch: str | Unset = UNSET
+    build_command: str | Unset = UNSET
+    build_filter: SchemasBuildFilter | Unset = UNSET
+    docker_context: str | Unset = UNSET
+    dockerfile_path: str | Unset = UNSET
+    registry_credential_id: str | Unset = UNSET
+    region: BuildSourceGitRegion | Unset = BuildSourceGitRegion.OREGON
+    repo_url: str | Unset = UNSET
+    root_dir: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -54,7 +56,7 @@ class BuildSourceGit:
 
         build_command = self.build_command
 
-        build_filter: Union[Unset, dict[str, Any]] = UNSET
+        build_filter: dict[str, Any] | Unset = UNSET
         if not isinstance(self.build_filter, Unset):
             build_filter = self.build_filter.to_dict()
 
@@ -64,7 +66,7 @@ class BuildSourceGit:
 
         registry_credential_id = self.registry_credential_id
 
-        region: Union[Unset, str] = UNSET
+        region: str | Unset = UNSET
         if not isinstance(self.region, Unset):
             region = self.region.value
 
@@ -102,7 +104,7 @@ class BuildSourceGit:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.schemas_build_filter import SchemasBuildFilter
+        from ..models.schemas_build_filter import SchemasBuildFilter  # noqa: PLC0415
 
         d = dict(src_dict)
         runtime = BuildSourceGitRuntime(d.pop("runtime"))
@@ -112,7 +114,7 @@ class BuildSourceGit:
         build_command = d.pop("buildCommand", UNSET)
 
         _build_filter = d.pop("buildFilter", UNSET)
-        build_filter: Union[Unset, SchemasBuildFilter]
+        build_filter: SchemasBuildFilter | Unset
         if isinstance(_build_filter, Unset):
             build_filter = UNSET
         else:
@@ -125,7 +127,7 @@ class BuildSourceGit:
         registry_credential_id = d.pop("registryCredentialId", UNSET)
 
         _region = d.pop("region", UNSET)
-        region: Union[Unset, BuildSourceGitRegion]
+        region: BuildSourceGitRegion | Unset
         if isinstance(_region, Unset):
             region = UNSET
         else:

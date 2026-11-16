@@ -6,7 +6,6 @@ from render.public_api.models.get_bandwidth_sources_response_200_data_item_value
     T as T,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     _attrs_define as _attrs_define,
     _attrs_field as _attrs_field,

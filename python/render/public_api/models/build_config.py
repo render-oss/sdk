@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,15 +20,15 @@ class BuildConfig:
             builds from its Dockerfile.
         repo (str): The repository URL to use for the build. Cannot be blank.
         runtime (Runtime): The runtime environment for the workflow (e.g., node, python, etc.).
-        branch (Union[Unset, str]): The branch to use for the build, if applicable.
-        root_dir (Union[Unset, str]): The root directory of the repository to use for the build, if applicable.
+        branch (str | Unset): The branch to use for the build, if applicable.
+        root_dir (str | Unset): The root directory of the repository to use for the build, if applicable.
     """
 
     build_command: str
     repo: str
     runtime: Runtime
-    branch: Union[Unset, str] = UNSET
-    root_dir: Union[Unset, str] = UNSET
+    branch: str | Unset = UNSET
+    root_dir: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

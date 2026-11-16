@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxCredentialInjectionType(str, Enum):
+class SandboxCredentialInjectionType(StrEnum):
     BASIC = "basic"
     COOKIE = "cookie"
     HEADER = "header"

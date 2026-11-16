@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
@@ -22,7 +24,7 @@ class PostgresPutParameterOverridesResult:
     """
 
     affected_databases: list[str]
-    applied_overrides: "PostgresParameterOverrides"
+    applied_overrides: PostgresParameterOverrides
     requires_restart: bool
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -47,7 +49,7 @@ class PostgresPutParameterOverridesResult:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides  # noqa: PLC0415
 
         d = dict(src_dict)
         affected_databases = cast(list[str], d.pop("affectedDatabases"))

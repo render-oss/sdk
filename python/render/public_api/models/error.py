@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,16 +15,16 @@ T = TypeVar("T", bound="Error")
 class Error:
     """
     Attributes:
-        id (Union[Unset, str]):
-        message (Union[Unset, str]):
-        code (Union[Unset, str]): A stable, machine-readable identifier present on specific errors that clients can
-            handle specially. Each endpoint documents the codes it can return. The errorCode schema lists the full
-            vocabulary of codes.
+        id (str | Unset):
+        message (str | Unset):
+        code (str | Unset): A stable, machine-readable identifier present on specific errors that clients can handle
+            specially. Each endpoint documents the codes it can return. The errorCode schema lists the full vocabulary of
+            codes.
     """
 
-    id: Union[Unset, str] = UNSET
-    message: Union[Unset, str] = UNSET
-    code: Union[Unset, str] = UNSET
+    id: str | Unset = UNSET
+    message: str | Unset = UNSET
+    code: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

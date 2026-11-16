@@ -7,7 +7,7 @@ from collections.abc import Awaitable, Callable, Generator
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, NoReturn
 
-import httpx
+import httpx2
 
 from render.client.errors import (
     ClientError,
@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def handle_http_error(response: httpx.Response, operation: str) -> None:
+def handle_http_error(response: httpx2.Response, operation: str) -> None:
     """
     Translate HTTP response errors into appropriate custom exceptions.
 
@@ -94,7 +94,7 @@ def storage_error_message(status_code: int) -> str:
     return "unexpected error"
 
 
-def handle_storage_http_error(response: httpx.Response, operation: str) -> None:
+def handle_storage_http_error(response: httpx2.Response, operation: str) -> None:
     """
     Translate HTTP response errors from storage operations into appropriate exceptions.
 
@@ -137,13 +137,13 @@ def handle_httpx_exception(exc: Exception, operation: str = "HTTP request") -> N
         ClientError: For other client-side errors
         ServerError: For connection errors that might indicate server issues
     """
-    if isinstance(exc, httpx.TimeoutException):
+    if isinstance(exc, httpx2.TimeoutException):
         raise TimeoutError(f"{operation} timed out: {exc}") from exc
     elif isinstance(
-        exc, (httpx.ConnectError, httpx.NetworkError, httpx.RemoteProtocolError)
+        exc, (httpx2.ConnectError, httpx2.NetworkError, httpx2.RemoteProtocolError)
     ):
         raise ServerError(f"{operation} failed due to network error: {exc}") from exc
-    elif isinstance(exc, httpx.RequestError):
+    elif isinstance(exc, httpx2.RequestError):
         raise ClientError(f"{operation} failed: {exc}") from exc
     else:
         # Fallback for other exceptions
@@ -225,7 +225,7 @@ def _handle_wrapper_exception(exc: Exception, operation: str) -> NoReturn:
     """
     if isinstance(exc, RenderError):
         raise exc
-    if isinstance(exc, httpx.RequestError):
+    if isinstance(exc, httpx2.RequestError):
         handle_httpx_exception(exc, operation)
     if isinstance(exc, json.JSONDecodeError):
         body = exc.doc.strip() if exc.doc else "empty response"
@@ -263,7 +263,7 @@ def handle_http_errors(operation: str):
     Example:
         @handle_http_errors("create task")
         async def create_task_api_call():
-            async with httpx.AsyncClient() as client:
+            async with httpx2.AsyncClient() as client:
                 response = await client.post("/tasks", json=data)
                 return response
     """

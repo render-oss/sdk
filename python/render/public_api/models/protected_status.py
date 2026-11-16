@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ProtectedStatus(str, Enum):
+class ProtectedStatus(StrEnum):
     PROTECTED = "protected"
     UNPROTECTED = "unprotected"
 

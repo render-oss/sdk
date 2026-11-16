@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,16 +19,16 @@ T = TypeVar("T", bound="OwnerWithCursor")
 class OwnerWithCursor:
     """
     Attributes:
-        owner (Union[Unset, Owner]):
-        cursor (Union[Unset, str]):
+        owner (Owner | Unset):
+        cursor (str | Unset):
     """
 
-    owner: Union[Unset, "Owner"] = UNSET
-    cursor: Union[Unset, str] = UNSET
+    owner: Owner | Unset = UNSET
+    cursor: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        owner: Union[Unset, dict[str, Any]] = UNSET
+        owner: dict[str, Any] | Unset = UNSET
         if not isinstance(self.owner, Unset):
             owner = self.owner.to_dict()
 
@@ -44,11 +46,11 @@ class OwnerWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.owner import Owner
+        from ..models.owner import Owner  # noqa: PLC0415
 
         d = dict(src_dict)
         _owner = d.pop("owner", UNSET)
-        owner: Union[Unset, Owner]
+        owner: Owner | Unset
         if isinstance(_owner, Unset):
             owner = UNSET
         else:

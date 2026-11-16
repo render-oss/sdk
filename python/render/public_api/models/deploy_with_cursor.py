@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,16 +19,16 @@ T = TypeVar("T", bound="DeployWithCursor")
 class DeployWithCursor:
     """
     Attributes:
-        deploy (Union[Unset, Deploy]):
-        cursor (Union[Unset, str]):
+        deploy (Deploy | Unset):
+        cursor (str | Unset):
     """
 
-    deploy: Union[Unset, "Deploy"] = UNSET
-    cursor: Union[Unset, str] = UNSET
+    deploy: Deploy | Unset = UNSET
+    cursor: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        deploy: Union[Unset, dict[str, Any]] = UNSET
+        deploy: dict[str, Any] | Unset = UNSET
         if not isinstance(self.deploy, Unset):
             deploy = self.deploy.to_dict()
 
@@ -44,11 +46,11 @@ class DeployWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.deploy import Deploy
+        from ..models.deploy import Deploy  # noqa: PLC0415
 
         d = dict(src_dict)
         _deploy = d.pop("deploy", UNSET)
-        deploy: Union[Unset, Deploy]
+        deploy: Deploy | Unset
         if isinstance(_deploy, Unset):
             deploy = UNSET
         else:

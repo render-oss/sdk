@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.maintenance_state import MaintenanceState
 from ..types import UNSET, Unset
@@ -20,15 +21,15 @@ class MaintenanceRun:
         type_ (str):
         scheduled_at (datetime.datetime):
         state (MaintenanceState):
-        pending_maintenance_by (Union[Unset, datetime.datetime]): If present, the maintenance run cannot be scheduled
-            for later than this date-time.
+        pending_maintenance_by (datetime.datetime | Unset): If present, the maintenance run cannot be scheduled for
+            later than this date-time.
     """
 
     id: str
     type_: str
     scheduled_at: datetime.datetime
     state: MaintenanceState
-    pending_maintenance_by: Union[Unset, datetime.datetime] = UNSET
+    pending_maintenance_by: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -40,7 +41,7 @@ class MaintenanceRun:
 
         state = self.state.value
 
-        pending_maintenance_by: Union[Unset, str] = UNSET
+        pending_maintenance_by: str | Unset = UNSET
         if not isinstance(self.pending_maintenance_by, Unset):
             pending_maintenance_by = self.pending_maintenance_by.isoformat()
 
@@ -66,16 +67,16 @@ class MaintenanceRun:
 
         type_ = d.pop("type")
 
-        scheduled_at = isoparse(d.pop("scheduledAt"))
+        scheduled_at = datetime.datetime.fromisoformat(d.pop("scheduledAt"))
 
         state = MaintenanceState(d.pop("state"))
 
         _pending_maintenance_by = d.pop("pendingMaintenanceBy", UNSET)
-        pending_maintenance_by: Union[Unset, datetime.datetime]
+        pending_maintenance_by: datetime.datetime | Unset
         if isinstance(_pending_maintenance_by, Unset):
             pending_maintenance_by = UNSET
         else:
-            pending_maintenance_by = isoparse(_pending_maintenance_by)
+            pending_maintenance_by = datetime.datetime.fromisoformat(_pending_maintenance_by)
 
         maintenance_run = cls(
             id=id,

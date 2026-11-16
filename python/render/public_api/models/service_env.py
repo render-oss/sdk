@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceEnv(str, Enum):
+class ServiceEnv(StrEnum):
     DOCKER = "docker"
     ELIXIR = "elixir"
     GO = "go"

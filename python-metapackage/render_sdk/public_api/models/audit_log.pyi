@@ -12,5 +12,4 @@ from render.public_api.models.audit_log import (
     TypeVar as TypeVar,
     _attrs_define as _attrs_define,
     _attrs_field as _attrs_field,
-    isoparse as isoparse,
 )

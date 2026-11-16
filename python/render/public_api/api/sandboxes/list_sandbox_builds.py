@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,10 +15,10 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     sandbox_group_id: str,
     *,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    name: Union[Unset, str] = UNSET,
-    status: Union[Unset, list[SandboxBuildStatus]] = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    name: str | Unset = UNSET,
+    status: list[SandboxBuildStatus] | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -27,7 +28,7 @@ def _get_kwargs(
 
     params["name"] = name
 
-    json_status: Union[Unset, list[str]] = UNSET
+    json_status: list[str] | Unset = UNSET
     if not isinstance(status, Unset):
         json_status = []
         for status_item_data in status:
@@ -40,7 +41,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/sandbox-groups/{sandbox_group_id}/builds",
+        "url": "/sandbox-groups/{sandbox_group_id}/builds".format(
+            sandbox_group_id=quote(str(sandbox_group_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -48,8 +51,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["SandboxBuildWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[SandboxBuildWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -102,8 +105,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["SandboxBuildWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[SandboxBuildWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -115,29 +118,29 @@ def _build_response(
 def sync_detailed(
     sandbox_group_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    name: Union[Unset, str] = UNSET,
-    status: Union[Unset, list[SandboxBuildStatus]] = UNSET,
-) -> Response[Union[Error, list["SandboxBuildWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    name: str | Unset = UNSET,
+    status: list[SandboxBuildStatus] | Unset = UNSET,
+) -> Response[Error | list[SandboxBuildWithCursor]]:
     """List sandbox builds
 
      List builds in a sandbox group, newest first.
 
     Args:
         sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        name (Union[Unset, str]):
-        status (Union[Unset, list[SandboxBuildStatus]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        name (str | Unset):
+        status (list[SandboxBuildStatus] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SandboxBuildWithCursor']]]
+        Response[Error | list[SandboxBuildWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -158,29 +161,29 @@ def sync_detailed(
 def sync(
     sandbox_group_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    name: Union[Unset, str] = UNSET,
-    status: Union[Unset, list[SandboxBuildStatus]] = UNSET,
-) -> Optional[Union[Error, list["SandboxBuildWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    name: str | Unset = UNSET,
+    status: list[SandboxBuildStatus] | Unset = UNSET,
+) -> Error | list[SandboxBuildWithCursor] | None:
     """List sandbox builds
 
      List builds in a sandbox group, newest first.
 
     Args:
         sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        name (Union[Unset, str]):
-        status (Union[Unset, list[SandboxBuildStatus]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        name (str | Unset):
+        status (list[SandboxBuildStatus] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SandboxBuildWithCursor']]
+        Error | list[SandboxBuildWithCursor]
     """
 
     return sync_detailed(
@@ -196,29 +199,29 @@ def sync(
 async def asyncio_detailed(
     sandbox_group_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    name: Union[Unset, str] = UNSET,
-    status: Union[Unset, list[SandboxBuildStatus]] = UNSET,
-) -> Response[Union[Error, list["SandboxBuildWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    name: str | Unset = UNSET,
+    status: list[SandboxBuildStatus] | Unset = UNSET,
+) -> Response[Error | list[SandboxBuildWithCursor]]:
     """List sandbox builds
 
      List builds in a sandbox group, newest first.
 
     Args:
         sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        name (Union[Unset, str]):
-        status (Union[Unset, list[SandboxBuildStatus]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        name (str | Unset):
+        status (list[SandboxBuildStatus] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['SandboxBuildWithCursor']]]
+        Response[Error | list[SandboxBuildWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -237,29 +240,29 @@ async def asyncio_detailed(
 async def asyncio(
     sandbox_group_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-    name: Union[Unset, str] = UNSET,
-    status: Union[Unset, list[SandboxBuildStatus]] = UNSET,
-) -> Optional[Union[Error, list["SandboxBuildWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+    name: str | Unset = UNSET,
+    status: list[SandboxBuildStatus] | Unset = UNSET,
+) -> Error | list[SandboxBuildWithCursor] | None:
     """List sandbox builds
 
      List builds in a sandbox group, newest first.
 
     Args:
         sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        name (Union[Unset, str]):
-        status (Union[Unset, list[SandboxBuildStatus]]):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        name (str | Unset):
+        status (list[SandboxBuildStatus] | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['SandboxBuildWithCursor']]
+        Error | list[SandboxBuildWithCursor]
     """
 
     return (

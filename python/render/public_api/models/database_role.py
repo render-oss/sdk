@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DatabaseRole(str, Enum):
+class DatabaseRole(StrEnum):
     PRIMARY = "primary"
     REPLICA = "replica"
 

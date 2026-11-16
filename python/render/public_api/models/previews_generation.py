@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PreviewsGeneration(str, Enum):
+class PreviewsGeneration(StrEnum):
     AUTOMATIC = "automatic"
     MANUAL = "manual"
     OFF = "off"

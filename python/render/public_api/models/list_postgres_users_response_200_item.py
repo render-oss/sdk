@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,16 +15,16 @@ T = TypeVar("T", bound="ListPostgresUsersResponse200Item")
 class ListPostgresUsersResponse200Item:
     """
     Attributes:
-        username (Union[Unset, str]):
-        default (Union[Unset, bool]):
-        created_at (Union[Unset, str]):
-        open_connections (Union[Unset, int]):
+        username (str | Unset):
+        default (bool | Unset):
+        created_at (str | Unset):
+        open_connections (int | Unset):
     """
 
-    username: Union[Unset, str] = UNSET
-    default: Union[Unset, bool] = UNSET
-    created_at: Union[Unset, str] = UNSET
-    open_connections: Union[Unset, int] = UNSET
+    username: str | Unset = UNSET
+    default: bool | Unset = UNSET
+    created_at: str | Unset = UNSET
+    open_connections: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

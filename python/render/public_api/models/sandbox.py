@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.sandbox_plan import SandboxPlan
 from ..models.sandbox_status import SandboxStatus
@@ -25,7 +26,7 @@ class Sandbox:
     Attributes:
         id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         status (SandboxStatus): The sandbox's current status.
-        plan (Union[SandboxPlan, str]): The sandbox's compute plan. See `sandboxPlan` for known values.
+        plan (SandboxPlan | str): The sandbox's compute plan. See `sandboxPlan` for known values.
         network_policy (SandboxNetworkPolicy): The policy that controls outbound traffic from the sandbox.
         region (str): The Render region where the sandbox runs. Example: oregon.
         timeout_seconds (int): The maximum time the sandbox can run continuously, in seconds. The sandbox terminates
@@ -36,26 +37,26 @@ class Sandbox:
             disables automatic idle suspension. Example: 900.
         created_at (datetime.datetime): The timestamp when the sandbox was created, in ISO 8601 format. Example:
             2026-04-01T18:30:00Z.
-        name (Union[None, Unset, str]): The label set when the sandbox was created.
-        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
-        terminated_at (Union[None, Unset, datetime.datetime]): The timestamp when the sandbox was terminated, in ISO
-            8601 format. Null if the sandbox has not been terminated.
-        shared_filesystems (Union[Unset, list['SandboxSharedFilesystem']]): Shared filesystems mounted in the sandbox.
-            Absent when there are none.
+        name (None | str | Unset): The label set when the sandbox was created.
+        sandbox_group_id (str | Unset): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        terminated_at (datetime.datetime | None | Unset): The timestamp when the sandbox was terminated, in ISO 8601
+            format. Null if the sandbox has not been terminated.
+        shared_filesystems (list[SandboxSharedFilesystem] | Unset): Shared filesystems mounted in the sandbox. Absent
+            when there are none.
     """
 
     id: str
     status: SandboxStatus
-    plan: Union[SandboxPlan, str]
-    network_policy: "SandboxNetworkPolicy"
+    plan: SandboxPlan | str
+    network_policy: SandboxNetworkPolicy
     region: str
     timeout_seconds: int
     idle_timeout_seconds: int
     created_at: datetime.datetime
-    name: Union[None, Unset, str] = UNSET
-    sandbox_group_id: Union[Unset, str] = UNSET
-    terminated_at: Union[None, Unset, datetime.datetime] = UNSET
-    shared_filesystems: Union[Unset, list["SandboxSharedFilesystem"]] = UNSET
+    name: None | str | Unset = UNSET
+    sandbox_group_id: str | Unset = UNSET
+    terminated_at: datetime.datetime | None | Unset = UNSET
+    shared_filesystems: list[SandboxSharedFilesystem] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -79,7 +80,7 @@ class Sandbox:
 
         created_at = self.created_at.isoformat()
 
-        name: Union[None, Unset, str]
+        name: None | str | Unset
         if isinstance(self.name, Unset):
             name = UNSET
         else:
@@ -87,7 +88,7 @@ class Sandbox:
 
         sandbox_group_id = self.sandbox_group_id
 
-        terminated_at: Union[None, Unset, str]
+        terminated_at: None | str | Unset
         if isinstance(self.terminated_at, Unset):
             terminated_at = UNSET
         elif isinstance(self.terminated_at, datetime.datetime):
@@ -95,7 +96,7 @@ class Sandbox:
         else:
             terminated_at = self.terminated_at
 
-        shared_filesystems: Union[Unset, list[dict[str, Any]]] = UNSET
+        shared_filesystems: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.shared_filesystems, Unset):
             shared_filesystems = []
             for shared_filesystems_item_data in self.shared_filesystems:
@@ -129,24 +130,24 @@ class Sandbox:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_network_policy import SandboxNetworkPolicy
-        from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem
+        from ..models.sandbox_network_policy import SandboxNetworkPolicy  # noqa: PLC0415
+        from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
         status = SandboxStatus(d.pop("status"))
 
-        def _parse_plan(data: object) -> Union[SandboxPlan, str]:
+        def _parse_plan(data: object) -> SandboxPlan | str:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
                 plan_type_0 = SandboxPlan(data)
 
                 return plan_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(Union[SandboxPlan, str], data)
+            return cast(SandboxPlan | str, data)
 
         plan = _parse_plan(d.pop("plan"))
 
@@ -158,20 +159,20 @@ class Sandbox:
 
         idle_timeout_seconds = d.pop("idleTimeoutSeconds", 900)
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        def _parse_name(data: object) -> Union[None, Unset, str]:
+        def _parse_name(data: object) -> None | str | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
                 return data
-            return cast(Union[None, Unset, str], data)
+            return cast(None | str | Unset, data)
 
         name = _parse_name(d.pop("name", UNSET))
 
         sandbox_group_id = d.pop("sandboxGroupId", UNSET)
 
-        def _parse_terminated_at(data: object) -> Union[None, Unset, datetime.datetime]:
+        def _parse_terminated_at(data: object) -> datetime.datetime | None | Unset:
             if data is None:
                 return data
             if isinstance(data, Unset):
@@ -179,21 +180,23 @@ class Sandbox:
             try:
                 if not isinstance(data, str):
                     raise TypeError()
-                terminated_at_type_0 = isoparse(data)
+                terminated_at_type_0 = datetime.datetime.fromisoformat(data)
 
                 return terminated_at_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
-            return cast(Union[None, Unset, datetime.datetime], data)
+            return cast(datetime.datetime | None | Unset, data)
 
         terminated_at = _parse_terminated_at(d.pop("terminatedAt", UNSET))
 
-        shared_filesystems = []
         _shared_filesystems = d.pop("sharedFilesystems", UNSET)
-        for shared_filesystems_item_data in _shared_filesystems or []:
-            shared_filesystems_item = SandboxSharedFilesystem.from_dict(shared_filesystems_item_data)
+        shared_filesystems: list[SandboxSharedFilesystem] | Unset = UNSET
+        if _shared_filesystems is not UNSET:
+            shared_filesystems = []
+            for shared_filesystems_item_data in _shared_filesystems:
+                shared_filesystems_item = SandboxSharedFilesystem.from_dict(shared_filesystems_item_data)
 
-            shared_filesystems.append(shared_filesystems_item)
+                shared_filesystems.append(shared_filesystems_item)
 
         sandbox = cls(
             id=id,

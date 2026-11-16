@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,15 +15,15 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     service_id: str,
     *,
-    type_: Union[Unset, list[ListRoutesTypeItem]] = UNSET,
-    source: Union[Unset, list[str]] = UNSET,
-    destination: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    type_: list[ListRoutesTypeItem] | Unset = UNSET,
+    source: list[str] | Unset = UNSET,
+    destination: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_type_: Union[Unset, list[str]] = UNSET
+    json_type_: list[str] | Unset = UNSET
     if not isinstance(type_, Unset):
         json_type_ = []
         for type_item_data in type_:
@@ -31,13 +32,13 @@ def _get_kwargs(
 
     params["type"] = json_type_
 
-    json_source: Union[Unset, list[str]] = UNSET
+    json_source: list[str] | Unset = UNSET
     if not isinstance(source, Unset):
         json_source = source
 
     params["source"] = json_source
 
-    json_destination: Union[Unset, list[str]] = UNSET
+    json_destination: list[str] | Unset = UNSET
     if not isinstance(destination, Unset):
         json_destination = destination
 
@@ -51,7 +52,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/services/{service_id}/routes",
+        "url": "/services/{service_id}/routes".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -59,8 +62,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["RouteWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[RouteWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -118,8 +121,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["RouteWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[RouteWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -131,13 +134,13 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, list[ListRoutesTypeItem]] = UNSET,
-    source: Union[Unset, list[str]] = UNSET,
-    destination: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["RouteWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: list[ListRoutesTypeItem] | Unset = UNSET,
+    source: list[str] | Unset = UNSET,
+    destination: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[RouteWithCursor]]:
     """List redirect/rewrite rules
 
      List a particular service's redirect/rewrite rules that match the provided filters. If no filters
@@ -145,18 +148,18 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        type_ (Union[Unset, list[ListRoutesTypeItem]]):
-        source (Union[Unset, list[str]]):
-        destination (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (list[ListRoutesTypeItem] | Unset):
+        source (list[str] | Unset):
+        destination (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['RouteWithCursor']]]
+        Response[Error | list[RouteWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -178,13 +181,13 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, list[ListRoutesTypeItem]] = UNSET,
-    source: Union[Unset, list[str]] = UNSET,
-    destination: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["RouteWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: list[ListRoutesTypeItem] | Unset = UNSET,
+    source: list[str] | Unset = UNSET,
+    destination: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[RouteWithCursor] | None:
     """List redirect/rewrite rules
 
      List a particular service's redirect/rewrite rules that match the provided filters. If no filters
@@ -192,18 +195,18 @@ def sync(
 
     Args:
         service_id (str):
-        type_ (Union[Unset, list[ListRoutesTypeItem]]):
-        source (Union[Unset, list[str]]):
-        destination (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (list[ListRoutesTypeItem] | Unset):
+        source (list[str] | Unset):
+        destination (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['RouteWithCursor']]
+        Error | list[RouteWithCursor]
     """
 
     return sync_detailed(
@@ -220,13 +223,13 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, list[ListRoutesTypeItem]] = UNSET,
-    source: Union[Unset, list[str]] = UNSET,
-    destination: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["RouteWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: list[ListRoutesTypeItem] | Unset = UNSET,
+    source: list[str] | Unset = UNSET,
+    destination: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[RouteWithCursor]]:
     """List redirect/rewrite rules
 
      List a particular service's redirect/rewrite rules that match the provided filters. If no filters
@@ -234,18 +237,18 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        type_ (Union[Unset, list[ListRoutesTypeItem]]):
-        source (Union[Unset, list[str]]):
-        destination (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (list[ListRoutesTypeItem] | Unset):
+        source (list[str] | Unset):
+        destination (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['RouteWithCursor']]]
+        Response[Error | list[RouteWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -265,13 +268,13 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    type_: Union[Unset, list[ListRoutesTypeItem]] = UNSET,
-    source: Union[Unset, list[str]] = UNSET,
-    destination: Union[Unset, list[str]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["RouteWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    type_: list[ListRoutesTypeItem] | Unset = UNSET,
+    source: list[str] | Unset = UNSET,
+    destination: list[str] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[RouteWithCursor] | None:
     """List redirect/rewrite rules
 
      List a particular service's redirect/rewrite rules that match the provided filters. If no filters
@@ -279,18 +282,18 @@ async def asyncio(
 
     Args:
         service_id (str):
-        type_ (Union[Unset, list[ListRoutesTypeItem]]):
-        source (Union[Unset, list[str]]):
-        destination (Union[Unset, list[str]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        type_ (list[ListRoutesTypeItem] | Unset):
+        source (list[str] | Unset):
+        destination (list[str] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['RouteWithCursor']]
+        Error | list[RouteWithCursor]
     """
 
     return (

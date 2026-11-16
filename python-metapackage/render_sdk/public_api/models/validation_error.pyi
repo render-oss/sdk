@@ -5,7 +5,6 @@ from render.public_api.models.validation_error import (
     T as T,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     ValidationError as ValidationError,
     _attrs_define as _attrs_define,

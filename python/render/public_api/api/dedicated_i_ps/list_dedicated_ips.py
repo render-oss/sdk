@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,7 +13,7 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     *,
     owner_id: str,
-    environment_id: Union[Unset, str] = UNSET,
+    environment_id: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -33,8 +33,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["DedicatedIP"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[DedicatedIP] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -87,8 +87,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["DedicatedIP"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[DedicatedIP]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -99,24 +99,24 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    environment_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, list["DedicatedIP"]]]:
+    environment_id: str | Unset = UNSET,
+) -> Response[Error | list[DedicatedIP]]:
     """List dedicated IPs
 
      List dedicated IP sets for a workspace.
 
     Args:
         owner_id (str):
-        environment_id (Union[Unset, str]):
+        environment_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['DedicatedIP']]]
+        Response[Error | list[DedicatedIP]]
     """
 
     kwargs = _get_kwargs(
@@ -133,24 +133,24 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    environment_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, list["DedicatedIP"]]]:
+    environment_id: str | Unset = UNSET,
+) -> Error | list[DedicatedIP] | None:
     """List dedicated IPs
 
      List dedicated IP sets for a workspace.
 
     Args:
         owner_id (str):
-        environment_id (Union[Unset, str]):
+        environment_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['DedicatedIP']]
+        Error | list[DedicatedIP]
     """
 
     return sync_detailed(
@@ -162,24 +162,24 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    environment_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, list["DedicatedIP"]]]:
+    environment_id: str | Unset = UNSET,
+) -> Response[Error | list[DedicatedIP]]:
     """List dedicated IPs
 
      List dedicated IP sets for a workspace.
 
     Args:
         owner_id (str):
-        environment_id (Union[Unset, str]):
+        environment_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['DedicatedIP']]]
+        Response[Error | list[DedicatedIP]]
     """
 
     kwargs = _get_kwargs(
@@ -194,24 +194,24 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     owner_id: str,
-    environment_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, list["DedicatedIP"]]]:
+    environment_id: str | Unset = UNSET,
+) -> Error | list[DedicatedIP] | None:
     """List dedicated IPs
 
      List dedicated IP sets for a workspace.
 
     Args:
         owner_id (str):
-        environment_id (Union[Unset, str]):
+        environment_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['DedicatedIP']]
+        Error | list[DedicatedIP]
     """
 
     return (

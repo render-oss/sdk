@@ -5,9 +5,7 @@ from render.public_api.api.webhooks.retrieve_webhook import (
     Client as Client,
     Error as Error,
     HTTPStatus as HTTPStatus,
-    Optional as Optional,
     Response as Response,
-    Union as Union,
     Webhook as Webhook,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
@@ -15,6 +13,7 @@ from render.public_api.api.webhooks.retrieve_webhook import (
     asyncio as asyncio,
     asyncio_detailed as asyncio_detailed,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

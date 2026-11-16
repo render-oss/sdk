@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 if TYPE_CHECKING:
     from ..models.owner import Owner
@@ -30,7 +31,7 @@ class Project:
     created_at: datetime.datetime
     updated_at: datetime.datetime
     name: str
-    owner: "Owner"
+    owner: Owner
     environment_ids: list[str]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -64,14 +65,14 @@ class Project:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.owner import Owner
+        from ..models.owner import Owner  # noqa: PLC0415
 
         d = dict(src_dict)
         id = d.pop("id")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         name = d.pop("name")
 

@@ -20,7 +20,6 @@ from render.public_api.models.web_service_details_post import (
     TYPE_CHECKING as TYPE_CHECKING,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     WebServiceDetailsPOST as WebServiceDetailsPOST,
     _attrs_define as _attrs_define,

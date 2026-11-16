@@ -6,7 +6,13 @@
 
 - (Sandboxes) `snapshots.create()` accepts `ttl_seconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `Snapshot.ttl_seconds` is the TTL of a snapshot. It is `None` for a snapshot that was created before snapshots had a TTL.
 
+### Changed
+
+- **Breaking:** REST clients now use `httpx2`. Custom HTTP clients, transports, timeout objects, and transport exception handling must use `httpx2`. The `set_httpx_client`, `set_async_httpx_client`, and `httpx_args` names are unchanged. The SDK still raises its existing `ClientError`, `ServerError`, and `TimeoutError` types.
+
 ### Removed
+
+- **Breaking:** Python 3.10 is no longer supported. Use Python 3.11 or later.
 
 - **Breaking:** (Sandboxes) `snapshots.create()` no longer accepts `expires_at`. Render sets the snapshot lifetime.
 

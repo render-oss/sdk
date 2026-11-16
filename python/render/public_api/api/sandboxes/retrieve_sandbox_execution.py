@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,7 +15,7 @@ def _get_kwargs(
     sandbox_id: str,
     exec_id: str,
     *,
-    owner_id: Union[Unset, str] = UNSET,
+    owner_id: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -24,16 +25,17 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/sandboxes/{sandbox_id}/execs/{exec_id}",
+        "url": "/sandboxes/{sandbox_id}/execs/{exec_id}".format(
+            sandbox_id=quote(str(sandbox_id), safe=""),
+            exec_id=quote(str(exec_id), safe=""),
+        ),
         "params": params,
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Execution]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Execution | None:
     if response.status_code == 200:
         response_200 = Execution.from_dict(response.json())
 
@@ -75,9 +77,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Execution]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Execution]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -90,9 +90,9 @@ def sync_detailed(
     sandbox_id: str,
     exec_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, Execution]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+) -> Response[Error | Execution]:
     """Retrieve execution
 
      Retrieve one execution record for the sandbox.
@@ -100,14 +100,14 @@ def sync_detailed(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
+        owner_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Execution]]
+        Response[Error | Execution]
     """
 
     kwargs = _get_kwargs(
@@ -127,9 +127,9 @@ def sync(
     sandbox_id: str,
     exec_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, Execution]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+) -> Error | Execution | None:
     """Retrieve execution
 
      Retrieve one execution record for the sandbox.
@@ -137,14 +137,14 @@ def sync(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
+        owner_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Execution]
+        Error | Execution
     """
 
     return sync_detailed(
@@ -159,9 +159,9 @@ async def asyncio_detailed(
     sandbox_id: str,
     exec_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, Execution]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+) -> Response[Error | Execution]:
     """Retrieve execution
 
      Retrieve one execution record for the sandbox.
@@ -169,14 +169,14 @@ async def asyncio_detailed(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
+        owner_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Execution]]
+        Response[Error | Execution]
     """
 
     kwargs = _get_kwargs(
@@ -194,9 +194,9 @@ async def asyncio(
     sandbox_id: str,
     exec_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, Execution]]:
+    client: AuthenticatedClient | Client,
+    owner_id: str | Unset = UNSET,
+) -> Error | Execution | None:
     """Retrieve execution
 
      Retrieve one execution record for the sandbox.
@@ -204,14 +204,14 @@ async def asyncio(
     Args:
         sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
-        owner_id (Union[Unset, str]):
+        owner_id (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Execution]
+        Error | Execution
     """
 
     return (

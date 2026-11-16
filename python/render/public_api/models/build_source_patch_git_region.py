@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildSourcePATCHGitRegion(str, Enum):
+class BuildSourcePATCHGitRegion(StrEnum):
     FRANKFURT = "frankfurt"
     OHIO = "ohio"
     OREGON = "oregon"

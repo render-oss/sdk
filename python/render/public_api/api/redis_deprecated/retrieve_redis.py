@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,15 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/redis/{redis_id}",
+        "url": "/redis/{redis_id}".format(
+            redis_id=quote(str(redis_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, RedisDetail]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | RedisDetail | None:
     if response.status_code == 200:
         response_200 = RedisDetail.from_dict(response.json())
 
@@ -66,8 +67,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, RedisDetail]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | RedisDetail]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,8 +80,8 @@ def _build_response(
 def sync_detailed(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, RedisDetail]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | RedisDetail]:
     """Retrieve Redis instance
 
      Retrieve a Redis instance by ID. This API is deprecated in favor of the Key Value API.
@@ -90,10 +91,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RedisDetail]]
+        Response[Error | RedisDetail]
     """
 
     kwargs = _get_kwargs(
@@ -110,8 +111,8 @@ def sync_detailed(
 def sync(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, RedisDetail]]:
+    client: AuthenticatedClient | Client,
+) -> Error | RedisDetail | None:
     """Retrieve Redis instance
 
      Retrieve a Redis instance by ID. This API is deprecated in favor of the Key Value API.
@@ -121,10 +122,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RedisDetail]
+        Error | RedisDetail
     """
 
     return sync_detailed(
@@ -136,8 +137,8 @@ def sync(
 async def asyncio_detailed(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, RedisDetail]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | RedisDetail]:
     """Retrieve Redis instance
 
      Retrieve a Redis instance by ID. This API is deprecated in favor of the Key Value API.
@@ -147,10 +148,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RedisDetail]]
+        Response[Error | RedisDetail]
     """
 
     kwargs = _get_kwargs(
@@ -165,8 +166,8 @@ async def asyncio_detailed(
 async def asyncio(
     redis_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, RedisDetail]]:
+    client: AuthenticatedClient | Client,
+) -> Error | RedisDetail | None:
     """Retrieve Redis instance
 
      Retrieve a Redis instance by ID. This API is deprecated in favor of the Key Value API.
@@ -176,10 +177,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RedisDetail]
+        Error | RedisDetail
     """
 
     return (

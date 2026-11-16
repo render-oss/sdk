@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -20,7 +22,7 @@ class SandboxWithCursor:
         cursor (str):
     """
 
-    sandbox: "Sandbox"
+    sandbox: Sandbox
     cursor: str
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -42,7 +44,7 @@ class SandboxWithCursor:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox import Sandbox
+        from ..models.sandbox import Sandbox  # noqa: PLC0415
 
         d = dict(src_dict)
         sandbox = Sandbox.from_dict(d.pop("sandbox"))

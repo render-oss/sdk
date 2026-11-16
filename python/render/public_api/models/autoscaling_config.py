@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -23,7 +25,7 @@ class AutoscalingConfig:
 
     min_: int
     max_: int
-    criteria: "AutoscalingCriteria"
+    criteria: AutoscalingCriteria
     enabled: bool = False
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
@@ -51,7 +53,7 @@ class AutoscalingConfig:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.autoscaling_criteria import AutoscalingCriteria
+        from ..models.autoscaling_criteria import AutoscalingCriteria  # noqa: PLC0415
 
         d = dict(src_dict)
         enabled = d.pop("enabled")

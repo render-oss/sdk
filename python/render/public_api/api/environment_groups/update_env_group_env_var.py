@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -16,16 +17,18 @@ def _get_kwargs(
     env_group_id: str,
     env_var_key: str,
     *,
-    body: Union["EnvVarGenerateValue", "EnvVarValue"],
+    body: EnvVarGenerateValue | EnvVarValue,
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/env-groups/{env_group_id}/env-vars/{env_var_key}",
+        "url": "/env-groups/{env_group_id}/env-vars/{env_var_key}".format(
+            env_group_id=quote(str(env_group_id), safe=""),
+            env_var_key=quote(str(env_var_key), safe=""),
+        ),
     }
 
-    _kwargs["json"]: dict[str, Any]
     if isinstance(body, EnvVarValue):
         _kwargs["json"] = body.to_dict()
     else:
@@ -37,9 +40,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[EnvGroup, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> EnvGroup | Error | None:
     if response.status_code == 200:
         response_200 = EnvGroup.from_dict(response.json())
 
@@ -81,9 +82,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[EnvGroup, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[EnvGroup | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -96,9 +95,9 @@ def sync_detailed(
     env_group_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: Union["EnvVarGenerateValue", "EnvVarValue"],
-) -> Response[Union[EnvGroup, Error]]:
+    client: AuthenticatedClient | Client,
+    body: EnvVarGenerateValue | EnvVarValue,
+) -> Response[EnvGroup | Error]:
     """Add or update environment variable
 
      Add or update a particular environment variable in a particular environment group.
@@ -106,14 +105,14 @@ def sync_detailed(
     Args:
         env_group_id (str):
         env_var_key (str):
-        body (Union['EnvVarGenerateValue', 'EnvVarValue']):
+        body (EnvVarGenerateValue | EnvVarValue):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvGroup, Error]]
+        Response[EnvGroup | Error]
     """
 
     kwargs = _get_kwargs(
@@ -133,9 +132,9 @@ def sync(
     env_group_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: Union["EnvVarGenerateValue", "EnvVarValue"],
-) -> Optional[Union[EnvGroup, Error]]:
+    client: AuthenticatedClient | Client,
+    body: EnvVarGenerateValue | EnvVarValue,
+) -> EnvGroup | Error | None:
     """Add or update environment variable
 
      Add or update a particular environment variable in a particular environment group.
@@ -143,14 +142,14 @@ def sync(
     Args:
         env_group_id (str):
         env_var_key (str):
-        body (Union['EnvVarGenerateValue', 'EnvVarValue']):
+        body (EnvVarGenerateValue | EnvVarValue):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvGroup, Error]
+        EnvGroup | Error
     """
 
     return sync_detailed(
@@ -165,9 +164,9 @@ async def asyncio_detailed(
     env_group_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: Union["EnvVarGenerateValue", "EnvVarValue"],
-) -> Response[Union[EnvGroup, Error]]:
+    client: AuthenticatedClient | Client,
+    body: EnvVarGenerateValue | EnvVarValue,
+) -> Response[EnvGroup | Error]:
     """Add or update environment variable
 
      Add or update a particular environment variable in a particular environment group.
@@ -175,14 +174,14 @@ async def asyncio_detailed(
     Args:
         env_group_id (str):
         env_var_key (str):
-        body (Union['EnvVarGenerateValue', 'EnvVarValue']):
+        body (EnvVarGenerateValue | EnvVarValue):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[EnvGroup, Error]]
+        Response[EnvGroup | Error]
     """
 
     kwargs = _get_kwargs(
@@ -200,9 +199,9 @@ async def asyncio(
     env_group_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: Union["EnvVarGenerateValue", "EnvVarValue"],
-) -> Optional[Union[EnvGroup, Error]]:
+    client: AuthenticatedClient | Client,
+    body: EnvVarGenerateValue | EnvVarValue,
+) -> EnvGroup | Error | None:
     """Add or update environment variable
 
      Add or update a particular environment variable in a particular environment group.
@@ -210,14 +209,14 @@ async def asyncio(
     Args:
         env_group_id (str):
         env_var_key (str):
-        body (Union['EnvVarGenerateValue', 'EnvVarValue']):
+        body (EnvVarGenerateValue | EnvVarValue):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[EnvGroup, Error]
+        EnvGroup | Error
     """
 
     return (

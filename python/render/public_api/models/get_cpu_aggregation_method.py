@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class GetCpuAggregationMethod(str, Enum):
+class GetCpuAggregationMethod(StrEnum):
     AVG = "AVG"
     MAX = "MAX"
     MIN = "MIN"

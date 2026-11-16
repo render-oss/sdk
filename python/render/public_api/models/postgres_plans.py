@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PostgresPlans(str, Enum):
+class PostgresPlans(StrEnum):
     ACCELERATED_1024GB = "accelerated_1024gb"
     ACCELERATED_128GB = "accelerated_128gb"
     ACCELERATED_16GB = "accelerated_16gb"

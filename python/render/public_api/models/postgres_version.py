@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PostgresVersion(str, Enum):
+class PostgresVersion(StrEnum):
     VALUE_0 = "11"
     VALUE_1 = "12"
     VALUE_2 = "13"

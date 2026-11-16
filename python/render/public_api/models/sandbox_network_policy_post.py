@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,29 +22,29 @@ class SandboxNetworkPolicyPOST:
     provided, they must match.
 
         Attributes:
-            type_ (Union[Unset, SandboxNetworkPolicyType]): How Render handles outbound traffic from the sandbox. The
-                `allow-list` policy requires `rules`.
-            default (Union[Unset, SandboxNetworkPolicyType]): How Render handles outbound traffic from the sandbox. The
-                `allow-list` policy requires `rules`.
-            rules (Union[Unset, list['SandboxEgressRule']]): Destinations the sandbox may reach, required when the policy is
-                `allow-list` and rejected otherwise. Each domain may be listed once.
+            type_ (SandboxNetworkPolicyType | Unset): How Render handles outbound traffic from the sandbox. The `allow-list`
+                policy requires `rules`.
+            default (SandboxNetworkPolicyType | Unset): How Render handles outbound traffic from the sandbox. The `allow-
+                list` policy requires `rules`.
+            rules (list[SandboxEgressRule] | Unset): Destinations the sandbox may reach, required when the policy is `allow-
+                list` and rejected otherwise. Each domain may be listed once.
     """
 
-    type_: Union[Unset, SandboxNetworkPolicyType] = UNSET
-    default: Union[Unset, SandboxNetworkPolicyType] = UNSET
-    rules: Union[Unset, list["SandboxEgressRule"]] = UNSET
+    type_: SandboxNetworkPolicyType | Unset = UNSET
+    default: SandboxNetworkPolicyType | Unset = UNSET
+    rules: list[SandboxEgressRule] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        type_: Union[Unset, str] = UNSET
+        type_: str | Unset = UNSET
         if not isinstance(self.type_, Unset):
             type_ = self.type_.value
 
-        default: Union[Unset, str] = UNSET
+        default: str | Unset = UNSET
         if not isinstance(self.default, Unset):
             default = self.default.value
 
-        rules: Union[Unset, list[dict[str, Any]]] = UNSET
+        rules: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.rules, Unset):
             rules = []
             for rules_item_data in self.rules:
@@ -63,29 +65,31 @@ class SandboxNetworkPolicyPOST:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.sandbox_egress_rule import SandboxEgressRule
+        from ..models.sandbox_egress_rule import SandboxEgressRule  # noqa: PLC0415
 
         d = dict(src_dict)
         _type_ = d.pop("type", UNSET)
-        type_: Union[Unset, SandboxNetworkPolicyType]
+        type_: SandboxNetworkPolicyType | Unset
         if isinstance(_type_, Unset):
             type_ = UNSET
         else:
             type_ = SandboxNetworkPolicyType(_type_)
 
         _default = d.pop("default", UNSET)
-        default: Union[Unset, SandboxNetworkPolicyType]
+        default: SandboxNetworkPolicyType | Unset
         if isinstance(_default, Unset):
             default = UNSET
         else:
             default = SandboxNetworkPolicyType(_default)
 
-        rules = []
         _rules = d.pop("rules", UNSET)
-        for rules_item_data in _rules or []:
-            rules_item = SandboxEgressRule.from_dict(rules_item_data)
+        rules: list[SandboxEgressRule] | Unset = UNSET
+        if _rules is not UNSET:
+            rules = []
+            for rules_item_data in _rules:
+                rules_item = SandboxEgressRule.from_dict(rules_item_data)
 
-            rules.append(rules_item)
+                rules.append(rules_item)
 
         sandbox_network_policy_post = cls(
             type_=type_,

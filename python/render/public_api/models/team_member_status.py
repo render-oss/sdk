@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class TeamMemberStatus(str, Enum):
+class TeamMemberStatus(StrEnum):
     ACTIVE = "active"
     INACTIVE = "inactive"
 

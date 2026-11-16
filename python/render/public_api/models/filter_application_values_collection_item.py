@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,20 +16,20 @@ T = TypeVar("T", bound="FilterApplicationValuesCollectionItem")
 class FilterApplicationValuesCollectionItem:
     """
     Attributes:
-        filter_ (Union[Unset, FilterApplicationValuesCollectionItemFilter]):
-        values (Union[Unset, list[str]]):
+        filter_ (FilterApplicationValuesCollectionItemFilter | Unset):
+        values (list[str] | Unset):
     """
 
-    filter_: Union[Unset, FilterApplicationValuesCollectionItemFilter] = UNSET
-    values: Union[Unset, list[str]] = UNSET
+    filter_: FilterApplicationValuesCollectionItemFilter | Unset = UNSET
+    values: list[str] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        filter_: Union[Unset, str] = UNSET
+        filter_: str | Unset = UNSET
         if not isinstance(self.filter_, Unset):
             filter_ = self.filter_.value
 
-        values: Union[Unset, list[str]] = UNSET
+        values: list[str] | Unset = UNSET
         if not isinstance(self.values, Unset):
             values = self.values
 
@@ -45,7 +47,7 @@ class FilterApplicationValuesCollectionItem:
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         d = dict(src_dict)
         _filter_ = d.pop("filter", UNSET)
-        filter_: Union[Unset, FilterApplicationValuesCollectionItemFilter]
+        filter_: FilterApplicationValuesCollectionItemFilter | Unset
         if isinstance(_filter_, Unset):
             filter_ = UNSET
         else:

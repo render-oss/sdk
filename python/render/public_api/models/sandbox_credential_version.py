@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -23,7 +24,7 @@ class SandboxCredentialVersion:
         fingerprint (str): A fingerprint of the routing settings, injection settings, and secret value. Matching
             fingerprints identify equivalent credential configurations within the same sandbox group. Fingerprints cannot be
             compared across groups.
-        restored_from_version_id (Union[Unset, int]): The ID of the credential version restored to create this version.
+        restored_from_version_id (int | Unset): The ID of the credential version restored to create this version.
             Omitted for versions created by a create or update request.
     """
 
@@ -31,7 +32,7 @@ class SandboxCredentialVersion:
     updated_at: datetime.datetime
     updated_by: str
     fingerprint: str
-    restored_from_version_id: Union[Unset, int] = UNSET
+    restored_from_version_id: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -65,7 +66,7 @@ class SandboxCredentialVersion:
         d = dict(src_dict)
         id = d.pop("id")
 
-        updated_at = isoparse(d.pop("updatedAt"))
+        updated_at = datetime.datetime.fromisoformat(d.pop("updatedAt"))
 
         updated_by = d.pop("updatedBy")
 

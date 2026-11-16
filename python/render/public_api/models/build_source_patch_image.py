@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -16,14 +18,14 @@ class BuildSourcePATCHImage:
     amount to a different identity.
 
         Attributes:
-            image_url (Union[Unset, str]):
-            registry_credential_id (Union[Unset, str]): Optional reference to the registry credential passed to the image
+            image_url (str | Unset):
+            registry_credential_id (str | Unset): Optional reference to the registry credential passed to the image
                 repository to retrieve this image. Omit the field to leave the stored credential unchanged; send an empty string
                 to clear it.
     """
 
-    image_url: Union[Unset, str] = UNSET
-    registry_credential_id: Union[Unset, str] = UNSET
+    image_url: str | Unset = UNSET
+    registry_credential_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class NotifySettingV2(str, Enum):
+class NotifySettingV2(StrEnum):
     ALL = "all"
     FAILURE = "failure"
     NONE = "none"

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,14 +17,13 @@ T = TypeVar("T", bound="CreateDeployBody")
 class CreateDeployBody:
     """
     Attributes:
-        build_id (Union[Unset, str]): The ID of the build to deploy. Cannot be combined with `commitId`, `imageUrl`, or
+        build_id (str | Unset): The ID of the build to deploy. Cannot be combined with `commitId`, `imageUrl`, or
             `deployMode`.
-        clear_cache (Union[Unset, CreateDeployBodyClearCache]): If `clear`, Render clears the service's build cache
-            before deploying. This can be useful if you're experiencing issues with your build. Default:
+        clear_cache (CreateDeployBodyClearCache | Unset): If `clear`, Render clears the service's build cache before
+            deploying. This can be useful if you're experiencing issues with your build. Default:
             CreateDeployBodyClearCache.DO_NOT_CLEAR.
-        commit_id (Union[Unset, str]): The SHA of a specific Git commit to deploy for a service. Defaults to the latest
-            commit on the service's connected branch. Cannot be combined with `buildId`, `imageUrl`, or `deployMode:
-            deploy_only`.
+        commit_id (str | Unset): The SHA of a specific Git commit to deploy for a service. Defaults to the latest commit
+            on the service's connected branch. Cannot be combined with `buildId`, `imageUrl`, or `deployMode: deploy_only`.
 
             Note that deploying a specific commit with this endpoint does not disable autodeploys for the service.
 
@@ -30,11 +31,11 @@ class CreateDeployBody:
             docs.render.com/reference/update-service) endpoint or in the Render Dashboard.
 
             Not supported for cron jobs.
-        image_url (Union[Unset, str]): The URL of the image to deploy for an image-backed service. Cannot be combined
-            with `buildId`, `commitId`, or `deployMode: deploy_only`.
+        image_url (str | Unset): The URL of the image to deploy for an image-backed service. Cannot be combined with
+            `buildId`, `commitId`, or `deployMode: deploy_only`.
 
             The host, repository, and image name all must match the currently configured image for the service.
-        deploy_mode (Union[Unset, DeployMode]): Controls deployment behavior when triggering a deploy.
+        deploy_mode (DeployMode | Unset): Controls deployment behavior when triggering a deploy.
 
             - `deploy_only`: Deploy the last successful build without rebuilding (minimizes downtime)
             - `build_and_deploy`: Build new code and deploy it (default behavior when not specified)
@@ -43,17 +44,17 @@ class CreateDeployBody:
             `commitId`, `imageUrl`, or `clearCache`, as those are build related fields.
     """
 
-    build_id: Union[Unset, str] = UNSET
-    clear_cache: Union[Unset, CreateDeployBodyClearCache] = CreateDeployBodyClearCache.DO_NOT_CLEAR
-    commit_id: Union[Unset, str] = UNSET
-    image_url: Union[Unset, str] = UNSET
-    deploy_mode: Union[Unset, DeployMode] = UNSET
+    build_id: str | Unset = UNSET
+    clear_cache: CreateDeployBodyClearCache | Unset = CreateDeployBodyClearCache.DO_NOT_CLEAR
+    commit_id: str | Unset = UNSET
+    image_url: str | Unset = UNSET
+    deploy_mode: DeployMode | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         build_id = self.build_id
 
-        clear_cache: Union[Unset, str] = UNSET
+        clear_cache: str | Unset = UNSET
         if not isinstance(self.clear_cache, Unset):
             clear_cache = self.clear_cache.value
 
@@ -61,7 +62,7 @@ class CreateDeployBody:
 
         image_url = self.image_url
 
-        deploy_mode: Union[Unset, str] = UNSET
+        deploy_mode: str | Unset = UNSET
         if not isinstance(self.deploy_mode, Unset):
             deploy_mode = self.deploy_mode.value
 
@@ -87,7 +88,7 @@ class CreateDeployBody:
         build_id = d.pop("buildId", UNSET)
 
         _clear_cache = d.pop("clearCache", UNSET)
-        clear_cache: Union[Unset, CreateDeployBodyClearCache]
+        clear_cache: CreateDeployBodyClearCache | Unset
         if isinstance(_clear_cache, Unset):
             clear_cache = UNSET
         else:
@@ -98,7 +99,7 @@ class CreateDeployBody:
         image_url = d.pop("imageUrl", UNSET)
 
         _deploy_mode = d.pop("deployMode", UNSET)
-        deploy_mode: Union[Unset, DeployMode]
+        deploy_mode: DeployMode | Unset
         if isinstance(_deploy_mode, Unset):
             deploy_mode = UNSET
         else:

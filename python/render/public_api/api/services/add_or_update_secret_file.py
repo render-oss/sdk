@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -21,7 +22,10 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/services/{service_id}/secret-files/{env_var_key}",
+        "url": "/services/{service_id}/secret-files/{env_var_key}".format(
+            service_id=quote(str(service_id), safe=""),
+            env_var_key=quote(str(env_var_key), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -32,9 +36,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, SecretFile]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | SecretFile | None:
     if response.status_code == 201:
         response_201 = SecretFile.from_dict(response.json())
 
@@ -91,9 +93,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, SecretFile]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | SecretFile]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -106,9 +106,9 @@ def sync_detailed(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: AddOrUpdateSecretFileBody,
-) -> Response[Union[Error, SecretFile]]:
+) -> Response[Error | SecretFile]:
     """Add or update secret file
 
      Add or update a particular secret file for a particular service.
@@ -123,10 +123,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SecretFile]]
+        Response[Error | SecretFile]
     """
 
     kwargs = _get_kwargs(
@@ -146,9 +146,9 @@ def sync(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: AddOrUpdateSecretFileBody,
-) -> Optional[Union[Error, SecretFile]]:
+) -> Error | SecretFile | None:
     """Add or update secret file
 
      Add or update a particular secret file for a particular service.
@@ -163,10 +163,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SecretFile]
+        Error | SecretFile
     """
 
     return sync_detailed(
@@ -181,9 +181,9 @@ async def asyncio_detailed(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: AddOrUpdateSecretFileBody,
-) -> Response[Union[Error, SecretFile]]:
+) -> Response[Error | SecretFile]:
     """Add or update secret file
 
      Add or update a particular secret file for a particular service.
@@ -198,10 +198,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, SecretFile]]
+        Response[Error | SecretFile]
     """
 
     kwargs = _get_kwargs(
@@ -219,9 +219,9 @@ async def asyncio(
     service_id: str,
     env_var_key: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: AddOrUpdateSecretFileBody,
-) -> Optional[Union[Error, SecretFile]]:
+) -> Error | SecretFile | None:
     """Add or update secret file
 
      Add or update a particular secret file for a particular service.
@@ -236,10 +236,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, SecretFile]
+        Error | SecretFile
     """
 
     return (

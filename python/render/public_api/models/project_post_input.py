@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -17,12 +19,12 @@ class ProjectPOSTInput:
     Attributes:
         name (str): The name of the project
         owner_id (str): The ID of the owner that the project belongs to
-        environments (list['ProjectPOSTEnvironmentInput']): The environments to create when creating the project
+        environments (list[ProjectPOSTEnvironmentInput]): The environments to create when creating the project
     """
 
     name: str
     owner_id: str
-    environments: list["ProjectPOSTEnvironmentInput"]
+    environments: list[ProjectPOSTEnvironmentInput]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -49,7 +51,7 @@ class ProjectPOSTInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.project_post_environment_input import ProjectPOSTEnvironmentInput
+        from ..models.project_post_environment_input import ProjectPOSTEnvironmentInput  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name")

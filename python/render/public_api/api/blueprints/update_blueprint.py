@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/blueprints/{blueprint_id}",
+        "url": "/blueprints/{blueprint_id}".format(
+            blueprint_id=quote(str(blueprint_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -31,9 +34,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Blueprint, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Blueprint | Error | None:
     if response.status_code == 200:
         response_200 = Blueprint.from_dict(response.json())
 
@@ -90,9 +91,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Blueprint, Error]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Blueprint | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -104,9 +103,9 @@ def _build_response(
 def sync_detailed(
     blueprint_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: BlueprintPATCH,
-) -> Response[Union[Blueprint, Error]]:
+) -> Response[Blueprint | Error]:
     """Update Blueprint
 
      Update the Blueprint with the provided ID.
@@ -117,10 +116,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Blueprint, Error]]
+        Response[Blueprint | Error]
     """
 
     kwargs = _get_kwargs(
@@ -138,9 +137,9 @@ def sync_detailed(
 def sync(
     blueprint_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: BlueprintPATCH,
-) -> Optional[Union[Blueprint, Error]]:
+) -> Blueprint | Error | None:
     """Update Blueprint
 
      Update the Blueprint with the provided ID.
@@ -151,10 +150,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Blueprint, Error]
+        Blueprint | Error
     """
 
     return sync_detailed(
@@ -167,9 +166,9 @@ def sync(
 async def asyncio_detailed(
     blueprint_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: BlueprintPATCH,
-) -> Response[Union[Blueprint, Error]]:
+) -> Response[Blueprint | Error]:
     """Update Blueprint
 
      Update the Blueprint with the provided ID.
@@ -180,10 +179,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Blueprint, Error]]
+        Response[Blueprint | Error]
     """
 
     kwargs = _get_kwargs(
@@ -199,9 +198,9 @@ async def asyncio_detailed(
 async def asyncio(
     blueprint_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: BlueprintPATCH,
-) -> Optional[Union[Blueprint, Error]]:
+) -> Blueprint | Error | None:
     """Update Blueprint
 
      Update the Blueprint with the provided ID.
@@ -212,10 +211,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Blueprint, Error]
+        Blueprint | Error
     """
 
     return (

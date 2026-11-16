@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class SandboxPlan(str, Enum):
+class SandboxPlan(StrEnum):
     PRO = "pro"
     STANDARD = "standard"
     STARTER = "starter"

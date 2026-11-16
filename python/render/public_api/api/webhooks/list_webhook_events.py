@@ -1,8 +1,9 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,19 +15,19 @@ from ...types import UNSET, Response, Unset
 def _get_kwargs(
     webhook_id: str,
     *,
-    sent_before: Union[Unset, datetime.datetime] = UNSET,
-    sent_after: Union[Unset, datetime.datetime] = UNSET,
-    limit: Union[Unset, int] = 20,
-    cursor: Union[Unset, str] = UNSET,
+    sent_before: datetime.datetime | Unset = UNSET,
+    sent_after: datetime.datetime | Unset = UNSET,
+    limit: int | Unset = 20,
+    cursor: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_sent_before: Union[Unset, str] = UNSET
+    json_sent_before: str | Unset = UNSET
     if not isinstance(sent_before, Unset):
         json_sent_before = sent_before.isoformat()
     params["sentBefore"] = json_sent_before
 
-    json_sent_after: Union[Unset, str] = UNSET
+    json_sent_after: str | Unset = UNSET
     if not isinstance(sent_after, Unset):
         json_sent_after = sent_after.isoformat()
     params["sentAfter"] = json_sent_after
@@ -39,7 +40,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/webhooks/{webhook_id}/events",
+        "url": "/webhooks/{webhook_id}/events".format(
+            webhook_id=quote(str(webhook_id), safe=""),
+        ),
         "params": params,
     }
 
@@ -47,8 +50,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["WebhookEventWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[WebhookEventWithCursor] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -96,8 +99,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["WebhookEventWithCursor"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[WebhookEventWithCursor]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -109,29 +112,29 @@ def _build_response(
 def sync_detailed(
     webhook_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    sent_before: Union[Unset, datetime.datetime] = UNSET,
-    sent_after: Union[Unset, datetime.datetime] = UNSET,
-    limit: Union[Unset, int] = 20,
-    cursor: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, list["WebhookEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    sent_before: datetime.datetime | Unset = UNSET,
+    sent_after: datetime.datetime | Unset = UNSET,
+    limit: int | Unset = 20,
+    cursor: str | Unset = UNSET,
+) -> Response[Error | list[WebhookEventWithCursor]]:
     """List webhook events
 
      Retrieve a list of events that have been sent to this webhook, with optional filtering by timestamp.
 
     Args:
         webhook_id (str):  Example: whk-d04m9b1r0fns73ckp94f.
-        sent_before (Union[Unset, datetime.datetime]):
-        sent_after (Union[Unset, datetime.datetime]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        cursor (Union[Unset, str]):
+        sent_before (datetime.datetime | Unset):
+        sent_after (datetime.datetime | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        cursor (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WebhookEventWithCursor']]]
+        Response[Error | list[WebhookEventWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -152,29 +155,29 @@ def sync_detailed(
 def sync(
     webhook_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    sent_before: Union[Unset, datetime.datetime] = UNSET,
-    sent_after: Union[Unset, datetime.datetime] = UNSET,
-    limit: Union[Unset, int] = 20,
-    cursor: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, list["WebhookEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    sent_before: datetime.datetime | Unset = UNSET,
+    sent_after: datetime.datetime | Unset = UNSET,
+    limit: int | Unset = 20,
+    cursor: str | Unset = UNSET,
+) -> Error | list[WebhookEventWithCursor] | None:
     """List webhook events
 
      Retrieve a list of events that have been sent to this webhook, with optional filtering by timestamp.
 
     Args:
         webhook_id (str):  Example: whk-d04m9b1r0fns73ckp94f.
-        sent_before (Union[Unset, datetime.datetime]):
-        sent_after (Union[Unset, datetime.datetime]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        cursor (Union[Unset, str]):
+        sent_before (datetime.datetime | Unset):
+        sent_after (datetime.datetime | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        cursor (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WebhookEventWithCursor']]
+        Error | list[WebhookEventWithCursor]
     """
 
     return sync_detailed(
@@ -190,29 +193,29 @@ def sync(
 async def asyncio_detailed(
     webhook_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    sent_before: Union[Unset, datetime.datetime] = UNSET,
-    sent_after: Union[Unset, datetime.datetime] = UNSET,
-    limit: Union[Unset, int] = 20,
-    cursor: Union[Unset, str] = UNSET,
-) -> Response[Union[Error, list["WebhookEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    sent_before: datetime.datetime | Unset = UNSET,
+    sent_after: datetime.datetime | Unset = UNSET,
+    limit: int | Unset = 20,
+    cursor: str | Unset = UNSET,
+) -> Response[Error | list[WebhookEventWithCursor]]:
     """List webhook events
 
      Retrieve a list of events that have been sent to this webhook, with optional filtering by timestamp.
 
     Args:
         webhook_id (str):  Example: whk-d04m9b1r0fns73ckp94f.
-        sent_before (Union[Unset, datetime.datetime]):
-        sent_after (Union[Unset, datetime.datetime]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        cursor (Union[Unset, str]):
+        sent_before (datetime.datetime | Unset):
+        sent_after (datetime.datetime | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        cursor (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['WebhookEventWithCursor']]]
+        Response[Error | list[WebhookEventWithCursor]]
     """
 
     kwargs = _get_kwargs(
@@ -231,29 +234,29 @@ async def asyncio_detailed(
 async def asyncio(
     webhook_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    sent_before: Union[Unset, datetime.datetime] = UNSET,
-    sent_after: Union[Unset, datetime.datetime] = UNSET,
-    limit: Union[Unset, int] = 20,
-    cursor: Union[Unset, str] = UNSET,
-) -> Optional[Union[Error, list["WebhookEventWithCursor"]]]:
+    client: AuthenticatedClient | Client,
+    sent_before: datetime.datetime | Unset = UNSET,
+    sent_after: datetime.datetime | Unset = UNSET,
+    limit: int | Unset = 20,
+    cursor: str | Unset = UNSET,
+) -> Error | list[WebhookEventWithCursor] | None:
     """List webhook events
 
      Retrieve a list of events that have been sent to this webhook, with optional filtering by timestamp.
 
     Args:
         webhook_id (str):  Example: whk-d04m9b1r0fns73ckp94f.
-        sent_before (Union[Unset, datetime.datetime]):
-        sent_after (Union[Unset, datetime.datetime]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
-        cursor (Union[Unset, str]):
+        sent_before (datetime.datetime | Unset):
+        sent_after (datetime.datetime | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
+        cursor (str | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['WebhookEventWithCursor']]
+        Error | list[WebhookEventWithCursor]
     """
 
     return (

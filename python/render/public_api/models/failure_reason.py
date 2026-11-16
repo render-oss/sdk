@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,24 +20,24 @@ class FailureReason:
     """
     Attributes:
         evicted (bool):
-        eviction_reason (Union[Unset, str]): Details about why the application was evicted.
-        non_zero_exit (Union[Unset, int]): If present, the application exited with the specified non-zero status.
-        early_exit (Union[Unset, bool]): If true, the application exited early. Services besides cron jobs should not
-            exit unless receiving a `SIGTERM` signal from Render.
-        oom_killed (Union[Unset, OomKilled]):
-        timed_out_seconds (Union[Unset, int]):
-        unhealthy (Union[Unset, str]):
-        timed_out_reason (Union[Unset, str]):
+        eviction_reason (str | Unset): Details about why the application was evicted.
+        non_zero_exit (int | Unset): If present, the application exited with the specified non-zero status.
+        early_exit (bool | Unset): If true, the application exited early. Services besides cron jobs should not exit
+            unless receiving a `SIGTERM` signal from Render.
+        oom_killed (OomKilled | Unset):
+        timed_out_seconds (int | Unset):
+        unhealthy (str | Unset):
+        timed_out_reason (str | Unset):
     """
 
     evicted: bool
-    eviction_reason: Union[Unset, str] = UNSET
-    non_zero_exit: Union[Unset, int] = UNSET
-    early_exit: Union[Unset, bool] = UNSET
-    oom_killed: Union[Unset, "OomKilled"] = UNSET
-    timed_out_seconds: Union[Unset, int] = UNSET
-    unhealthy: Union[Unset, str] = UNSET
-    timed_out_reason: Union[Unset, str] = UNSET
+    eviction_reason: str | Unset = UNSET
+    non_zero_exit: int | Unset = UNSET
+    early_exit: bool | Unset = UNSET
+    oom_killed: OomKilled | Unset = UNSET
+    timed_out_seconds: int | Unset = UNSET
+    unhealthy: str | Unset = UNSET
+    timed_out_reason: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -47,7 +49,7 @@ class FailureReason:
 
         early_exit = self.early_exit
 
-        oom_killed: Union[Unset, dict[str, Any]] = UNSET
+        oom_killed: dict[str, Any] | Unset = UNSET
         if not isinstance(self.oom_killed, Unset):
             oom_killed = self.oom_killed.to_dict()
 
@@ -83,7 +85,7 @@ class FailureReason:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.oom_killed import OomKilled
+        from ..models.oom_killed import OomKilled  # noqa: PLC0415
 
         d = dict(src_dict)
         evicted = d.pop("evicted")
@@ -95,7 +97,7 @@ class FailureReason:
         early_exit = d.pop("earlyExit", UNSET)
 
         _oom_killed = d.pop("oomKilled", UNSET)
-        oom_killed: Union[Unset, OomKilled]
+        oom_killed: OomKilled | Unset
         if isinstance(_oom_killed, Unset):
             oom_killed = UNSET
         else:

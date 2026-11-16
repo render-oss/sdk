@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,17 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/postgres/{postgres_id}/parameter-overrides/available",
+        "url": "/postgres/{postgres_id}/parameter-overrides/available".format(
+            postgres_id=quote(str(postgres_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | PostgresAvailableParameterOverridesResult | None:
     if response.status_code == 200:
         response_200 = PostgresAvailableParameterOverridesResult.from_dict(response.json())
 
@@ -66,8 +69,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | PostgresAvailableParameterOverridesResult]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,8 +82,8 @@ def _build_response(
 def sync_detailed(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | PostgresAvailableParameterOverridesResult]:
     """List available Postgres parameter overrides
 
      List the configuration parameter overrides that could be applied to a Postgres instance by ID.
@@ -90,10 +93,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PostgresAvailableParameterOverridesResult]]
+        Response[Error | PostgresAvailableParameterOverridesResult]
     """
 
     kwargs = _get_kwargs(
@@ -110,8 +113,8 @@ def sync_detailed(
 def sync(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    client: AuthenticatedClient | Client,
+) -> Error | PostgresAvailableParameterOverridesResult | None:
     """List available Postgres parameter overrides
 
      List the configuration parameter overrides that could be applied to a Postgres instance by ID.
@@ -121,10 +124,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PostgresAvailableParameterOverridesResult]
+        Error | PostgresAvailableParameterOverridesResult
     """
 
     return sync_detailed(
@@ -136,8 +139,8 @@ def sync(
 async def asyncio_detailed(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | PostgresAvailableParameterOverridesResult]:
     """List available Postgres parameter overrides
 
      List the configuration parameter overrides that could be applied to a Postgres instance by ID.
@@ -147,10 +150,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, PostgresAvailableParameterOverridesResult]]
+        Response[Error | PostgresAvailableParameterOverridesResult]
     """
 
     kwargs = _get_kwargs(
@@ -165,8 +168,8 @@ async def asyncio_detailed(
 async def asyncio(
     postgres_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, PostgresAvailableParameterOverridesResult]]:
+    client: AuthenticatedClient | Client,
+) -> Error | PostgresAvailableParameterOverridesResult | None:
     """List available Postgres parameter overrides
 
      List the configuration parameter overrides that could be applied to a Postgres instance by ID.
@@ -176,10 +179,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, PostgresAvailableParameterOverridesResult]
+        Error | PostgresAvailableParameterOverridesResult
     """
 
     return (

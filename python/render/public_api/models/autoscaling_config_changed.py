@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -18,17 +20,17 @@ class AutoscalingConfigChanged:
     """
     Attributes:
         to_config (AutoscalingConfig):
-        from_config (Union[Unset, AutoscalingConfig]):
+        from_config (AutoscalingConfig | Unset):
     """
 
-    to_config: "AutoscalingConfig"
-    from_config: Union[Unset, "AutoscalingConfig"] = UNSET
+    to_config: AutoscalingConfig
+    from_config: AutoscalingConfig | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         to_config = self.to_config.to_dict()
 
-        from_config: Union[Unset, dict[str, Any]] = UNSET
+        from_config: dict[str, Any] | Unset = UNSET
         if not isinstance(self.from_config, Unset):
             from_config = self.from_config.to_dict()
 
@@ -46,13 +48,13 @@ class AutoscalingConfigChanged:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.autoscaling_config import AutoscalingConfig
+        from ..models.autoscaling_config import AutoscalingConfig  # noqa: PLC0415
 
         d = dict(src_dict)
         to_config = AutoscalingConfig.from_dict(d.pop("toConfig"))
 
         _from_config = d.pop("fromConfig", UNSET)
-        from_config: Union[Unset, AutoscalingConfig]
+        from_config: AutoscalingConfig | Unset
         if isinstance(_from_config, Unset):
             from_config = UNSET
         else:

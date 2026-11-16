@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,14 +19,14 @@ class RoutePost:
         type_ (RouteType):
         source (str):  Example: /:bar/foo.
         destination (str):  Example: /foo/:bar.
-        priority (Union[Unset, int]): Redirect and Rewrite Rules are applied in priority order starting at 0. Defaults
-            to last in the priority list.
+        priority (int | Unset): Redirect and Rewrite Rules are applied in priority order starting at 0. Defaults to last
+            in the priority list.
     """
 
     type_: RouteType
     source: str
     destination: str
-    priority: Union[Unset, int] = UNSET
+    priority: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

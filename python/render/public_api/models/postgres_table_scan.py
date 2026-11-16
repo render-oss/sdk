@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,16 +16,16 @@ class PostgresTableScan:
     """The number of sequential scans performed against a table.
 
     Attributes:
-        database (Union[Unset, str]):
-        schema (Union[Unset, str]):
-        table (Union[Unset, str]):
-        scans (Union[Unset, int]):
+        database (str | Unset):
+        schema (str | Unset):
+        table (str | Unset):
+        scans (int | Unset):
     """
 
-    database: Union[Unset, str] = UNSET
-    schema: Union[Unset, str] = UNSET
-    table: Union[Unset, str] = UNSET
-    scans: Union[Unset, int] = UNSET
+    database: str | Unset = UNSET
+    schema: str | Unset = UNSET
+    table: str | Unset = UNSET
+    scans: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

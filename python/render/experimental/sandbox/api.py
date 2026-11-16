@@ -11,7 +11,7 @@ from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NoReturn, TypeVar
 
-import httpx
+import httpx2
 
 from render.client.errors import (
     ClientError,
@@ -957,7 +957,7 @@ class SandboxApi:
         return _to_credential(response.parsed)
 
     async def _raise_connect_token_error(
-        self, sandbox_id: str, owner_id: str, response: httpx.Response, action: str
+        self, sandbox_id: str, owner_id: str, response: httpx2.Response, action: str
     ) -> NoReturn:
         # The 409 body doesn't say which way the sandbox ended or when, so look
         # it up to name both.
@@ -986,7 +986,7 @@ class SandboxApi:
                 f"/sandboxes/{sandbox_id}/runs/{operation}/token",
                 params={"ownerId": owner_id},
             )
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox run")
         if response.status_code >= 400:
             await self._raise_connect_token_error(
@@ -1003,7 +1003,7 @@ class SandboxApi:
                 f"/sandboxes/{sandbox_id}/files/{operation}/token",
                 params={"ownerId": owner_id, "path": path},
             )
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             handle_httpx_exception(exc, "connect sandbox files")
         if response.status_code >= 400:
             await self._raise_connect_token_error(
@@ -1049,26 +1049,26 @@ class SandboxApi:
             content = aiter_tar_gzip(source)
         else:
             headers["Content-Type"] = _CONTENT_TYPE_OCTET_STREAM
-            # An explicit length keeps httpx from sending an iterator body
+            # An explicit length keeps httpx2 from sending an iterator body
             # chunked, and lets the sandbox size the write up front.
             headers["Content-Length"] = str(info.st_size)
             content = aiter_file(source)
 
         # Keep the connect timeout, but let a large upload take as long as it
         # takes, as the object client does.
-        timeout = httpx.Timeout(5.0, read=None, write=None)
+        timeout = httpx2.Timeout(5.0, read=None, write=None)
         try:
-            async with httpx.AsyncClient(timeout=timeout) as proxy_client:
+            async with httpx2.AsyncClient(timeout=timeout) as proxy_client:
                 response = await proxy_client.request(
                     connection["method"],
                     connection["uri"],
                     headers=headers,
                     content=content,
                 )
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             handle_httpx_exception(exc, "upload to sandbox")
         finally:
-            # httpx closes the body on today's failure paths, but that is its
+            # httpx2 closes the body on today's failure paths, but that is its
             # internals, not a contract. Closing here is what actually
             # guarantees the archive producer stops when a request dies early.
             await aclose_content(content)
@@ -1093,7 +1093,7 @@ class SandboxApi:
         )
         headers = {
             "Authorization": f"Bearer {connection['token']}",
-            # Ask only for the coding httpx undoes for us. Left to itself it
+            # Ask only for the coding httpx2 undoes for us. Left to itself it
             # also advertises deflate, and br/zstd when those are installed,
             # any of which would arrive as a body we refuse to write.
             "Accept-Encoding": "gzip",
@@ -1101,10 +1101,10 @@ class SandboxApi:
         # read bounds the wait for the next chunk, not the transfer, so a large
         # download still has as long as it needs while a body that stops
         # arriving fails instead of hanging. Same budget as exec_stream.
-        timeout = httpx.Timeout(5.0, read=45.0, write=None)
+        timeout = httpx2.Timeout(5.0, read=45.0, write=None)
         try:
             async with (
-                httpx.AsyncClient(timeout=timeout) as proxy_client,
+                httpx2.AsyncClient(timeout=timeout) as proxy_client,
                 proxy_client.stream(
                     connection["method"], connection["uri"], headers=headers
                 ) as response,
@@ -1140,7 +1140,7 @@ class SandboxApi:
                     async for chunk in response.aiter_bytes():
                         partial.write(chunk)
                     return await arun_blocking(partial.commit, dest)
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             handle_httpx_exception(exc, "download sandbox file")
         except OSError as exc:
             # Spooling, extracting and renaming all touch the local disk, and a
@@ -1164,10 +1164,10 @@ class SandboxApi:
         }
         # Read timeout at 3x the server's 15s SSE keep-alive interval, so a dead
         # connection is detected without cutting off a live but idle stream.
-        timeout = httpx.Timeout(5.0, read=45.0, write=None)
+        timeout = httpx2.Timeout(5.0, read=45.0, write=None)
         try:
             async with (
-                httpx.AsyncClient(timeout=timeout) as proxy_client,
+                httpx2.AsyncClient(timeout=timeout) as proxy_client,
                 proxy_client.stream(
                     method, uri, headers=headers, json={"command": command}
                 ) as response,
@@ -1197,7 +1197,7 @@ class SandboxApi:
                 raise SandboxExecError(
                     "sandbox exec stream ended without an exit event"
                 )
-        except httpx.RequestError as exc:
+        except httpx2.RequestError as exc:
             handle_httpx_exception(exc, "exec sandbox")
 
 

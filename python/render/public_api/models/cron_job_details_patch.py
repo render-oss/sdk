@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -20,22 +22,22 @@ T = TypeVar("T", bound="CronJobDetailsPATCH")
 class CronJobDetailsPATCH:
     """
     Attributes:
-        env_specific_details (Union['DockerDetailsPATCH', 'NativeEnvironmentDetailsPATCH', Unset]):
-        plan (Union[Unset, PaidPlan]): Defaults to `0.5c-512mb` when creating a new service.
-        schedule (Union[Unset, str]):
-        runtime (Union[Unset, ServiceRuntime]): Runtime
+        env_specific_details (DockerDetailsPATCH | NativeEnvironmentDetailsPATCH | Unset):
+        plan (PaidPlan | Unset): Defaults to `0.5c-512mb` when creating a new service.
+        schedule (str | Unset):
+        runtime (ServiceRuntime | Unset): Runtime
     """
 
-    env_specific_details: Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset] = UNSET
-    plan: Union[Unset, PaidPlan] = UNSET
-    schedule: Union[Unset, str] = UNSET
-    runtime: Union[Unset, ServiceRuntime] = UNSET
+    env_specific_details: DockerDetailsPATCH | NativeEnvironmentDetailsPATCH | Unset = UNSET
+    plan: PaidPlan | Unset = UNSET
+    schedule: str | Unset = UNSET
+    runtime: ServiceRuntime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        from ..models.docker_details_patch import DockerDetailsPATCH
+        from ..models.docker_details_patch import DockerDetailsPATCH  # noqa: PLC0415
 
-        env_specific_details: Union[Unset, dict[str, Any]]
+        env_specific_details: dict[str, Any] | Unset
         if isinstance(self.env_specific_details, Unset):
             env_specific_details = UNSET
         elif isinstance(self.env_specific_details, DockerDetailsPATCH):
@@ -43,13 +45,13 @@ class CronJobDetailsPATCH:
         else:
             env_specific_details = self.env_specific_details.to_dict()
 
-        plan: Union[Unset, str] = UNSET
+        plan: str | Unset = UNSET
         if not isinstance(self.plan, Unset):
             plan = self.plan.value
 
         schedule = self.schedule
 
-        runtime: Union[Unset, str] = UNSET
+        runtime: str | Unset = UNSET
         if not isinstance(self.runtime, Unset):
             runtime = self.runtime.value
 
@@ -69,14 +71,12 @@ class CronJobDetailsPATCH:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.docker_details_patch import DockerDetailsPATCH
-        from ..models.native_environment_details_patch import NativeEnvironmentDetailsPATCH
+        from ..models.docker_details_patch import DockerDetailsPATCH  # noqa: PLC0415
+        from ..models.native_environment_details_patch import NativeEnvironmentDetailsPATCH  # noqa: PLC0415
 
         d = dict(src_dict)
 
-        def _parse_env_specific_details(
-            data: object,
-        ) -> Union["DockerDetailsPATCH", "NativeEnvironmentDetailsPATCH", Unset]:
+        def _parse_env_specific_details(data: object) -> DockerDetailsPATCH | NativeEnvironmentDetailsPATCH | Unset:
             if isinstance(data, Unset):
                 return data
             try:
@@ -85,7 +85,7 @@ class CronJobDetailsPATCH:
                 componentsschemasenv_specific_details_patch_type_0 = DockerDetailsPATCH.from_dict(data)
 
                 return componentsschemasenv_specific_details_patch_type_0
-            except:  # noqa: E722
+            except (TypeError, ValueError, AttributeError, KeyError):
                 pass
             if not isinstance(data, dict):
                 raise TypeError()
@@ -96,7 +96,7 @@ class CronJobDetailsPATCH:
         env_specific_details = _parse_env_specific_details(d.pop("envSpecificDetails", UNSET))
 
         _plan = d.pop("plan", UNSET)
-        plan: Union[Unset, PaidPlan]
+        plan: PaidPlan | Unset
         if isinstance(_plan, Unset):
             plan = UNSET
         else:
@@ -105,7 +105,7 @@ class CronJobDetailsPATCH:
         schedule = d.pop("schedule", UNSET)
 
         _runtime = d.pop("runtime", UNSET)
-        runtime: Union[Unset, ServiceRuntime]
+        runtime: ServiceRuntime | Unset
         if isinstance(_runtime, Unset):
             runtime = UNSET
         else:

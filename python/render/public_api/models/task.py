@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..types import UNSET, Unset
 
@@ -18,15 +19,15 @@ class Task:
         id (str):
         name (str):
         created_at (datetime.datetime):
-        workflow_id (Union[Unset, str]):
-        workflow_version_id (Union[Unset, str]):
+        workflow_id (str | Unset):
+        workflow_version_id (str | Unset):
     """
 
     id: str
     name: str
     created_at: datetime.datetime
-    workflow_id: Union[Unset, str] = UNSET
-    workflow_version_id: Union[Unset, str] = UNSET
+    workflow_id: str | Unset = UNSET
+    workflow_version_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -63,7 +64,7 @@ class Task:
 
         name = d.pop("name")
 
-        created_at = isoparse(d.pop("createdAt"))
+        created_at = datetime.datetime.fromisoformat(d.pop("createdAt"))
 
         workflow_id = d.pop("workflowId", UNSET)
 

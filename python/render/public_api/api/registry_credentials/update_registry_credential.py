@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/registrycredentials/{registry_credential_id}",
+        "url": "/registrycredentials/{registry_credential_id}".format(
+            registry_credential_id=quote(str(registry_credential_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -32,8 +35,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, RegistryCredential]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | RegistryCredential | None:
     if response.status_code == 200:
         response_200 = RegistryCredential.from_dict(response.json())
 
@@ -101,8 +104,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, RegistryCredential]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | RegistryCredential]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -114,9 +117,9 @@ def _build_response(
 def sync_detailed(
     registry_credential_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateRegistryCredentialBody,
-) -> Response[Union[Error, RegistryCredential]]:
+) -> Response[Error | RegistryCredential]:
     """Update registry credential
 
      Update the registry credential with the provided ID. Services that use this credential must be
@@ -128,10 +131,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RegistryCredential]]
+        Response[Error | RegistryCredential]
     """
 
     kwargs = _get_kwargs(
@@ -149,9 +152,9 @@ def sync_detailed(
 def sync(
     registry_credential_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateRegistryCredentialBody,
-) -> Optional[Union[Error, RegistryCredential]]:
+) -> Error | RegistryCredential | None:
     """Update registry credential
 
      Update the registry credential with the provided ID. Services that use this credential must be
@@ -163,10 +166,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RegistryCredential]
+        Error | RegistryCredential
     """
 
     return sync_detailed(
@@ -179,9 +182,9 @@ def sync(
 async def asyncio_detailed(
     registry_credential_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateRegistryCredentialBody,
-) -> Response[Union[Error, RegistryCredential]]:
+) -> Response[Error | RegistryCredential]:
     """Update registry credential
 
      Update the registry credential with the provided ID. Services that use this credential must be
@@ -193,10 +196,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, RegistryCredential]]
+        Response[Error | RegistryCredential]
     """
 
     kwargs = _get_kwargs(
@@ -212,9 +215,9 @@ async def asyncio_detailed(
 async def asyncio(
     registry_credential_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: UpdateRegistryCredentialBody,
-) -> Optional[Union[Error, RegistryCredential]]:
+) -> Error | RegistryCredential | None:
     """Update registry credential
 
      Update the registry credential with the provided ID. Services that use this credential must be
@@ -226,10 +229,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, RegistryCredential]
+        Error | RegistryCredential
     """
 
     return (

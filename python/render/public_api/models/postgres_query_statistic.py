@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,46 +16,46 @@ class PostgresQueryStatistic:
     """A single query from pg_stat_statements.
 
     Attributes:
-        query_id (Union[Unset, str]):
-        query (Union[Unset, str]):
-        calls (Union[Unset, int]):
-        total_time_ms (Union[Unset, float]):
-        min_time_ms (Union[Unset, float]):
-        max_time_ms (Union[Unset, float]):
-        mean_time_ms (Union[Unset, float]):
-        stddev_time_ms (Union[Unset, float]):
-        rows (Union[Unset, int]):
-        shared_blocks_hit (Union[Unset, int]):
-        shared_blocks_read (Union[Unset, int]):
-        shared_blocks_dirtied (Union[Unset, int]):
-        shared_blocks_written (Union[Unset, int]):
-        local_blocks_hit (Union[Unset, int]):
-        local_blocks_read (Union[Unset, int]):
-        local_blocks_dirtied (Union[Unset, int]):
-        local_blocks_written (Union[Unset, int]):
-        temp_blocks_read (Union[Unset, int]):
-        temp_blocks_written (Union[Unset, int]):
+        query_id (str | Unset):
+        query (str | Unset):
+        calls (int | Unset):
+        total_time_ms (float | Unset):
+        min_time_ms (float | Unset):
+        max_time_ms (float | Unset):
+        mean_time_ms (float | Unset):
+        stddev_time_ms (float | Unset):
+        rows (int | Unset):
+        shared_blocks_hit (int | Unset):
+        shared_blocks_read (int | Unset):
+        shared_blocks_dirtied (int | Unset):
+        shared_blocks_written (int | Unset):
+        local_blocks_hit (int | Unset):
+        local_blocks_read (int | Unset):
+        local_blocks_dirtied (int | Unset):
+        local_blocks_written (int | Unset):
+        temp_blocks_read (int | Unset):
+        temp_blocks_written (int | Unset):
     """
 
-    query_id: Union[Unset, str] = UNSET
-    query: Union[Unset, str] = UNSET
-    calls: Union[Unset, int] = UNSET
-    total_time_ms: Union[Unset, float] = UNSET
-    min_time_ms: Union[Unset, float] = UNSET
-    max_time_ms: Union[Unset, float] = UNSET
-    mean_time_ms: Union[Unset, float] = UNSET
-    stddev_time_ms: Union[Unset, float] = UNSET
-    rows: Union[Unset, int] = UNSET
-    shared_blocks_hit: Union[Unset, int] = UNSET
-    shared_blocks_read: Union[Unset, int] = UNSET
-    shared_blocks_dirtied: Union[Unset, int] = UNSET
-    shared_blocks_written: Union[Unset, int] = UNSET
-    local_blocks_hit: Union[Unset, int] = UNSET
-    local_blocks_read: Union[Unset, int] = UNSET
-    local_blocks_dirtied: Union[Unset, int] = UNSET
-    local_blocks_written: Union[Unset, int] = UNSET
-    temp_blocks_read: Union[Unset, int] = UNSET
-    temp_blocks_written: Union[Unset, int] = UNSET
+    query_id: str | Unset = UNSET
+    query: str | Unset = UNSET
+    calls: int | Unset = UNSET
+    total_time_ms: float | Unset = UNSET
+    min_time_ms: float | Unset = UNSET
+    max_time_ms: float | Unset = UNSET
+    mean_time_ms: float | Unset = UNSET
+    stddev_time_ms: float | Unset = UNSET
+    rows: int | Unset = UNSET
+    shared_blocks_hit: int | Unset = UNSET
+    shared_blocks_read: int | Unset = UNSET
+    shared_blocks_dirtied: int | Unset = UNSET
+    shared_blocks_written: int | Unset = UNSET
+    local_blocks_hit: int | Unset = UNSET
+    local_blocks_read: int | Unset = UNSET
+    local_blocks_dirtied: int | Unset = UNSET
+    local_blocks_written: int | Unset = UNSET
+    temp_blocks_read: int | Unset = UNSET
+    temp_blocks_written: int | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

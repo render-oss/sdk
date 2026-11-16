@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class CreateDeployBodyClearCache(str, Enum):
+class CreateDeployBodyClearCache(StrEnum):
     CLEAR = "clear"
     DO_NOT_CLEAR = "do_not_clear"
 

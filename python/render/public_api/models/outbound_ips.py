@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union, cast
+from typing import Any, TypeVar, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,13 +19,13 @@ class OutboundIps:
         type_ (OutboundIpsType): `dedicated` if a dedicated IP set applies to the resource, `shared` if its traffic
             originates from the shared Render IPs for its region.
         ips (list[str]): The IP addresses the resource's outbound traffic originates from.
-        dedicated_ip_id (Union[Unset, str]): The dedicated IP set the traffic originates from. Only present when `type`
-            is `dedicated`. Example: egs-abc123.
+        dedicated_ip_id (str | Unset): The dedicated IP set the traffic originates from. Only present when `type` is
+            `dedicated`. Example: egs-abc123.
     """
 
     type_: OutboundIpsType
     ips: list[str]
-    dedicated_ip_id: Union[Unset, str] = UNSET
+    dedicated_ip_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

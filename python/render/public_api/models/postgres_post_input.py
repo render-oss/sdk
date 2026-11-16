@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -27,40 +29,40 @@ class PostgresPOSTInput:
         owner_id (str): The ID of the workspace to create the database for
         plan (PostgresPlans):
         version (PostgresVersion): The PostgreSQL version
-        database_name (Union[Unset, str]):  Default: 'randomly generated'.
-        database_user (Union[Unset, str]):  Default: 'randomly generated'.
-        datadog_api_key (Union[Unset, str]): The Datadog API key for the Datadog agent to monitor the new database.
-        datadog_site (Union[Unset, str]): Datadog region to use for monitoring the new database. Defaults to 'US1'.
-            Example: US1.
-        enable_high_availability (Union[Unset, bool]):  Default: False.
-        environment_id (Union[Unset, str]):
-        disk_size_gb (Union[Unset, int]): The number of gigabytes of disk space to allocate for the database
-        enable_disk_autoscaling (Union[Unset, bool]):  Default: False.
-        connection_pool (Union[Unset, str]): What connection pool to use (if any) out of 'pgbouncer' and 'none' Default:
+        database_name (str | Unset):  Default: 'randomly generated'.
+        database_user (str | Unset):  Default: 'randomly generated'.
+        datadog_api_key (str | Unset): The Datadog API key for the Datadog agent to monitor the new database.
+        datadog_site (str | Unset): Datadog region to use for monitoring the new database. Defaults to 'US1'. Example:
+            US1.
+        enable_high_availability (bool | Unset):  Default: False.
+        environment_id (str | Unset):
+        disk_size_gb (int | Unset): The number of gigabytes of disk space to allocate for the database
+        enable_disk_autoscaling (bool | Unset):  Default: False.
+        connection_pool (str | Unset): What connection pool to use (if any) out of 'pgbouncer' and 'none' Default:
             'none'.
-        region (Union[Unset, Region]): Defaults to "oregon"
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
-        parameter_overrides (Union[Unset, PostgresParameterOverrides]):
-        read_replicas (Union[Unset, list['ReadReplicaInput']]):
+        region (Region | Unset): Defaults to "oregon"
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
+        parameter_overrides (PostgresParameterOverrides | Unset):
+        read_replicas (list[ReadReplicaInput] | Unset):
     """
 
     name: str
     owner_id: str
     plan: PostgresPlans
     version: PostgresVersion
-    database_name: Union[Unset, str] = "randomly generated"
-    database_user: Union[Unset, str] = "randomly generated"
-    datadog_api_key: Union[Unset, str] = UNSET
-    datadog_site: Union[Unset, str] = UNSET
-    enable_high_availability: Union[Unset, bool] = False
-    environment_id: Union[Unset, str] = UNSET
-    disk_size_gb: Union[Unset, int] = UNSET
-    enable_disk_autoscaling: Union[Unset, bool] = False
-    connection_pool: Union[Unset, str] = "none"
-    region: Union[Unset, Region] = UNSET
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
-    parameter_overrides: Union[Unset, "PostgresParameterOverrides"] = UNSET
-    read_replicas: Union[Unset, list["ReadReplicaInput"]] = UNSET
+    database_name: str | Unset = "randomly generated"
+    database_user: str | Unset = "randomly generated"
+    datadog_api_key: str | Unset = UNSET
+    datadog_site: str | Unset = UNSET
+    enable_high_availability: bool | Unset = False
+    environment_id: str | Unset = UNSET
+    disk_size_gb: int | Unset = UNSET
+    enable_disk_autoscaling: bool | Unset = False
+    connection_pool: str | Unset = "none"
+    region: Region | Unset = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+    parameter_overrides: PostgresParameterOverrides | Unset = UNSET
+    read_replicas: list[ReadReplicaInput] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -90,22 +92,22 @@ class PostgresPOSTInput:
 
         connection_pool = self.connection_pool
 
-        region: Union[Unset, str] = UNSET
+        region: str | Unset = UNSET
         if not isinstance(self.region, Unset):
             region = self.region.value
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
                 ip_allow_list_item = ip_allow_list_item_data.to_dict()
                 ip_allow_list.append(ip_allow_list_item)
 
-        parameter_overrides: Union[Unset, dict[str, Any]] = UNSET
+        parameter_overrides: dict[str, Any] | Unset = UNSET
         if not isinstance(self.parameter_overrides, Unset):
             parameter_overrides = self.parameter_overrides.to_dict()
 
-        read_replicas: Union[Unset, list[dict[str, Any]]] = UNSET
+        read_replicas: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.read_replicas, Unset):
             read_replicas = []
             for componentsschemasread_replicas_input_item_data in self.read_replicas:
@@ -153,9 +155,9 @@ class PostgresPOSTInput:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.postgres_parameter_overrides import PostgresParameterOverrides
-        from ..models.read_replica_input import ReadReplicaInput
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.postgres_parameter_overrides import PostgresParameterOverrides  # noqa: PLC0415
+        from ..models.read_replica_input import ReadReplicaInput  # noqa: PLC0415
 
         d = dict(src_dict)
         name = d.pop("name")
@@ -185,34 +187,38 @@ class PostgresPOSTInput:
         connection_pool = d.pop("connectionPool", UNSET)
 
         _region = d.pop("region", UNSET)
-        region: Union[Unset, Region]
+        region: Region | Unset
         if isinstance(_region, Unset):
             region = UNSET
         else:
             region = Region(_region)
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         _parameter_overrides = d.pop("parameterOverrides", UNSET)
-        parameter_overrides: Union[Unset, PostgresParameterOverrides]
+        parameter_overrides: PostgresParameterOverrides | Unset
         if isinstance(_parameter_overrides, Unset):
             parameter_overrides = UNSET
         else:
             parameter_overrides = PostgresParameterOverrides.from_dict(_parameter_overrides)
 
-        read_replicas = []
         _read_replicas = d.pop("readReplicas", UNSET)
-        for componentsschemasread_replicas_input_item_data in _read_replicas or []:
-            componentsschemasread_replicas_input_item = ReadReplicaInput.from_dict(
-                componentsschemasread_replicas_input_item_data
-            )
+        read_replicas: list[ReadReplicaInput] | Unset = UNSET
+        if _read_replicas is not UNSET:
+            read_replicas = []
+            for componentsschemasread_replicas_input_item_data in _read_replicas:
+                componentsschemasread_replicas_input_item = ReadReplicaInput.from_dict(
+                    componentsschemasread_replicas_input_item_data
+                )
 
-            read_replicas.append(componentsschemasread_replicas_input_item)
+                read_replicas.append(componentsschemasread_replicas_input_item)
 
         postgres_post_input = cls(
             name=name,

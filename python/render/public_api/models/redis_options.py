@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -15,20 +17,20 @@ class RedisOptions:
     """Options for a Redis instance
 
     Attributes:
-        maxmemory_policy (Union[Unset, str]):
-        persistence_mode (Union[Unset, PersistenceMode]): The persistence mode for the Key Value instance. The default
-            for paid instances is journal_snapshot (both journaling and snapshots). Only turn off persistence if you're
-            using this Key Value instance as a cache and are okay with losing data. Free instances do not have persistence.
+        maxmemory_policy (str | Unset):
+        persistence_mode (PersistenceMode | Unset): The persistence mode for the Key Value instance. The default for
+            paid instances is journal_snapshot (both journaling and snapshots). Only turn off persistence if you're using
+            this Key Value instance as a cache and are okay with losing data. Free instances do not have persistence.
     """
 
-    maxmemory_policy: Union[Unset, str] = UNSET
-    persistence_mode: Union[Unset, PersistenceMode] = UNSET
+    maxmemory_policy: str | Unset = UNSET
+    persistence_mode: PersistenceMode | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         maxmemory_policy = self.maxmemory_policy
 
-        persistence_mode: Union[Unset, str] = UNSET
+        persistence_mode: str | Unset = UNSET
         if not isinstance(self.persistence_mode, Unset):
             persistence_mode = self.persistence_mode.value
 
@@ -48,7 +50,7 @@ class RedisOptions:
         maxmemory_policy = d.pop("maxmemoryPolicy", UNSET)
 
         _persistence_mode = d.pop("persistenceMode", UNSET)
-        persistence_mode: Union[Unset, PersistenceMode]
+        persistence_mode: PersistenceMode | Unset
         if isinstance(_persistence_mode, Unset):
             persistence_mode = UNSET
         else:

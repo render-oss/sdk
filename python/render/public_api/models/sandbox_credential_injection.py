@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,16 +19,16 @@ class SandboxCredentialInjection:
     Attributes:
         type_ (SandboxCredentialInjectionType): How Render adds the credential to a matching request. For `basic`, the
             value after applying `template` must have the form `username:password`. Do not provide `name`.
-        name (Union[Unset, str]): The header, cookie, or query parameter to set. Required for `header`, `cookie`, and
-            `query`. Headers that control routing or connection behavior cannot be used.
-        template (Union[Unset, str]): A template containing 1–5 occurrences of `${SECRET}`, such as `Bearer ${SECRET}`.
-            Render replaces each occurrence with the secret value. Omit to use the secret value without a template.
+        name (str | Unset): The header, cookie, or query parameter to set. Required for `header`, `cookie`, and `query`.
+            Headers that control routing or connection behavior cannot be used.
+        template (str | Unset): A template containing 1–5 occurrences of `${SECRET}`, such as `Bearer ${SECRET}`. Render
+            replaces each occurrence with the secret value. Omit to use the secret value without a template.
              Example: Bearer ${SECRET}.
     """
 
     type_: SandboxCredentialInjectionType
-    name: Union[Unset, str] = UNSET
-    template: Union[Unset, str] = UNSET
+    name: str | Unset = UNSET
+    template: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

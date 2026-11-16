@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class CronJobRunStatus(str, Enum):
+class CronJobRunStatus(StrEnum):
     CANCELED = "canceled"
     PENDING = "pending"
     SUCCESSFUL = "successful"

@@ -495,5 +495,5 @@ uv run tox -e format,lint
 
 ### Supported Python Versions
 
-- Python 3.10+
-- Tested on Python 3.10, 3.11, 3.12, 3.13, 3.14
+- Python 3.11+
+- Tested on Python 3.11, 3.12, 3.13, 3.14

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,15 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/build-sources/{build_source_id}",
+        "url": "/build-sources/{build_source_id}".format(
+            build_source_id=quote(str(build_source_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[BuildSource, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> BuildSource | Error | None:
     if response.status_code == 200:
         response_200 = BuildSource.from_dict(response.json())
 
@@ -61,8 +62,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[BuildSource, Error]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[BuildSource | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -74,8 +75,8 @@ def _build_response(
 def sync_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[BuildSource, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[BuildSource | Error]:
     """Retrieve a build source
 
      Retrieve a shared build source by ID
@@ -85,10 +86,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[BuildSource, Error]]
+        Response[BuildSource | Error]
     """
 
     kwargs = _get_kwargs(
@@ -105,8 +106,8 @@ def sync_detailed(
 def sync(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[BuildSource, Error]]:
+    client: AuthenticatedClient | Client,
+) -> BuildSource | Error | None:
     """Retrieve a build source
 
      Retrieve a shared build source by ID
@@ -116,10 +117,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[BuildSource, Error]
+        BuildSource | Error
     """
 
     return sync_detailed(
@@ -131,8 +132,8 @@ def sync(
 async def asyncio_detailed(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[BuildSource, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[BuildSource | Error]:
     """Retrieve a build source
 
      Retrieve a shared build source by ID
@@ -142,10 +143,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[BuildSource, Error]]
+        Response[BuildSource | Error]
     """
 
     kwargs = _get_kwargs(
@@ -160,8 +161,8 @@ async def asyncio_detailed(
 async def asyncio(
     build_source_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[BuildSource, Error]]:
+    client: AuthenticatedClient | Client,
+) -> BuildSource | Error | None:
     """Retrieve a build source
 
      Retrieve a shared build source by ID
@@ -171,10 +172,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[BuildSource, Error]
+        BuildSource | Error
     """
 
     return (

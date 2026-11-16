@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class OutboundIpsType(str, Enum):
+class OutboundIpsType(StrEnum):
     DEDICATED = "dedicated"
     SHARED = "shared"
 

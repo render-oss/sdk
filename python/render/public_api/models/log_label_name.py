@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class LogLabelName(str, Enum):
+class LogLabelName(StrEnum):
     BLOCKED = "blocked"
     BUILD = "build"
     HOST = "host"

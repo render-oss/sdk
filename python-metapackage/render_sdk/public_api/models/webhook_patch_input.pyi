@@ -6,7 +6,6 @@ from render.public_api.models.webhook_patch_input import (
     T as T,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     WebhookPATCHInput as WebhookPATCHInput,
     _attrs_define as _attrs_define,

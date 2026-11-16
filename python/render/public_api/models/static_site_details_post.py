@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -22,32 +24,32 @@ T = TypeVar("T", bound="StaticSiteDetailsPOST")
 class StaticSiteDetailsPOST:
     """
     Attributes:
-        build_command (Union[Unset, str]):
-        headers (Union[Unset, list['HeaderInput']]):
-        publish_path (Union[Unset, str]): Defaults to "public"
-        pull_request_previews_enabled (Union[Unset, PullRequestPreviewsEnabled]): This field has been deprecated.
+        build_command (str | Unset):
+        headers (list[HeaderInput] | Unset):
+        publish_path (str | Unset): Defaults to "public"
+        pull_request_previews_enabled (PullRequestPreviewsEnabled | Unset): This field has been deprecated.
             previews.generation should be used in its place.
-        previews (Union[Unset, Previews]):
-        routes (Union[Unset, list['RoutePost']]):
-        render_subdomain_policy (Union[Unset, RenderSubdomainPolicy]): Controls whether render.com subdomains are
-            available for the service
-        ip_allow_list (Union[Unset, list['CidrBlockAndDescription']]):
+        previews (Previews | Unset):
+        routes (list[RoutePost] | Unset):
+        render_subdomain_policy (RenderSubdomainPolicy | Unset): Controls whether render.com subdomains are available
+            for the service
+        ip_allow_list (list[CidrBlockAndDescription] | Unset):
     """
 
-    build_command: Union[Unset, str] = UNSET
-    headers: Union[Unset, list["HeaderInput"]] = UNSET
-    publish_path: Union[Unset, str] = UNSET
-    pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled] = UNSET
-    previews: Union[Unset, "Previews"] = UNSET
-    routes: Union[Unset, list["RoutePost"]] = UNSET
-    render_subdomain_policy: Union[Unset, RenderSubdomainPolicy] = UNSET
-    ip_allow_list: Union[Unset, list["CidrBlockAndDescription"]] = UNSET
+    build_command: str | Unset = UNSET
+    headers: list[HeaderInput] | Unset = UNSET
+    publish_path: str | Unset = UNSET
+    pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset = UNSET
+    previews: Previews | Unset = UNSET
+    routes: list[RoutePost] | Unset = UNSET
+    render_subdomain_policy: RenderSubdomainPolicy | Unset = UNSET
+    ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         build_command = self.build_command
 
-        headers: Union[Unset, list[dict[str, Any]]] = UNSET
+        headers: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.headers, Unset):
             headers = []
             for headers_item_data in self.headers:
@@ -56,26 +58,26 @@ class StaticSiteDetailsPOST:
 
         publish_path = self.publish_path
 
-        pull_request_previews_enabled: Union[Unset, str] = UNSET
+        pull_request_previews_enabled: str | Unset = UNSET
         if not isinstance(self.pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = self.pull_request_previews_enabled.value
 
-        previews: Union[Unset, dict[str, Any]] = UNSET
+        previews: dict[str, Any] | Unset = UNSET
         if not isinstance(self.previews, Unset):
             previews = self.previews.to_dict()
 
-        routes: Union[Unset, list[dict[str, Any]]] = UNSET
+        routes: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.routes, Unset):
             routes = []
             for routes_item_data in self.routes:
                 routes_item = routes_item_data.to_dict()
                 routes.append(routes_item)
 
-        render_subdomain_policy: Union[Unset, str] = UNSET
+        render_subdomain_policy: str | Unset = UNSET
         if not isinstance(self.render_subdomain_policy, Unset):
             render_subdomain_policy = self.render_subdomain_policy.value
 
-        ip_allow_list: Union[Unset, list[dict[str, Any]]] = UNSET
+        ip_allow_list: list[dict[str, Any]] | Unset = UNSET
         if not isinstance(self.ip_allow_list, Unset):
             ip_allow_list = []
             for ip_allow_list_item_data in self.ip_allow_list:
@@ -106,57 +108,63 @@ class StaticSiteDetailsPOST:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.cidr_block_and_description import CidrBlockAndDescription
-        from ..models.header_input import HeaderInput
-        from ..models.previews import Previews
-        from ..models.route_post import RoutePost
+        from ..models.cidr_block_and_description import CidrBlockAndDescription  # noqa: PLC0415
+        from ..models.header_input import HeaderInput  # noqa: PLC0415
+        from ..models.previews import Previews  # noqa: PLC0415
+        from ..models.route_post import RoutePost  # noqa: PLC0415
 
         d = dict(src_dict)
         build_command = d.pop("buildCommand", UNSET)
 
-        headers = []
         _headers = d.pop("headers", UNSET)
-        for headers_item_data in _headers or []:
-            headers_item = HeaderInput.from_dict(headers_item_data)
+        headers: list[HeaderInput] | Unset = UNSET
+        if _headers is not UNSET:
+            headers = []
+            for headers_item_data in _headers:
+                headers_item = HeaderInput.from_dict(headers_item_data)
 
-            headers.append(headers_item)
+                headers.append(headers_item)
 
         publish_path = d.pop("publishPath", UNSET)
 
         _pull_request_previews_enabled = d.pop("pullRequestPreviewsEnabled", UNSET)
-        pull_request_previews_enabled: Union[Unset, PullRequestPreviewsEnabled]
+        pull_request_previews_enabled: PullRequestPreviewsEnabled | Unset
         if isinstance(_pull_request_previews_enabled, Unset):
             pull_request_previews_enabled = UNSET
         else:
             pull_request_previews_enabled = PullRequestPreviewsEnabled(_pull_request_previews_enabled)
 
         _previews = d.pop("previews", UNSET)
-        previews: Union[Unset, Previews]
+        previews: Previews | Unset
         if isinstance(_previews, Unset):
             previews = UNSET
         else:
             previews = Previews.from_dict(_previews)
 
-        routes = []
         _routes = d.pop("routes", UNSET)
-        for routes_item_data in _routes or []:
-            routes_item = RoutePost.from_dict(routes_item_data)
+        routes: list[RoutePost] | Unset = UNSET
+        if _routes is not UNSET:
+            routes = []
+            for routes_item_data in _routes:
+                routes_item = RoutePost.from_dict(routes_item_data)
 
-            routes.append(routes_item)
+                routes.append(routes_item)
 
         _render_subdomain_policy = d.pop("renderSubdomainPolicy", UNSET)
-        render_subdomain_policy: Union[Unset, RenderSubdomainPolicy]
+        render_subdomain_policy: RenderSubdomainPolicy | Unset
         if isinstance(_render_subdomain_policy, Unset):
             render_subdomain_policy = UNSET
         else:
             render_subdomain_policy = RenderSubdomainPolicy(_render_subdomain_policy)
 
-        ip_allow_list = []
         _ip_allow_list = d.pop("ipAllowList", UNSET)
-        for ip_allow_list_item_data in _ip_allow_list or []:
-            ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
+        ip_allow_list: list[CidrBlockAndDescription] | Unset = UNSET
+        if _ip_allow_list is not UNSET:
+            ip_allow_list = []
+            for ip_allow_list_item_data in _ip_allow_list:
+                ip_allow_list_item = CidrBlockAndDescription.from_dict(ip_allow_list_item_data)
 
-            ip_allow_list.append(ip_allow_list_item)
+                ip_allow_list.append(ip_allow_list_item)
 
         static_site_details_post = cls(
             build_command=build_command,

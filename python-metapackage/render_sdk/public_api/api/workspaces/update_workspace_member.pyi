@@ -5,10 +5,8 @@ from render.public_api.api.workspaces.update_workspace_member import (
     Client as Client,
     Error as Error,
     HTTPStatus as HTTPStatus,
-    Optional as Optional,
     Response as Response,
     TeamMember as TeamMember,
-    Union as Union,
     UpdateWorkspaceMemberBody as UpdateWorkspaceMemberBody,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
@@ -16,6 +14,7 @@ from render.public_api.api.workspaces.update_workspace_member import (
     asyncio as asyncio,
     asyncio_detailed as asyncio_detailed,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

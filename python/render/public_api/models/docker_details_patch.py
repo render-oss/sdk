@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -13,17 +15,17 @@ T = TypeVar("T", bound="DockerDetailsPATCH")
 class DockerDetailsPATCH:
     """
     Attributes:
-        docker_command (Union[Unset, str]):
-        docker_context (Union[Unset, str]):
-        dockerfile_path (Union[Unset, str]):
-        registry_credential_id (Union[Unset, str]): Optional reference to the registry credential for this build. Omit
-            the field to leave the stored credential unchanged; send an empty string to clear it.
+        docker_command (str | Unset):
+        docker_context (str | Unset):
+        dockerfile_path (str | Unset):
+        registry_credential_id (str | Unset): Optional reference to the registry credential for this build. Omit the
+            field to leave the stored credential unchanged; send an empty string to clear it.
     """
 
-    docker_command: Union[Unset, str] = UNSET
-    docker_context: Union[Unset, str] = UNSET
-    dockerfile_path: Union[Unset, str] = UNSET
-    registry_credential_id: Union[Unset, str] = UNSET
+    docker_command: str | Unset = UNSET
+    docker_context: str | Unset = UNSET
+    dockerfile_path: str | Unset = UNSET
+    registry_credential_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:

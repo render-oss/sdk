@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ResourceRefType(str, Enum):
+class ResourceRefType(StrEnum):
     BACKGROUND_WORKER = "background_worker"
     BUILD_SOURCE = "build_source"
     CRON_JOB = "cron_job"

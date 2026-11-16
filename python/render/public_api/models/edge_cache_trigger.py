@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -19,12 +21,12 @@ class EdgeCacheTrigger:
     Attributes:
         manual (bool): Edge Cache change was triggered manually from the dashboard
         system (bool): Edge Cache Change was triggered by Render
-        user (Union[Unset, SchemasUser]): User who triggered the action
+        user (SchemasUser | Unset): User who triggered the action
     """
 
     manual: bool
     system: bool
-    user: Union[Unset, "SchemasUser"] = UNSET
+    user: SchemasUser | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -32,7 +34,7 @@ class EdgeCacheTrigger:
 
         system = self.system
 
-        user: Union[Unset, dict[str, Any]] = UNSET
+        user: dict[str, Any] | Unset = UNSET
         if not isinstance(self.user, Unset):
             user = self.user.to_dict()
 
@@ -51,7 +53,7 @@ class EdgeCacheTrigger:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.schemas_user import SchemasUser
+        from ..models.schemas_user import SchemasUser  # noqa: PLC0415
 
         d = dict(src_dict)
         manual = d.pop("manual")
@@ -59,7 +61,7 @@ class EdgeCacheTrigger:
         system = d.pop("system")
 
         _user = d.pop("user", UNSET)
-        user: Union[Unset, SchemasUser]
+        user: SchemasUser | Unset
         if isinstance(_user, Unset):
             user = UNSET
         else:

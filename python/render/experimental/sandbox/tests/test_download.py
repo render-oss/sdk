@@ -7,7 +7,7 @@ import stat
 import tarfile
 import threading
 
-import httpx
+import httpx2
 import pytest
 
 from render.client.errors import ClientError, RenderError
@@ -334,20 +334,20 @@ def _sandbox_client(handler, *, default_owner_id="tea-test"):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(handler)},
+        httpx_args={"transport": httpx2.MockTransport(handler)},
     )
     return SandboxClient(internal, default_owner_id=default_owner_id)
 
 
-async def _noop_handler(request: httpx.Request) -> httpx.Response:
+async def _noop_handler(request: httpx2.Request) -> httpx2.Response:
     raise AssertionError("the API client should not be called in this test")
 
 
 def _patch_proxy(mocker, handler):
-    """Patch the fresh httpx.AsyncClient the download uses for the proxy stream."""
+    """Patch the fresh httpx2.AsyncClient the download uses for the proxy stream."""
     mocker.patch(
-        "render.experimental.sandbox.api.httpx.AsyncClient",
-        return_value=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+        "render.experimental.sandbox.api.httpx2.AsyncClient",
+        return_value=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
     )
 
 
@@ -355,11 +355,11 @@ def _download_client(mocker, content, headers):
     """A client whose token mint is stubbed and whose proxy serves content."""
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["auth"] = request.headers.get("authorization")
         captured["accept_encoding"] = request.headers.get("accept-encoding")
-        return httpx.Response(200, content=content, headers=headers)
+        return httpx2.Response(200, content=content, headers=headers)
 
     client = _sandbox_client(_noop_handler)
     mocker.patch.object(
@@ -373,11 +373,11 @@ def _download_client(mocker, content, headers):
 async def test_mint_file_token_requests_the_token_endpoint():
     captured = {}
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         captured["method"] = request.method
         captured["path"] = request.url.path
         captured["query"] = dict(request.url.params)
-        return httpx.Response(201, json=CONNECT_JSON)
+        return httpx2.Response(201, json=CONNECT_JSON)
 
     client = _sandbox_client(handler)
     connection = await client.api._mint_file_token(
@@ -410,7 +410,7 @@ async def test_copy_from_writes_a_single_file(tmp_path, mocker):
 
 @pytest.mark.asyncio
 async def test_copy_from_asks_only_for_a_coding_httpx_undoes(tmp_path, mocker):
-    """httpx would otherwise advertise deflate too, and a deflate body would
+    """httpx2 would otherwise advertise deflate too, and a deflate body would
     reach the encoding check instead of being written."""
     client, captured = _download_client(
         mocker, b"payload", {"content-type": "application/octet-stream"}
@@ -506,7 +506,7 @@ async def test_copy_from_saves_legacy_gzip_as_a_file(tmp_path, mocker):
 
 @pytest.mark.asyncio
 async def test_copy_from_extracts_a_gzip_encoded_tar(tmp_path, mocker):
-    """The agent sends x-tar under Content-Encoding: gzip, which httpx has
+    """The agent sends x-tar under Content-Encoding: gzip, which httpx2 has
     already decoded by the time the body reaches us."""
     archive = _tar([_dir("sub"), _file("sub/a.txt", b"hello")])
     client, _ = _download_client(
@@ -569,8 +569,8 @@ async def test_copy_from_refuses_an_encoding_it_cannot_undo(tmp_path, mocker):
 def _proxy_error_client(mocker, status, **response_kwargs):
     """A client whose token mint succeeds and whose proxy returns an error."""
 
-    async def proxy_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(status, **response_kwargs)
+    async def proxy_handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(status, **response_kwargs)
 
     client = _sandbox_client(_noop_handler)
     mocker.patch.object(
@@ -636,13 +636,13 @@ async def test_copy_from_bounds_the_wait_for_the_next_chunk(tmp_path, mocker):
     captured = {}
 
     # Bound before the patch below, so building the stub does not re-enter it.
-    real_async_client = httpx.AsyncClient
+    real_async_client = httpx2.AsyncClient
 
     def fake_client(*args, **kwargs):
         captured["timeout"] = kwargs["timeout"]
         return real_async_client(
-            transport=httpx.MockTransport(
-                lambda request: httpx.Response(
+            transport=httpx2.MockTransport(
+                lambda request: httpx2.Response(
                     200,
                     content=b"payload",
                     headers={"content-type": "application/octet-stream"},
@@ -654,7 +654,7 @@ async def test_copy_from_bounds_the_wait_for_the_next_chunk(tmp_path, mocker):
     mocker.patch.object(
         client.api, "_mint_file_token", new=mocker.AsyncMock(return_value=CONNECT_JSON)
     )
-    mocker.patch("render.experimental.sandbox.api.httpx.AsyncClient", new=fake_client)
+    mocker.patch("render.experimental.sandbox.api.httpx2.AsyncClient", new=fake_client)
 
     await client.copy_from("sbx-123", "/app/data.txt", tmp_path / "out.txt")
 
@@ -664,8 +664,8 @@ async def test_copy_from_bounds_the_wait_for_the_next_chunk(tmp_path, mocker):
 
 @pytest.mark.asyncio
 async def test_copy_from_mint_404_raises_not_found(tmp_path):
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(404, json={"message": "not found"})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(404, json={"message": "not found"})
 
     client = _sandbox_client(handler)
     with pytest.raises(SandboxNotFoundError):
@@ -674,8 +674,8 @@ async def test_copy_from_mint_404_raises_not_found(tmp_path):
 
 @pytest.mark.asyncio
 async def test_copy_from_proxy_error_raises_client_error(tmp_path, mocker):
-    async def proxy_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(400, text="no such file")
+    async def proxy_handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(400, text="no such file")
 
     client = _sandbox_client(_noop_handler)
     mocker.patch.object(
@@ -697,11 +697,11 @@ async def test_copy_from_requires_owner_id(tmp_path):
 def test_sync_copy_from_writes_a_single_file(tmp_path, mocker):
     from render.experimental.sandbox.client_sync import SyncSandboxClient
 
-    def api_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(201, json=CONNECT_JSON)
+    def api_handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(201, json=CONNECT_JSON)
 
-    def proxy_handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
+    def proxy_handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
             200,
             content=b"payload",
             headers={"content-type": "application/octet-stream"},
@@ -710,14 +710,14 @@ def test_sync_copy_from_writes_a_single_file(tmp_path, mocker):
     internal = AuthenticatedClient(
         base_url="https://api.test/v1",
         token="test-token",
-        httpx_args={"transport": httpx.MockTransport(api_handler)},
+        httpx_args={"transport": httpx2.MockTransport(api_handler)},
     )
-    # Build the API client before patching: httpx.Client is one attribute on one
+    # Build the API client before patching: httpx2.Client is one attribute on one
     # module, so the patch below would otherwise catch this construction too.
     internal.get_httpx_client()
     mocker.patch(
-        "render.experimental.sandbox.api_sync.httpx.Client",
-        return_value=httpx.Client(transport=httpx.MockTransport(proxy_handler)),
+        "render.experimental.sandbox.api_sync.httpx2.Client",
+        return_value=httpx2.Client(transport=httpx2.MockTransport(proxy_handler)),
     )
     client = SyncSandboxClient(internal, default_owner_id="tea-test")
     dest = tmp_path / "local.txt"

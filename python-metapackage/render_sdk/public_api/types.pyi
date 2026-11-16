@@ -10,13 +10,11 @@ from render.public_api.types import (
     Literal as Literal,
     Mapping as Mapping,
     MutableMapping as MutableMapping,
-    Optional as Optional,
     RequestFiles as RequestFiles,
     Response as Response,
     T as T,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     define as define,
 )

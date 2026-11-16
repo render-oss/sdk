@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.flow_run_step_status import FlowRunStepStatus
 from ..models.flow_run_step_type import FlowRunStepType
@@ -23,16 +24,16 @@ class FlowRunStepDetails:
             place. `detached` runs a registered task as its own task run. `sleep` is a durable sleep.
         status (FlowRunStepStatus): `running` until the step records an outcome, then `succeeded` or `failed`.
         started_at (datetime.datetime):
-        name (Union[Unset, str]): For inline steps, the function's name. For detached steps, the task's registered name.
+        name (str | Unset): For inline steps, the function's name. For detached steps, the task's registered name.
             Omitted for sleep steps.
-        completed_at (Union[Unset, datetime.datetime]):
-        wake_at (Union[Unset, datetime.datetime]): For sleep steps, when the sleep ends.
-        child_task_run_id (Union[Unset, str]): For detached steps, the ID of the task run the step started. Example:
+        completed_at (datetime.datetime | Unset):
+        wake_at (datetime.datetime | Unset): For sleep steps, when the sleep ends.
+        child_task_run_id (str | Unset): For detached steps, the ID of the task run the step started. Example:
             trn-d0hp8fs9c44c73a6f1qg.
-        input_ (Union[Unset, Any]): The step's input. For detached steps, the input of the child task run.
-        result (Union[Unset, Any]): The step's result. Present only when the step succeeded; null when the step returned
-            no value.
-        error (Union[Unset, str]): Error message if the step failed.
+        input_ (Any | Unset): The step's input. For detached steps, the input of the child task run.
+        result (Any | Unset): The step's result. Present only when the step succeeded; null when the step returned no
+            value.
+        error (str | Unset): Error message if the step failed.
     """
 
     seq: int
@@ -40,13 +41,13 @@ class FlowRunStepDetails:
     type_: FlowRunStepType
     status: FlowRunStepStatus
     started_at: datetime.datetime
-    name: Union[Unset, str] = UNSET
-    completed_at: Union[Unset, datetime.datetime] = UNSET
-    wake_at: Union[Unset, datetime.datetime] = UNSET
-    child_task_run_id: Union[Unset, str] = UNSET
-    input_: Union[Unset, Any] = UNSET
-    result: Union[Unset, Any] = UNSET
-    error: Union[Unset, str] = UNSET
+    name: str | Unset = UNSET
+    completed_at: datetime.datetime | Unset = UNSET
+    wake_at: datetime.datetime | Unset = UNSET
+    child_task_run_id: str | Unset = UNSET
+    input_: Any | Unset = UNSET
+    result: Any | Unset = UNSET
+    error: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -62,11 +63,11 @@ class FlowRunStepDetails:
 
         name = self.name
 
-        completed_at: Union[Unset, str] = UNSET
+        completed_at: str | Unset = UNSET
         if not isinstance(self.completed_at, Unset):
             completed_at = self.completed_at.isoformat()
 
-        wake_at: Union[Unset, str] = UNSET
+        wake_at: str | Unset = UNSET
         if not isinstance(self.wake_at, Unset):
             wake_at = self.wake_at.isoformat()
 
@@ -117,23 +118,23 @@ class FlowRunStepDetails:
 
         status = FlowRunStepStatus(d.pop("status"))
 
-        started_at = isoparse(d.pop("startedAt"))
+        started_at = datetime.datetime.fromisoformat(d.pop("startedAt"))
 
         name = d.pop("name", UNSET)
 
         _completed_at = d.pop("completedAt", UNSET)
-        completed_at: Union[Unset, datetime.datetime]
+        completed_at: datetime.datetime | Unset
         if isinstance(_completed_at, Unset):
             completed_at = UNSET
         else:
-            completed_at = isoparse(_completed_at)
+            completed_at = datetime.datetime.fromisoformat(_completed_at)
 
         _wake_at = d.pop("wakeAt", UNSET)
-        wake_at: Union[Unset, datetime.datetime]
+        wake_at: datetime.datetime | Unset
         if isinstance(_wake_at, Unset):
             wake_at = UNSET
         else:
-            wake_at = isoparse(_wake_at)
+            wake_at = datetime.datetime.fromisoformat(_wake_at)
 
         child_task_run_id = d.pop("childTaskRunId", UNSET)
 

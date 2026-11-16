@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PaidPlan(str, Enum):
+class PaidPlan(StrEnum):
     PRO = "pro"
     PRO_MAX = "pro_max"
     PRO_PLUS = "pro_plus"

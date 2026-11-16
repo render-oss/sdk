@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class Plan(str, Enum):
+class Plan(StrEnum):
     CUSTOM = "custom"
     FREE = "free"
     PRO = "pro"

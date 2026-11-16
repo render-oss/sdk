@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 if TYPE_CHECKING:
     from ..models.log import Log
@@ -23,13 +24,13 @@ class ListLogsResponse200:
             Example: 2021-07-15T07:20:05.777035-07:00.
         next_end_time (datetime.datetime): The end time to use in the next query to fetch the next set of logs Example:
             2021-07-15T07:20:05.777035-07:00.
-        logs (list['Log']):
+        logs (list[Log]):
     """
 
     has_more: bool
     next_start_time: datetime.datetime
     next_end_time: datetime.datetime
-    logs: list["Log"]
+    logs: list[Log]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -59,14 +60,14 @@ class ListLogsResponse200:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.log import Log
+        from ..models.log import Log  # noqa: PLC0415
 
         d = dict(src_dict)
         has_more = d.pop("hasMore")
 
-        next_start_time = isoparse(d.pop("nextStartTime"))
+        next_start_time = datetime.datetime.fromisoformat(d.pop("nextStartTime"))
 
-        next_end_time = isoparse(d.pop("nextEndTime"))
+        next_end_time = datetime.datetime.fromisoformat(d.pop("nextEndTime"))
 
         logs = []
         _logs = d.pop("logs")

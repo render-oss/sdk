@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class BuildRunStatus(str, Enum):
+class BuildRunStatus(StrEnum):
     CANCELED = "canceled"
     CREATED = "created"
     FAILED = "failed"

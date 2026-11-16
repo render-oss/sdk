@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -14,17 +16,17 @@ T = TypeVar("T", bound="WebhookPATCHInput")
 class WebhookPATCHInput:
     """
     Attributes:
-        name (Union[Unset, str]):
-        url (Union[Unset, str]):
-        enabled (Union[Unset, bool]):
-        event_filter (Union[Unset, list[EventType]]): The event types that will trigger the webhook. An empty list means
-            all event types will trigger the webhook.
+        name (str | Unset):
+        url (str | Unset):
+        enabled (bool | Unset):
+        event_filter (list[EventType] | Unset): The event types that will trigger the webhook. An empty list means all
+            event types will trigger the webhook.
     """
 
-    name: Union[Unset, str] = UNSET
-    url: Union[Unset, str] = UNSET
-    enabled: Union[Unset, bool] = UNSET
-    event_filter: Union[Unset, list[EventType]] = UNSET
+    name: str | Unset = UNSET
+    url: str | Unset = UNSET
+    enabled: bool | Unset = UNSET
+    event_filter: list[EventType] | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -34,7 +36,7 @@ class WebhookPATCHInput:
 
         enabled = self.enabled
 
-        event_filter: Union[Unset, list[str]] = UNSET
+        event_filter: list[str] | Unset = UNSET
         if not isinstance(self.event_filter, Unset):
             event_filter = []
             for componentsschemasevent_filter_item_data in self.event_filter:
@@ -64,12 +66,14 @@ class WebhookPATCHInput:
 
         enabled = d.pop("enabled", UNSET)
 
-        event_filter = []
         _event_filter = d.pop("eventFilter", UNSET)
-        for componentsschemasevent_filter_item_data in _event_filter or []:
-            componentsschemasevent_filter_item = EventType(componentsschemasevent_filter_item_data)
+        event_filter: list[EventType] | Unset = UNSET
+        if _event_filter is not UNSET:
+            event_filter = []
+            for componentsschemasevent_filter_item_data in _event_filter:
+                componentsschemasevent_filter_item = EventType(componentsschemasevent_filter_item_data)
 
-            event_filter.append(componentsschemasevent_filter_item)
+                event_filter.append(componentsschemasevent_filter_item)
 
         webhook_patch_input = cls(
             name=name,

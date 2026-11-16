@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,17 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/hosted-repos/{hosted_repo_id}/git-credentials",
+        "url": "/hosted-repos/{hosted_repo_id}/git-credentials".format(
+            hosted_repo_id=quote(str(hosted_repo_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, GitCredentials]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | GitCredentials | None:
     if response.status_code == 200:
         response_200 = GitCredentials.from_dict(response.json())
 
@@ -66,8 +69,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, GitCredentials]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | GitCredentials]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -79,8 +82,8 @@ def _build_response(
 def sync_detailed(
     hosted_repo_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, GitCredentials]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | GitCredentials]:
     """Create git credentials
 
      Issue a short-lived token for the repository. This token entitles the caller to clone the repository
@@ -91,10 +94,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GitCredentials]]
+        Response[Error | GitCredentials]
     """
 
     kwargs = _get_kwargs(
@@ -111,8 +114,8 @@ def sync_detailed(
 def sync(
     hosted_repo_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, GitCredentials]]:
+    client: AuthenticatedClient | Client,
+) -> Error | GitCredentials | None:
     """Create git credentials
 
      Issue a short-lived token for the repository. This token entitles the caller to clone the repository
@@ -123,10 +126,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GitCredentials]
+        Error | GitCredentials
     """
 
     return sync_detailed(
@@ -138,8 +141,8 @@ def sync(
 async def asyncio_detailed(
     hosted_repo_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, GitCredentials]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | GitCredentials]:
     """Create git credentials
 
      Issue a short-lived token for the repository. This token entitles the caller to clone the repository
@@ -150,10 +153,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, GitCredentials]]
+        Response[Error | GitCredentials]
     """
 
     kwargs = _get_kwargs(
@@ -168,8 +171,8 @@ async def asyncio_detailed(
 async def asyncio(
     hosted_repo_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, GitCredentials]]:
+    client: AuthenticatedClient | Client,
+) -> Error | GitCredentials | None:
     """Create git credentials
 
      Issue a short-lived token for the repository. This token entitles the caller to clone the repository
@@ -180,10 +183,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, GitCredentials]
+        Error | GitCredentials
     """
 
     return (

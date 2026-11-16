@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PullRequestPreviewsEnabled(str, Enum):
+class PullRequestPreviewsEnabled(StrEnum):
     NO = "no"
     YES = "yes"
 

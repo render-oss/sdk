@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,17 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/logs/streams/resource/{resource_id}",
+        "url": "/logs/streams/resource/{resource_id}".format(
+            resource_id=quote(str(resource_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, ResourceLogStreamSetting]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | ResourceLogStreamSetting | None:
     if response.status_code == 200:
         response_200 = ResourceLogStreamSetting.from_dict(response.json())
 
@@ -81,8 +84,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, ResourceLogStreamSetting]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | ResourceLogStreamSetting]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -94,8 +97,8 @@ def _build_response(
 def sync_detailed(
     resource_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, ResourceLogStreamSetting]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | ResourceLogStreamSetting]:
     """Retrieve log stream override
 
      Returns log stream override information for the specified resource. A log stream override takes
@@ -106,10 +109,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ResourceLogStreamSetting]]
+        Response[Error | ResourceLogStreamSetting]
     """
 
     kwargs = _get_kwargs(
@@ -126,8 +129,8 @@ def sync_detailed(
 def sync(
     resource_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, ResourceLogStreamSetting]]:
+    client: AuthenticatedClient | Client,
+) -> Error | ResourceLogStreamSetting | None:
     """Retrieve log stream override
 
      Returns log stream override information for the specified resource. A log stream override takes
@@ -138,10 +141,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ResourceLogStreamSetting]
+        Error | ResourceLogStreamSetting
     """
 
     return sync_detailed(
@@ -153,8 +156,8 @@ def sync(
 async def asyncio_detailed(
     resource_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, ResourceLogStreamSetting]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | ResourceLogStreamSetting]:
     """Retrieve log stream override
 
      Returns log stream override information for the specified resource. A log stream override takes
@@ -165,10 +168,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, ResourceLogStreamSetting]]
+        Response[Error | ResourceLogStreamSetting]
     """
 
     kwargs = _get_kwargs(
@@ -183,8 +186,8 @@ async def asyncio_detailed(
 async def asyncio(
     resource_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, ResourceLogStreamSetting]]:
+    client: AuthenticatedClient | Client,
+) -> Error | ResourceLogStreamSetting | None:
     """Retrieve log stream override
 
      Returns log stream override information for the specified resource. A log stream override takes
@@ -195,10 +198,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, ResourceLogStreamSetting]
+        Error | ResourceLogStreamSetting
     """
 
     return (

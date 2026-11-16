@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -15,15 +16,15 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "get",
-        "url": f"/disks/{disk_id}",
+        "url": "/disks/{disk_id}".format(
+            disk_id=quote(str(disk_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[DiskDetails, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> DiskDetails | Error | None:
     if response.status_code == 200:
         response_200 = DiskDetails.from_dict(response.json())
 
@@ -76,8 +77,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[DiskDetails, Error]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[DiskDetails | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -89,8 +90,8 @@ def _build_response(
 def sync_detailed(
     disk_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[DiskDetails, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[DiskDetails | Error]:
     """Retrieve disk
 
      Retrieve the persistent disk with the provided ID.
@@ -100,10 +101,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[DiskDetails, Error]]
+        Response[DiskDetails | Error]
     """
 
     kwargs = _get_kwargs(
@@ -120,8 +121,8 @@ def sync_detailed(
 def sync(
     disk_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[DiskDetails, Error]]:
+    client: AuthenticatedClient | Client,
+) -> DiskDetails | Error | None:
     """Retrieve disk
 
      Retrieve the persistent disk with the provided ID.
@@ -131,10 +132,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[DiskDetails, Error]
+        DiskDetails | Error
     """
 
     return sync_detailed(
@@ -146,8 +147,8 @@ def sync(
 async def asyncio_detailed(
     disk_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[DiskDetails, Error]]:
+    client: AuthenticatedClient | Client,
+) -> Response[DiskDetails | Error]:
     """Retrieve disk
 
      Retrieve the persistent disk with the provided ID.
@@ -157,10 +158,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[DiskDetails, Error]]
+        Response[DiskDetails | Error]
     """
 
     kwargs = _get_kwargs(
@@ -175,8 +176,8 @@ async def asyncio_detailed(
 async def asyncio(
     disk_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[DiskDetails, Error]]:
+    client: AuthenticatedClient | Client,
+) -> DiskDetails | Error | None:
     """Retrieve disk
 
      Retrieve the persistent disk with the provided ID.
@@ -186,10 +187,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[DiskDetails, Error]
+        DiskDetails | Error
     """
 
     return (

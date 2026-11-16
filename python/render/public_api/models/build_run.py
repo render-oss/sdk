@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.build_run_runtime import BuildRunRuntime
 from ..models.build_run_status import BuildRunStatus
@@ -20,39 +21,39 @@ class BuildRun:
 
         Attributes:
             id (str):
-            status (Union[Unset, BuildRunStatus]):
-            build_started_at (Union[Unset, datetime.datetime]):
-            build_finished_at (Union[Unset, datetime.datetime]):
-            runtime (Union[Unset, BuildRunRuntime]):
-            commit_id (Union[Unset, str]):
-            commit_url (Union[Unset, str]):
+            status (BuildRunStatus | Unset):
+            build_started_at (datetime.datetime | Unset):
+            build_finished_at (datetime.datetime | Unset):
+            runtime (BuildRunRuntime | Unset):
+            commit_id (str | Unset):
+            commit_url (str | Unset):
     """
 
     id: str
-    status: Union[Unset, BuildRunStatus] = UNSET
-    build_started_at: Union[Unset, datetime.datetime] = UNSET
-    build_finished_at: Union[Unset, datetime.datetime] = UNSET
-    runtime: Union[Unset, BuildRunRuntime] = UNSET
-    commit_id: Union[Unset, str] = UNSET
-    commit_url: Union[Unset, str] = UNSET
+    status: BuildRunStatus | Unset = UNSET
+    build_started_at: datetime.datetime | Unset = UNSET
+    build_finished_at: datetime.datetime | Unset = UNSET
+    runtime: BuildRunRuntime | Unset = UNSET
+    commit_id: str | Unset = UNSET
+    commit_url: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         id = self.id
 
-        status: Union[Unset, str] = UNSET
+        status: str | Unset = UNSET
         if not isinstance(self.status, Unset):
             status = self.status.value
 
-        build_started_at: Union[Unset, str] = UNSET
+        build_started_at: str | Unset = UNSET
         if not isinstance(self.build_started_at, Unset):
             build_started_at = self.build_started_at.isoformat()
 
-        build_finished_at: Union[Unset, str] = UNSET
+        build_finished_at: str | Unset = UNSET
         if not isinstance(self.build_finished_at, Unset):
             build_finished_at = self.build_finished_at.isoformat()
 
-        runtime: Union[Unset, str] = UNSET
+        runtime: str | Unset = UNSET
         if not isinstance(self.runtime, Unset):
             runtime = self.runtime.value
 
@@ -88,28 +89,28 @@ class BuildRun:
         id = d.pop("id")
 
         _status = d.pop("status", UNSET)
-        status: Union[Unset, BuildRunStatus]
+        status: BuildRunStatus | Unset
         if isinstance(_status, Unset):
             status = UNSET
         else:
             status = BuildRunStatus(_status)
 
         _build_started_at = d.pop("buildStartedAt", UNSET)
-        build_started_at: Union[Unset, datetime.datetime]
+        build_started_at: datetime.datetime | Unset
         if isinstance(_build_started_at, Unset):
             build_started_at = UNSET
         else:
-            build_started_at = isoparse(_build_started_at)
+            build_started_at = datetime.datetime.fromisoformat(_build_started_at)
 
         _build_finished_at = d.pop("buildFinishedAt", UNSET)
-        build_finished_at: Union[Unset, datetime.datetime]
+        build_finished_at: datetime.datetime | Unset
         if isinstance(_build_finished_at, Unset):
             build_finished_at = UNSET
         else:
-            build_finished_at = isoparse(_build_finished_at)
+            build_finished_at = datetime.datetime.fromisoformat(_build_finished_at)
 
         _runtime = d.pop("runtime", UNSET)
-        runtime: Union[Unset, BuildRunRuntime]
+        runtime: BuildRunRuntime | Unset
         if isinstance(_runtime, Unset):
             runtime = UNSET
         else:

@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/dedicated-ips/{dedicated_ip_id}",
+        "url": "/dedicated-ips/{dedicated_ip_id}".format(
+            dedicated_ip_id=quote(str(dedicated_ip_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -31,9 +34,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[DedicatedIP, Error]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> DedicatedIP | Error | None:
     if response.status_code == 200:
         response_200 = DedicatedIP.from_dict(response.json())
 
@@ -96,8 +97,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[DedicatedIP, Error]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[DedicatedIP | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -109,9 +110,9 @@ def _build_response(
 def sync_detailed(
     dedicated_ip_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: DedicatedIPPATCH,
-) -> Response[Union[DedicatedIP, Error]]:
+) -> Response[DedicatedIP | Error]:
     """Update dedicated IP set
 
      Update the dedicated IP set with the provided ID. All fields are optional. Omitted fields are left
@@ -125,10 +126,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[DedicatedIP, Error]]
+        Response[DedicatedIP | Error]
     """
 
     kwargs = _get_kwargs(
@@ -146,9 +147,9 @@ def sync_detailed(
 def sync(
     dedicated_ip_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: DedicatedIPPATCH,
-) -> Optional[Union[DedicatedIP, Error]]:
+) -> DedicatedIP | Error | None:
     """Update dedicated IP set
 
      Update the dedicated IP set with the provided ID. All fields are optional. Omitted fields are left
@@ -162,10 +163,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[DedicatedIP, Error]
+        DedicatedIP | Error
     """
 
     return sync_detailed(
@@ -178,9 +179,9 @@ def sync(
 async def asyncio_detailed(
     dedicated_ip_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: DedicatedIPPATCH,
-) -> Response[Union[DedicatedIP, Error]]:
+) -> Response[DedicatedIP | Error]:
     """Update dedicated IP set
 
      Update the dedicated IP set with the provided ID. All fields are optional. Omitted fields are left
@@ -194,10 +195,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[DedicatedIP, Error]]
+        Response[DedicatedIP | Error]
     """
 
     kwargs = _get_kwargs(
@@ -213,9 +214,9 @@ async def asyncio_detailed(
 async def asyncio(
     dedicated_ip_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: DedicatedIPPATCH,
-) -> Optional[Union[DedicatedIP, Error]]:
+) -> DedicatedIP | Error | None:
     """Update dedicated IP set
 
      Update the dedicated IP set with the provided ID. All fields are optional. Omitted fields are left
@@ -229,10 +230,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[DedicatedIP, Error]
+        DedicatedIP | Error
     """
 
     return (

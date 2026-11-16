@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -20,7 +21,9 @@ def _get_kwargs(
 
     _kwargs: dict[str, Any] = {
         "method": "patch",
-        "url": f"/projects/{project_id}",
+        "url": "/projects/{project_id}".format(
+            project_id=quote(str(project_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = body.to_dict()
@@ -31,9 +34,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Project]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Project | None:
     if response.status_code == 200:
         response_200 = Project.from_dict(response.json())
 
@@ -75,9 +76,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Project]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Project]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -89,9 +88,9 @@ def _build_response(
 def sync_detailed(
     project_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: ProjectPATCHInput,
-) -> Response[Union[Error, Project]]:
+) -> Response[Error | Project]:
     """Update project
 
      Update the details of a project.
@@ -105,10 +104,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Project]]
+        Response[Error | Project]
     """
 
     kwargs = _get_kwargs(
@@ -126,9 +125,9 @@ def sync_detailed(
 def sync(
     project_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: ProjectPATCHInput,
-) -> Optional[Union[Error, Project]]:
+) -> Error | Project | None:
     """Update project
 
      Update the details of a project.
@@ -142,10 +141,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Project]
+        Error | Project
     """
 
     return sync_detailed(
@@ -158,9 +157,9 @@ def sync(
 async def asyncio_detailed(
     project_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: ProjectPATCHInput,
-) -> Response[Union[Error, Project]]:
+) -> Response[Error | Project]:
     """Update project
 
      Update the details of a project.
@@ -174,10 +173,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Project]]
+        Response[Error | Project]
     """
 
     kwargs = _get_kwargs(
@@ -193,9 +192,9 @@ async def asyncio_detailed(
 async def asyncio(
     project_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
+    client: AuthenticatedClient | Client,
     body: ProjectPATCHInput,
-) -> Optional[Union[Error, Project]]:
+) -> Error | Project | None:
     """Update project
 
      Update the details of a project.
@@ -209,10 +208,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Project]
+        Error | Project
     """
 
     return (

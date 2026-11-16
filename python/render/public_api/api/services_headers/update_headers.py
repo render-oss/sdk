@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,13 +15,15 @@ from ...types import Response
 def _get_kwargs(
     service_id: str,
     *,
-    body: list["HeaderInput"],
+    body: list[HeaderInput],
 ) -> dict[str, Any]:
     headers: dict[str, Any] = {}
 
     _kwargs: dict[str, Any] = {
         "method": "put",
-        "url": f"/services/{service_id}/headers",
+        "url": "/services/{service_id}/headers".format(
+            service_id=quote(str(service_id), safe=""),
+        ),
     }
 
     _kwargs["json"] = []
@@ -34,9 +37,7 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["Header"]]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | list[Header] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -99,8 +100,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["Header"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[Header]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -112,9 +113,9 @@ def _build_response(
 def sync_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["HeaderInput"],
-) -> Response[Union[Error, list["Header"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[HeaderInput],
+) -> Response[Error | list[Header]]:
     """Replace header rules
 
      Replace all header rules for a particular service with the provided list.
@@ -123,14 +124,14 @@ def sync_detailed(
 
     Args:
         service_id (str):
-        body (list['HeaderInput']):
+        body (list[HeaderInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['Header']]]
+        Response[Error | list[Header]]
     """
 
     kwargs = _get_kwargs(
@@ -148,9 +149,9 @@ def sync_detailed(
 def sync(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["HeaderInput"],
-) -> Optional[Union[Error, list["Header"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[HeaderInput],
+) -> Error | list[Header] | None:
     """Replace header rules
 
      Replace all header rules for a particular service with the provided list.
@@ -159,14 +160,14 @@ def sync(
 
     Args:
         service_id (str):
-        body (list['HeaderInput']):
+        body (list[HeaderInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['Header']]
+        Error | list[Header]
     """
 
     return sync_detailed(
@@ -179,9 +180,9 @@ def sync(
 async def asyncio_detailed(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["HeaderInput"],
-) -> Response[Union[Error, list["Header"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[HeaderInput],
+) -> Response[Error | list[Header]]:
     """Replace header rules
 
      Replace all header rules for a particular service with the provided list.
@@ -190,14 +191,14 @@ async def asyncio_detailed(
 
     Args:
         service_id (str):
-        body (list['HeaderInput']):
+        body (list[HeaderInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['Header']]]
+        Response[Error | list[Header]]
     """
 
     kwargs = _get_kwargs(
@@ -213,9 +214,9 @@ async def asyncio_detailed(
 async def asyncio(
     service_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-    body: list["HeaderInput"],
-) -> Optional[Union[Error, list["Header"]]]:
+    client: AuthenticatedClient | Client,
+    body: list[HeaderInput],
+) -> Error | list[Header] | None:
     """Replace header rules
 
      Replace all header rules for a particular service with the provided list.
@@ -224,14 +225,14 @@ async def asyncio(
 
     Args:
         service_id (str):
-        body (list['HeaderInput']):
+        body (list[HeaderInput]):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['Header']]
+        Error | list[Header]
     """
 
     return (

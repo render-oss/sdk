@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -15,10 +17,10 @@ T = TypeVar("T", bound="PostgresProcessesResult")
 class PostgresProcessesResult:
     """
     Attributes:
-        processes (list['PostgresProcess']):
+        processes (list[PostgresProcess]):
     """
 
-    processes: list["PostgresProcess"]
+    processes: list[PostgresProcess]
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -39,7 +41,7 @@ class PostgresProcessesResult:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.postgres_process import PostgresProcess
+        from ..models.postgres_process import PostgresProcess  # noqa: PLC0415
 
         d = dict(src_dict)
         processes = []

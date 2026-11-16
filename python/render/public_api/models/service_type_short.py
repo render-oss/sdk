@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ServiceTypeShort(str, Enum):
+class ServiceTypeShort(StrEnum):
     CRON = "cron"
     PSERV = "pserv"
     STATIC = "static"

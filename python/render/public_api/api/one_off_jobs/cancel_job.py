@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
+from urllib.parse import quote
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -16,15 +17,16 @@ def _get_kwargs(
 ) -> dict[str, Any]:
     _kwargs: dict[str, Any] = {
         "method": "post",
-        "url": f"/services/{service_id}/jobs/{job_id}/cancel",
+        "url": "/services/{service_id}/jobs/{job_id}/cancel".format(
+            service_id=quote(str(service_id), safe=""),
+            job_id=quote(str(job_id), safe=""),
+        ),
     }
 
     return _kwargs
 
 
-def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, Job]]:
+def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Job | None:
     if response.status_code == 200:
         response_200 = Job.from_dict(response.json())
 
@@ -66,9 +68,7 @@ def _parse_response(
         return None
 
 
-def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, Job]]:
+def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Job]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -81,8 +81,8 @@ def sync_detailed(
     service_id: str,
     job_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, Job]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | Job]:
     """Cancel running job
 
      Cancel a particular one-off job for a particular service.
@@ -93,10 +93,10 @@ def sync_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Job]]
+        Response[Error | Job]
     """
 
     kwargs = _get_kwargs(
@@ -115,8 +115,8 @@ def sync(
     service_id: str,
     job_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, Job]]:
+    client: AuthenticatedClient | Client,
+) -> Error | Job | None:
     """Cancel running job
 
      Cancel a particular one-off job for a particular service.
@@ -127,10 +127,10 @@ def sync(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Job]
+        Error | Job
     """
 
     return sync_detailed(
@@ -144,8 +144,8 @@ async def asyncio_detailed(
     service_id: str,
     job_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Response[Union[Error, Job]]:
+    client: AuthenticatedClient | Client,
+) -> Response[Error | Job]:
     """Cancel running job
 
      Cancel a particular one-off job for a particular service.
@@ -156,10 +156,10 @@ async def asyncio_detailed(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, Job]]
+        Response[Error | Job]
     """
 
     kwargs = _get_kwargs(
@@ -176,8 +176,8 @@ async def asyncio(
     service_id: str,
     job_id: str,
     *,
-    client: Union[AuthenticatedClient, Client],
-) -> Optional[Union[Error, Job]]:
+    client: AuthenticatedClient | Client,
+) -> Error | Job | None:
     """Cancel running job
 
      Cancel a particular one-off job for a particular service.
@@ -188,10 +188,10 @@ async def asyncio(
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, Job]
+        Error | Job
     """
 
     return (

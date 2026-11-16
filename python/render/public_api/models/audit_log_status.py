@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class AuditLogStatus(str, Enum):
+class AuditLogStatus(StrEnum):
     ERROR = "error"
     SUCCESS = "success"
 

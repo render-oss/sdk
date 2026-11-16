@@ -15,7 +15,6 @@ from render.public_api.models.service_patch import (
     TYPE_CHECKING as TYPE_CHECKING,
     TypeVar as TypeVar,
     UNSET as UNSET,
-    Union as Union,
     Unset as Unset,
     WebServiceDetailsPATCH as WebServiceDetailsPATCH,
     _attrs_define as _attrs_define,

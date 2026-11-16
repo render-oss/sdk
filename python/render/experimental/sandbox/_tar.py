@@ -267,7 +267,7 @@ async def astat_path(path: str | os.PathLike[str]) -> os.stat_result:
 
 
 def close_content(content: Iterator[bytes]) -> None:
-    """Release a request body httpx did not finish consuming."""
+    """Release a request body httpx2 did not finish consuming."""
     if isinstance(content, Generator):
         content.close()
 

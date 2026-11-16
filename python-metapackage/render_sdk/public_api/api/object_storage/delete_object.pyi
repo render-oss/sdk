@@ -5,10 +5,8 @@ from render.public_api.api.object_storage.delete_object import (
     Client as Client,
     Error as Error,
     HTTPStatus as HTTPStatus,
-    Optional as Optional,
     Region as Region,
     Response as Response,
-    Union as Union,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
     _parse_response as _parse_response,
@@ -16,6 +14,7 @@ from render.public_api.api.object_storage.delete_object import (
     asyncio_detailed as asyncio_detailed,
     cast as cast,
     errors as errors,
+    quote as quote,
     sync as sync,
     sync_detailed as sync_detailed,
 )

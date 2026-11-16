@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 import datetime
 from collections.abc import Mapping
-from typing import Any, TypeVar, Union
+from typing import Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
-from dateutil.parser import isoparse
 
 from ..models.recovery_info_recovery_status import RecoveryInfoRecoveryStatus
 from ..types import UNSET, Unset
@@ -17,17 +18,17 @@ class RecoveryInfo:
     """
     Attributes:
         recovery_status (RecoveryInfoRecoveryStatus): Availability of point-in-time recovery.
-        starts_at (Union[Unset, datetime.datetime]):
+        starts_at (datetime.datetime | Unset):
     """
 
     recovery_status: RecoveryInfoRecoveryStatus
-    starts_at: Union[Unset, datetime.datetime] = UNSET
+    starts_at: datetime.datetime | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         recovery_status = self.recovery_status.value
 
-        starts_at: Union[Unset, str] = UNSET
+        starts_at: str | Unset = UNSET
         if not isinstance(self.starts_at, Unset):
             starts_at = self.starts_at.isoformat()
 
@@ -49,11 +50,11 @@ class RecoveryInfo:
         recovery_status = RecoveryInfoRecoveryStatus(d.pop("recoveryStatus"))
 
         _starts_at = d.pop("startsAt", UNSET)
-        starts_at: Union[Unset, datetime.datetime]
+        starts_at: datetime.datetime | Unset
         if isinstance(_starts_at, Unset):
             starts_at = UNSET
         else:
-            starts_at = isoparse(_starts_at)
+            starts_at = datetime.datetime.fromisoformat(_starts_at)
 
         recovery_info = cls(
             recovery_status=recovery_status,

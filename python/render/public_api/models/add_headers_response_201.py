@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -17,14 +19,14 @@ T = TypeVar("T", bound="AddHeadersResponse201")
 class AddHeadersResponse201:
     """
     Attributes:
-        headers (Union[Unset, Header]):
+        headers (Header | Unset):
     """
 
-    headers: Union[Unset, "Header"] = UNSET
+    headers: Header | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
-        headers: Union[Unset, dict[str, Any]] = UNSET
+        headers: dict[str, Any] | Unset = UNSET
         if not isinstance(self.headers, Unset):
             headers = self.headers.to_dict()
 
@@ -38,11 +40,11 @@ class AddHeadersResponse201:
 
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
-        from ..models.header import Header
+        from ..models.header import Header  # noqa: PLC0415
 
         d = dict(src_dict)
         _headers = d.pop("headers", UNSET)
-        headers: Union[Unset, Header]
+        headers: Header | Unset
         if isinstance(_headers, Unset):
             headers = UNSET
         else:

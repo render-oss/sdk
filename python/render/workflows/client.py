@@ -2,7 +2,7 @@
 
 Uses a hand-rolled HTTP/UDS transport (``_uds_http``) and hand-rolled
 data models (``_models``) so this module — which is on the
-worker hot path — does not pull in ``httpx`` or ``attrs`` at import
+worker hot path — does not pull in ``httpx2`` or ``attrs`` at import
 time.
 
 Error translation from raw transport exceptions to

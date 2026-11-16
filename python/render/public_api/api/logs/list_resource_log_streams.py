@@ -1,7 +1,7 @@
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -13,34 +13,34 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    owner_id: Union[Unset, list[str]] = UNSET,
-    log_stream_id: Union[Unset, list[str]] = UNSET,
-    resource_id: Union[Unset, list[str]] = UNSET,
-    setting: Union[Unset, list[LogStreamSetting]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
+    owner_id: list[str] | Unset = UNSET,
+    log_stream_id: list[str] | Unset = UNSET,
+    resource_id: list[str] | Unset = UNSET,
+    setting: list[LogStreamSetting] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_owner_id: Union[Unset, list[str]] = UNSET
+    json_owner_id: list[str] | Unset = UNSET
     if not isinstance(owner_id, Unset):
         json_owner_id = owner_id
 
     params["ownerId"] = json_owner_id
 
-    json_log_stream_id: Union[Unset, list[str]] = UNSET
+    json_log_stream_id: list[str] | Unset = UNSET
     if not isinstance(log_stream_id, Unset):
         json_log_stream_id = log_stream_id
 
     params["logStreamId"] = json_log_stream_id
 
-    json_resource_id: Union[Unset, list[str]] = UNSET
+    json_resource_id: list[str] | Unset = UNSET
     if not isinstance(resource_id, Unset):
         json_resource_id = resource_id
 
     params["resourceId"] = json_resource_id
 
-    json_setting: Union[Unset, list[str]] = UNSET
+    json_setting: list[str] | Unset = UNSET
     if not isinstance(setting, Unset):
         json_setting = []
         for setting_item_data in setting:
@@ -65,8 +65,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["ResourceLogStreamSetting"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[ResourceLogStreamSetting] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -129,8 +129,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["ResourceLogStreamSetting"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[ResourceLogStreamSetting]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -141,33 +141,33 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    log_stream_id: Union[Unset, list[str]] = UNSET,
-    resource_id: Union[Unset, list[str]] = UNSET,
-    setting: Union[Unset, list[LogStreamSetting]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ResourceLogStreamSetting"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    log_stream_id: list[str] | Unset = UNSET,
+    resource_id: list[str] | Unset = UNSET,
+    setting: list[LogStreamSetting] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ResourceLogStreamSetting]]:
     """List log stream overrides
 
      Lists log stream overrides for the provided workspace that match the provided filters. These
     overrides take precedence over the workspace's default log stream.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        log_stream_id (Union[Unset, list[str]]):
-        resource_id (Union[Unset, list[str]]):
-        setting (Union[Unset, list[LogStreamSetting]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        log_stream_id (list[str] | Unset):
+        resource_id (list[str] | Unset):
+        setting (list[LogStreamSetting] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ResourceLogStreamSetting']]]
+        Response[Error | list[ResourceLogStreamSetting]]
     """
 
     kwargs = _get_kwargs(
@@ -188,33 +188,33 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    log_stream_id: Union[Unset, list[str]] = UNSET,
-    resource_id: Union[Unset, list[str]] = UNSET,
-    setting: Union[Unset, list[LogStreamSetting]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ResourceLogStreamSetting"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    log_stream_id: list[str] | Unset = UNSET,
+    resource_id: list[str] | Unset = UNSET,
+    setting: list[LogStreamSetting] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ResourceLogStreamSetting] | None:
     """List log stream overrides
 
      Lists log stream overrides for the provided workspace that match the provided filters. These
     overrides take precedence over the workspace's default log stream.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        log_stream_id (Union[Unset, list[str]]):
-        resource_id (Union[Unset, list[str]]):
-        setting (Union[Unset, list[LogStreamSetting]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        log_stream_id (list[str] | Unset):
+        resource_id (list[str] | Unset):
+        setting (list[LogStreamSetting] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ResourceLogStreamSetting']]
+        Error | list[ResourceLogStreamSetting]
     """
 
     return sync_detailed(
@@ -230,33 +230,33 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    log_stream_id: Union[Unset, list[str]] = UNSET,
-    resource_id: Union[Unset, list[str]] = UNSET,
-    setting: Union[Unset, list[LogStreamSetting]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Response[Union[Error, list["ResourceLogStreamSetting"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    log_stream_id: list[str] | Unset = UNSET,
+    resource_id: list[str] | Unset = UNSET,
+    setting: list[LogStreamSetting] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Response[Error | list[ResourceLogStreamSetting]]:
     """List log stream overrides
 
      Lists log stream overrides for the provided workspace that match the provided filters. These
     overrides take precedence over the workspace's default log stream.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        log_stream_id (Union[Unset, list[str]]):
-        resource_id (Union[Unset, list[str]]):
-        setting (Union[Unset, list[LogStreamSetting]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        log_stream_id (list[str] | Unset):
+        resource_id (list[str] | Unset):
+        setting (list[LogStreamSetting] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['ResourceLogStreamSetting']]]
+        Response[Error | list[ResourceLogStreamSetting]]
     """
 
     kwargs = _get_kwargs(
@@ -275,33 +275,33 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    owner_id: Union[Unset, list[str]] = UNSET,
-    log_stream_id: Union[Unset, list[str]] = UNSET,
-    resource_id: Union[Unset, list[str]] = UNSET,
-    setting: Union[Unset, list[LogStreamSetting]] = UNSET,
-    cursor: Union[Unset, str] = UNSET,
-    limit: Union[Unset, int] = 20,
-) -> Optional[Union[Error, list["ResourceLogStreamSetting"]]]:
+    client: AuthenticatedClient | Client,
+    owner_id: list[str] | Unset = UNSET,
+    log_stream_id: list[str] | Unset = UNSET,
+    resource_id: list[str] | Unset = UNSET,
+    setting: list[LogStreamSetting] | Unset = UNSET,
+    cursor: str | Unset = UNSET,
+    limit: int | Unset = 20,
+) -> Error | list[ResourceLogStreamSetting] | None:
     """List log stream overrides
 
      Lists log stream overrides for the provided workspace that match the provided filters. These
     overrides take precedence over the workspace's default log stream.
 
     Args:
-        owner_id (Union[Unset, list[str]]):
-        log_stream_id (Union[Unset, list[str]]):
-        resource_id (Union[Unset, list[str]]):
-        setting (Union[Unset, list[LogStreamSetting]]):
-        cursor (Union[Unset, str]):
-        limit (Union[Unset, int]): Defaults to 20 Default: 20.
+        owner_id (list[str] | Unset):
+        log_stream_id (list[str] | Unset):
+        resource_id (list[str] | Unset):
+        setting (list[LogStreamSetting] | Unset):
+        cursor (str | Unset):
+        limit (int | Unset): Defaults to 20 Default: 20.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['ResourceLogStreamSetting']]
+        Error | list[ResourceLogStreamSetting]
     """
 
     return (

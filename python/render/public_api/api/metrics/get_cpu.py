@@ -1,8 +1,8 @@
 import datetime
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import Any
 
-import httpx
+import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
@@ -14,22 +14,22 @@ from ...types import UNSET, Response, Unset
 
 def _get_kwargs(
     *,
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resolution_seconds: Union[Unset, float] = 60.0,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-    instance: Union[Unset, str] = UNSET,
-    aggregation_method: Union[Unset, GetCpuAggregationMethod] = UNSET,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resolution_seconds: float | Unset = 60.0,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+    instance: str | Unset = UNSET,
+    aggregation_method: GetCpuAggregationMethod | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
-    json_start_time: Union[Unset, str] = UNSET
+    json_start_time: str | Unset = UNSET
     if not isinstance(start_time, Unset):
         json_start_time = start_time.isoformat()
     params["startTime"] = json_start_time
 
-    json_end_time: Union[Unset, str] = UNSET
+    json_end_time: str | Unset = UNSET
     if not isinstance(end_time, Unset):
         json_end_time = end_time.isoformat()
     params["endTime"] = json_end_time
@@ -42,7 +42,7 @@ def _get_kwargs(
 
     params["instance"] = instance
 
-    json_aggregation_method: Union[Unset, str] = UNSET
+    json_aggregation_method: str | Unset = UNSET
     if not isinstance(aggregation_method, Unset):
         json_aggregation_method = aggregation_method.value
 
@@ -60,8 +60,8 @@ def _get_kwargs(
 
 
 def _parse_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Optional[Union[Error, list["TimeSeries"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | list[TimeSeries] | None:
     if response.status_code == 200:
         response_200 = []
         _response_200 = response.json()
@@ -91,8 +91,8 @@ def _parse_response(
 
 
 def _build_response(
-    *, client: Union[AuthenticatedClient, Client], response: httpx.Response
-) -> Response[Union[Error, list["TimeSeries"]]]:
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | list[TimeSeries]]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -103,34 +103,34 @@ def _build_response(
 
 def sync_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resolution_seconds: Union[Unset, float] = 60.0,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-    instance: Union[Unset, str] = UNSET,
-    aggregation_method: Union[Unset, GetCpuAggregationMethod] = UNSET,
-) -> Response[Union[Error, list["TimeSeries"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resolution_seconds: float | Unset = 60.0,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+    instance: str | Unset = UNSET,
+    aggregation_method: GetCpuAggregationMethod | Unset = UNSET,
+) -> Response[Error | list[TimeSeries]]:
     """Get CPU usage
 
      Get CPU usage for one or more resources.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resolution_seconds (Union[Unset, float]):  Default: 60.0. Example: 60.
-        resource (Union[Unset, str]):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
-        instance (Union[Unset, str]):  Example: srv-xxxxx-yyyy.
-        aggregation_method (Union[Unset, GetCpuAggregationMethod]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
+        resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
+        instance (str | Unset):  Example: srv-xxxxx-yyyy.
+        aggregation_method (GetCpuAggregationMethod | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TimeSeries']]]
+        Response[Error | list[TimeSeries]]
     """
 
     kwargs = _get_kwargs(
@@ -152,34 +152,34 @@ def sync_detailed(
 
 def sync(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resolution_seconds: Union[Unset, float] = 60.0,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-    instance: Union[Unset, str] = UNSET,
-    aggregation_method: Union[Unset, GetCpuAggregationMethod] = UNSET,
-) -> Optional[Union[Error, list["TimeSeries"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resolution_seconds: float | Unset = 60.0,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+    instance: str | Unset = UNSET,
+    aggregation_method: GetCpuAggregationMethod | Unset = UNSET,
+) -> Error | list[TimeSeries] | None:
     """Get CPU usage
 
      Get CPU usage for one or more resources.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resolution_seconds (Union[Unset, float]):  Default: 60.0. Example: 60.
-        resource (Union[Unset, str]):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
-        instance (Union[Unset, str]):  Example: srv-xxxxx-yyyy.
-        aggregation_method (Union[Unset, GetCpuAggregationMethod]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
+        resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
+        instance (str | Unset):  Example: srv-xxxxx-yyyy.
+        aggregation_method (GetCpuAggregationMethod | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TimeSeries']]
+        Error | list[TimeSeries]
     """
 
     return sync_detailed(
@@ -196,34 +196,34 @@ def sync(
 
 async def asyncio_detailed(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resolution_seconds: Union[Unset, float] = 60.0,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-    instance: Union[Unset, str] = UNSET,
-    aggregation_method: Union[Unset, GetCpuAggregationMethod] = UNSET,
-) -> Response[Union[Error, list["TimeSeries"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resolution_seconds: float | Unset = 60.0,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+    instance: str | Unset = UNSET,
+    aggregation_method: GetCpuAggregationMethod | Unset = UNSET,
+) -> Response[Error | list[TimeSeries]]:
     """Get CPU usage
 
      Get CPU usage for one or more resources.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resolution_seconds (Union[Unset, float]):  Default: 60.0. Example: 60.
-        resource (Union[Unset, str]):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
-        instance (Union[Unset, str]):  Example: srv-xxxxx-yyyy.
-        aggregation_method (Union[Unset, GetCpuAggregationMethod]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
+        resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
+        instance (str | Unset):  Example: srv-xxxxx-yyyy.
+        aggregation_method (GetCpuAggregationMethod | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Union[Error, list['TimeSeries']]]
+        Response[Error | list[TimeSeries]]
     """
 
     kwargs = _get_kwargs(
@@ -243,34 +243,34 @@ async def asyncio_detailed(
 
 async def asyncio(
     *,
-    client: Union[AuthenticatedClient, Client],
-    start_time: Union[Unset, datetime.datetime] = UNSET,
-    end_time: Union[Unset, datetime.datetime] = UNSET,
-    resolution_seconds: Union[Unset, float] = 60.0,
-    resource: Union[Unset, str] = UNSET,
-    service: Union[Unset, str] = UNSET,
-    instance: Union[Unset, str] = UNSET,
-    aggregation_method: Union[Unset, GetCpuAggregationMethod] = UNSET,
-) -> Optional[Union[Error, list["TimeSeries"]]]:
+    client: AuthenticatedClient | Client,
+    start_time: datetime.datetime | Unset = UNSET,
+    end_time: datetime.datetime | Unset = UNSET,
+    resolution_seconds: float | Unset = 60.0,
+    resource: str | Unset = UNSET,
+    service: str | Unset = UNSET,
+    instance: str | Unset = UNSET,
+    aggregation_method: GetCpuAggregationMethod | Unset = UNSET,
+) -> Error | list[TimeSeries] | None:
     """Get CPU usage
 
      Get CPU usage for one or more resources.
 
     Args:
-        start_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:15:30Z.
-        end_time (Union[Unset, datetime.datetime]):  Example: 2021-06-17T08:30:30Z.
-        resolution_seconds (Union[Unset, float]):  Default: 60.0. Example: 60.
-        resource (Union[Unset, str]):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
-        service (Union[Unset, str]):  Example: srv-xxxxx.
-        instance (Union[Unset, str]):  Example: srv-xxxxx-yyyy.
-        aggregation_method (Union[Unset, GetCpuAggregationMethod]):
+        start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
+        end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
+        resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
+        resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
+        service (str | Unset):  Example: srv-xxxxx.
+        instance (str | Unset):  Example: srv-xxxxx-yyyy.
+        aggregation_method (GetCpuAggregationMethod | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
-        httpx.TimeoutException: If the request takes longer than Client.timeout.
+        httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Union[Error, list['TimeSeries']]
+        Error | list[TimeSeries]
     """
 
     return (
