@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [1.9.0] - 2026-11-16
 
-### Removed
+Released in lockstep with `render` 1.9.0. This package requires that version and exports
+its public names. See [the `render` changelog](../python/CHANGELOG.md) for
+the release notes.
+
+### Changed
 
 - **Breaking:** Python 3.10 is no longer supported. Use Python 3.11 or later.
 

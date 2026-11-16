@@ -1,21 +1,31 @@
 # Changelog
 
-## [Unreleased]
+## [1.9.0] - 2026-11-16
 
 ### Added
 
+- (Sandboxes) `images.list()` lists the images of a sandbox group, newest first. It accepts `name`, `status`, `cursor`, and `limit`, and returns an `ImageList` with `images` and `next_cursor`.
+- (Sandboxes) `images.delete()` deletes an image. It raises `ImageInUseError` while sandboxes or snapshots still use the image. The error message names them.
+- (Sandboxes) `SandboxEndedError`, raised by `exec()`, `copy_to()`, and `copy_from()` for a sandbox that was terminated or errored. The message says when the sandbox ended, and `sandbox_status` is `terminated` or `errored`. It is a `ClientError`.
 - (Sandboxes) `snapshots.create()` accepts `ttl_seconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `Snapshot.ttl_seconds` is the TTL of a snapshot. It is `None` for a snapshot that was created before snapshots had a TTL.
+- (Sandboxes) Alpha: brokered credentials on `sandboxes.credentials`, with `create()`, `from_id()`, `list()`, `update()`, `delete()`, `list_versions()`, and `restore()`. Render adds a credential's secret to the requests from a sandbox group's sandboxes that match its domain, methods, and paths, so code in the sandbox never sees the secret. `CredentialInjection` says how the secret is added. Import it, `Credential`, `CredentialVersion`, and `CredentialNotFoundError` from `render.experimental.sandbox`. This API is in alpha and can change in a minor release.
+- (REST API) `create_hosted_repo_git_credentials` issues a short-lived Git token for a hosted repository.
+- (REST API) `trigger_build_source_build` accepts a `TriggerBuildSourceBuildBody` with `clear_cache`, to clear the build cache before the build.
+- `ErrorCode.IMAGE_IN_USE` for the `image_in_use` API error code.
 
 ### Changed
 
-- **Breaking:** (REST API) `EnvGroup` constructor arguments changed order when `env_vars` and `secret_files` became optional. Pass `env_vars`, `secret_files`, and `environment_id` by keyword when constructing `EnvGroup` directly. Existing positional calls can silently assign values to the wrong fields.
-- **Breaking:** REST clients now use `httpx2`. Custom HTTP clients, transports, timeout objects, and transport exception handling must use `httpx2`. The `set_httpx_client`, `set_async_httpx_client`, and `httpx_args` names are unchanged. The SDK still raises its existing `ClientError`, `ServerError`, and `TimeoutError` types.
-
-### Removed
-
 - **Breaking:** Python 3.10 is no longer supported. Use Python 3.11 or later.
+- **Breaking:** REST clients now use `httpx2`. Custom HTTP clients, transports, timeout objects, and transport exception handling must use `httpx2`. The `set_httpx_client`, `set_async_httpx_client`, and `httpx_args` names are unchanged. The SDK still raises its existing `ClientError`, `ServerError`, and `TimeoutError` types.
+- **Breaking:** (Sandboxes) `snapshots.create()` no longer accepts `expires_at`. Use `ttl_seconds`, or omit it for Render's default snapshot lifetime.
+- **Breaking:** (REST API) An optional list field that the API omits is now `UNSET` on the parsed model. Before, it was an empty list. `EnvGroup.env_vars` and `EnvGroup.secret_files` are now optional: the API omits them if the caller cannot read the secret values of the environment group.
+- **Breaking:** (REST API) `EnvGroup` constructor arguments changed order when `env_vars` and `secret_files` became optional. Pass `env_vars`, `secret_files`, and `environment_id` by keyword when constructing `EnvGroup` directly. Existing positional calls can silently assign values to the wrong fields.
+- (Sandboxes) Every sandbox call raises the specific error for a known API error code. For example, `sandboxes.create()` in a suspended group raises `SandboxGroupSuspendedError`. Before, only some calls did, and the others raised a plain `ClientError`. The specific errors are `ClientError` subclasses.
 
-- **Breaking:** (Sandboxes) `snapshots.create()` no longer accepts `expires_at`. Render sets the snapshot lifetime.
+### Fixed
+
+- (Workflows) `TaskRunStatus` and `FlowRunStatus` accept `suspended` and `sleeping`. Before, the client raised `ValueError` on runs with these statuses.
+- `LogLabelName` accepts `build`. Before, the client raised `ValueError` on logs with this label.
 
 ## [1.8.0] - 2026-11-06
 

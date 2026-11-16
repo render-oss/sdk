@@ -4,15 +4,24 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.9.0] - 2026-11-16
 
 ### Added
 
-- (Sandbox) `snapshots.create()` accepts `ttlSeconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `SandboxSnapshot.ttlSeconds` is the TTL of a snapshot. It is absent for a snapshot that was created before snapshots had a TTL.
+- (Sandboxes) `images.list()` lists the images of a sandbox group, newest first. It accepts `name`, `status`, `cursor`, and `limit`, and returns `SandboxImageWithCursor[]`.
+- (Sandboxes) `images.delete()` deletes an image. It throws `SandboxImageInUseError` while sandboxes or snapshots still use the image. The error message names them.
+- (Sandboxes) `copyTo()` copies a local file to a sandbox, and `copyFrom()` copies a sandbox file to a local path. Neither holds the file in memory. `copyFrom()` accepts `maxSizeBytes`, with no limit by default, and throws `SandboxDownloadError` if it cannot write the local file.
+- (Sandboxes) `SandboxEndedError`, thrown by `exec()`, `upload()`, `download()`, `copyTo()`, and `copyFrom()` for a sandbox that was terminated or errored. The message says when the sandbox ended, and `sandboxStatus` is `terminated` or `errored`. It is a `ClientError`.
+- (Sandboxes) `snapshots.create()` accepts `ttlSeconds`, the number of seconds the snapshot lives after its last use. Use `0` to keep the snapshot until you delete it. Omit it for Render's default snapshot lifetime. `SandboxSnapshot.ttlSeconds` is the TTL of a snapshot. It is absent for a snapshot that was created before snapshots had a TTL.
+- (Sandboxes) Alpha: brokered credentials on `sandboxes.credentials`, with `create()`, `get()`, `list()`, `update()`, `delete()`, `listVersions()`, and `restore()`. Render adds a credential's secret to the requests from a sandbox group's sandboxes that match its domain, methods, and paths, so code in the sandbox never sees the secret. `SandboxCredentialInjection` says how the secret is added. `get()`, `update()`, `listVersions()`, and `restore()` throw `SandboxCredentialNotFoundError` for a credential that does not exist. This API is in alpha and can change in a minor release.
+- (Sandboxes) `failureCode` on `SandboxImage`, a machine-readable reason that the import failed.
+- (Workflows) `FlowRunStatus.SUSPENDED` and `FlowRunStatus.SLEEPING`.
 
-### Removed
+### Changed
 
-- **Breaking:** (Sandbox) `snapshots.create()` no longer accepts `expiresAt`. Render sets the snapshot lifetime.
+- **Breaking:** (Sandboxes) `snapshots.create()` no longer accepts `expiresAt`. Use `ttlSeconds`, or omit it for Render's default snapshot lifetime.
+- (Sandboxes) Every sandbox call throws the specific error for a known API error code. For example, `sandboxes.create()` in a suspended group throws `SandboxGroupSuspendedError`. Before, only `deleteGroup()` and `setDefaultGroup()` threw the sandbox group errors, and the other calls threw a plain `ClientError`. The specific errors are `ClientError` subclasses.
+- (REST API) `envVars` and `secretFiles` on an environment group are optional in the generated types. The API omits them if the caller cannot read the secret values of the environment group.
 
 ## [1.8.0] - 2026-11-06
 
