@@ -8,6 +8,7 @@
 
 ### Changed
 
+- **Breaking:** (REST API) `EnvGroup` constructor arguments changed order when `env_vars` and `secret_files` became optional. Pass `env_vars`, `secret_files`, and `environment_id` by keyword when constructing `EnvGroup` directly. Existing positional calls can silently assign values to the wrong fields.
 - **Breaking:** REST clients now use `httpx2`. Custom HTTP clients, transports, timeout objects, and transport exception handling must use `httpx2`. The `set_httpx_client`, `set_async_httpx_client`, and `httpx_args` names are unchanged. The SDK still raises its existing `ClientError`, `ServerError`, and `TimeoutError` types.
 
 ### Removed
