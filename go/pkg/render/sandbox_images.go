@@ -19,6 +19,9 @@ var (
 	// ErrImageNotReady means a sandbox create named an image that has not
 	// succeeded, whether still importing or failed.
 	ErrImageNotReady = errors.New("image not ready")
+	// ErrImageInUse means a delete named an image that sandboxes or snapshots
+	// still use. The error message names them.
+	ErrImageInUse = errors.New("image in use")
 	// ErrImageFailed means the import of an image failed while
 	// WaitUntilReady waited for it.
 	ErrImageFailed = errors.New("image import failed")
@@ -28,6 +31,7 @@ var (
 const (
 	imageNotFoundCode     = "build_not_found"
 	imageNotSucceededCode = "build_not_succeeded"
+	imageInUseCode        = "image_in_use"
 )
 
 // imageIDPattern is the format of an image ID. CreateSandboxParams.Image
@@ -147,6 +151,20 @@ func (s *ImageClient) FromID(ctx context.Context, sandboxGroupID, imageID string
 		return nil, fmt.Errorf("unexpected response format")
 	}
 	return toImage(*resp.JSON200), nil
+}
+
+// Delete deletes an image. Deleting an image that was already deleted succeeds.
+// Returns ErrImageNotFound if it does not exist, and ErrImageInUse while
+// sandboxes or snapshots still use it.
+func (s *ImageClient) Delete(ctx context.Context, sandboxGroupID, imageID string) error {
+	resp, err := s.sandboxes.client.internal.DeleteSandboxBuildWithResponse(ctx, sandboxGroupID, imageID)
+	if err != nil {
+		return fmt.Errorf("failed to make delete image request: %w", err)
+	}
+	if resp.StatusCode() >= 300 {
+		return imageError("delete image", imageID, resp.StatusCode(), resp.Body)
+	}
+	return nil
 }
 
 // List lists the images of one sandbox group, newest first. Each version of a

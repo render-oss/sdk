@@ -602,6 +602,15 @@ class ImageClient:
         """
         return await self._sandboxes.api.get_image(sandbox_group_id, image_id)
 
+    async def delete(self, *, sandbox_group_id: str, image_id: str) -> None:
+        """Delete an image.
+
+        Deleting an image that was already deleted succeeds. Raises
+        ImageNotFoundError if the image does not exist, and ImageInUseError
+        while sandboxes or snapshots still use it.
+        """
+        await self._sandboxes.api.delete_image(sandbox_group_id, image_id)
+
     async def list(
         self,
         *,

@@ -137,6 +137,17 @@ export class SandboxImageNotReadyError extends ClientError {
 }
 
 /**
+ * The delete named an image that sandboxes or snapshots still use. The message names them.
+ */
+export class SandboxImageInUseError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxImageInUseError";
+    Object.setPrototypeOf(this, SandboxImageInUseError.prototype);
+  }
+}
+
+/**
  * The credential, or the sandbox group it is addressed through, does not exist. `restore()` also
  * throws it for a version the credential does not retain.
  */

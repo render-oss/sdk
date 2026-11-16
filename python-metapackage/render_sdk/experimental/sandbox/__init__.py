@@ -29,6 +29,7 @@ __all__ = [
     "ImageClient",
     "ImageFailedError",
     "ImageList",
+    "ImageInUseError",
     "ImageNotFoundError",
     "ImageNotReadyError",
     "ImageSource",

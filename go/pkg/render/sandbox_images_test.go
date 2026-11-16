@@ -142,6 +142,47 @@ func TestImageFromID(t *testing.T) {
 	})
 }
 
+func TestImageDelete(t *testing.T) {
+	t.Run("deletes the image", func(t *testing.T) {
+		sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			require.Equal(t, http.MethodDelete, r.Method)
+			require.Equal(t, "/v1/sandbox-groups/sbg-1/builds/sbb-1", r.URL.Path)
+			w.WriteHeader(http.StatusNoContent)
+		})
+
+		require.NoError(t, sandboxes.Images.Delete(context.Background(), "sbg-1", "sbb-1"))
+	})
+
+	tests := []struct {
+		name   string
+		status int
+		body   string
+		want   error
+	}{
+		{"not found", http.StatusNotFound, `{"code":"build_not_found","message":"not found: build"}`, ErrImageNotFound},
+		{"in use", http.StatusConflict, `{"code":"image_in_use","message":"image is in use by 1 sandbox (sbx-1)"}`, ErrImageInUse},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				writeJSON(w, tt.status, tt.body)
+			})
+
+			err := sandboxes.Images.Delete(context.Background(), "sbg-1", "sbb-1")
+			require.ErrorIs(t, err, tt.want)
+		})
+	}
+
+	t.Run("names what uses the image", func(t *testing.T) {
+		sandboxes := newImageTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, http.StatusConflict, `{"code":"image_in_use","message":"image is in use by 1 sandbox (sbx-1)"}`)
+		})
+
+		err := sandboxes.Images.Delete(context.Background(), "sbg-1", "sbb-1")
+		require.ErrorContains(t, err, "sbx-1")
+	})
+}
+
 func TestImageList(t *testing.T) {
 	tests := []struct {
 		name     string

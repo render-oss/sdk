@@ -67,6 +67,11 @@ class ImageNotReadyError(ClientError):
     still in progress or failed."""
 
 
+class ImageInUseError(ClientError):
+    """Raised when a delete names an image that sandboxes or snapshots still
+    use. The message names them. code is image_in_use."""
+
+
 class CredentialNotFoundError(ClientError):
     """Raised when a credential, or the sandbox group it is addressed through,
     does not exist. restore also raises it for a version_id the credential

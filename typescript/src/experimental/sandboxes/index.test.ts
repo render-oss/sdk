@@ -16,6 +16,7 @@ import {
   SandboxGroupDefaultNotDeletableError,
   SandboxGroupSuspendedError,
   SandboxImageFailedError,
+  SandboxImageInUseError,
   SandboxImageNotFoundError,
   SandboxImageNotReadyError,
   SandboxImageWaitTimeoutError,
@@ -1366,6 +1367,34 @@ describe("SandboxesClient", () => {
         expect(error).toMatchObject({
           statusCode: 400,
           message: "Failed to get image: invalid build ID",
+        });
+      });
+    });
+
+    describe("delete", () => {
+      it("deletes an image by group and ID", async () => {
+        const apiClient = mockApiClient("DELETE", { status: 204 });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        await expect(client.images.delete(imageGetInput)).resolves.toBeUndefined();
+        expect(apiClient.DELETE).toHaveBeenCalledWith(IMAGE_GET_PATH, {
+          params: { path: { sandboxGroupId: "sbg-123", buildId: IMAGE.id } },
+        });
+      });
+
+      it.each([
+        { status: 404, code: "build_not_found", ErrorClass: SandboxImageNotFoundError },
+        { status: 409, code: "image_in_use", ErrorClass: SandboxImageInUseError },
+      ])("throws $ErrorClass.name for $code", async ({ status, code, ErrorClass }) => {
+        const apiClient = mockApiClient("DELETE", { status, error: { code, message: "nope" } });
+        const client = new SandboxesClient(apiClient, "tea-default");
+
+        const error = await client.images.delete(imageGetInput).catch((err) => err);
+        expect(error.constructor).toBe(ErrorClass);
+        expect(error).toMatchObject({
+          statusCode: status,
+          code,
+          message: "Failed to delete image: nope",
         });
       });
     });

@@ -10,6 +10,7 @@ from render.experimental.sandbox.client import BuildClient, ImageClient, Sandbox
 from render.experimental.sandbox.client_sync import SyncSandboxClient
 from render.experimental.sandbox.errors import (
     ImageFailedError,
+    ImageInUseError,
     ImageNotFoundError,
     ImageNotReadyError,
     ImageWaitTimeoutError,
@@ -327,6 +328,48 @@ async def test_from_id_wraps_non_json_error_response():
     client = _sandbox_client(handler)
     with pytest.raises(RenderError):
         await client.images.from_id(sandbox_group_id="sbg-abc", image_id="sbb-abc")
+
+
+# --- delete ---
+
+
+@pytest.mark.asyncio
+async def test_delete_deletes_the_image_from_its_group():
+    captured = {}
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        return httpx.Response(204)
+
+    client = _sandbox_client(handler)
+    await client.images.delete(sandbox_group_id="sbg-abc", image_id="sbb-abc")
+
+    assert captured["method"] == "DELETE"
+    assert captured["path"] == "/v1/sandbox-groups/sbg-abc/builds/sbb-abc"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status", "code", "error_type"),
+    [
+        (404, "build_not_found", ImageNotFoundError),
+        (409, "image_in_use", ImageInUseError),
+    ],
+)
+async def test_delete_raises_typed_errors(status, code, error_type):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            status,
+            json={"message": "image is in use by 1 sandbox (sbx-1)", "code": code},
+        )
+
+    client = _sandbox_client(handler)
+    with pytest.raises(error_type) as excinfo:
+        await client.images.delete(sandbox_group_id="sbg-abc", image_id="sbb-abc")
+
+    assert type(excinfo.value) is error_type
+    assert excinfo.value.code == code
 
 
 # --- list ---

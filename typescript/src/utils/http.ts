@@ -3,6 +3,7 @@ import {
   ClientError,
   SandboxGroupDefaultNotDeletableError,
   SandboxGroupSuspendedError,
+  SandboxImageInUseError,
   SandboxImageNotFoundError,
   SandboxImageNotReadyError,
   SandboxSnapshotNotFoundError,
@@ -45,6 +46,8 @@ const clientErrorForCode = (code?: string): typeof ClientError => {
       return SandboxImageNotReadyError;
     case "build_not_found":
       return SandboxImageNotFoundError;
+    case "image_in_use":
+      return SandboxImageInUseError;
     default:
       return ClientError;
   }

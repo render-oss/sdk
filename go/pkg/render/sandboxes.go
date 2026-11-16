@@ -800,6 +800,7 @@ var sandboxErrorsByCode = map[string]error{
 	snapshotNotAvailableCode: ErrSnapshotNotReady,
 	snapshotPlanMismatchCode: ErrSnapshotPlanMismatch,
 	imageNotSucceededCode:    ErrImageNotReady,
+	imageInUseCode:           ErrImageInUse,
 	groupNotDeletableCode:    ErrSandboxGroupDefaultNotDeletable,
 	groupSuspendedCode:       ErrSandboxGroupSuspended,
 }

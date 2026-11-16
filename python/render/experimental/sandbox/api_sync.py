@@ -35,6 +35,7 @@ from render.experimental.sandbox._tar import (
 )
 from render.experimental.sandbox.errors import (
     CredentialNotFoundError,
+    ImageInUseError,
     ImageNotFoundError,
     ImageNotReadyError,
     SandboxDownloadError,
@@ -86,6 +87,7 @@ from render.public_api.api.sandboxes import (
     create_sandbox_group,
     create_sandbox_group_credential,
     create_sandbox_snapshot,
+    delete_sandbox_build,
     delete_sandbox_group,
     delete_sandbox_group_credential,
     delete_sandbox_snapshot,
@@ -181,6 +183,7 @@ _CLIENT_ERRORS_BY_CODE: dict[str, type[ClientError]] = {
     "snapshot_not_available": SnapshotNotReadyError,
     "snapshot_plan_mismatch": SnapshotPlanMismatchError,
     "build_not_succeeded": ImageNotReadyError,
+    "image_in_use": ImageInUseError,
     "default_sandbox_group_not_deletable": SandboxGroupDefaultNotDeletableError,
     "sandbox_group_suspended": SandboxGroupSuspendedError,
 }
@@ -756,6 +759,13 @@ class SyncSandboxApi:
         if not isinstance(response.parsed, GeneratedSandboxBuild):
             raise RenderError("Failed to import image: unexpected response type")
         return _to_image(response.parsed)
+
+    def delete_image(self, sandbox_group_id: str, image_id: str) -> None:
+        with request_errors("delete image"):
+            response = delete_sandbox_build.sync_detailed(
+                sandbox_group_id, image_id, client=self.client
+            )
+        _handle_image_api_error(response, image_id, "delete image")
 
     def get_image(self, sandbox_group_id: str, image_id: str) -> Image:
         with request_errors("retrieve image"):

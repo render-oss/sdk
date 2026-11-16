@@ -777,6 +777,21 @@ export class SandboxImagesClient {
     );
   }
 
+  /**
+   * Deletes an image. Deleting an image that was already deleted succeeds. Throws
+   * `SandboxImageNotFoundError` if it does not exist, and `SandboxImageInUseError` while
+   * sandboxes or snapshots still use it.
+   */
+  async delete({ sandboxGroupId, imageId }: SandboxImageGetInput): Promise<void> {
+    const { error, response } = await this.apiClient.DELETE(
+      "/sandbox-groups/{sandboxGroupId}/builds/{buildId}",
+      { params: { path: { sandboxGroupId, buildId: imageId } } },
+    );
+    if (error !== undefined || !response.ok) {
+      throw getTypedApiError(error, response, "Failed to delete image");
+    }
+  }
+
   /** Lists the images in a sandbox group, newest first. Each version of a name is its own image. */
   async list({
     sandboxGroupId,

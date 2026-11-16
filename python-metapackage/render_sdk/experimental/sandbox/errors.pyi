@@ -5,6 +5,7 @@ from render.experimental.sandbox.errors import (
     ClientError as ClientError,
     CredentialNotFoundError as CredentialNotFoundError,
     ImageFailedError as ImageFailedError,
+    ImageInUseError as ImageInUseError,
     ImageNotFoundError as ImageNotFoundError,
     ImageNotReadyError as ImageNotReadyError,
     ImageWaitTimeoutError as ImageWaitTimeoutError,
