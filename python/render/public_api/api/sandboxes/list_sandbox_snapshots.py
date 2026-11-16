@@ -127,17 +127,10 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxSnapshotWithCursor"]]]:
     """List sandbox snapshots
 
-     Snapshots in a sandbox group, newest first. Expired and deleted snapshots
-    are omitted.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
-    repeated, `code: invalid_status` for a status outside the snapshot status
-    vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
-    `code: invalid_limit` for a limit outside 1 to 100.
+     List snapshots in a sandbox group, newest first. Excludes expired and deleted snapshots.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         owner_id (str):
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
@@ -180,17 +173,10 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxSnapshotWithCursor"]]]:
     """List sandbox snapshots
 
-     Snapshots in a sandbox group, newest first. Expired and deleted snapshots
-    are omitted.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
-    repeated, `code: invalid_status` for a status outside the snapshot status
-    vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
-    `code: invalid_limit` for a limit outside 1 to 100.
+     List snapshots in a sandbox group, newest first. Excludes expired and deleted snapshots.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         owner_id (str):
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
@@ -228,17 +214,10 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxSnapshotWithCursor"]]]:
     """List sandbox snapshots
 
-     Snapshots in a sandbox group, newest first. Expired and deleted snapshots
-    are omitted.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
-    repeated, `code: invalid_status` for a status outside the snapshot status
-    vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
-    `code: invalid_limit` for a limit outside 1 to 100.
+     List snapshots in a sandbox group, newest first. Excludes expired and deleted snapshots.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         owner_id (str):
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
@@ -279,17 +258,10 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxSnapshotWithCursor"]]]:
     """List sandbox snapshots
 
-     Snapshots in a sandbox group, newest first. Expired and deleted snapshots
-    are omitted.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
-    repeated, `code: invalid_status` for a status outside the snapshot status
-    vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
-    `code: invalid_limit` for a limit outside 1 to 100.
+     List snapshots in a sandbox group, newest first. Excludes expired and deleted snapshots.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         owner_id (str):
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):

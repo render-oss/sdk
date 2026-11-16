@@ -16,12 +16,13 @@ T = TypeVar("T", bound="SandboxNetworkPolicy")
 
 @_attrs_define
 class SandboxNetworkPolicy:
-    """
+    """The policy that controls outbound traffic from the sandbox.
+
     Attributes:
-        type_ (SandboxNetworkPolicyType): How outbound traffic is handled. `allow-all`, `deny-all`, or
-            `allow-list` (requires additional `rules`).
-        default (Union[Unset, SandboxNetworkPolicyType]): How outbound traffic is handled. `allow-all`, `deny-all`, or
-            `allow-list` (requires additional `rules`).
+        type_ (SandboxNetworkPolicyType): How Render handles outbound traffic from the sandbox. The `allow-list` policy
+            requires `rules`.
+        default (Union[Unset, SandboxNetworkPolicyType]): How Render handles outbound traffic from the sandbox. The
+            `allow-list` policy requires `rules`.
         rules (Union[Unset, list['SandboxEgressRule']]): Destinations the sandbox may reach, present when `type` is
             `allow-list` and absent otherwise. Each domain may be listed once.
     """

@@ -15,26 +15,29 @@ T = TypeVar("T", bound="SandboxCredentialCreate")
 
 @_attrs_define
 class SandboxCredentialCreate:
-    """
+    """The credential configuration to create, including request matching and injection settings.
+
     Attributes:
-        id (str): Caller-supplied URL-safe name, unique within the sandbox group. The names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        id (str): The case-sensitive ID you assign to the credential, unique within its sandbox group. Use only letters,
+            numbers, periods, underscores, tildes, and hyphens. The names `.` and `..` and IDs starting with `rnd-` are
+            reserved.
              Example: my-inference-key.
-        domain (str): Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
-            wildcards, and local/internal hostnames are not supported.
-        value (str): Secret value to store for this credential ID. The largest supported secret
-            value is 5 KiB (5120 UTF-8 bytes).
-        injection (SandboxCredentialInjection):
-        enabled (Union[Unset, bool]):  Default: True.
-        methods (Union[Unset, list[str]]): GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
-            Omitted or empty matches any method.
-        paths (Union[Unset, list[str]]): Absolute request path patterns. The entire path must match.
-            Use * for one nonempty path segment or ** for one or more.
-            Wildcards must occupy whole segments. For example, /a/* matches
-            /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-            Query strings, fragments, and escaping are not supported in patterns.
-            Request query strings do not affect path matching.
-            Omitted or empty matches any path.
+        domain (str): The destination hostname to match for credential injection. Must be a public DNS hostname. Render
+            normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal
+            hostnames are not supported.
+        value (str): The secret value to store, up to 5 KiB (5120 UTF-8 bytes).
+        injection (SandboxCredentialInjection): Settings for injecting the secret value into matching outbound HTTPS
+            requests.
+        enabled (Union[Unset, bool]): Whether this credential is enabled for injection. Defaults to `true`. Default:
+            True.
+        methods (Union[Unset, list[str]]): The HTTP methods to match for credential injection. Supported methods are
+            GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. Omit or provide an empty list to
+            match any method.
+        paths (Union[Unset, list[str]]): The request path patterns to match for credential injection. Each pattern must
+            match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments.
+            Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`.
+            Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do
+            not affect matching. Omit or provide an empty list to match any path.
     """
 
     id: str

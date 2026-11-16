@@ -129,12 +129,13 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for a single workspace. Sandboxes are scoped to the region of
-    their workspace's sandbox group, so one workspace must be named per request.
+     List sandboxes in a workspace. Each request must specify one workspace. Sandboxes run in the region
+    of their sandbox group.
 
     Args:
         owner_id (str):
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-
+            cph1rs3idesc73a2b2mg.
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -176,12 +177,13 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for a single workspace. Sandboxes are scoped to the region of
-    their workspace's sandbox group, so one workspace must be named per request.
+     List sandboxes in a workspace. Each request must specify one workspace. Sandboxes run in the region
+    of their sandbox group.
 
     Args:
         owner_id (str):
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-
+            cph1rs3idesc73a2b2mg.
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -218,12 +220,13 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for a single workspace. Sandboxes are scoped to the region of
-    their workspace's sandbox group, so one workspace must be named per request.
+     List sandboxes in a workspace. Each request must specify one workspace. Sandboxes run in the region
+    of their sandbox group.
 
     Args:
         owner_id (str):
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-
+            cph1rs3idesc73a2b2mg.
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -263,12 +266,13 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxWithCursor"]]]:
     """List sandboxes
 
-     List sandboxes for a single workspace. Sandboxes are scoped to the region of
-    their workspace's sandbox group, so one workspace must be named per request.
+     List sandboxes in a workspace. Each request must specify one workspace. Sandboxes run in the region
+    of their sandbox group.
 
     Args:
         owner_id (str):
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-
+            cph1rs3idesc73a2b2mg.
         name (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.

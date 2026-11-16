@@ -18,40 +18,36 @@ T = TypeVar("T", bound="SandboxPOST")
 
 @_attrs_define
 class SandboxPOST:
-    """
+    """The sandbox to create, including its compute plan, network policy, and optional source build or snapshot.
+
     Attributes:
         owner_id (str): The ID of the workspace the sandbox belongs to.
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
-        name (Union[Unset, str]): A label for the sandbox, like `my-agent`. It isn't unique, so the
-            sandbox ID stays the handle. It can't start with `sbx-`.
-        network_policy (Union[Unset, SandboxNetworkPolicyPOST]): Set either `type` or its deprecated alias `default`.
-            Sending both is
-            only accepted when they name the same policy.
-        plan (Union[SandboxPlan, Unset, str]): Compute plan. See `sandboxPlan` for known values.
-        timeout_seconds (Union[Unset, int]): Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-            Use 0 for no timeout. Positive values must be at least 60. Defaults to
-            86400, or to the source sandbox's timeout when starting from a snapshot.
-        idle_timeout_seconds (Union[Unset, int]): Seconds of inactivity before the sandbox is suspended. Use 0 to
-            disable
-            automatic idle suspension. Positive values must be at least 300. Defaults
-            to 900, or to the source sandbox's idle timeout when starting from a
-            snapshot.
-        env (Union[Unset, SandboxPOSTEnv]): Inline environment variables injected into the sandbox at creation.
-        snapshot_id (Union[Unset, str]):  Example: snp-cph1rs3idesc73a2b2mg.
-        snapshot_name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
-            so clients can tell a name from a snapshot ID. Several snapshots may
-            share a name; the most recently available one is the one the name
-            resolves to.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        name (Union[Unset, str]): A label for the sandbox, such as `my-agent`, up to 64 characters. Names do not have to
+            be unique; use the sandbox ID to identify a specific sandbox. Must not start with `sbx-`.
+        network_policy (Union[Unset, SandboxNetworkPolicyPOST]): The outbound traffic policy to apply to the sandbox.
+            Provide `type` or its deprecated alias `default`. If both are provided, they must match.
+        plan (Union[SandboxPlan, Unset, str]): The compute plan for the sandbox. See `sandboxPlan` for known values.
+        timeout_seconds (Union[Unset, int]): The maximum time the sandbox can run continuously, in seconds. The sandbox
+            terminates when this time elapses. If the sandbox is suspended and later resumed, this timeout restarts.
+
+            Use 0 to disable the runtime timeout. Positive values must be between 60 and 2592000 (30 days). Defaults to
+            86400, or to the source sandbox's runtime timeout when creating a sandbox from a snapshot.
+        idle_timeout_seconds (Union[Unset, int]): The number of seconds of inactivity before Render suspends the
+            sandbox. Use 0 to disable automatic idle suspension. Positive values must be between 300 and 86400. Defaults to
+            900, or to the source sandbox's idle timeout when creating a sandbox from a snapshot.
+        env (Union[Unset, SandboxPOSTEnv]): The environment variables to set when creating the sandbox.
+        snapshot_id (Union[Unset, str]): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
+        snapshot_name (Union[Unset, str]): A case-sensitive name for snapshots in a sandbox group, up to 64 characters.
+            Must not start with `snp-`. Multiple snapshots can share a name. When creating a sandbox by snapshot name,
+            Render uses the most recently created snapshot with that name that is `available` and unexpired.
              Example: gold.
-        build_id (Union[Unset, str]):  Example: sbb-cph1rs3idesc73a2b2mg.
-        build_name (Union[Unset, str]): Start from the newest succeeded build with this name in the
-            sandbox's group. 404 with `code: build_not_found` if the group has
-            no build with the name, and 409 with `code: build_not_succeeded` if
-            none of them has succeeded. Mutually exclusive with `buildId`,
-            `snapshotId` and `snapshotName`.
+        build_id (Union[Unset, str]): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
+        build_name (Union[Unset, str]): The name of the build to create the sandbox from instead of the base image. Uses
+            the newest successful build with this name in the sandbox group. Cannot be combined with `buildId`,
+            `snapshotId`, or `snapshotName`.
         shared_filesystems (Union[Unset, list['SandboxSharedFilesystem']]): Shared filesystems to mount in the sandbox.
-            At most one is
-            supported.
+            At most one is supported.
     """
 
     owner_id: str

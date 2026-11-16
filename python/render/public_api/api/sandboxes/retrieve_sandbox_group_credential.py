@@ -90,14 +90,14 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Retrieve sandbox group credential
 
-     Secret values are never returned, including to admins.
-    Credentials are scoped to the addressed sandbox group.
+     Retrieve the settings and metadata for a credential in this sandbox group. These endpoints do not
+    return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
 
     Raises:
@@ -128,14 +128,14 @@ def sync(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Retrieve sandbox group credential
 
-     Secret values are never returned, including to admins.
-    Credentials are scoped to the addressed sandbox group.
+     Retrieve the settings and metadata for a credential in this sandbox group. These endpoints do not
+    return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
 
     Raises:
@@ -161,14 +161,14 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Retrieve sandbox group credential
 
-     Secret values are never returned, including to admins.
-    Credentials are scoped to the addressed sandbox group.
+     Retrieve the settings and metadata for a credential in this sandbox group. These endpoints do not
+    return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
 
     Raises:
@@ -197,14 +197,14 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Retrieve sandbox group credential
 
-     Secret values are never returned, including to admins.
-    Credentials are scoped to the addressed sandbox group.
+     Retrieve the settings and metadata for a credential in this sandbox group. These endpoints do not
+    return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
 
     Raises:

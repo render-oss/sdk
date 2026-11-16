@@ -90,16 +90,11 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. 404 with `code: build_not_found` if the build doesn't
-    exist or belongs to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Retrieve a build by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -129,16 +124,11 @@ def sync(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. 404 with `code: build_not_found` if the build doesn't
-    exist or belongs to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Retrieve a build by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -163,16 +153,11 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. 404 with `code: build_not_found` if the build doesn't
-    exist or belongs to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Retrieve a build by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -200,16 +185,11 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Retrieve sandbox build
 
-     One build by ID. 404 with `code: build_not_found` if the build doesn't
-    exist or belongs to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Retrieve a build by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

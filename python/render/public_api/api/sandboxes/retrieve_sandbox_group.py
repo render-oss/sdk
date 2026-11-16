@@ -88,10 +88,10 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Retrieve sandbox group
 
-     Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+     Retrieve a sandbox group by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -119,10 +119,10 @@ def sync(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Retrieve sandbox group
 
-     Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+     Retrieve a sandbox group by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -145,10 +145,10 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Retrieve sandbox group
 
-     Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+     Retrieve a sandbox group by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -174,10 +174,10 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Retrieve sandbox group
 
-     Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+     Retrieve a sandbox group by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

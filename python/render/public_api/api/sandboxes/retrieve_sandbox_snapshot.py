@@ -100,16 +100,11 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxSnapshot]]:
     """Retrieve sandbox snapshot
 
-     One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
-    that belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
-    not a well-formed `snp-` ID.
+     Retrieve a snapshot by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -142,16 +137,11 @@ def sync(
 ) -> Optional[Union[Error, SandboxSnapshot]]:
     """Retrieve sandbox snapshot
 
-     One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
-    that belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
-    not a well-formed `snp-` ID.
+     Retrieve a snapshot by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -179,16 +169,11 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxSnapshot]]:
     """Retrieve sandbox snapshot
 
-     One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
-    that belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
-    not a well-formed `snp-` ID.
+     Retrieve a snapshot by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -219,16 +204,11 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxSnapshot]]:
     """Retrieve sandbox snapshot
 
-     One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
-    that belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
-    not a well-formed `snp-` ID.
+     Retrieve a snapshot by ID.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:

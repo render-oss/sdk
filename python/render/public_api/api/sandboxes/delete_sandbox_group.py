@@ -91,16 +91,11 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group
 
-     Delete a sandbox group. Its sandboxes are terminated, and its snapshots
-    and credentials are deleted shortly after the request returns.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: default_sandbox_group_not_deletable` for the owner's
-    default sandbox group. Make another group the default first.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Delete a sandbox group. Its sandboxes are terminated and its snapshots and credentials are deleted
+    shortly after the request returns.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -128,16 +123,11 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group
 
-     Delete a sandbox group. Its sandboxes are terminated, and its snapshots
-    and credentials are deleted shortly after the request returns.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: default_sandbox_group_not_deletable` for the owner's
-    default sandbox group. Make another group the default first.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Delete a sandbox group. Its sandboxes are terminated and its snapshots and credentials are deleted
+    shortly after the request returns.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -160,16 +150,11 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox group
 
-     Delete a sandbox group. Its sandboxes are terminated, and its snapshots
-    and credentials are deleted shortly after the request returns.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: default_sandbox_group_not_deletable` for the owner's
-    default sandbox group. Make another group the default first.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Delete a sandbox group. Its sandboxes are terminated and its snapshots and credentials are deleted
+    shortly after the request returns.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -195,16 +180,11 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox group
 
-     Delete a sandbox group. Its sandboxes are terminated, and its snapshots
-    and credentials are deleted shortly after the request returns.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: default_sandbox_group_not_deletable` for the owner's
-    default sandbox group. Make another group the default first.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Delete a sandbox group. Its sandboxes are terminated and its snapshots and credentials are deleted
+    shortly after the request returns.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

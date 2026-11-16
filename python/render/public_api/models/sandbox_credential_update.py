@@ -15,28 +15,32 @@ T = TypeVar("T", bound="SandboxCredentialUpdate")
 
 @_attrs_define
 class SandboxCredentialUpdate:
-    """Omitted fields retain their existing values. Empty methods or paths arrays
-    clear those filters. Developers may update injection, methods, paths, and
-    enabled state. Changing the destination requires an admin and otherwise
-    returns 403. Overwriting a value requires an admin; omitting it has no effect.
-    Changes to routing, injection, or enabled state create a new configuration version.
-    Overwriting the value also creates a version, even when the value is unchanged.
-    The credential ID is immutable.
+    """The credential settings to update. Omitted top-level fields keep their current values. Providing `injection`
+    replaces the entire object. Its `template` defaults to `${SECRET}` when omitted. Empty `methods` or `paths` lists
+    remove those filters. Developers can update `injection`, `methods`, `paths`, and `enabled`. Changing `domain` or
+    `value` requires an admin.
+
+    Changes to routing, injection, or enabled state create a new version. Setting `value` creates a new version even if
+    the secret value is unchanged. The credential ID cannot be changed.
 
         Attributes:
-            value (Union[Unset, str]): Admin-only. At most 5 KiB (5120 UTF-8 bytes). Omit to preserve the
-                current value.
-            domain (Union[Unset, str]):
-            enabled (Union[Unset, bool]):
-            methods (Union[Unset, list[str]]):
-            paths (Union[Unset, list[str]]): Absolute request path patterns. The entire path must match.
-                Use * for one nonempty path segment or ** for one or more.
-                Wildcards must occupy whole segments. For example, /a/* matches
-                /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-                Query strings, fragments, and escaping are not supported in patterns.
-                Request query strings do not affect path matching.
-                An empty list matches any path. Omit to preserve the current filter.
-            injection (Union[Unset, SandboxCredentialInjection]):
+            value (Union[Unset, str]): The replacement secret value, up to 5 KiB (5120 UTF-8 bytes). Requires an admin. Omit
+                to preserve the current value.
+            domain (Union[Unset, str]): The destination hostname to match for credential injection. Must be a public DNS
+                hostname. Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or
+                internal hostnames are not supported. Omit to preserve the current hostname.
+            enabled (Union[Unset, bool]): Whether this credential is enabled for injection. Omit to preserve the current
+                setting.
+            methods (Union[Unset, list[str]]): The HTTP methods to match for credential injection. Supported methods are
+                GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method.
+                Omit to preserve the current filter.
+            paths (Union[Unset, list[str]]): The request path patterns to match for credential injection. Each pattern must
+                match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments.
+                Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`.
+                Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do
+                not affect matching. An empty list matches any path. Omit to preserve the current filter.
+            injection (Union[Unset, SandboxCredentialInjection]): Settings for injecting the secret value into matching
+                outbound HTTPS requests.
     """
 
     value: Union[Unset, str] = UNSET

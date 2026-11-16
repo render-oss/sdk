@@ -123,15 +123,10 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxBuildWithCursor"]]]:
     """List sandbox builds
 
-     Builds in a sandbox group, newest first.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_status` for a status outside the
-    build status vocabulary, `code: invalid_cursor` for a malformed cursor,
-    or `code: invalid_limit` for a limit outside 1 to 100.
+     List builds in a sandbox group, newest first.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         name (Union[Unset, str]):
@@ -171,15 +166,10 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxBuildWithCursor"]]]:
     """List sandbox builds
 
-     Builds in a sandbox group, newest first.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_status` for a status outside the
-    build status vocabulary, `code: invalid_cursor` for a malformed cursor,
-    or `code: invalid_limit` for a limit outside 1 to 100.
+     List builds in a sandbox group, newest first.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         name (Union[Unset, str]):
@@ -214,15 +204,10 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxBuildWithCursor"]]]:
     """List sandbox builds
 
-     Builds in a sandbox group, newest first.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_status` for a status outside the
-    build status vocabulary, `code: invalid_cursor` for a malformed cursor,
-    or `code: invalid_limit` for a limit outside 1 to 100.
+     List builds in a sandbox group, newest first.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         name (Union[Unset, str]):
@@ -260,15 +245,10 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxBuildWithCursor"]]]:
     """List sandbox builds
 
-     Builds in a sandbox group, newest first.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, `code: invalid_status` for a status outside the
-    build status vocabulary, `code: invalid_cursor` for a malformed cursor,
-    or `code: invalid_limit` for a limit outside 1 to 100.
+     List builds in a sandbox group, newest first.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
         name (Union[Unset, str]):

@@ -9,7 +9,7 @@ T = TypeVar("T", bound="SandboxPOSTEnv")
 
 @_attrs_define
 class SandboxPOSTEnv:
-    """Inline environment variables injected into the sandbox at creation."""
+    """The environment variables to set when creating the sandbox."""
 
     additional_properties: dict[str, str] = _attrs_field(init=False, factory=dict)
 

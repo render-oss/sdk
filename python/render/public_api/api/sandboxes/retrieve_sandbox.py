@@ -96,7 +96,7 @@ def sync_detailed(
      Retrieve the sandbox with the provided ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -130,7 +130,7 @@ def sync(
      Retrieve the sandbox with the provided ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -159,7 +159,7 @@ async def asyncio_detailed(
      Retrieve the sandbox with the provided ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -191,7 +191,7 @@ async def asyncio(
      Retrieve the sandbox with the provided ID.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:

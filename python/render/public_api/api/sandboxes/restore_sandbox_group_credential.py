@@ -106,23 +106,26 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing
-    configuration, injection configuration, and secret value of a retained
-    version. The new revision has an increasing version ID, the restoring
-    identity and timestamp, the same fingerprint as the source, and
-    restoredFromVersionId identifying the source. Each distinct
-    configuration is stored once by fingerprint. The current and three most
-    recently active prior configurations are retained. Evicting a
-    configuration removes all version metadata referring to it. Values are
-    never returned. A temporary synchronization conflict returns 429.
+     Restore a retained credential version, including its routing settings, injection settings, and
+    secret value, as a new current version. Requires an admin.
+
+    The new version has a higher ID, records who restored it and when, and identifies the source in
+    `restoredFromVersionId`. Its fingerprint matches the source version. Render retains the current
+    configuration and the three distinct prior configurations most recently active. Removing an older
+    configuration also removes all versions that refer to it.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
+
+    These endpoints do not return secret values.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
-        body (SandboxCredentialRestore):
+        body (SandboxCredentialRestore): The retained credential version to restore.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -154,23 +157,26 @@ def sync(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing
-    configuration, injection configuration, and secret value of a retained
-    version. The new revision has an increasing version ID, the restoring
-    identity and timestamp, the same fingerprint as the source, and
-    restoredFromVersionId identifying the source. Each distinct
-    configuration is stored once by fingerprint. The current and three most
-    recently active prior configurations are retained. Evicting a
-    configuration removes all version metadata referring to it. Values are
-    never returned. A temporary synchronization conflict returns 429.
+     Restore a retained credential version, including its routing settings, injection settings, and
+    secret value, as a new current version. Requires an admin.
+
+    The new version has a higher ID, records who restored it and when, and identifies the source in
+    `restoredFromVersionId`. Its fingerprint matches the source version. Render retains the current
+    configuration and the three distinct prior configurations most recently active. Removing an older
+    configuration also removes all versions that refer to it.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
+
+    These endpoints do not return secret values.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
-        body (SandboxCredentialRestore):
+        body (SandboxCredentialRestore): The retained credential version to restore.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -197,23 +203,26 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing
-    configuration, injection configuration, and secret value of a retained
-    version. The new revision has an increasing version ID, the restoring
-    identity and timestamp, the same fingerprint as the source, and
-    restoredFromVersionId identifying the source. Each distinct
-    configuration is stored once by fingerprint. The current and three most
-    recently active prior configurations are retained. Evicting a
-    configuration removes all version metadata referring to it. Values are
-    never returned. A temporary synchronization conflict returns 429.
+     Restore a retained credential version, including its routing settings, injection settings, and
+    secret value, as a new current version. Requires an admin.
+
+    The new version has a higher ID, records who restored it and when, and identifies the source in
+    `restoredFromVersionId`. Its fingerprint matches the source version. Render retains the current
+    configuration and the three distinct prior configurations most recently active. Removing an older
+    configuration also removes all versions that refer to it.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
+
+    These endpoints do not return secret values.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
-        body (SandboxCredentialRestore):
+        body (SandboxCredentialRestore): The retained credential version to restore.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -243,23 +252,26 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Restore sandbox credential configuration
 
-     Admin-only. Creates a new current revision from the routing
-    configuration, injection configuration, and secret value of a retained
-    version. The new revision has an increasing version ID, the restoring
-    identity and timestamp, the same fingerprint as the source, and
-    restoredFromVersionId identifying the source. Each distinct
-    configuration is stored once by fingerprint. The current and three most
-    recently active prior configurations are retained. Evicting a
-    configuration removes all version metadata referring to it. Values are
-    never returned. A temporary synchronization conflict returns 429.
+     Restore a retained credential version, including its routing settings, injection settings, and
+    secret value, as a new current version. Requires an admin.
+
+    The new version has a higher ID, records who restored it and when, and identifies the source in
+    `restoredFromVersionId`. Its fingerprint matches the source version. Render retains the current
+    configuration and the three distinct prior configurations most recently active. Removing an older
+    configuration also removes all versions that refer to it.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
+
+    These endpoints do not return secret values.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        credential_id (str): Caller-supplied URL-safe name, unique within the sandbox group. The
-            names
-            `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        credential_id (str): The case-sensitive ID you assign to the credential, unique within its
+            sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The
+            names `.` and `..` and IDs starting with `rnd-` are reserved.
              Example: my-inference-key.
-        body (SandboxCredentialRestore):
+        body (SandboxCredentialRestore): The retained credential version to restore.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

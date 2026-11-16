@@ -13,19 +13,22 @@ T = TypeVar("T", bound="SandboxGroup")
 
 @_attrs_define
 class SandboxGroup:
-    """
+    """A group of sandboxes in a workspace that share a region, concurrency limit, and credentials.
+
     Attributes:
-        id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
         owner_id (str): The ID of the workspace this group belongs to. Example: tea-cph1rs3idesc73a2b2mg.
-        name (str): Human-friendly name for the group. Example: Default.
-        region (str): Render region the group operates in. Example: oregon.
-        is_default (bool): Whether this is the workspace's default group. Sandboxes are created
-            here unless a group is given.
-        concurrency_limit (int): The effective limit on active sandboxes in this group, capped by Render's limit for
-            this workspace.
-        created_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
-        updated_at (datetime.datetime):  Example: 2026-07-02T18:30:00Z.
-        environment_id (Union[None, Unset, str]): Environment this group is bound to.
+        name (str): The sandbox group's name. Example: Default.
+        region (str): The Render region where the group's sandboxes run. Example: oregon.
+        is_default (bool): Whether this is the workspace's default sandbox group. Create requests that omit
+            `sandboxGroupId` use this group.
+        concurrency_limit (int): The maximum number of active sandboxes allowed in this group, capped by Render's limit
+            for the workspace.
+        created_at (datetime.datetime): The timestamp when the sandbox group was created, in ISO 8601 format. Example:
+            2026-07-02T18:30:00Z.
+        updated_at (datetime.datetime): The timestamp when the sandbox group was last updated, in ISO 8601 format.
+            Example: 2026-07-02T18:30:00Z.
+        environment_id (Union[None, Unset, str]): The ID of the environment this sandbox group belongs to, if any.
     """
 
     id: str

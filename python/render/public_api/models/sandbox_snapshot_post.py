@@ -14,25 +14,23 @@ T = TypeVar("T", bound="SandboxSnapshotPOST")
 
 @_attrs_define
 class SandboxSnapshotPOST:
-    """
+    """The settings for the sandbox snapshot to capture.
+
     Attributes:
-        kind (Union[Unset, SandboxSnapshotKind]): `filesystem` captures the writable filesystem and restores onto any
-            plan.
-            `runtime` also captures memory and CPU state and restores only onto the
-            plan of the source sandbox.
+        kind (Union[Unset, SandboxSnapshotKind]): The state to capture. A `filesystem` snapshot captures the writable
+            filesystem and can be restored to any plan. A `runtime` snapshot also captures memory and CPU state and must be
+            restored to the source sandbox plan.
              Default: SandboxSnapshotKind.RUNTIME.
-        name (Union[Unset, str]): Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
-            so clients can tell a name from a snapshot ID. Several snapshots may
-            share a name; the most recently available one is the one the name
-            resolves to.
+        name (Union[Unset, str]): A case-sensitive name for snapshots in a sandbox group, up to 64 characters. Must not
+            start with `snp-`. Multiple snapshots can share a name. When creating a sandbox by snapshot name, Render uses
+            the most recently created snapshot with that name that is `available` and unexpired.
              Example: gold.
-        ttl_seconds (Union[Unset, int]): How long the snapshot lives after its last use, in seconds. Each time you
-            create a sandbox from the snapshot, the snapshot lives for this long again.
-            Use 0 to keep the snapshot until you delete it. Omit to use Render's
-            default snapshot lifetime. Do not set both `ttlSeconds` and `expiresAt`.
-        expires_at (Union[Unset, datetime.datetime]): Deprecated. Use `ttlSeconds`. Must be in the future. Render sets
-            the TTL
-            to the time from the request until `expiresAt`.
+        ttl_seconds (Union[Unset, int]): The snapshot's lifetime after its last use, in seconds. Creating a sandbox from
+            this snapshot resets its remaining lifetime to this duration. Use 0 to keep the snapshot until you delete it.
+            Defaults to Render's snapshot lifetime. Cannot be combined with `expiresAt`.
+        expires_at (Union[Unset, datetime.datetime]): The expiration timestamp, in ISO 8601 format. Deprecated; use
+            `ttlSeconds` instead. Must be in the future. Render sets the snapshot lifetime to the duration between the
+            request and this timestamp.
     """
 
     kind: Union[Unset, SandboxSnapshotKind] = SandboxSnapshotKind.RUNTIME

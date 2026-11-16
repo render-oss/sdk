@@ -9,11 +9,12 @@ T = TypeVar("T", bound="SandboxGroupPATCH")
 
 @_attrs_define
 class SandboxGroupPATCH:
-    """
+    """The sandbox group's concurrency settings to update.
+
     Attributes:
-        concurrency_limit (int): Maximum active sandboxes in the group. The configured value is capped
-            by Render's limit for this workspace. Responses return the effective limit.
-            Lowering the limit does not stop existing sandboxes.
+        concurrency_limit (int): The maximum number of active sandboxes allowed in this group. Must be at least 1.
+            Render caps this value at the workspace's limit and returns the effective limit. Lowering the limit does not
+            stop existing sandboxes.
              Example: 10.
     """
 

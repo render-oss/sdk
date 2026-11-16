@@ -16,28 +16,33 @@ T = TypeVar("T", bound="SandboxCredential")
 
 @_attrs_define
 class SandboxCredential:
-    """Desired credential configuration scoped to one sandbox group. Secret values
-    are independent for each credential ID and are never returned, including to admins.
+    """A credential configured for injection into matching outbound HTTPS requests from sandboxes in one sandbox group.
+    Each credential stores its own secret value. These endpoints do not return secret values, including to admins.
+
+    Credential injection supports HTTPS requests on port 443. Avoid overlapping credential configurations for the same
+    hostname. Multiple matching credentials are not combined.
 
         Attributes:
-            id (str): Caller-supplied URL-safe name, unique within the sandbox group. The names
-                `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+            id (str): The case-sensitive ID you assign to the credential, unique within its sandbox group. Use only letters,
+                numbers, periods, underscores, tildes, and hyphens. The names `.` and `..` and IDs starting with `rnd-` are
+                reserved.
                  Example: my-inference-key.
-            domain (str): Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
-                wildcards, and local/internal hostnames are not supported.
+            domain (str): The destination hostname to match for credential injection. Must be a public DNS hostname. Render
+                normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal
+                hostnames are not supported.
                  Example: api.render.com.
-            enabled (bool):
-            methods (list[str]): GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
-                An empty list matches any method.
-            paths (list[str]): Absolute request path patterns. The entire path must match.
-                Use * for one nonempty path segment or ** for one or more.
-                Wildcards must occupy whole segments. For example, /a/* matches
-                /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-                Query strings, fragments, and escaping are not supported in patterns.
-                Request query strings do not affect path matching.
-                An empty list matches any path.
-            injection (SandboxCredentialInjection):
-            version (Union[Unset, SandboxCredentialVersion]):
+            enabled (bool): Whether this credential is enabled for injection.
+            methods (list[str]): The HTTP methods to match for credential injection. Supported methods are GET, HEAD, POST,
+                PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method.
+            paths (list[str]): The request path patterns to match for credential injection. Each pattern must match the
+                entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must
+                occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches
+                `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect
+                matching. An empty list matches any path.
+            injection (SandboxCredentialInjection): Settings for injecting the secret value into matching outbound HTTPS
+                requests.
+            version (Union[Unset, SandboxCredentialVersion]): Metadata for a credential version. These endpoints do not
+                return secret values.
     """
 
     id: str

@@ -256,38 +256,13 @@ export interface paths {
         };
         /**
          * List sandboxes
-         * @description List sandboxes for a single workspace. Sandboxes are scoped to the region of
-         *     their workspace's sandbox group, so one workspace must be named per request.
+         * @description List sandboxes in a workspace. Each request must specify one workspace. Sandboxes run in the region of their sandbox group.
          */
         get: operations["list-sandboxes"];
         put?: never;
         /**
          * Create sandbox
-         * @description Create a sandbox. Returns the initial sandbox snapshot synchronously.
-         *
-         *     With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
-         *     exist; 409 with `code: snapshot_not_available` if it is not `available`, or
-         *     `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
-         *     different `plan`.
-         *
-         *     With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
-         *     malformed, 400 without a code if `snapshotId` is also set, and 404 with
-         *     `code: snapshot_not_found` if no `available` snapshot in the group has the
-         *     name. The 409 cases above apply to the resolved snapshot.
-         *
-         *     400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
-         *     or starts with `sbx-`.
-         *
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-         *
-         *     400 with `code: sandbox_group_limit_reached` if the owner has no default
-         *     sandbox group and is already at its sandbox group limit.
-         *
-         *     400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
-         *     accepts. The message lists the accepted plans.
-         *
-         *     400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-         *     above 2592000 (30 days).
+         * @description Create a sandbox and return its initial state. The sandbox might still be starting when the response is returned. To use a saved snapshot or custom image, provide `snapshotId`, `snapshotName`, `buildId`, or `buildName`.
          */
         post: operations["create-sandbox"];
         delete?: never;
@@ -305,16 +280,13 @@ export interface paths {
         };
         /**
          * List sandbox groups
-         * @description List sandbox groups for a single workspace, newest first. The default
-         *     page size is 20 and the maximum is 100.
-         *     Use the last item's cursor to fetch the next page, until it is empty.
+         * @description List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum of 100. To fetch the next page, pass the last result's cursor as `cursor`. Continue until the response is empty.
          */
         get: operations["list-sandbox-groups"];
         put?: never;
         /**
          * Create sandbox group
-         * @description Create a sandbox group. The workspace's first group becomes its default.
-         *     Returns 409 if the `name` is taken.
+         * @description Create a sandbox group. The first group in a workspace becomes its default.
          */
         post: operations["create-sandbox-group"];
         delete?: never;
@@ -328,7 +300,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
@@ -351,7 +323,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
@@ -360,9 +332,7 @@ export interface paths {
         put?: never;
         /**
          * Terminate sandbox
-         * @description Terminate the sandbox with the provided ID. Idempotent: returns 204 from any
-         *     state, including `terminated`. Terminating a `creating` sandbox cancels
-         *     boot/setup immediately.
+         * @description Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already terminated. You can also terminate a sandbox while it is starting (`creating`).
          */
         post: operations["terminate-sandbox"];
         delete?: never;
@@ -376,7 +346,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
@@ -385,13 +355,7 @@ export interface paths {
         put?: never;
         /**
          * Create sandbox snapshot
-         * @description Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
-         *     `creating`. Poll until it is `available` or `failed`. The sandbox keeps
-         *     running; a runtime capture pauses it briefly.
-         *
-         *     400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-         *     `code: sandbox_not_running` if the sandbox is not `running`, or
-         *     `code: sandbox_group_suspended` if the sandbox group is suspended.
+         * @description Capture a snapshot of a running sandbox. Returns HTTP 202 with the snapshot in `creating` status. Retrieve the snapshot until its status is `available` or `failed`. The sandbox continues running, with a brief pause when capturing a runtime snapshot.
          */
         post: operations["create-sandbox-snapshot"];
         delete?: never;
@@ -405,36 +369,28 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
         };
         /**
          * Retrieve sandbox group
-         * @description Retrieve a sandbox group. 400 `invalid_sandbox_group_id` for a malformed ID.
+         * @description Retrieve a sandbox group by ID.
          */
         get: operations["retrieve-sandbox-group"];
         put?: never;
         post?: never;
         /**
          * Delete sandbox group
-         * @description Delete a sandbox group. Its sandboxes are terminated, and its snapshots
-         *     and credentials are deleted shortly after the request returns.
-         *
-         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-         *     409 with `code: default_sandbox_group_not_deletable` for the owner's
-         *     default sandbox group. Make another group the default first.
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         * @description Delete a sandbox group. Its sandboxes are terminated and its snapshots and credentials are deleted shortly after the request returns.
          */
         delete: operations["delete-sandbox-group"];
         options?: never;
         head?: never;
         /**
          * Update sandbox group
-         * @description Update a sandbox group's concurrency limit. Returns 400 for a malformed
-         *     ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
-         *     below 1. The response returns the effective limit after applying Render's cap.
+         * @description Update a sandbox group's concurrency limit. The response contains the effective limit after applying Render's limit for the workspace.
          */
         patch: operations["update-sandbox-group"];
         trace?: never;
@@ -444,7 +400,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -453,12 +409,7 @@ export interface paths {
         put?: never;
         /**
          * Set default sandbox group
-         * @description Make a sandbox group its owner's default. Sandbox creates without a
-         *     `sandboxGroupId` use the default group. The previous default stays as a
-         *     regular group. Idempotent: setting the current default returns it unchanged.
-         *
-         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+         * @description Set a sandbox group as its workspace's default. Sandbox create requests that omit `sandboxGroupId` use this group. The previous default remains available as a regular group. Setting the current default returns it unchanged.
          */
         post: operations["set-default-sandbox-group"];
         delete?: never;
@@ -472,27 +423,24 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
         };
         /**
          * List sandbox group credentials
-         * @description Returns all credentials in the group, sorted by caller-supplied ID.
-         *     Secret values are never returned, including to admins.
+         * @description List credentials in the sandbox group, sorted by credential ID. Returns credential settings and metadata. These endpoints do not return secret values, including to admins.
          */
         get: operations["list-sandbox-group-credentials"];
         put?: never;
         /**
          * Create sandbox group credential
-         * @description Admin-only. Creates an independent credential with a caller-supplied ID.
-         *     Each sandbox group supports at most 25 credentials and 200 KiB (204800
-         *     bytes) of serialized current credentials, including configuration and
-         *     values. Three distinct prior configurations per credential are retained
-         *     by fingerprint, with a 1 MiB total storage limit including version
-         *     metadata and configurations. Limits are checked before saving. A
-         *     temporary synchronization conflicts return 429.
+         * @description Configure a credential for injection into matching outbound HTTPS requests from sandboxes in this group. Requires an admin. You assign the credential ID.
+         *
+         *     Each group supports up to 25 credentials. Current credential settings and secret values have a combined serialized size limit of 200 KiB (204800 bytes). Render retains the current configuration and three distinct prior configurations per credential, with a total storage limit of 1 MiB including version metadata.
+         *
+         *     The response confirms the configuration was saved. It does not confirm that credential injection is active for a particular sandbox.
          */
         post: operations["create-sandbox-group-credential"];
         delete?: never;
@@ -506,7 +454,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -515,31 +463,25 @@ export interface paths {
         };
         /**
          * Retrieve sandbox group credential
-         * @description Secret values are never returned, including to admins.
-         *     Credentials are scoped to the addressed sandbox group.
+         * @description Retrieve the settings and metadata for a credential in this sandbox group. These endpoints do not return secret values, including to admins.
          */
         get: operations["retrieve-sandbox-group-credential"];
         put?: never;
         post?: never;
         /**
          * Delete sandbox group credential
-         * @description Admin-only. Removes the credential if present and synchronizes the
-         *     group's gateway configuration. Repeated deletion requests are accepted.
-         *     A temporary synchronization conflict returns 429.
+         * @description Delete a credential from the sandbox group. Requires an admin. Repeated delete requests are accepted, including if the credential is already absent.
          */
         delete: operations["delete-sandbox-group-credential"];
         options?: never;
         head?: never;
         /**
          * Update sandbox group credential
-         * @description Admins may update configuration. Developers may update injection,
-         *     method/path filters, and enabled state; destination or value changes
-         *     require an admin. Assigning a value creates a new version; omitting it
-         *     preserves the value. Other omitted fields are preserved; empty methods
-         *     or paths arrays clear their filters. The group's serialized current
-         *     credentials must remain within 200 KiB (204800 bytes). A successful
-         *     response means desired state was saved; runtime reconciliation may still
-         *     be pending. A temporary synchronization conflict returns 429.
+         * @description Update a credential. Developers can change `injection`, `methods`, `paths`, and `enabled`. Changing `domain` or `value` requires an admin.
+         *
+         *     Omitted top-level fields keep their current values. Providing `injection` replaces the entire object. Its `template` defaults to `${SECRET}` when omitted. An empty `methods` or `paths` list removes that filter. Providing `value` creates a new version. The combined serialized size of current credential settings and secret values in the group must remain within 200 KiB (204800 bytes).
+         *
+         *     The response confirms the configuration was saved. It does not confirm that credential injection is active for a particular sandbox.
          */
         patch: operations["update-sandbox-group-credential"];
         trace?: never;
@@ -549,7 +491,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -558,10 +500,9 @@ export interface paths {
         };
         /**
          * List sandbox credential versions
-         * @description Returns version metadata in descending version ID order. Multiple versions may
-         *     share one configuration fingerprint. Metadata is retained while its configuration
-         *     is retained; configurations are evicted by their most recent activation version ID.
-         *     Secret values and the group fingerprint nonce are never returned.
+         * @description List retained credential versions, newest version ID first. Versions with identical settings and secret values share a fingerprint.
+         *
+         *     Render retains the current configuration and the three distinct prior configurations most recently active. When an older configuration is removed, all versions that refer to it are also removed. These endpoints do not return secret values.
          */
         get: operations["list-sandbox-group-credential-versions"];
         put?: never;
@@ -577,7 +518,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -588,15 +529,13 @@ export interface paths {
         put?: never;
         /**
          * Restore sandbox credential configuration
-         * @description Admin-only. Creates a new current revision from the routing
-         *     configuration, injection configuration, and secret value of a retained
-         *     version. The new revision has an increasing version ID, the restoring
-         *     identity and timestamp, the same fingerprint as the source, and
-         *     restoredFromVersionId identifying the source. Each distinct
-         *     configuration is stored once by fingerprint. The current and three most
-         *     recently active prior configurations are retained. Evicting a
-         *     configuration removes all version metadata referring to it. Values are
-         *     never returned. A temporary synchronization conflict returns 429.
+         * @description Restore a retained credential version, including its routing settings, injection settings, and secret value, as a new current version. Requires an admin.
+         *
+         *     The new version has a higher ID, records who restored it and when, and identifies the source in `restoredFromVersionId`. Its fingerprint matches the source version. Render retains the current configuration and the three distinct prior configurations most recently active. Removing an older configuration also removes all versions that refer to it.
+         *
+         *     The response confirms the configuration was saved. It does not confirm that credential injection is active for a particular sandbox.
+         *
+         *     These endpoints do not return secret values.
          */
         post: operations["restore-sandbox-group-credential"];
         delete?: never;
@@ -610,38 +549,22 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
         };
         /**
          * List sandbox builds
-         * @description Builds in a sandbox group, newest first.
-         *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, `code: invalid_status` for a status outside the
-         *     build status vocabulary, `code: invalid_cursor` for a malformed cursor,
-         *     or `code: invalid_limit` for a limit outside 1 to 100.
+         * @description List builds in a sandbox group, newest first.
          */
         get: operations["list-sandbox-builds"];
         put?: never;
         /**
          * Create sandbox build
-         * @description Starts converting an OCI image into a sandbox image, and returns the
-         *     build without waiting for it. Poll the build until it `succeeded` or
-         *     `failed`, then pass its ID as `buildId` to create a sandbox. A request
-         *     for a name and image digest the group already has, or is building,
-         *     returns that build.
+         * @description Start converting an OCI container image into an image that sandboxes can use. New builds run asynchronously. Retrieve the build until its status is `succeeded` or `failed`. After it succeeds, provide its ID as `buildId` when creating a sandbox.
          *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, or a message if the image is invalid or its
-         *     registry can't serve it.
-         *
-         *     409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-         *
-         *     429 if the group already has as many builds pending or running as its
-         *     limit allows. The message includes the limit.
+         *     If the group already has a pending, running, or succeeded build for the same name and image digest, Render returns that build. Retrying a failed build starts a new build.
          */
         post: operations["create-sandbox-build"];
         delete?: never;
@@ -655,43 +578,23 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the build */
+                /** @description The ID of the sandbox build. */
                 buildId: components["parameters"]["buildId"];
             };
             cookie?: never;
         };
         /**
          * Retrieve sandbox build
-         * @description One build by ID. 404 with `code: build_not_found` if the build doesn't
-         *     exist or belongs to another sandbox group.
-         *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-         *     well-formed `sbb-` ID.
+         * @description Retrieve a build by ID.
          */
         get: operations["retrieve-sandbox-build"];
         put?: never;
         post?: never;
         /**
          * Delete sandbox build
-         * @description Deletes one build: one version of an image. The build no longer
-         *     appears in lists, can't be retrieved, and can't start sandboxes,
-         *     including through the image's name. Deleting a deleted build returns 204.
-         *
-         *     409 with `code: image_in_use` while sandboxes that aren't terminated, or
-         *     snapshots that haven't expired, still boot from the build. That includes
-         *     snapshots of sandboxes restored from such snapshots, and paused
-         *     sandboxes. The message lists up to 10 of them. Delete them, or wait for
-         *     them to expire, and retry.
-         *
-         *     404 with `code: build_not_found` if the build doesn't exist or belongs
-         *     to another sandbox group.
-         *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-         *     well-formed `sbb-` ID.
+         * @description Delete a build of a sandbox image. The build no longer appears in lists and cannot be retrieved or used to create sandboxes, including by image name. Repeated requests to delete the build return HTTP 204.
          */
         delete: operations["delete-sandbox-build"];
         options?: never;
@@ -704,21 +607,14 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
         };
         /**
          * List sandbox snapshots
-         * @description Snapshots in a sandbox group, newest first. Expired and deleted snapshots
-         *     are omitted.
-         *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, `code: invalid_owner_id` if `ownerId` is missing or
-         *     repeated, `code: invalid_status` for a status outside the snapshot status
-         *     vocabulary, `code: invalid_cursor` for a malformed or unknown cursor, or
-         *     `code: invalid_limit` for a limit outside 1 to 100.
+         * @description List snapshots in a sandbox group, newest first. Excludes expired and deleted snapshots.
          */
         get: operations["list-sandbox-snapshots"];
         put?: never;
@@ -734,34 +630,23 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the snapshot */
+                /** @description The ID of the sandbox snapshot. */
                 snapshotId: components["parameters"]["snapshotId"];
             };
             cookie?: never;
         };
         /**
          * Retrieve sandbox snapshot
-         * @description One snapshot by ID. Deleted and expired snapshots return 404. A snapshot
-         *     that belongs to another sandbox group returns 404.
-         *
-         *     400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-         *     well-formed `sbg-` ID, or `code: invalid_snapshot_id` if `snapshotId` is
-         *     not a well-formed `snp-` ID.
+         * @description Retrieve a snapshot by ID.
          */
         get: operations["retrieve-sandbox-snapshot"];
         put?: never;
         post?: never;
         /**
          * Delete sandbox snapshot
-         * @description Idempotent: returns 204 if the snapshot is already deleted or expired.
-         *     Sandboxes created from the snapshot are not affected. A snapshot that
-         *     belongs to another sandbox group returns 404.
-         *
-         *     400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-         *     400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
-         *     409 with `code: snapshot_creating` while the capture is in progress.
+         * @description Delete a snapshot. Sandboxes created from it are not affected. Returns HTTP 204 if the snapshot is already deleted or expired.
          */
         delete: operations["delete-sandbox-snapshot"];
         options?: never;
@@ -774,9 +659,9 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
-                /** @description The run operation to authorize — `sync` (buffered) or `stream` (server-sent events). */
+                /** @description The command run operation to authorize. Use `sync` for a buffered response or `stream` for server-sent events. */
                 operation: "sync" | "stream";
             };
             cookie?: never;
@@ -785,12 +670,7 @@ export interface paths {
         put?: never;
         /**
          * Create a connect token for a sandbox run
-         * @description Mint a short-lived, capability-scoped connect token that authorizes a
-         *     single run operation against the specified sandbox. The response contains
-         *     the sandbox URI where the caller sends the command with the token as a bearer credential.
-         *
-         *     409 with `code: sandbox_not_running` if the sandbox is terminated or
-         *     errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+         * @description Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in the response, using the token as the bearer token. The token authorizes only the requested operation.
          */
         post: operations["connect-sandbox-run"];
         delete?: never;
@@ -804,9 +684,9 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
-                /** @description The file operation to authorize — `upload` (PUT a file or tar archive) or `download` (GET a file, or a directory as a tar archive). */
+                /** @description The file transfer operation to authorize. Use `upload` to send a file or tar archive with HTTP PUT, or `download` to retrieve a file or directory archive with HTTP GET. */
                 operation: "upload" | "download";
             };
             cookie?: never;
@@ -815,19 +695,9 @@ export interface paths {
         put?: never;
         /**
          * Mint a connect token for a sandbox file transfer
-         * @description Mint a short-lived, capability-scoped connect token that authorizes a
-         *     single file upload or download against the sandbox, and return the
-         *     sandbox-proxy endpoint to invoke with it. The caller streams the file
-         *     bytes directly to (or from) that endpoint with the token as a bearer
-         *     credential. `application/octet-stream` carries a single file and
-         *     `application/x-tar` a directory archive, with compression carried
-         *     separately by `Content-Encoding: gzip` in either direction; directory
-         *     downloads return `application/x-tar` with `Content-Encoding: gzip`. The
-         *     token is bound to this sandbox, operation, and path, and expires
-         *     shortly after issuance.
+         * @description Create a short-lived connect token for a file upload or download. Transfer the file directly to or from the URL in the response, using the token as the bearer token. The token authorizes only the specified sandbox, operation, and path. Its expiration time is returned in `expiresAt`.
          *
-         *     409 with `code: sandbox_not_running` if the sandbox is terminated or
-         *     errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+         *     Use `application/octet-stream` for a single file or `application/x-tar` for a directory archive. For gzip compression, also set `Content-Encoding: gzip`. Directory downloads return `application/x-tar` with `Content-Encoding: gzip`.
          */
         post: operations["connect-sandbox-files"];
         delete?: never;
@@ -994,8 +864,10 @@ export interface components {
         /** @enum {string} */
         databaseStatus: "creating" | "available" | "unavailable" | "config_restart" | "suspended" | "maintenance_scheduled" | "maintenance_in_progress" | "recovery_failed" | "recovery_in_progress" | "unknown" | "updating_instance";
         envGroup: components["schemas"]["envGroupMeta"] & {
-            envVars: components["schemas"]["envVar"][];
-            secretFiles: components["schemas"]["secretFile"][];
+            /** @description Omitted if the caller doesn't have the permission to read the environment group's secret values. */
+            envVars?: components["schemas"]["envVar"][];
+            /** @description Omitted if the caller doesn't have the permission to read the environment group's secret values. */
+            secretFiles?: components["schemas"]["secretFile"][];
         };
         envGroupMeta: {
             id: string;
@@ -1018,22 +890,22 @@ export interface components {
             name: string;
             type: components["schemas"]["serviceTypeShort"];
         };
-        /** @description A sandbox with a cursor */
+        /** @description A sandbox with a cursor for fetching the next page of results. */
         sandboxWithCursor: {
             sandbox: components["schemas"]["sandbox"];
             cursor: components["schemas"]["cursor"];
         };
-        /** @description A sandbox snapshot with a cursor */
+        /** @description A sandbox snapshot with a cursor for fetching the next page of results. */
         sandboxSnapshotWithCursor: {
             snapshot: components["schemas"]["sandboxSnapshot"];
             cursor: components["schemas"]["cursor"];
         };
-        /** @description A sandbox build with a cursor */
+        /** @description A sandbox build with a cursor for fetching the next page of results. */
         sandboxBuildWithCursor: {
             build: components["schemas"]["sandboxBuild"];
             cursor: components["schemas"]["cursor"];
         };
-        /** @description A sandbox group with a cursor */
+        /** @description A sandbox group with a cursor for fetching the next page of results. */
         sandboxGroupWithCursor: {
             sandboxGroup: components["schemas"]["sandboxGroup"];
             cursor: components["schemas"]["cursor"];
@@ -1295,214 +1167,172 @@ export interface components {
              */
             maxSizeBytes: number;
         };
-        /** @example sbg-cph1rs3idesc73a2b2mg */
+        /**
+         * @description The ID of the sandbox group.
+         * @example sbg-cph1rs3idesc73a2b2mg
+         */
         sandboxGroupId: string;
-        /** @enum {string} */
+        /**
+         * @description The sandbox's current status.
+         * @enum {string}
+         */
         sandboxStatus: "creating" | "running" | "suspending" | "suspended" | "resuming" | "errored" | "terminated";
-        /** @example sbx-1cd4gcph1rs3idesc73a2b2mg */
+        /**
+         * @description The ID of the sandbox.
+         * @example sbx-1cd4gcph1rs3idesc73a2b2mg
+         */
         sandboxId: string;
         /**
-         * @description The compute plan to use. `starter`, `standard` and `pro` are deprecated.
+         * @description The compute plan for the sandbox. The `starter`, `standard`, and `pro` plans are deprecated.
          * @enum {string}
          */
         sandboxPlan: "starter" | "standard" | "pro" | "1c-2g" | "2c-4g" | "4c-8g" | "8c-16g";
         /**
-         * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
-         *     `allow-list` (requires additional `rules`).
+         * @description How Render handles outbound traffic from the sandbox. The `allow-list` policy requires `rules`.
          * @enum {string}
          */
         sandboxNetworkPolicyType: "allow-all" | "deny-all" | "allow-list";
+        /** @description A destination that sandboxes can access when the network policy is `allow-list`. */
         sandboxEgressRule: {
             /**
-             * @description Hostname to apply the rule to. Matching is exact: `foo.local` does not
-             *     cover `api.foo.local`, which needs its own rule or `*.foo.local`. A
-             *     wildcard is only allowed as the leftmost label.
+             * @description The hostname this rule allows, up to 253 characters. Matching is exact: `foo.local` does not match `api.foo.local`. Use a separate rule or `*.foo.local` for subdomains. A wildcard is allowed only as the leftmost label.
              * @example *.bar.local
              */
             domain: string;
             /**
-             * @description Protocol this rule admits. Only `https` is accepted:
-             *     under `allow-list` every other outbound protocol is dropped.
+             * @description The protocol allowed for this destination. Defaults to `https`. The `allow-list` policy blocks outbound traffic that uses other protocols.
              * @default https
              * @enum {string}
              */
             protocol: "https";
         };
+        /** @description The policy that controls outbound traffic from the sandbox. */
         sandboxNetworkPolicy: {
-            /**
-             * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
-             *     `allow-list` (requires additional `rules`).
-             */
+            /** @description How Render handles outbound traffic from the sandbox. The `allow-list` policy requires `rules`. */
             type: components["schemas"]["sandboxNetworkPolicyType"];
             /**
              * @deprecated
-             * @description Deprecated alias for `type`, always returned with the same value.
-             *     To be removed before GA; read `type` instead.
+             * @description A deprecated alias for `type`, returned with the same value. Read `type` instead.
              */
             default?: components["schemas"]["sandboxNetworkPolicyType"];
-            /**
-             * @description Destinations the sandbox may reach, present when `type` is
-             *     `allow-list` and absent otherwise. Each domain may be listed once.
-             */
+            /** @description Destinations the sandbox may reach, present when `type` is `allow-list` and absent otherwise. Each domain may be listed once. */
             rules?: components["schemas"]["sandboxEgressRule"][];
         };
+        /** @description A shared filesystem mounted in a sandbox. */
         sandboxSharedFilesystem: {
             /**
-             * @description Name of the shared filesystem in the workspace. The first sandbox
-             *     that uses a name creates the filesystem; later sandboxes in the
-             *     workspace that use the same name share it.
+             * @description The name of the shared filesystem in the workspace, up to 63 characters. The first sandbox to use a name creates the filesystem. Other sandboxes in the workspace that use the same name share that filesystem.
              * @example data
              */
             name: string;
             /**
-             * @description Absolute path in the sandbox where the filesystem is mounted. Must
-             *     not be `/` or inside a system directory such as `/proc`, `/etc`,
-             *     or `/usr`.
+             * @description Absolute path in the sandbox where the filesystem is mounted. Must not be `/` or inside a system directory such as `/proc`, `/etc`, or `/usr`.
              * @example /data
              */
             mountPath: string;
         };
+        /** @description An isolated compute environment for running code, executing commands, and transferring files. */
         sandbox: {
             id: components["schemas"]["sandboxId"];
             /** @description The label set when the sandbox was created. */
             name?: string | null;
-            /** @description The sandbox group this sandbox belongs to. */
+            /** @description The ID of the sandbox group this sandbox belongs to. */
             sandboxGroupId?: components["schemas"]["sandboxGroupId"];
             status: components["schemas"]["sandboxStatus"];
-            /** @description Compute plan. See `sandboxPlan` for known values. */
+            /** @description The sandbox's compute plan. See `sandboxPlan` for known values. */
             plan: components["schemas"]["sandboxPlan"] | string;
             networkPolicy: components["schemas"]["sandboxNetworkPolicy"];
             /**
-             * @description Region the sandbox is running in.
+             * @description The Render region where the sandbox runs.
              * @example oregon
              */
             region: string;
             /**
-             * @description Maximum sandbox lifetime in seconds. 0 means the sandbox has no timeout.
+             * @description The maximum time the sandbox can run continuously, in seconds. The sandbox terminates when this time elapses. If the sandbox is suspended and later resumed, this timeout restarts. A value of 0 disables the runtime timeout.
              * @example 86400
              */
             timeoutSeconds: number;
             /**
-             * @description Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle suspension.
+             * @description The number of seconds of inactivity before Render suspends the sandbox. A value of 0 disables automatic idle suspension.
              * @example 900
              */
             idleTimeoutSeconds: number;
             /**
              * Format: date-time
+             * @description The timestamp when the sandbox was created, in ISO 8601 format.
              * @example 2026-04-01T18:30:00Z
              */
             createdAt: string;
             /**
              * Format: date-time
-             * @description When the sandbox was terminated, or null.
+             * @description The timestamp when the sandbox was terminated, in ISO 8601 format. Null if the sandbox has not been terminated.
              */
             terminatedAt?: string | null;
             /** @description Shared filesystems mounted in the sandbox. Absent when there are none. */
             sharedFilesystems?: components["schemas"]["sandboxSharedFilesystem"][];
         };
-        /**
-         * @description Set either `type` or its deprecated alias `default`. Sending both is
-         *     only accepted when they name the same policy.
-         */
+        /** @description The outbound traffic policy to apply to the sandbox. Provide `type` or its deprecated alias `default`. If both are provided, they must match. */
         sandboxNetworkPolicyPOST: {
-            /**
-             * @description How outbound traffic is handled. `allow-all`, `deny-all`, or
-             *     `allow-list` (requires additional `rules`). Either `type` or `default`
-             *     is required when `networkPolicy` is provided. Defaults to `allow-all`,
-             *     or to the source sandbox's network policy when starting from a
-             *     snapshot. Include `networkPolicy` to override.
-             */
+            /** @description How Render handles outbound traffic from the sandbox. The `allow-list` policy requires `rules`. Required unless `default` is provided. If `networkPolicy` is omitted, defaults to `allow-all`, or to the source sandbox's policy when creating a sandbox from a snapshot. */
             type?: components["schemas"]["sandboxNetworkPolicyType"];
             /**
              * @deprecated
-             * @description Deprecated alias for `type`, accepted so that clients built against
-             *     the earlier schema keep working. To be removed before GA.
+             * @description A deprecated alias for `type`. Use `type` instead.
              */
             default?: components["schemas"]["sandboxNetworkPolicyType"];
-            /**
-             * @description Destinations the sandbox may reach, required when the policy is
-             *     `allow-list` and rejected otherwise. Each domain may be listed once.
-             */
+            /** @description Destinations the sandbox may reach, required when the policy is `allow-list` and rejected otherwise. Each domain may be listed once. */
             rules?: components["schemas"]["sandboxEgressRule"][];
         };
-        /** @example snp-cph1rs3idesc73a2b2mg */
+        /**
+         * @description The ID of the sandbox snapshot.
+         * @example snp-cph1rs3idesc73a2b2mg
+         */
         sandboxSnapshotId: string;
         /**
-         * @description Case sensitive. Scoped to the sandbox group. Must not start with `snp-`
-         *     so clients can tell a name from a snapshot ID. Several snapshots may
-         *     share a name; the most recently available one is the one the name
-         *     resolves to.
+         * @description A case-sensitive name for snapshots in a sandbox group, up to 64 characters. Must not start with `snp-`. Multiple snapshots can share a name. When creating a sandbox by snapshot name, Render uses the most recently created snapshot with that name that is `available` and unexpired.
          * @example gold
          */
         sandboxSnapshotName: string;
-        /** @example sbb-cph1rs3idesc73a2b2mg */
+        /**
+         * @description The ID of the sandbox build.
+         * @example sbb-cph1rs3idesc73a2b2mg
+         */
         sandboxBuildId: string;
+        /** @description The sandbox to create, including its compute plan, network policy, and optional source build or snapshot. */
         sandboxPOST: {
             /** @description The ID of the workspace the sandbox belongs to. */
             ownerId: string;
-            /** @description Group to create the sandbox in; defaults to the workspace's default group. */
+            /** @description The ID of the sandbox group to create the sandbox in. Defaults to the workspace's default group. */
             sandboxGroupId?: components["schemas"]["sandboxGroupId"];
-            /**
-             * @description A label for the sandbox, like `my-agent`. It isn't unique, so the
-             *     sandbox ID stays the handle. It can't start with `sbx-`.
-             */
+            /** @description A label for the sandbox, such as `my-agent`, up to 64 characters. Names do not have to be unique; use the sandbox ID to identify a specific sandbox. Must not start with `sbx-`. */
             name?: string;
             networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
-            /** @description Compute plan. See `sandboxPlan` for known values. */
+            /** @description The compute plan for the sandbox. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
             /**
-             * @description Maximum sandbox lifetime in seconds. Sandbox is terminated when reached.
-             *     Use 0 for no timeout. Positive values must be at least 60. Defaults to
-             *     86400, or to the source sandbox's timeout when starting from a snapshot.
+             * @description The maximum time the sandbox can run continuously, in seconds. The sandbox terminates when this time elapses. If the sandbox is suspended and later resumed, this timeout restarts.
+             *
+             *     Use 0 to disable the runtime timeout. Positive values must be between 60 and 2592000 (30 days). Defaults to 86400, or to the source sandbox's runtime timeout when creating a sandbox from a snapshot.
              */
             timeoutSeconds?: number;
-            /**
-             * @description Seconds of inactivity before the sandbox is suspended. Use 0 to disable
-             *     automatic idle suspension. Positive values must be at least 300. Defaults
-             *     to 900, or to the source sandbox's idle timeout when starting from a
-             *     snapshot.
-             */
+            /** @description The number of seconds of inactivity before Render suspends the sandbox. Use 0 to disable automatic idle suspension. Positive values must be between 300 and 86400. Defaults to 900, or to the source sandbox's idle timeout when creating a sandbox from a snapshot. */
             idleTimeoutSeconds?: number;
-            /** @description Inline environment variables injected into the sandbox at creation. */
+            /** @description The environment variables to set when creating the sandbox. */
             env?: {
                 [key: string]: string;
             };
-            /**
-             * @description Start from this snapshot instead of the base image. Must be `available`
-             *     and in the same sandbox group. For a `runtime` snapshot, `plan` must
-             *     match the snapshot's plan. The new sandbox uses the source sandbox's
-             *     network policy, timeout and idle timeout. Include `networkPolicy`,
-             *     `timeoutSeconds` or `idleTimeoutSeconds` to set a different one.
-             */
+            /** @description The ID of the snapshot to create the sandbox from instead of the base image. The snapshot must be `available` and belong to the same sandbox group. For a `runtime` snapshot, `plan` must match the snapshot's plan. The new sandbox inherits the source sandbox's network policy, timeout, and idle timeout. Provide `networkPolicy`, `timeoutSeconds`, or `idleTimeoutSeconds` to override these settings. */
             snapshotId?: components["schemas"]["sandboxSnapshotId"];
-            /**
-             * @description Start from the snapshot this name currently resolves to in the sandbox
-             *     group. Mutually exclusive with `snapshotId`. Same restore rules as
-             *     `snapshotId`.
-             */
+            /** @description The name of the snapshot to create the sandbox from. Uses the most recently created snapshot with this name in the sandbox group that is `available` and unexpired. Cannot be combined with `snapshotId`. The same restore requirements as `snapshotId` apply. */
             snapshotName?: components["schemas"]["sandboxSnapshotName"];
-            /**
-             * @description Start from this build's image instead of the base image. The build
-             *     must have succeeded and be in the sandbox's group: 404 with `code:
-             *     build_not_found` if it isn't in the group, and 409 with `code:
-             *     build_not_succeeded` if it hasn't succeeded. Mutually exclusive
-             *     with `buildName`, `snapshotId` and `snapshotName`.
-             */
+            /** @description The ID of the build to create the sandbox from instead of the base image. The build must have succeeded and belong to the same sandbox group. Cannot be combined with `buildName`, `snapshotId`, or `snapshotName`. */
             buildId?: components["schemas"]["sandboxBuildId"];
-            /**
-             * @description Start from the newest succeeded build with this name in the
-             *     sandbox's group. 404 with `code: build_not_found` if the group has
-             *     no build with the name, and 409 with `code: build_not_succeeded` if
-             *     none of them has succeeded. Mutually exclusive with `buildId`,
-             *     `snapshotId` and `snapshotName`.
-             */
+            /** @description The name of the build to create the sandbox from instead of the base image. Uses the newest successful build with this name in the sandbox group. Cannot be combined with `buildId`, `snapshotId`, or `snapshotName`. */
             buildName?: string;
-            /**
-             * @description Shared filesystems to mount in the sandbox. At most one is
-             *     supported.
-             */
+            /** @description Shared filesystems to mount in the sandbox. At most one is supported. */
             sharedFilesystems?: components["schemas"]["sandboxSharedFilesystem"][];
         };
+        /** @description A group of sandboxes in a workspace that share a region, concurrency limit, and credentials. */
         sandboxGroup: {
             id: components["schemas"]["sandboxGroupId"];
             /**
@@ -1511,374 +1341,331 @@ export interface components {
              */
             ownerId: string;
             /**
-             * @description Human-friendly name for the group.
+             * @description The sandbox group's name.
              * @example Default
              */
             name: string;
             /**
-             * @description Render region the group operates in.
+             * @description The Render region where the group's sandboxes run.
              * @example oregon
              */
             region: string;
-            /**
-             * @description Whether this is the workspace's default group. Sandboxes are created
-             *     here unless a group is given.
-             */
+            /** @description Whether this is the workspace's default sandbox group. Create requests that omit `sandboxGroupId` use this group. */
             isDefault: boolean;
-            /** @description Environment this group is bound to. */
+            /** @description The ID of the environment this sandbox group belongs to, if any. */
             environmentId?: string | null;
-            /** @description The effective limit on active sandboxes in this group, capped by Render's limit for this workspace. */
+            /** @description The maximum number of active sandboxes allowed in this group, capped by Render's limit for the workspace. */
             concurrencyLimit: number;
             /**
              * Format: date-time
+             * @description The timestamp when the sandbox group was created, in ISO 8601 format.
              * @example 2026-07-02T18:30:00Z
              */
             createdAt: string;
             /**
              * Format: date-time
+             * @description The timestamp when the sandbox group was last updated, in ISO 8601 format.
              * @example 2026-07-02T18:30:00Z
              */
             updatedAt: string;
         };
+        /** @description The sandbox group to create. */
         sandboxGroupPOST: {
             /**
-             * @description Workspace ID.
+             * @description The ID of the workspace to create the sandbox group in.
              * @example tea-cph1rs3idesc73a2b2mg
              */
             ownerId: string;
             /**
-             * @description Name, unique within the workspace.
+             * @description The sandbox group's name. Must be unique within the workspace.
              * @example CI agents
              */
             name: string;
             /**
-             * @description Region for the group's sandboxes. Defaults to Render's default sandbox region.
+             * @description The Render region where the group's sandboxes run. Defaults to `oregon`.
              * @default oregon
              * @example oregon
              */
             region: string;
         };
         /**
-         * @description `filesystem` captures the writable filesystem and restores onto any plan.
-         *     `runtime` also captures memory and CPU state and restores only onto the
-         *     plan of the source sandbox.
+         * @description The state to capture. A `filesystem` snapshot captures the writable filesystem and can be restored to any plan. A `runtime` snapshot also captures memory and CPU state and must be restored to the source sandbox plan.
          * @enum {string}
          */
         sandboxSnapshotKind: "filesystem" | "runtime";
+        /** @description The settings for the sandbox snapshot to capture. */
         sandboxSnapshotPOST: {
-            /** @default runtime */
+            /**
+             * @description The state to capture in the snapshot. Defaults to `runtime`.
+             * @default runtime
+             */
             kind: components["schemas"]["sandboxSnapshotKind"];
             name?: components["schemas"]["sandboxSnapshotName"];
-            /**
-             * @description How long the snapshot lives after its last use, in seconds. Each time you
-             *     create a sandbox from the snapshot, the snapshot lives for this long again.
-             *     Use 0 to keep the snapshot until you delete it. Omit to use Render's
-             *     default snapshot lifetime. Do not set both `ttlSeconds` and `expiresAt`.
-             */
+            /** @description The snapshot's lifetime after its last use, in seconds. Creating a sandbox from this snapshot resets its remaining lifetime to this duration. Use 0 to keep the snapshot until you delete it. Defaults to Render's snapshot lifetime. Cannot be combined with `expiresAt`. */
             ttlSeconds?: number;
             /**
              * Format: date-time
              * @deprecated
-             * @description Deprecated. Use `ttlSeconds`. Must be in the future. Render sets the TTL
-             *     to the time from the request until `expiresAt`.
+             * @description The expiration timestamp, in ISO 8601 format. Deprecated; use `ttlSeconds` instead. Must be in the future. Render sets the snapshot lifetime to the duration between the request and this timestamp.
              */
             expiresAt?: string;
         };
-        /** @enum {string} */
+        /**
+         * @description The snapshot's current status.
+         * @enum {string}
+         */
         sandboxSnapshotStatus: "creating" | "available" | "failed";
+        /** @description A saved filesystem or runtime state that can be used to create another sandbox. */
         sandboxSnapshot: {
             id: components["schemas"]["sandboxSnapshotId"];
             sandboxGroupId: components["schemas"]["sandboxGroupId"];
-            /** @description The sandbox this snapshot was captured from. Lineage only. */
+            /** @description The ID of the sandbox this snapshot was captured from, recorded for reference. */
             sourceSandboxId: components["schemas"]["sandboxId"];
-            /** @description Set at create. Never changes. Null when created without a name. */
+            /** @description The name assigned when the snapshot was created. Cannot be changed. Null if no name was provided. */
             name?: components["schemas"]["sandboxSnapshotName"] | null;
             kind: components["schemas"]["sandboxSnapshotKind"];
             status: components["schemas"]["sandboxSnapshotStatus"];
-            /** @description Plan of the source sandbox at capture time. See `sandboxPlan` for known values. */
+            /** @description The source sandbox's compute plan when the snapshot was captured. See `sandboxPlan` for known values. */
             plan: components["schemas"]["sandboxPlan"] | string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description The timestamp when the snapshot was requested, in ISO 8601 format.
+             */
             requestedAt: string;
             /**
              * Format: date-time
-             * @description When the sandbox was frozen for capture. Null until `available`.
+             * @description The timestamp when capture completed, in ISO 8601 format. Null until the snapshot is `available`.
              */
             capturedAt?: string | null;
             /**
              * Format: date-time
-             * @description The time after which the snapshot can no longer be retrieved or restored.
-             *     Each time you create a sandbox from the snapshot, Render moves this time
-             *     forward so that the snapshot lives for its TTL after that use. For a
-             *     snapshot that does not expire (a TTL of 0), this is 9999-12-31T23:59:59Z.
+             * @description The timestamp after which the snapshot can no longer be retrieved or restored, in ISO 8601 format. Each time you create a sandbox from this snapshot, Render resets its expiration to `ttlSeconds` seconds after that use. For snapshots with no expiration (`ttlSeconds: 0`), this is `9999-12-31T23:59:59Z`.
              */
             expiresAt: string;
-            /**
-             * @description How long the snapshot lives after its last use, in seconds. 0 means the
-             *     snapshot does not expire. Absent for a snapshot that was created before
-             *     snapshots had a TTL. Such a snapshot uses Render's default snapshot lifetime.
-             */
+            /** @description The snapshot's lifetime after its last use, in seconds. A value of 0 means the snapshot does not expire. If omitted, Render's default snapshot lifetime applies. */
             ttlSeconds?: number;
             /**
              * Format: int64
-             * @description Null until `available`.
+             * @description The size of the snapshot, in bytes. Null until the snapshot is `available`.
              */
             sizeBytes?: number | null;
-            /** @description Null unless `failed`. */
+            /** @description The reason the snapshot failed. Null unless its status is `failed`. */
             error?: string | null;
         };
+        /** @description The sandbox group's concurrency settings to update. */
         sandboxGroupPATCH: {
             /**
-             * @description Maximum active sandboxes in the group. The configured value is capped
-             *     by Render's limit for this workspace. Responses return the effective limit.
-             *     Lowering the limit does not stop existing sandboxes.
+             * @description The maximum number of active sandboxes allowed in this group. Must be at least 1. Render caps this value at the workspace's limit and returns the effective limit. Lowering the limit does not stop existing sandboxes.
              * @example 10
              */
             concurrencyLimit: number;
         };
         /**
-         * @description Caller-supplied URL-safe name, unique within the sandbox group. The names
-         *     `.` and `..` and the prefix `rnd-` are reserved. IDs are case-sensitive.
+         * @description The case-sensitive ID you assign to the credential, unique within its sandbox group. Use only letters, numbers, periods, underscores, tildes, and hyphens. The names `.` and `..` and IDs starting with `rnd-` are reserved.
          * @example my-inference-key
          */
         sandboxCredentialId: string;
+        /** @description Metadata for a credential version. These endpoints do not return secret values. */
         sandboxCredentialVersion: {
             /**
              * Format: int64
-             * @description Monotonically increasing configuration version ID. Updates and restores assign new IDs.
+             * @description The ID of the credential version. Each new version receives a higher ID, including versions created by a restore.
              */
             id: number;
-            /** Format: date-time */
-            updatedAt: string;
-            /** @description Object ID of the authenticated identity that created this configuration version. */
-            updatedBy: string;
             /**
-             * @description Fingerprint of the complete routing configuration, injection configuration,
-             *     and secret value. Matching fingerprints identify equivalent versions of
-             *     credentials in the same sandbox group. Fingerprints cannot be compared
-             *     across sandbox groups.
+             * Format: date-time
+             * @description The timestamp when this credential version was created, in ISO 8601 format.
              */
+            updatedAt: string;
+            /** @description The ID of the authenticated identity that created this credential version. */
+            updatedBy: string;
+            /** @description A fingerprint of the routing settings, injection settings, and secret value. Matching fingerprints identify equivalent credential configurations within the same sandbox group. Fingerprints cannot be compared across groups. */
             fingerprint: string;
             /**
              * Format: int64
-             * @description Version restored to create this revision. Omitted for creates and updates.
+             * @description The ID of the credential version restored to create this version. Omitted for versions created by a create or update request.
              */
             restoredFromVersionId?: number;
         };
+        /** @description Settings for injecting the secret value into matching outbound HTTPS requests. */
         sandboxCredentialInjection: {
             /**
-             * @description How to inject the credential into a matching request. Basic authentication
-             *     uses the rendered value in username:password form and does not accept name.
+             * @description How Render adds the credential to a matching request. For `basic`, the value after applying `template` must have the form `username:password`. Do not provide `name`.
              * @enum {string}
              */
             type: "header" | "basic" | "cookie" | "query";
-            /**
-             * @description Required for header, cookie, and query injection. Routing and connection
-             *     headers cannot be targeted.
-             */
+            /** @description The header, cookie, or query parameter to set. Required for `header`, `cookie`, and `query`. Headers that control routing or connection behavior cannot be used. */
             name?: string;
             /**
-             * @description Literal template containing 1-5 occurrences of ${SECRET}, such as
-             *     "Bearer ${SECRET}". Each ${SECRET} is replaced directly with the
-             *     assigned secret value. Omit to use the raw secret value.
+             * @description A template containing 1–5 occurrences of `${SECRET}`, such as `Bearer ${SECRET}`. Render replaces each occurrence with the secret value. Omit to use the secret value without a template.
              * @example Bearer ${SECRET}
              */
             template?: string;
         };
         /**
-         * @description Desired credential configuration scoped to one sandbox group. Secret values
-         *     are independent for each credential ID and are never returned, including to admins.
+         * @description A credential configured for injection into matching outbound HTTPS requests from sandboxes in one sandbox group. Each credential stores its own secret value. These endpoints do not return secret values, including to admins.
+         *
+         *     Credential injection supports HTTPS requests on port 443. Avoid overlapping credential configurations for the same hostname. Multiple matching credentials are not combined.
          */
         sandboxCredential: {
             id: components["schemas"]["sandboxCredentialId"];
             /**
-             * @description Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
-             *     wildcards, and local/internal hostnames are not supported.
+             * @description The destination hostname to match for credential injection. Must be a public DNS hostname. Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal hostnames are not supported.
              * @example api.render.com
              */
             domain: string;
             version?: components["schemas"]["sandboxCredentialVersion"];
+            /** @description Whether this credential is enabled for injection. */
             enabled: boolean;
-            /**
-             * @description GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
-             *     An empty list matches any method.
-             */
+            /** @description The HTTP methods to match for credential injection. Supported methods are GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method. */
             methods: string[];
-            /**
-             * @description Absolute request path patterns. The entire path must match.
-             *     Use * for one nonempty path segment or ** for one or more.
-             *     Wildcards must occupy whole segments. For example, /a/* matches
-             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-             *     Query strings, fragments, and escaping are not supported in patterns.
-             *     Request query strings do not affect path matching.
-             *     An empty list matches any path.
-             */
+            /** @description The request path patterns to match for credential injection. Each pattern must match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect matching. An empty list matches any path. */
             paths: string[];
             injection: components["schemas"]["sandboxCredentialInjection"];
         };
+        /** @description The credential configuration to create, including request matching and injection settings. */
         sandboxCredentialCreate: {
             id: components["schemas"]["sandboxCredentialId"];
-            /**
-             * @description Exact public DNS hostname, normalized to lowercase. IP addresses, ports,
-             *     wildcards, and local/internal hostnames are not supported.
-             */
+            /** @description The destination hostname to match for credential injection. Must be a public DNS hostname. Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal hostnames are not supported. */
             domain: string;
-            /**
-             * @description Secret value to store for this credential ID. The largest supported secret
-             *     value is 5 KiB (5120 UTF-8 bytes).
-             */
+            /** @description The secret value to store, up to 5 KiB (5120 UTF-8 bytes). */
             value: string;
-            /** @default true */
+            /**
+             * @description Whether this credential is enabled for injection. Defaults to `true`.
+             * @default true
+             */
             enabled: boolean;
-            /**
-             * @description GET, HEAD, POST, PUT, PATCH, DELETE, or OPTIONS, normalized to uppercase.
-             *     Omitted or empty matches any method.
-             */
+            /** @description The HTTP methods to match for credential injection. Supported methods are GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. Omit or provide an empty list to match any method. */
             methods?: string[];
-            /**
-             * @description Absolute request path patterns. The entire path must match.
-             *     Use * for one nonempty path segment or ** for one or more.
-             *     Wildcards must occupy whole segments. For example, /a/* matches
-             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-             *     Query strings, fragments, and escaping are not supported in patterns.
-             *     Request query strings do not affect path matching.
-             *     Omitted or empty matches any path.
-             */
+            /** @description The request path patterns to match for credential injection. Each pattern must match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect matching. Omit or provide an empty list to match any path. */
             paths?: string[];
             injection: components["schemas"]["sandboxCredentialInjection"];
         };
         /**
-         * @description Omitted fields retain their existing values. Empty methods or paths arrays
-         *     clear those filters. Developers may update injection, methods, paths, and
-         *     enabled state. Changing the destination requires an admin and otherwise
-         *     returns 403. Overwriting a value requires an admin; omitting it has no effect.
-         *     Changes to routing, injection, or enabled state create a new configuration version.
-         *     Overwriting the value also creates a version, even when the value is unchanged.
-         *     The credential ID is immutable.
+         * @description The credential settings to update. Omitted top-level fields keep their current values. Providing `injection` replaces the entire object. Its `template` defaults to `${SECRET}` when omitted. Empty `methods` or `paths` lists remove those filters. Developers can update `injection`, `methods`, `paths`, and `enabled`. Changing `domain` or `value` requires an admin.
+         *
+         *     Changes to routing, injection, or enabled state create a new version. Setting `value` creates a new version even if the secret value is unchanged. The credential ID cannot be changed.
          */
         sandboxCredentialUpdate: {
-            /**
-             * @description Admin-only. At most 5 KiB (5120 UTF-8 bytes). Omit to preserve the
-             *     current value.
-             */
+            /** @description The replacement secret value, up to 5 KiB (5120 UTF-8 bytes). Requires an admin. Omit to preserve the current value. */
             value?: string;
+            /** @description The destination hostname to match for credential injection. Must be a public DNS hostname. Render normalizes it to lowercase and matches it exactly. IP addresses, ports, wildcards, and local or internal hostnames are not supported. Omit to preserve the current hostname. */
             domain?: string;
+            /** @description Whether this credential is enabled for injection. Omit to preserve the current setting. */
             enabled?: boolean;
+            /** @description The HTTP methods to match for credential injection. Supported methods are GET, HEAD, POST, PUT, PATCH, DELETE, and OPTIONS, normalized to uppercase. An empty list matches any method. Omit to preserve the current filter. */
             methods?: string[];
-            /**
-             * @description Absolute request path patterns. The entire path must match.
-             *     Use * for one nonempty path segment or ** for one or more.
-             *     Wildcards must occupy whole segments. For example, /a/* matches
-             *     /a/b, while /a/** also matches /a/b/c. Neither matches /a.
-             *     Query strings, fragments, and escaping are not supported in patterns.
-             *     Request query strings do not affect path matching.
-             *     An empty list matches any path. Omit to preserve the current filter.
-             */
+            /** @description The request path patterns to match for credential injection. Each pattern must match the entire absolute path. Use `*` for one nonempty path segment or `**` for one or more segments. Wildcards must occupy whole segments. For example, `/a/*` matches `/a/b`, and `/a/**` also matches `/a/b/c`. Neither matches `/a`. Patterns do not support query strings, fragments, or escaping. Request query strings do not affect matching. An empty list matches any path. Omit to preserve the current filter. */
             paths?: string[];
             injection?: components["schemas"]["sandboxCredentialInjection"];
         };
+        /** @description The retained credential version to restore. */
         sandboxCredentialRestore: {
             /**
              * Format: int64
-             * @description Retained version whose configuration will be used to create a new current revision.
+             * @description The ID of a retained credential version to restore as a new current version.
              */
             versionId: number;
         };
-        /** @enum {string} */
+        /**
+         * @description The sandbox build's current status.
+         * @enum {string}
+         */
         sandboxBuildStatus: "pending" | "running" | "succeeded" | "failed";
+        /** @description A build that converts a container image into an image that sandboxes can use. */
         sandboxBuild: {
             id: components["schemas"]["sandboxBuildId"];
             sandboxGroupId: components["schemas"]["sandboxGroupId"];
-            /** @description Names the image. Every build of an image shares it. */
+            /** @description The name used to select this image when creating a sandbox. Multiple builds can share a name. */
             name: string;
+            /** @description The source container image used for this build. */
             source: {
-                /** @example docker.io/library */
+                /**
+                 * @description The registry and repository path containing the source image.
+                 * @example docker.io/library
+                 */
                 repository: string;
-                /** @example python */
+                /**
+                 * @description The name of the source image.
+                 * @example python
+                 */
                 image: string;
-                /** @example 3.13 */
+                /**
+                 * @description The tag or digest identifying the source image version.
+                 * @example 3.13
+                 */
                 reference: string;
             };
             /**
-             * @description The image digest the build converts.
+             * @description The digest of the source image converted by this build.
              * @example sha256:c19d4a1...
              */
             sourceDigest: string;
             status: components["schemas"]["sandboxBuildStatus"];
-            /**
-             * @description Why the build failed. Null unless `failed`. It can include the
-             *     registry's own error text, so show it as detail alongside a
-             *     message chosen from `failureCode` rather than as the headline.
-             */
+            /** @description A description of why the build failed. Null unless the status is `failed`. May include error text from the image registry. When displaying errors, use `failureCode` to select the main message and show this value as additional detail. */
             failureReason?: string | null;
             /**
-             * @description Why the build failed, for code to check. Null unless `failed`. The
-             *     sandboxBuildFailureCode schema lists the codes. Treat a code you
-             *     don't recognize as `internal_error`.
+             * @description A machine-readable reason the build failed. Null unless the status is `failed`. See `sandboxBuildFailureCode` for known codes. Treat unrecognized codes as `internal_error`.
              * @example image_pull_failed
              */
             failureCode?: string | null;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description The timestamp when the sandbox build was created, in ISO 8601 format.
+             */
             createdAt: string;
             /**
              * Format: date-time
-             * @description When the build succeeded or failed.
+             * @description The timestamp when the build succeeded or failed, in ISO 8601 format. Null while the build is pending or running.
              */
             finishedAt?: string | null;
         };
+        /** @description The source container image and settings for the sandbox build. */
         sandboxBuildPOST: {
-            /** @description Names the image. Every build of an image shares it. */
+            /** @description The name used to select this image when creating a sandbox, between 1 and 255 characters. Can't start with `sbb-`, the prefix reserved for build IDs. Multiple builds can share a name. */
             name: string;
             /**
-             * @description The image to convert, by tag or digest.
+             * @description The container image to convert, specified by tag or digest.
              * @example python:3.13
              */
             sourceImage: string;
-            /** @description Pulls `sourceImage` from a private registry. Used for this build only and never stored. */
+            /** @description Credentials used to pull `sourceImage` from a private registry for this build. */
             registryCredential?: {
+                /** @description The username used to authenticate with the image registry. */
                 username: string;
-                /** Format: password */
+                /**
+                 * Format: password
+                 * @description The password used to authenticate with the image registry.
+                 */
                 password: string;
             };
         };
-        /**
-         * @description Optional body when minting a run connect token. `command` is stored on
-         *     the exec timeline (truncated to 4KB); the full command is still sent
-         *     to the sandbox proxy when executing.
-         */
         sandboxConnectRequest: {
-            /**
-             * @deprecated
-             * @description Command text for the sandbox event timeline.
-             */
             command?: string;
         };
-        /**
-         * @description A minted connect token and the sandbox-proxy endpoint to invoke with it.
-         *     Send the request (and body, where the operation takes one) to `uri`
-         *     using `method`, with `token` as a bearer credential.
-         */
+        /** @description A short-lived connect token and the URL to use it with. Send the request to `uri` using `method`, with `token` as the bearer token. Include a request body if the operation requires one. */
         sandboxConnectResponse: {
             /**
-             * @description Identifier for this execution.
+             * @description The ID of the sandbox execution.
              * @example exe-cph1rs3idesc73a2b2mg
              */
             executionId: string;
-            /** @description Short-lived bearer token authorizing exactly this operation against the sandbox. */
+            /** @description A short-lived bearer token that authorizes only the requested operation on this sandbox. */
             token: string;
             /**
              * Format: uri
-             * @description The sandbox-proxy endpoint to invoke.
+             * @description The URL to send the authorized command run or file transfer request to.
              * @example https://sbx-abc123.oregon.sandbox.onrender.com/runs/stream
              */
             uri: string;
             /**
-             * @description HTTP method to use against `uri`.
+             * @description The HTTP method to use when sending the request to `uri`.
              * @example POST
              */
             method: string;
             /**
              * Format: date-time
-             * @description When `token` stops being valid. Start the run before this time.
+             * @description The timestamp when the token expires, in ISO 8601 format. Start the authorized operation before this time.
              * @example 2026-07-10T12:00:00Z
              */
             expiresAt: string;
@@ -1933,8 +1720,7 @@ export interface components {
         /**
          * @description Rate limit has been surpassed.
          *
-         *     Rate-limited endpoints also return `RateLimit-Limit`, `RateLimit-Remaining`, and
-         *     `RateLimit-Reset` on successful responses so clients can track their remaining quota.
+         *     Rate-limited endpoints also return `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` on successful responses so clients can track their remaining quota.
          */
         "429RateLimit": {
             headers: {
@@ -1942,7 +1728,7 @@ export interface components {
                 "Retry-After"?: number;
                 /** @description Maximum number of requests allowed in the current window. */
                 "RateLimit-Limit"?: number;
-                /** @description Number of requests remaining in the current window. Always `0` for this response. */
+                /** @description Number of requests remaining in the current window. `0` when the request rate limit is exceeded; may be nonzero for capacity limits or temporary conflicts. */
                 "RateLimit-Remaining"?: number;
                 /** @description Seconds until the current rate limit window resets. */
                 "RateLimit-Reset"?: number;
@@ -1972,6 +1758,115 @@ export interface components {
                 [name: string]: unknown;
             };
             content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The request is invalid.
+         *
+         *     - `invalid_sandbox_group_id`: The group ID is malformed.
+         */
+        "400SandboxGroupBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The request is invalid.
+         *
+         *     - `invalid_sandbox_group_id`: The group ID is malformed.
+         *     - The build ID is malformed.
+         */
+        "400SandboxBuildBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The request is invalid.
+         *
+         *     - `invalid_sandbox_group_id`: The group ID is malformed.
+         *     - `invalid_snapshot_id`: The snapshot ID is malformed.
+         */
+        "400SandboxSnapshotBadRequest": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The requested resource was not found.
+         *
+         *     - `build_not_found`: The build does not exist or belongs to another sandbox group.
+         */
+        "404SandboxBuildNotFound": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The current state of the resource conflicts with this request.
+         *
+         *     - `sandbox_group_suspended`: The group is suspended.
+         */
+        "409SandboxGroupSuspended": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description The current state of the resource conflicts with this request.
+         *
+         *     - `sandbox_not_running`: The sandbox is terminated or errored.
+         *     - `sandbox_group_suspended`: The sandbox group is suspended.
+         */
+        "409SandboxConnectConflict": {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["error"];
+            };
+        };
+        /**
+         * @description Rate limit has been surpassed.
+         *
+         *     Rate-limited endpoints also return `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` on successful responses so clients can track their remaining quota.
+         *
+         *     Temporary conflicts while applying credential changes can also cause this response.
+         */
+        "429SandboxCredentialRateLimitOrConflict": {
+            headers: {
+                /** @description Seconds to wait before retrying the request. */
+                "Retry-After"?: number;
+                /** @description Maximum number of requests allowed in the current window. */
+                "RateLimit-Limit"?: number;
+                /** @description Number of requests remaining in the current window. `0` when the request rate limit is exceeded; may be nonzero for capacity limits or temporary conflicts. */
+                "RateLimit-Remaining"?: number;
+                /** @description Seconds until the current rate limit window resets. */
+                "RateLimit-Reset"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "message": "rate limit exceeded"
+                 *     }
+                 */
                 "application/json": components["schemas"]["error"];
             };
         };
@@ -2048,26 +1943,19 @@ export interface components {
         FlowRunIDParam: string;
         /** @description The key (path) of the object */
         objectKeyPathParam: string;
-        /** @description The ID of the sandbox */
+        /** @description The ID of the sandbox. */
         sandboxId: components["schemas"]["sandboxId"];
-        /**
-         * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-         *     determined from the sandbox ID, and this parameter is ignored when supplied.
-         */
+        /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
         ownerId: string;
-        /** @description The ID of the sandbox group */
+        /** @description The ID of the sandbox group. */
         sandboxGroupId: components["schemas"]["sandboxGroupId"];
         /** @description The ID of the credential. Must be unique within this sandbox group. */
         credentialId: components["schemas"]["sandboxCredentialId"];
-        /** @description The ID of the build */
+        /** @description The ID of the sandbox build. */
         buildId: components["schemas"]["sandboxBuildId"];
-        /** @description The ID of the snapshot */
+        /** @description The ID of the sandbox snapshot. */
         snapshotId: components["schemas"]["sandboxSnapshotId"];
-        /**
-         * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
-         *     is determined from the sandbox group ID, and this parameter is ignored when
-         *     supplied.
-         */
+        /** @description The ID of the workspace the sandbox group belongs to. */
         ownerIdGroupScoped: string;
     };
     requestBodies: never;
@@ -2711,22 +2599,15 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace whose sandboxes to return. */
                 ownerId: string;
-                /** @description Return only sandboxes in this group. The group must belong to ownerId. */
+                /** @description Filter for sandboxes in this group. The group must belong to the workspace specified by `ownerId`. */
                 sandboxGroupId?: components["schemas"]["sandboxGroupId"];
-                /**
-                 * @description Return only sandboxes with exactly this name. Names aren't unique, so
-                 *     this can match more than one sandbox.
-                 */
+                /** @description Filter for sandboxes with exactly this name. Names are not unique, so multiple sandboxes can match. */
                 name?: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 limit?: components["parameters"]["limitParam"];
-                /**
-                 * @description Filter by sandbox status. If omitted, returns sandboxes in every status
-                 *     except `terminated`. To include terminated sandboxes, list `terminated`
-                 *     explicitly.
-                 */
+                /** @description Filter for sandboxes with the specified statuses. By default, returns all statuses except `terminated`. Include `terminated` explicitly to return terminated sandboxes. */
                 status?: components["schemas"]["sandboxStatus"][];
             };
             header?: never;
@@ -2777,7 +2658,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Sandbox created. Returns the initial sandbox snapshot. */
+            /** @description The sandbox was created. Returns its initial state. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2802,11 +2683,56 @@ export interface operations {
                     "application/json": components["schemas"]["sandbox"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_snapshot_name`: `snapshotName` is malformed.
+             *     - Both `snapshotId` and `snapshotName` are provided. No error code is returned.
+             *     - `invalid_sandbox_name`: `name` exceeds 64 characters or starts with `sbx-`.
+             *     - `sandbox_group_limit_reached`: The workspace has no default sandbox group and has reached its sandbox group limit.
+             *     - `invalid_sandbox_plan`: The plan is not supported. The error message lists accepted plans.
+             *     - `invalid_timeout_seconds`: A nonzero `timeoutSeconds` is outside the range of 60 to the workspace's maximum, which defaults to 2592000 (30 days).
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            /**
+             * @description The requested resource was not found.
+             *
+             *     - `snapshot_not_found`: The snapshot ID does not exist or no available snapshot in the group has the specified name.
+             *     - `build_not_found`: The specified build does not belong to the sandbox group, or no build in the group has the specified name.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `snapshot_not_available`: The snapshot is not `available`. This also applies to snapshots selected by name.
+             *     - `snapshot_plan_mismatch`: A runtime snapshot requires a different compute plan. This also applies to snapshots selected by name.
+             *     - `sandbox_group_suspended`: The sandbox group is suspended.
+             *     - `build_not_succeeded`: The specified build has not succeeded, or no build with the specified name has succeeded.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -2819,7 +2745,7 @@ export interface operations {
                 ownerId: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
-                /** @description Maximum groups to return. */
+                /** @description The maximum number of sandbox groups to return, between 1 and 100. Defaults to 20. */
                 limit?: number;
             };
             header?: never;
@@ -2891,7 +2817,19 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - Another group in the workspace has the specified name.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -2900,15 +2838,12 @@ export interface operations {
     "retrieve-sandbox": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
                 ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
@@ -2935,22 +2870,19 @@ export interface operations {
     "terminate-sandbox": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
                 ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No Content */
+            /** @description The sandbox was terminated or was already terminated. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -2968,15 +2900,12 @@ export interface operations {
     "create-sandbox-snapshot": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
                 ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
             };
             cookie?: never;
@@ -2987,7 +2916,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Capture accepted. Returns the snapshot in `creating`. */
+            /** @description The snapshot capture was accepted. Returns the snapshot in `creating` status. */
             202: {
                 headers: {
                     [name: string]: unknown;
@@ -2996,11 +2925,36 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxSnapshot"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_snapshot_name`: `name` is malformed.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `sandbox_not_running`: The sandbox is not `running`.
+             *     - `sandbox_group_suspended`: The sandbox group is suspended.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3011,7 +2965,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3027,7 +2981,7 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxGroup"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3041,7 +2995,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3055,11 +3009,24 @@ export interface operations {
                 };
                 content?: never;
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `default_sandbox_group_not_deletable`: This is the workspace's default group. Set another group as the default first.
+             *     - `sandbox_group_suspended`: The group is suspended.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3070,7 +3037,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3095,7 +3062,20 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxGroup"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_sandbox_group_id`: The group ID is malformed.
+             *     - `concurrencyLimit` is omitted or below 1.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3110,7 +3090,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3126,11 +3106,11 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxGroup"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            409: components["responses"]["409SandboxGroupSuspended"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3141,7 +3121,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3157,15 +3137,7 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxCredential"][];
                 };
             };
-            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3179,7 +3151,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3190,7 +3162,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Desired state saved. Runtime reconciliation may still be pending. */
+            /** @description The credential configuration was saved. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3199,20 +3171,12 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxCredential"];
                 };
             };
-            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
+            429: components["responses"]["429SandboxCredentialRateLimitOrConflict"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
         };
@@ -3222,7 +3186,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -3240,15 +3204,7 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxCredential"];
                 };
             };
-            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3262,7 +3218,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -3271,27 +3227,19 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Credential deletion accepted and gateway configuration synchronized. */
+            /** @description The credential deletion was accepted. */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["error"];
-                };
-            };
+            400: components["responses"]["400SandboxGroupBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
+            429: components["responses"]["429SandboxCredentialRateLimitOrConflict"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
         };
@@ -3301,7 +3249,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -3314,7 +3262,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The credential configuration was saved. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3323,8 +3271,14 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxCredential"];
                 };
             };
-            /** @description Invalid input. A malformed sandbox group ID returns code invalid_sandbox_group_id. */
-            400: {
+            400: components["responses"]["400SandboxGroupBadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            /**
+             * @description You do not have permissions for the requested resource. If a scoped API token does not satisfy the endpoint's minimum scope requirements, the response has code insufficient_token_scope and its message lists all minimum required scopes. Broader scopes that include their permissions also satisfy the requirements. Passing this check does not guarantee access to the requested resource or to conditional operations.
+             *
+             *     Changing `domain` or `value` requires an admin.
+             */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3332,11 +3286,9 @@ export interface operations {
                     "application/json": components["schemas"]["error"];
                 };
             };
-            401: components["responses"]["401Unauthorized"];
-            403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
+            429: components["responses"]["429SandboxCredentialRateLimitOrConflict"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
         };
@@ -3346,7 +3298,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -3379,7 +3331,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
                 /** @description The ID of the credential. Must be unique within this sandbox group. */
                 credentialId: components["parameters"]["credentialId"];
@@ -3392,7 +3344,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description OK */
+            /** @description The credential configuration was saved. */
             200: {
                 headers: {
                     [name: string]: unknown;
@@ -3406,7 +3358,7 @@ export interface operations {
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
             409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
+            429: components["responses"]["429SandboxCredentialRateLimitOrConflict"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
         };
@@ -3418,14 +3370,14 @@ export interface operations {
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 limit?: components["parameters"]["limitParam"];
-                /** @description Return only builds of the image with this name. */
+                /** @description Filter for builds with exactly this image name. */
                 name?: string;
-                /** @description Filter by build status. */
+                /** @description Filter for builds with the specified statuses. */
                 status?: components["schemas"]["sandboxBuildStatus"][];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3441,7 +3393,22 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxBuildWithCursor"][];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_sandbox_group_id`: The group ID is malformed.
+             *     - `invalid_status`: A requested build status is not supported.
+             *     - `invalid_cursor`: The cursor is malformed.
+             *     - `invalid_limit`: The limit is outside the range 1–100.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3455,7 +3422,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3466,7 +3433,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Created */
+            /** @description The build was created, or a matching build was returned. Conversion may still be in progress. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3475,12 +3442,52 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxBuild"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_sandbox_group_id`: The group ID is malformed.
+             *     - The image is invalid or the image registry cannot serve it. The error message explains the problem.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
-            429: components["responses"]["429RateLimit"];
+            409: components["responses"]["409SandboxGroupSuspended"];
+            /**
+             * @description Rate limit has been surpassed.
+             *
+             *     Rate-limited endpoints also return `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` on successful responses so clients can track their remaining quota.
+             *
+             *     The group has reached its limit for pending and running builds. The error message includes the limit.
+             */
+            429: {
+                headers: {
+                    /** @description Seconds to wait before retrying the request. */
+                    "Retry-After"?: number;
+                    /** @description Maximum number of requests allowed in the current window. */
+                    "RateLimit-Limit"?: number;
+                    /** @description Number of requests remaining in the current window. `0` when the request rate limit is exceeded; may be nonzero for capacity limits or temporary conflicts. */
+                    "RateLimit-Remaining"?: number;
+                    /** @description Seconds until the current rate limit window resets. */
+                    "RateLimit-Reset"?: number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "message": "rate limit exceeded"
+                     *     }
+                     */
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
         };
@@ -3490,9 +3497,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the build */
+                /** @description The ID of the sandbox build. */
                 buildId: components["parameters"]["buildId"];
             };
             cookie?: never;
@@ -3508,10 +3515,10 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxBuild"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxBuildBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
+            404: components["responses"]["404SandboxBuildNotFound"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3522,27 +3529,39 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the build */
+                /** @description The ID of the sandbox build. */
                 buildId: components["parameters"]["buildId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No Content */
+            /** @description The build was deleted or was already deleted. */
             204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxBuildBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            404: components["responses"]["404SandboxBuildNotFound"];
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `image_in_use`: Sandboxes that have not terminated or errored, or unexpired snapshots that have not failed, still depend on this build. This includes suspended sandboxes and snapshots of sandboxes restored from earlier snapshots of the build. The error message lists up to 10 dependencies. Terminate the sandboxes and delete the snapshots, or wait for them to expire, before retrying.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3553,23 +3572,18 @@ export interface operations {
             query: {
                 /** @description The ID of the workspace whose snapshots to return. */
                 ownerId: string;
-                /**
-                 * @description Return only snapshots with exactly this name. Each snapshot taken
-                 *     with a name is a new version, so this lists every version, newest
-                 *     first. The first `available` one is the version `snapshotName`
-                 *     boots on sandbox create.
-                 */
+                /** @description Filter for snapshots with exactly this name. Multiple snapshots can share a name; results include each version, newest first. When creating a sandbox with `snapshotName`, Render uses the most recently created snapshot with that name that is `available` and unexpired. */
                 name?: string;
                 /** @description The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 cursor?: components["parameters"]["cursorParam"];
                 /** @description The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination). */
                 limit?: components["parameters"]["limitParam"];
-                /** @description Filter by snapshot status. */
+                /** @description Filter for snapshots with the specified statuses. */
                 status?: components["schemas"]["sandboxSnapshotStatus"][];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
             };
             cookie?: never;
@@ -3585,7 +3599,23 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxSnapshotWithCursor"][];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            /**
+             * @description The request is invalid.
+             *
+             *     - `invalid_sandbox_group_id`: The group ID is malformed.
+             *     - `invalid_owner_id`: The workspace ID is missing or repeated.
+             *     - `invalid_status`: A requested snapshot status is not supported.
+             *     - `invalid_cursor`: The cursor is malformed or unknown.
+             *     - `invalid_limit`: The limit is outside the range 1–100.
+             */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
@@ -3597,18 +3627,14 @@ export interface operations {
     "retrieve-sandbox-snapshot": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
-                 *     is determined from the sandbox group ID, and this parameter is ignored when
-                 *     supplied.
-                 */
+                /** @description The ID of the workspace the sandbox group belongs to. */
                 ownerId?: components["parameters"]["ownerIdGroupScoped"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the snapshot */
+                /** @description The ID of the sandbox snapshot. */
                 snapshotId: components["parameters"]["snapshotId"];
             };
             cookie?: never;
@@ -3624,10 +3650,22 @@ export interface operations {
                     "application/json": components["schemas"]["sandboxSnapshot"];
                 };
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxSnapshotBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
+            /**
+             * @description The requested resource was not found.
+             *
+             *     - The snapshot is deleted, expired, or belongs to another sandbox group.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3636,36 +3674,56 @@ export interface operations {
     "delete-sandbox-snapshot": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox group belongs to. Optional: the workspace
-                 *     is determined from the sandbox group ID, and this parameter is ignored when
-                 *     supplied.
-                 */
+                /** @description The ID of the workspace the sandbox group belongs to. */
                 ownerId?: components["parameters"]["ownerIdGroupScoped"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox group */
+                /** @description The ID of the sandbox group. */
                 sandboxGroupId: components["parameters"]["sandboxGroupId"];
-                /** @description The ID of the snapshot */
+                /** @description The ID of the sandbox snapshot. */
                 snapshotId: components["parameters"]["snapshotId"];
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description No Content */
+            /** @description The snapshot was deleted, was already deleted, or has expired. */
             204: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content?: never;
             };
-            400: components["responses"]["400BadRequest"];
+            400: components["responses"]["400SandboxSnapshotBadRequest"];
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
-            404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            /**
+             * @description The requested resource was not found.
+             *
+             *     - The snapshot belongs to another sandbox group.
+             */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `snapshot_creating`: Capture is still in progress.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3674,17 +3732,14 @@ export interface operations {
     "connect-sandbox-run": {
         parameters: {
             query?: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
                 ownerId?: components["parameters"]["ownerId"];
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
-                /** @description The run operation to authorize — `sync` (buffered) or `stream` (server-sent events). */
+                /** @description The command run operation to authorize. Use `sync` for a buffered response or `stream` for server-sent events. */
                 operation: "sync" | "stream";
             };
             cookie?: never;
@@ -3695,7 +3750,7 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Connect token minted. */
+            /** @description The connect token was created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3708,7 +3763,7 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            409: components["responses"]["409SandboxConnectConflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];
@@ -3717,26 +3772,27 @@ export interface operations {
     "connect-sandbox-files": {
         parameters: {
             query: {
-                /**
-                 * @description The ID of the workspace the sandbox belongs to. Optional: the workspace is
-                 *     determined from the sandbox ID, and this parameter is ignored when supplied.
-                 */
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
                 ownerId?: components["parameters"]["ownerId"];
-                /** @description Path in the sandbox this token authorizes. A relative path resolves within the sandbox's working directory, which is the image's WORKDIR or, when the image sets none, the home directory ("." is the working directory itself); an absolute path addresses the sandbox filesystem root. For an archive upload, the extraction root; for a download, the file or directory to fetch. */
+                /**
+                 * @description The file or directory path the token authorizes. For archive uploads, this is the directory to extract into. For downloads, it is the file or directory to retrieve.
+                 *
+                 *     Relative paths are resolved from the image's `WORKDIR`, or the home directory if no `WORKDIR` is set. Use `.` for that working directory. Absolute paths are resolved from the sandbox filesystem root.
+                 */
                 path: string;
             };
             header?: never;
             path: {
-                /** @description The ID of the sandbox */
+                /** @description The ID of the sandbox. */
                 sandboxId: components["parameters"]["sandboxId"];
-                /** @description The file operation to authorize — `upload` (PUT a file or tar archive) or `download` (GET a file, or a directory as a tar archive). */
+                /** @description The file transfer operation to authorize. Use `upload` to send a file or tar archive with HTTP PUT, or `download` to retrieve a file or directory archive with HTTP GET. */
                 operation: "upload" | "download";
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Connect token minted. */
+            /** @description The connect token was created. */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -3749,7 +3805,7 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
-            409: components["responses"]["409Conflict"];
+            409: components["responses"]["409SandboxConnectConflict"];
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

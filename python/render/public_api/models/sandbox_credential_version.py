@@ -13,17 +13,18 @@ T = TypeVar("T", bound="SandboxCredentialVersion")
 
 @_attrs_define
 class SandboxCredentialVersion:
-    """
+    """Metadata for a credential version. These endpoints do not return secret values.
+
     Attributes:
-        id (int): Monotonically increasing configuration version ID. Updates and restores assign new IDs.
-        updated_at (datetime.datetime):
-        updated_by (str): Object ID of the authenticated identity that created this configuration version.
-        fingerprint (str): Fingerprint of the complete routing configuration, injection configuration,
-            and secret value. Matching fingerprints identify equivalent versions of
-            credentials in the same sandbox group. Fingerprints cannot be compared
-            across sandbox groups.
-        restored_from_version_id (Union[Unset, int]): Version restored to create this revision. Omitted for creates and
-            updates.
+        id (int): The ID of the credential version. Each new version receives a higher ID, including versions created by
+            a restore.
+        updated_at (datetime.datetime): The timestamp when this credential version was created, in ISO 8601 format.
+        updated_by (str): The ID of the authenticated identity that created this credential version.
+        fingerprint (str): A fingerprint of the routing settings, injection settings, and secret value. Matching
+            fingerprints identify equivalent credential configurations within the same sandbox group. Fingerprints cannot be
+            compared across groups.
+        restored_from_version_id (Union[Unset, int]): The ID of the credential version restored to create this version.
+            Omitted for versions created by a create or update request.
     """
 
     id: int

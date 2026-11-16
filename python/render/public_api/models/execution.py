@@ -15,22 +15,23 @@ T = TypeVar("T", bound="Execution")
 
 @_attrs_define
 class Execution:
-    """One recorded sandbox execution (a command run or file transfer).
-    `startedAt` is the token provisioning time. `command` may be present
-    while the execution is in flight (recorded at token mint). `stoppedAt`
-    and `exitCode` are absent until a status report or sandbox finalization.
+    """A record of a command run or file transfer in a sandbox. `startedAt` records when the connect token was created. The
+    command can appear while the execution is running. `stoppedAt` and `exitCode` are omitted until Render receives the
+    result or finalizes the execution when the sandbox stops.
 
         Attributes:
-            id (str):  Example: exe-cph1rs3idesc73a2b2mg.
-            sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-            type_ (ExecutionType):
-            operation (ExecutionOperation):
-            user_id (str): The ID of the user the execution token was minted for. Example: usr-cph1rs3idesc73a2b2mg.
-            started_at (datetime.datetime):  Example: 2026-08-01T10:00:00Z.
-            command (Union[Unset, str]): The execution target. For runs, the truncated command; for file transfers, the
-                target file path.
-            stopped_at (Union[Unset, datetime.datetime]):  Example: 2026-08-01T10:05:00Z.
-            exit_code (Union[Unset, int]):
+            id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
+            sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+            type_ (ExecutionType): Whether the execution is a command run or a file transfer.
+            operation (ExecutionOperation): The command run or file transfer operation authorized by the connect token.
+            user_id (str): The ID of the user the execution token was created for. Example: usr-cph1rs3idesc73a2b2mg.
+            started_at (datetime.datetime): The timestamp when the execution token was created, in ISO 8601 format. Example:
+                2026-08-01T10:00:00Z.
+            command (Union[Unset, str]): The command run in the sandbox, or the target path for a file transfer. Command
+                text may be redacted or truncated. Omitted if you do not have permission to view execution commands.
+            stopped_at (Union[Unset, datetime.datetime]): The timestamp when the execution stopped, in ISO 8601 format.
+                Omitted until a result is available. Example: 2026-08-01T10:05:00Z.
+            exit_code (Union[Unset, int]): The execution exit code. Omitted until a result is available.
     """
 
     id: str

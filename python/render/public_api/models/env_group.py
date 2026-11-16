@@ -27,9 +27,11 @@ class EnvGroup:
         created_at (datetime.datetime):
         updated_at (datetime.datetime):
         service_links (list['EnvGroupLink']): List of serviceIds linked to the envGroup
-        env_vars (list['EnvVar']):
-        secret_files (list['SecretFile']):
         environment_id (Union[Unset, str]):
+        env_vars (Union[Unset, list['EnvVar']]): Omitted if the caller doesn't have the permission to read the
+            environment group's secret values.
+        secret_files (Union[Unset, list['SecretFile']]): Omitted if the caller doesn't have the permission to read the
+            environment group's secret values.
     """
 
     id: str
@@ -38,9 +40,9 @@ class EnvGroup:
     created_at: datetime.datetime
     updated_at: datetime.datetime
     service_links: list["EnvGroupLink"]
-    env_vars: list["EnvVar"]
-    secret_files: list["SecretFile"]
     environment_id: Union[Unset, str] = UNSET
+    env_vars: Union[Unset, list["EnvVar"]] = UNSET
+    secret_files: Union[Unset, list["SecretFile"]] = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -59,17 +61,21 @@ class EnvGroup:
             service_links_item = service_links_item_data.to_dict()
             service_links.append(service_links_item)
 
-        env_vars = []
-        for env_vars_item_data in self.env_vars:
-            env_vars_item = env_vars_item_data.to_dict()
-            env_vars.append(env_vars_item)
-
-        secret_files = []
-        for secret_files_item_data in self.secret_files:
-            secret_files_item = secret_files_item_data.to_dict()
-            secret_files.append(secret_files_item)
-
         environment_id = self.environment_id
+
+        env_vars: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.env_vars, Unset):
+            env_vars = []
+            for env_vars_item_data in self.env_vars:
+                env_vars_item = env_vars_item_data.to_dict()
+                env_vars.append(env_vars_item)
+
+        secret_files: Union[Unset, list[dict[str, Any]]] = UNSET
+        if not isinstance(self.secret_files, Unset):
+            secret_files = []
+            for secret_files_item_data in self.secret_files:
+                secret_files_item = secret_files_item_data.to_dict()
+                secret_files.append(secret_files_item)
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -81,12 +87,14 @@ class EnvGroup:
                 "createdAt": created_at,
                 "updatedAt": updated_at,
                 "serviceLinks": service_links,
-                "envVars": env_vars,
-                "secretFiles": secret_files,
             }
         )
         if environment_id is not UNSET:
             field_dict["environmentId"] = environment_id
+        if env_vars is not UNSET:
+            field_dict["envVars"] = env_vars
+        if secret_files is not UNSET:
+            field_dict["secretFiles"] = secret_files
 
         return field_dict
 
@@ -114,21 +122,21 @@ class EnvGroup:
 
             service_links.append(service_links_item)
 
+        environment_id = d.pop("environmentId", UNSET)
+
         env_vars = []
-        _env_vars = d.pop("envVars")
-        for env_vars_item_data in _env_vars:
+        _env_vars = d.pop("envVars", UNSET)
+        for env_vars_item_data in _env_vars or []:
             env_vars_item = EnvVar.from_dict(env_vars_item_data)
 
             env_vars.append(env_vars_item)
 
         secret_files = []
-        _secret_files = d.pop("secretFiles")
-        for secret_files_item_data in _secret_files:
+        _secret_files = d.pop("secretFiles", UNSET)
+        for secret_files_item_data in _secret_files or []:
             secret_files_item = SecretFile.from_dict(secret_files_item_data)
 
             secret_files.append(secret_files_item)
-
-        environment_id = d.pop("environmentId", UNSET)
 
         env_group = cls(
             id=id,
@@ -137,9 +145,9 @@ class EnvGroup:
             created_at=created_at,
             updated_at=updated_at,
             service_links=service_links,
+            environment_id=environment_id,
             env_vars=env_vars,
             secret_files=secret_files,
-            environment_id=environment_id,
         )
 
         env_group.additional_properties = d

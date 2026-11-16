@@ -20,20 +20,26 @@ T = TypeVar("T", bound="Sandbox")
 
 @_attrs_define
 class Sandbox:
-    """
+    """An isolated compute environment for running code, executing commands, and transferring files.
+
     Attributes:
-        id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        status (SandboxStatus):
-        plan (Union[SandboxPlan, str]): Compute plan. See `sandboxPlan` for known values.
-        network_policy (SandboxNetworkPolicy):
-        region (str): Region the sandbox is running in. Example: oregon.
-        timeout_seconds (int): Maximum sandbox lifetime in seconds. 0 means the sandbox has no timeout. Example: 86400.
-        idle_timeout_seconds (int): Seconds of inactivity before the sandbox is suspended. 0 disables automatic idle
-            suspension. Example: 900.
-        created_at (datetime.datetime):  Example: 2026-04-01T18:30:00Z.
+        id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        status (SandboxStatus): The sandbox's current status.
+        plan (Union[SandboxPlan, str]): The sandbox's compute plan. See `sandboxPlan` for known values.
+        network_policy (SandboxNetworkPolicy): The policy that controls outbound traffic from the sandbox.
+        region (str): The Render region where the sandbox runs. Example: oregon.
+        timeout_seconds (int): The maximum time the sandbox can run continuously, in seconds. The sandbox terminates
+            when this time elapses. If the sandbox is suspended and later resumed, this timeout restarts. A value of 0
+            disables the runtime timeout.
+             Example: 86400.
+        idle_timeout_seconds (int): The number of seconds of inactivity before Render suspends the sandbox. A value of 0
+            disables automatic idle suspension. Example: 900.
+        created_at (datetime.datetime): The timestamp when the sandbox was created, in ISO 8601 format. Example:
+            2026-04-01T18:30:00Z.
         name (Union[None, Unset, str]): The label set when the sandbox was created.
-        sandbox_group_id (Union[Unset, str]):  Example: sbg-cph1rs3idesc73a2b2mg.
-        terminated_at (Union[None, Unset, datetime.datetime]): When the sandbox was terminated, or null.
+        sandbox_group_id (Union[Unset, str]): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        terminated_at (Union[None, Unset, datetime.datetime]): The timestamp when the sandbox was terminated, in ISO
+            8601 format. Null if the sandbox has not been terminated.
         shared_filesystems (Union[Unset, list['SandboxSharedFilesystem']]): Shared filesystems mounted in the sandbox.
             Absent when there are none.
     """

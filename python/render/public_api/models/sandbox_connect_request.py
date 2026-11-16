@@ -11,12 +11,9 @@ T = TypeVar("T", bound="SandboxConnectRequest")
 
 @_attrs_define
 class SandboxConnectRequest:
-    """Optional body when minting a run connect token. `command` is stored on
-    the exec timeline (truncated to 4KB); the full command is still sent
-    to the sandbox proxy when executing.
-
-        Attributes:
-            command (Union[Unset, str]): Command text for the sandbox event timeline.
+    """
+    Attributes:
+        command (Union[Unset, str]):
     """
 
     command: Union[Unset, str] = UNSET

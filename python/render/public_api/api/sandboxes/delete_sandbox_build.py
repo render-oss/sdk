@@ -93,26 +93,13 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox build
 
-     Deletes one build: one version of an image. The build no longer
-    appears in lists, can't be retrieved, and can't start sandboxes,
-    including through the image's name. Deleting a deleted build returns 204.
-
-    409 with `code: image_in_use` while sandboxes that aren't terminated, or
-    snapshots that haven't expired, still boot from the build. That includes
-    snapshots of sandboxes restored from such snapshots, and paused
-    sandboxes. The message lists up to 10 of them. Delete them, or wait for
-    them to expire, and retry.
-
-    404 with `code: build_not_found` if the build doesn't exist or belongs
-    to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Delete a build of a sandbox image. The build no longer appears in lists and cannot be retrieved or
+    used to create sandboxes, including by image name. Repeated requests to delete the build return HTTP
+    204.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -142,26 +129,13 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox build
 
-     Deletes one build: one version of an image. The build no longer
-    appears in lists, can't be retrieved, and can't start sandboxes,
-    including through the image's name. Deleting a deleted build returns 204.
-
-    409 with `code: image_in_use` while sandboxes that aren't terminated, or
-    snapshots that haven't expired, still boot from the build. That includes
-    snapshots of sandboxes restored from such snapshots, and paused
-    sandboxes. The message lists up to 10 of them. Delete them, or wait for
-    them to expire, and retry.
-
-    404 with `code: build_not_found` if the build doesn't exist or belongs
-    to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Delete a build of a sandbox image. The build no longer appears in lists and cannot be retrieved or
+    used to create sandboxes, including by image name. Repeated requests to delete the build return HTTP
+    204.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -186,26 +160,13 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox build
 
-     Deletes one build: one version of an image. The build no longer
-    appears in lists, can't be retrieved, and can't start sandboxes,
-    including through the image's name. Deleting a deleted build returns 204.
-
-    409 with `code: image_in_use` while sandboxes that aren't terminated, or
-    snapshots that haven't expired, still boot from the build. That includes
-    snapshots of sandboxes restored from such snapshots, and paused
-    sandboxes. The message lists up to 10 of them. Delete them, or wait for
-    them to expire, and retry.
-
-    404 with `code: build_not_found` if the build doesn't exist or belongs
-    to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Delete a build of a sandbox image. The build no longer appears in lists and cannot be retrieved or
+    used to create sandboxes, including by image name. Repeated requests to delete the build return HTTP
+    204.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -233,26 +194,13 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox build
 
-     Deletes one build: one version of an image. The build no longer
-    appears in lists, can't be retrieved, and can't start sandboxes,
-    including through the image's name. Deleting a deleted build returns 204.
-
-    409 with `code: image_in_use` while sandboxes that aren't terminated, or
-    snapshots that haven't expired, still boot from the build. That includes
-    snapshots of sandboxes restored from such snapshots, and paused
-    sandboxes. The message lists up to 10 of them. Delete them, or wait for
-    them to expire, and retry.
-
-    404 with `code: build_not_found` if the build doesn't exist or belongs
-    to another sandbox group.
-
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or `invalid build ID` if `buildId` is not a
-    well-formed `sbb-` ID.
+     Delete a build of a sandbox image. The build no longer appears in lists and cannot be retrieved or
+    used to create sandboxes, including by image name. Repeated requests to delete the build return HTTP
+    204.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        build_id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        build_id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

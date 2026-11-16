@@ -91,12 +91,11 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Terminate sandbox
 
-     Terminate the sandbox with the provided ID. Idempotent: returns 204 from any
-    state, including `terminated`. Terminating a `creating` sandbox cancels
-    boot/setup immediately.
+     Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already
+    terminated. You can also terminate a sandbox while it is starting (`creating`).
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -127,12 +126,11 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Terminate sandbox
 
-     Terminate the sandbox with the provided ID. Idempotent: returns 204 from any
-    state, including `terminated`. Terminating a `creating` sandbox cancels
-    boot/setup immediately.
+     Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already
+    terminated. You can also terminate a sandbox while it is starting (`creating`).
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -158,12 +156,11 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Terminate sandbox
 
-     Terminate the sandbox with the provided ID. Idempotent: returns 204 from any
-    state, including `terminated`. Terminating a `creating` sandbox cancels
-    boot/setup immediately.
+     Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already
+    terminated. You can also terminate a sandbox while it is starting (`creating`).
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -192,12 +189,11 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Terminate sandbox
 
-     Terminate the sandbox with the provided ID. Idempotent: returns 204 from any
-    state, including `terminated`. Terminating a `creating` sandbox cancels
-    boot/setup immediately.
+     Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already
+    terminated. You can also terminate a sandbox while it is starting (`creating`).
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:

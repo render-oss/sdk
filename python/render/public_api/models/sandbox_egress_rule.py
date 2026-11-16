@@ -12,15 +12,16 @@ T = TypeVar("T", bound="SandboxEgressRule")
 
 @_attrs_define
 class SandboxEgressRule:
-    """
+    """A destination that sandboxes can access when the network policy is `allow-list`.
+
     Attributes:
-        domain (str): Hostname to apply the rule to. Matching is exact: `foo.local` does not
-            cover `api.foo.local`, which needs its own rule or `*.foo.local`. A
-            wildcard is only allowed as the leftmost label.
+        domain (str): The hostname this rule allows, up to 253 characters. Matching is exact: `foo.local` does not match
+            `api.foo.local`. Use a separate rule or `*.foo.local` for subdomains. A wildcard is allowed only as the leftmost
+            label.
              Example: *.bar.local.
-        protocol (Union[Unset, SandboxEgressRuleProtocol]): Protocol this rule admits. Only `https` is accepted:
-            under `allow-list` every other outbound protocol is dropped.
-             Default: SandboxEgressRuleProtocol.HTTPS.
+        protocol (Union[Unset, SandboxEgressRuleProtocol]): The protocol allowed for this destination. Defaults to
+            `https`. The `allow-list` policy blocks outbound traffic that uses other protocols. Default:
+            SandboxEgressRuleProtocol.HTTPS.
     """
 
     domain: str

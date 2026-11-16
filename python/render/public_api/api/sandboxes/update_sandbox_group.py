@@ -104,13 +104,12 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Update sandbox group
 
-     Update a sandbox group's concurrency limit. Returns 400 for a malformed
-    ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
-    below 1. The response returns the effective limit after applying Render's cap.
+     Update a sandbox group's concurrency limit. The response contains the effective limit after applying
+    Render's limit for the workspace.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxGroupPATCH):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxGroupPATCH): The sandbox group's concurrency settings to update.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -140,13 +139,12 @@ def sync(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Update sandbox group
 
-     Update a sandbox group's concurrency limit. Returns 400 for a malformed
-    ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
-    below 1. The response returns the effective limit after applying Render's cap.
+     Update a sandbox group's concurrency limit. The response contains the effective limit after applying
+    Render's limit for the workspace.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxGroupPATCH):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxGroupPATCH): The sandbox group's concurrency settings to update.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -171,13 +169,12 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Update sandbox group
 
-     Update a sandbox group's concurrency limit. Returns 400 for a malformed
-    ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
-    below 1. The response returns the effective limit after applying Render's cap.
+     Update a sandbox group's concurrency limit. The response contains the effective limit after applying
+    Render's limit for the workspace.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxGroupPATCH):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxGroupPATCH): The sandbox group's concurrency settings to update.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -205,13 +202,12 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Update sandbox group
 
-     Update a sandbox group's concurrency limit. Returns 400 for a malformed
-    ID (`invalid_sandbox_group_id`), missing `concurrencyLimit`, or a value
-    below 1. The response returns the effective limit after applying Render's cap.
+     Update a sandbox group's concurrency limit. The response contains the effective limit after applying
+    Render's limit for the workspace.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxGroupPATCH):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxGroupPATCH): The sandbox group's concurrency settings to update.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

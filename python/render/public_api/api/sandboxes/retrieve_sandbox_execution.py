@@ -98,8 +98,8 @@ def sync_detailed(
      Retrieve one execution record for the sandbox.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -135,8 +135,8 @@ def sync(
      Retrieve one execution record for the sandbox.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -167,8 +167,8 @@ async def asyncio_detailed(
      Retrieve one execution record for the sandbox.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -202,8 +202,8 @@ async def asyncio(
      Retrieve one execution record for the sandbox.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        exec_id (str):  Example: exe-cph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        exec_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:

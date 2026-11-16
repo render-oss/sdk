@@ -9,15 +9,14 @@ T = TypeVar("T", bound="SandboxSharedFilesystem")
 
 @_attrs_define
 class SandboxSharedFilesystem:
-    """
+    """A shared filesystem mounted in a sandbox.
+
     Attributes:
-        name (str): Name of the shared filesystem in the workspace. The first sandbox
-            that uses a name creates the filesystem; later sandboxes in the
-            workspace that use the same name share it.
+        name (str): The name of the shared filesystem in the workspace, up to 63 characters. The first sandbox to use a
+            name creates the filesystem. Other sandboxes in the workspace that use the same name share that filesystem.
              Example: data.
-        mount_path (str): Absolute path in the sandbox where the filesystem is mounted. Must
-            not be `/` or inside a system directory such as `/proc`, `/etc`,
-            or `/usr`.
+        mount_path (str): Absolute path in the sandbox where the filesystem is mounted. Must not be `/` or inside a
+            system directory such as `/proc`, `/etc`, or `/usr`.
              Example: /data.
     """
 

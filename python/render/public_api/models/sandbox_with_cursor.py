@@ -13,10 +13,10 @@ T = TypeVar("T", bound="SandboxWithCursor")
 
 @_attrs_define
 class SandboxWithCursor:
-    """A sandbox with a cursor
+    """A sandbox with a cursor for fetching the next page of results.
 
     Attributes:
-        sandbox (Sandbox):
+        sandbox (Sandbox): An isolated compute environment for running code, executing commands, and transferring files.
         cursor (str):
     """
 

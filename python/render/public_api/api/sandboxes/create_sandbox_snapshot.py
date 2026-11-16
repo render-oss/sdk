@@ -113,18 +113,14 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxSnapshot]]:
     """Create sandbox snapshot
 
-     Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
-    `creating`. Poll until it is `available` or `failed`. The sandbox keeps
-    running; a runtime capture pauses it briefly.
-
-    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`, or
-    `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Capture a snapshot of a running sandbox. Returns HTTP 202 with the snapshot in `creating` status.
+    Retrieve the snapshot until its status is `available` or `failed`. The sandbox continues running,
+    with a brief pause when capturing a runtime snapshot.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
-        body (SandboxSnapshotPOST):
+        body (SandboxSnapshotPOST): The settings for the sandbox snapshot to capture.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -156,18 +152,14 @@ def sync(
 ) -> Optional[Union[Error, SandboxSnapshot]]:
     """Create sandbox snapshot
 
-     Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
-    `creating`. Poll until it is `available` or `failed`. The sandbox keeps
-    running; a runtime capture pauses it briefly.
-
-    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`, or
-    `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Capture a snapshot of a running sandbox. Returns HTTP 202 with the snapshot in `creating` status.
+    Retrieve the snapshot until its status is `available` or `failed`. The sandbox continues running,
+    with a brief pause when capturing a runtime snapshot.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
-        body (SandboxSnapshotPOST):
+        body (SandboxSnapshotPOST): The settings for the sandbox snapshot to capture.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -194,18 +186,14 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxSnapshot]]:
     """Create sandbox snapshot
 
-     Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
-    `creating`. Poll until it is `available` or `failed`. The sandbox keeps
-    running; a runtime capture pauses it briefly.
-
-    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`, or
-    `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Capture a snapshot of a running sandbox. Returns HTTP 202 with the snapshot in `creating` status.
+    Retrieve the snapshot until its status is `available` or `failed`. The sandbox continues running,
+    with a brief pause when capturing a runtime snapshot.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
-        body (SandboxSnapshotPOST):
+        body (SandboxSnapshotPOST): The settings for the sandbox snapshot to capture.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -235,18 +223,14 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxSnapshot]]:
     """Create sandbox snapshot
 
-     Capture a snapshot of a running sandbox. Returns 202 with the snapshot in
-    `creating`. Poll until it is `available` or `failed`. The sandbox keeps
-    running; a runtime capture pauses it briefly.
-
-    400 with `code: invalid_snapshot_name` if `name` is malformed. 409 with
-    `code: sandbox_not_running` if the sandbox is not `running`, or
-    `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Capture a snapshot of a running sandbox. Returns HTTP 202 with the snapshot in `creating` status.
+    Retrieve the snapshot until its status is `available` or `failed`. The sandbox continues running,
+    with a brief pause when capturing a runtime snapshot.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
-        body (SandboxSnapshotPOST):
+        body (SandboxSnapshotPOST): The settings for the sandbox snapshot to capture.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

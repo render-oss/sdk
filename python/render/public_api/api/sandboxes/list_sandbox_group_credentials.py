@@ -93,11 +93,11 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxCredential"]]]:
     """List sandbox group credentials
 
-     Returns all credentials in the group, sorted by caller-supplied ID.
-    Secret values are never returned, including to admins.
+     List credentials in the sandbox group, sorted by credential ID. Returns credential settings and
+    metadata. These endpoints do not return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -125,11 +125,11 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxCredential"]]]:
     """List sandbox group credentials
 
-     Returns all credentials in the group, sorted by caller-supplied ID.
-    Secret values are never returned, including to admins.
+     List credentials in the sandbox group, sorted by credential ID. Returns credential settings and
+    metadata. These endpoints do not return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -152,11 +152,11 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxCredential"]]]:
     """List sandbox group credentials
 
-     Returns all credentials in the group, sorted by caller-supplied ID.
-    Secret values are never returned, including to admins.
+     List credentials in the sandbox group, sorted by credential ID. Returns credential settings and
+    metadata. These endpoints do not return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -182,11 +182,11 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxCredential"]]]:
     """List sandbox group credentials
 
-     Returns all credentials in the group, sorted by caller-supplied ID.
-    Secret values are never returned, including to admins.
+     List credentials in the sandbox group, sorted by credential ID. Returns credential settings and
+    metadata. These endpoints do not return secret values, including to admins.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -110,22 +110,16 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single file upload or download against the sandbox, and return the
-    sandbox-proxy endpoint to invoke with it. The caller streams the file
-    bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file and
-    `application/x-tar` a directory archive, with compression carried
-    separately by `Content-Encoding: gzip` in either direction; directory
-    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
-    token is bound to this sandbox, operation, and path, and expires
-    shortly after issuance.
+     Create a short-lived connect token for a file upload or download. Transfer the file directly to or
+    from the URL in the response, using the token as the bearer token. The token authorizes only the
+    specified sandbox, operation, and path. Its expiration time is returned in `expiresAt`.
 
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+    Use `application/octet-stream` for a single file or `application/x-tar` for a directory archive. For
+    gzip compression, also set `Content-Encoding: gzip`. Directory downloads return `application/x-tar`
+    with `Content-Encoding: gzip`.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (Union[Unset, str]):
         path (str):
@@ -162,22 +156,16 @@ def sync(
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single file upload or download against the sandbox, and return the
-    sandbox-proxy endpoint to invoke with it. The caller streams the file
-    bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file and
-    `application/x-tar` a directory archive, with compression carried
-    separately by `Content-Encoding: gzip` in either direction; directory
-    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
-    token is bound to this sandbox, operation, and path, and expires
-    shortly after issuance.
+     Create a short-lived connect token for a file upload or download. Transfer the file directly to or
+    from the URL in the response, using the token as the bearer token. The token authorizes only the
+    specified sandbox, operation, and path. Its expiration time is returned in `expiresAt`.
 
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+    Use `application/octet-stream` for a single file or `application/x-tar` for a directory archive. For
+    gzip compression, also set `Content-Encoding: gzip`. Directory downloads return `application/x-tar`
+    with `Content-Encoding: gzip`.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (Union[Unset, str]):
         path (str):
@@ -209,22 +197,16 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single file upload or download against the sandbox, and return the
-    sandbox-proxy endpoint to invoke with it. The caller streams the file
-    bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file and
-    `application/x-tar` a directory archive, with compression carried
-    separately by `Content-Encoding: gzip` in either direction; directory
-    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
-    token is bound to this sandbox, operation, and path, and expires
-    shortly after issuance.
+     Create a short-lived connect token for a file upload or download. Transfer the file directly to or
+    from the URL in the response, using the token as the bearer token. The token authorizes only the
+    specified sandbox, operation, and path. Its expiration time is returned in `expiresAt`.
 
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+    Use `application/octet-stream` for a single file or `application/x-tar` for a directory archive. For
+    gzip compression, also set `Content-Encoding: gzip`. Directory downloads return `application/x-tar`
+    with `Content-Encoding: gzip`.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (Union[Unset, str]):
         path (str):
@@ -259,22 +241,16 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Mint a connect token for a sandbox file transfer
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single file upload or download against the sandbox, and return the
-    sandbox-proxy endpoint to invoke with it. The caller streams the file
-    bytes directly to (or from) that endpoint with the token as a bearer
-    credential. `application/octet-stream` carries a single file and
-    `application/x-tar` a directory archive, with compression carried
-    separately by `Content-Encoding: gzip` in either direction; directory
-    downloads return `application/x-tar` with `Content-Encoding: gzip`. The
-    token is bound to this sandbox, operation, and path, and expires
-    shortly after issuance.
+     Create a short-lived connect token for a file upload or download. Transfer the file directly to or
+    from the URL in the response, using the token as the bearer token. The token authorizes only the
+    specified sandbox, operation, and path. Its expiration time is returned in `expiresAt`.
 
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+    Use `application/octet-stream` for a single file or `application/x-tar` for a directory archive. For
+    gzip compression, also set `Content-Encoding: gzip`. Directory downloads return `application/x-tar`
+    with `Content-Encoding: gzip`.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxFilesOperation):
         owner_id (Union[Unset, str]):
         path (str):

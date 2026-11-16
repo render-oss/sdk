@@ -11,18 +11,17 @@ T = TypeVar("T", bound="SandboxConnectResponse")
 
 @_attrs_define
 class SandboxConnectResponse:
-    """A minted connect token and the sandbox-proxy endpoint to invoke with it.
-    Send the request (and body, where the operation takes one) to `uri`
-    using `method`, with `token` as a bearer credential.
+    """A short-lived connect token and the URL to use it with. Send the request to `uri` using `method`, with `token` as
+    the bearer token. Include a request body if the operation requires one.
 
         Attributes:
-            execution_id (str): Identifier for this execution. Example: exe-cph1rs3idesc73a2b2mg.
-            token (str): Short-lived bearer token authorizing exactly this operation against the sandbox.
-            uri (str): The sandbox-proxy endpoint to invoke. Example: https://sbx-
+            execution_id (str): The ID of the sandbox execution. Example: exe-cph1rs3idesc73a2b2mg.
+            token (str): A short-lived bearer token that authorizes only the requested operation on this sandbox.
+            uri (str): The URL to send the authorized command run or file transfer request to. Example: https://sbx-
                 abc123.oregon.sandbox.onrender.com/runs/stream.
-            method (str): HTTP method to use against `uri`. Example: POST.
-            expires_at (datetime.datetime): When `token` stops being valid. Start the run before this time. Example:
-                2026-07-10T12:00:00Z.
+            method (str): The HTTP method to use when sending the request to `uri`. Example: POST.
+            expires_at (datetime.datetime): The timestamp when the token expires, in ISO 8601 format. Start the authorized
+                operation before this time. Example: 2026-07-10T12:00:00Z.
     """
 
     execution_id: str

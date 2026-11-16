@@ -102,11 +102,10 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Create sandbox group
 
-     Create a sandbox group. The workspace's first group becomes its default.
-    Returns 409 if the `name` is taken.
+     Create a sandbox group. The first group in a workspace becomes its default.
 
     Args:
-        body (SandboxGroupPOST):
+        body (SandboxGroupPOST): The sandbox group to create.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -134,11 +133,10 @@ def sync(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Create sandbox group
 
-     Create a sandbox group. The workspace's first group becomes its default.
-    Returns 409 if the `name` is taken.
+     Create a sandbox group. The first group in a workspace becomes its default.
 
     Args:
-        body (SandboxGroupPOST):
+        body (SandboxGroupPOST): The sandbox group to create.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -161,11 +159,10 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Create sandbox group
 
-     Create a sandbox group. The workspace's first group becomes its default.
-    Returns 409 if the `name` is taken.
+     Create a sandbox group. The first group in a workspace becomes its default.
 
     Args:
-        body (SandboxGroupPOST):
+        body (SandboxGroupPOST): The sandbox group to create.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -191,11 +188,10 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Create sandbox group
 
-     Create a sandbox group. The workspace's first group becomes its default.
-    Returns 409 if the `name` is taken.
+     Create a sandbox group. The first group in a workspace becomes its default.
 
     Args:
-        body (SandboxGroupPOST):
+        body (SandboxGroupPOST): The sandbox group to create.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

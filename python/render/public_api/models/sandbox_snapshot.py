@@ -16,29 +16,32 @@ T = TypeVar("T", bound="SandboxSnapshot")
 
 @_attrs_define
 class SandboxSnapshot:
-    """
+    """A saved filesystem or runtime state that can be used to create another sandbox.
+
     Attributes:
-        id (str):  Example: snp-cph1rs3idesc73a2b2mg.
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        source_sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
-        kind (SandboxSnapshotKind): `filesystem` captures the writable filesystem and restores onto any plan.
-            `runtime` also captures memory and CPU state and restores only onto the
-            plan of the source sandbox.
-        status (SandboxSnapshotStatus):
-        plan (Union[SandboxPlan, str]): Plan of the source sandbox at capture time. See `sandboxPlan` for known values.
-        requested_at (datetime.datetime):
-        expires_at (datetime.datetime): The time after which the snapshot can no longer be retrieved or restored.
-            Each time you create a sandbox from the snapshot, Render moves this time
-            forward so that the snapshot lives for its TTL after that use. For a
-            snapshot that does not expire (a TTL of 0), this is 9999-12-31T23:59:59Z.
-        name (Union[None, Unset, str]): Set at create. Never changes. Null when created without a name.
-        captured_at (Union[None, Unset, datetime.datetime]): When the sandbox was frozen for capture. Null until
+        id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        source_sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        kind (SandboxSnapshotKind): The state to capture. A `filesystem` snapshot captures the writable filesystem and
+            can be restored to any plan. A `runtime` snapshot also captures memory and CPU state and must be restored to the
+            source sandbox plan.
+        status (SandboxSnapshotStatus): The snapshot's current status.
+        plan (Union[SandboxPlan, str]): The source sandbox's compute plan when the snapshot was captured. See
+            `sandboxPlan` for known values.
+        requested_at (datetime.datetime): The timestamp when the snapshot was requested, in ISO 8601 format.
+        expires_at (datetime.datetime): The timestamp after which the snapshot can no longer be retrieved or restored,
+            in ISO 8601 format. Each time you create a sandbox from this snapshot, Render resets its expiration to
+            `ttlSeconds` seconds after that use. For snapshots with no expiration (`ttlSeconds: 0`), this is
+            `9999-12-31T23:59:59Z`.
+        name (Union[None, Unset, str]): The name assigned when the snapshot was created. Cannot be changed. Null if no
+            name was provided.
+        captured_at (Union[None, Unset, datetime.datetime]): The timestamp when capture completed, in ISO 8601 format.
+            Null until the snapshot is `available`.
+        ttl_seconds (Union[Unset, int]): The snapshot's lifetime after its last use, in seconds. A value of 0 means the
+            snapshot does not expire. If omitted, Render's default snapshot lifetime applies.
+        size_bytes (Union[None, Unset, int]): The size of the snapshot, in bytes. Null until the snapshot is
             `available`.
-        ttl_seconds (Union[Unset, int]): How long the snapshot lives after its last use, in seconds. 0 means the
-            snapshot does not expire. Absent for a snapshot that was created before
-            snapshots had a TTL. Such a snapshot uses Render's default snapshot lifetime.
-        size_bytes (Union[None, Unset, int]): Null until `available`.
-        error (Union[None, Unset, str]): Null unless `failed`.
+        error (Union[None, Unset, str]): The reason the snapshot failed. Null unless its status is `failed`.
     """
 
     id: str

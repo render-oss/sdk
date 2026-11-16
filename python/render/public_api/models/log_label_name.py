@@ -3,6 +3,7 @@ from enum import Enum
 
 class LogLabelName(str, Enum):
     BLOCKED = "blocked"
+    BUILD = "build"
     HOST = "host"
     INSTANCE = "instance"
     LEVEL = "level"

@@ -93,15 +93,12 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Set default sandbox group
 
-     Make a sandbox group its owner's default. Sandbox creates without a
-    `sandboxGroupId` use the default group. The previous default stays as a
-    regular group. Idempotent: setting the current default returns it unchanged.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Set a sandbox group as its workspace's default. Sandbox create requests that omit `sandboxGroupId`
+    use this group. The previous default remains available as a regular group. Setting the current
+    default returns it unchanged.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -129,15 +126,12 @@ def sync(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Set default sandbox group
 
-     Make a sandbox group its owner's default. Sandbox creates without a
-    `sandboxGroupId` use the default group. The previous default stays as a
-    regular group. Idempotent: setting the current default returns it unchanged.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Set a sandbox group as its workspace's default. Sandbox create requests that omit `sandboxGroupId`
+    use this group. The previous default remains available as a regular group. Setting the current
+    default returns it unchanged.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -160,15 +154,12 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxGroup]]:
     """Set default sandbox group
 
-     Make a sandbox group its owner's default. Sandbox creates without a
-    `sandboxGroupId` use the default group. The previous default stays as a
-    regular group. Idempotent: setting the current default returns it unchanged.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Set a sandbox group as its workspace's default. Sandbox create requests that omit `sandboxGroupId`
+    use this group. The previous default remains available as a regular group. Setting the current
+    default returns it unchanged.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -194,15 +185,12 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxGroup]]:
     """Set default sandbox group
 
-     Make a sandbox group its owner's default. Sandbox creates without a
-    `sandboxGroupId` use the default group. The previous default stays as a
-    regular group. Idempotent: setting the current default returns it unchanged.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Set a sandbox group as its workspace's default. Sandbox create requests that omit `sandboxGroupId`
+    use this group. The previous default remains available as a regular group. Setting the current
+    default returns it unchanged.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -12,16 +12,15 @@ T = TypeVar("T", bound="SandboxCredentialInjection")
 
 @_attrs_define
 class SandboxCredentialInjection:
-    """
+    """Settings for injecting the secret value into matching outbound HTTPS requests.
+
     Attributes:
-        type_ (SandboxCredentialInjectionType): How to inject the credential into a matching request. Basic
-            authentication
-            uses the rendered value in username:password form and does not accept name.
-        name (Union[Unset, str]): Required for header, cookie, and query injection. Routing and connection
-            headers cannot be targeted.
-        template (Union[Unset, str]): Literal template containing 1-5 occurrences of ${SECRET}, such as
-            "Bearer ${SECRET}". Each ${SECRET} is replaced directly with the
-            assigned secret value. Omit to use the raw secret value.
+        type_ (SandboxCredentialInjectionType): How Render adds the credential to a matching request. For `basic`, the
+            value after applying `template` must have the form `username:password`. Do not provide `name`.
+        name (Union[Unset, str]): The header, cookie, or query parameter to set. Required for `header`, `cookie`, and
+            `query`. Headers that control routing or connection behavior cannot be used.
+        template (Union[Unset, str]): A template containing 1–5 occurrences of `${SECRET}`, such as `Bearer ${SECRET}`.
+            Render replaces each occurrence with the secret value. Omit to use the secret value without a template.
              Example: Bearer ${SECRET}.
     """
 

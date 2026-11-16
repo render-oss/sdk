@@ -15,12 +15,14 @@ T = TypeVar("T", bound="SandboxBuildPOST")
 
 @_attrs_define
 class SandboxBuildPOST:
-    """
+    """The source container image and settings for the sandbox build.
+
     Attributes:
-        name (str): Names the image. Every build of an image shares it.
-        source_image (str): The image to convert, by tag or digest. Example: python:3.13.
-        registry_credential (Union[Unset, SandboxBuildPOSTRegistryCredential]): Pulls `sourceImage` from a private
-            registry. Used for this build only and never stored.
+        name (str): The name used to select this image when creating a sandbox, between 1 and 255 characters. Can't
+            start with `sbb-`, the prefix reserved for build IDs. Multiple builds can share a name.
+        source_image (str): The container image to convert, specified by tag or digest. Example: python:3.13.
+        registry_credential (Union[Unset, SandboxBuildPOSTRegistryCredential]): Credentials used to pull `sourceImage`
+            from a private registry for this build.
     """
 
     name: str

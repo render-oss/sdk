@@ -18,23 +18,24 @@ T = TypeVar("T", bound="SandboxBuild")
 
 @_attrs_define
 class SandboxBuild:
-    """
+    """A build that converts a container image into an image that sandboxes can use.
+
     Attributes:
-        id (str):  Example: sbb-cph1rs3idesc73a2b2mg.
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        name (str): Names the image. Every build of an image shares it.
-        source (SandboxBuildSource):
-        source_digest (str): The image digest the build converts. Example: sha256:c19d4a1....
-        status (SandboxBuildStatus):
-        created_at (datetime.datetime):
-        failure_reason (Union[None, Unset, str]): Why the build failed. Null unless `failed`. It can include the
-            registry's own error text, so show it as detail alongside a
-            message chosen from `failureCode` rather than as the headline.
-        failure_code (Union[None, Unset, str]): Why the build failed, for code to check. Null unless `failed`. The
-            sandboxBuildFailureCode schema lists the codes. Treat a code you
-            don't recognize as `internal_error`.
+        id (str): The ID of the sandbox build. Example: sbb-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        name (str): The name used to select this image when creating a sandbox. Multiple builds can share a name.
+        source (SandboxBuildSource): The source container image used for this build.
+        source_digest (str): The digest of the source image converted by this build. Example: sha256:c19d4a1....
+        status (SandboxBuildStatus): The sandbox build's current status.
+        created_at (datetime.datetime): The timestamp when the sandbox build was created, in ISO 8601 format.
+        failure_reason (Union[None, Unset, str]): A description of why the build failed. Null unless the status is
+            `failed`. May include error text from the image registry. When displaying errors, use `failureCode` to select
+            the main message and show this value as additional detail.
+        failure_code (Union[None, Unset, str]): A machine-readable reason the build failed. Null unless the status is
+            `failed`. See `sandboxBuildFailureCode` for known codes. Treat unrecognized codes as `internal_error`.
              Example: image_pull_failed.
-        finished_at (Union[None, Unset, datetime.datetime]): When the build succeeded or failed.
+        finished_at (Union[None, Unset, datetime.datetime]): The timestamp when the build succeeded or failed, in ISO
+            8601 format. Null while the build is pending or running.
     """
 
     id: str

@@ -13,13 +13,12 @@ T = TypeVar("T", bound="ExecutionWithCursor")
 
 @_attrs_define
 class ExecutionWithCursor:
-    """A sandbox execution with a cursor
+    """A sandbox execution with a cursor for fetching the next page of results.
 
     Attributes:
-        execution (Execution): One recorded sandbox execution (a command run or file transfer).
-            `startedAt` is the token provisioning time. `command` may be present
-            while the execution is in flight (recorded at token mint). `stoppedAt`
-            and `exitCode` are absent until a status report or sandbox finalization.
+        execution (Execution): A record of a command run or file transfer in a sandbox. `startedAt` records when the
+            connect token was created. The command can appear while the execution is running. `stoppedAt` and `exitCode` are
+            omitted until Render receives the result or finalizes the execution when the sandbox stops.
         cursor (str):
     """
 

@@ -103,17 +103,12 @@ def sync_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox snapshot
 
-     Idempotent: returns 204 if the snapshot is already deleted or expired.
-    Sandboxes created from the snapshot are not affected. A snapshot that
-    belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
-    409 with `code: snapshot_creating` while the capture is in progress.
+     Delete a snapshot. Sandboxes created from it are not affected. Returns HTTP 204 if the snapshot is
+    already deleted or expired.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -146,17 +141,12 @@ def sync(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox snapshot
 
-     Idempotent: returns 204 if the snapshot is already deleted or expired.
-    Sandboxes created from the snapshot are not affected. A snapshot that
-    belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
-    409 with `code: snapshot_creating` while the capture is in progress.
+     Delete a snapshot. Sandboxes created from it are not affected. Returns HTTP 204 if the snapshot is
+    already deleted or expired.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -184,17 +174,12 @@ async def asyncio_detailed(
 ) -> Response[Union[Any, Error]]:
     """Delete sandbox snapshot
 
-     Idempotent: returns 204 if the snapshot is already deleted or expired.
-    Sandboxes created from the snapshot are not affected. A snapshot that
-    belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
-    409 with `code: snapshot_creating` while the capture is in progress.
+     Delete a snapshot. Sandboxes created from it are not affected. Returns HTTP 204 if the snapshot is
+    already deleted or expired.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:
@@ -225,17 +210,12 @@ async def asyncio(
 ) -> Optional[Union[Any, Error]]:
     """Delete sandbox snapshot
 
-     Idempotent: returns 204 if the snapshot is already deleted or expired.
-    Sandboxes created from the snapshot are not affected. A snapshot that
-    belongs to another sandbox group returns 404.
-
-    400 with `code: invalid_sandbox_group_id` when `sandboxGroupId` is malformed.
-    400 with `code: invalid_snapshot_id` when `snapshotId` is malformed.
-    409 with `code: snapshot_creating` while the capture is in progress.
+     Delete a snapshot. Sandboxes created from it are not affected. Returns HTTP 204 if the snapshot is
+    already deleted or expired.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        snapshot_id (str):  Example: snp-cph1rs3idesc73a2b2mg.
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        snapshot_id (str): The ID of the sandbox snapshot. Example: snp-cph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
 
     Raises:

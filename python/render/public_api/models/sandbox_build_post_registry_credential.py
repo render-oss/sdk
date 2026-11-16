@@ -9,11 +9,11 @@ T = TypeVar("T", bound="SandboxBuildPOSTRegistryCredential")
 
 @_attrs_define
 class SandboxBuildPOSTRegistryCredential:
-    """Pulls `sourceImage` from a private registry. Used for this build only and never stored.
+    """Credentials used to pull `sourceImage` from a private registry for this build.
 
     Attributes:
-        username (str):
-        password (str):
+        username (str): The username used to authenticate with the image registry.
+        password (str): The password used to authenticate with the image registry.
     """
 
     username: str

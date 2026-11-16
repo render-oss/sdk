@@ -114,7 +114,7 @@ def sync_detailed(
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -154,7 +154,7 @@ def sync(
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -189,7 +189,7 @@ async def asyncio_detailed(
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.
@@ -227,7 +227,7 @@ async def asyncio(
      List execution records for the sandbox, ordered by start time, newest first.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         owner_id (Union[Unset, str]):
         cursor (Union[Unset, str]):
         limit (Union[Unset, int]): Defaults to 20 Default: 20.

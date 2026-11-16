@@ -116,21 +116,15 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single run operation against the specified sandbox. The response contains
-    the sandbox URI where the caller sends the command with the token as a bearer credential.
-
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
+    the response, using the token as the bearer token. The token authorizes only the requested
+    operation.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
-            stored on
-            the exec timeline (truncated to 4KB); the full command is still sent
-            to the sandbox proxy when executing.
+        body (SandboxConnectRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -164,21 +158,15 @@ def sync(
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single run operation against the specified sandbox. The response contains
-    the sandbox URI where the caller sends the command with the token as a bearer credential.
-
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
+    the response, using the token as the bearer token. The token authorizes only the requested
+    operation.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
-            stored on
-            the exec timeline (truncated to 4KB); the full command is still sent
-            to the sandbox proxy when executing.
+        body (SandboxConnectRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -207,21 +195,15 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single run operation against the specified sandbox. The response contains
-    the sandbox URI where the caller sends the command with the token as a bearer credential.
-
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
+    the response, using the token as the bearer token. The token authorizes only the requested
+    operation.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
-            stored on
-            the exec timeline (truncated to 4KB); the full command is still sent
-            to the sandbox proxy when executing.
+        body (SandboxConnectRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -253,21 +235,15 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxConnectResponse]]:
     """Create a connect token for a sandbox run
 
-     Mint a short-lived, capability-scoped connect token that authorizes a
-    single run operation against the specified sandbox. The response contains
-    the sandbox URI where the caller sends the command with the token as a bearer credential.
-
-    409 with `code: sandbox_not_running` if the sandbox is terminated or
-    errored, or `code: sandbox_group_suspended` if the sandbox group is suspended.
+     Create a short-lived connect token for a command run in this sandbox. Send the command to the URL in
+    the response, using the token as the bearer token. The token authorizes only the requested
+    operation.
 
     Args:
-        sandbox_id (str):  Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
+        sandbox_id (str): The ID of the sandbox. Example: sbx-1cd4gcph1rs3idesc73a2b2mg.
         operation (ConnectSandboxRunOperation):
         owner_id (Union[Unset, str]):
-        body (SandboxConnectRequest): Optional body when minting a run connect token. `command` is
-            stored on
-            the exec timeline (truncated to 4KB); the full command is still sent
-            to the sandbox proxy when executing.
+        body (SandboxConnectRequest):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

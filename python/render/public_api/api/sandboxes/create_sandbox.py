@@ -102,34 +102,13 @@ def sync_detailed(
 ) -> Response[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Returns the initial sandbox snapshot synchronously.
-
-    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
-    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
-    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
-    different `plan`.
-
-    With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
-    malformed, 400 without a code if `snapshotId` is also set, and 404 with
-    `code: snapshot_not_found` if no `available` snapshot in the group has the
-    name. The 409 cases above apply to the resolved snapshot.
-
-    400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
-    or starts with `sbx-`.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    400 with `code: sandbox_group_limit_reached` if the owner has no default
-    sandbox group and is already at its sandbox group limit.
-
-    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
-    accepts. The message lists the accepted plans.
-
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above 2592000 (30 days).
+     Create a sandbox and return its initial state. The sandbox might still be starting when the response
+    is returned. To use a saved snapshot or custom image, provide `snapshotId`, `snapshotName`,
+    `buildId`, or `buildName`.
 
     Args:
-        body (SandboxPOST):
+        body (SandboxPOST): The sandbox to create, including its compute plan, network policy, and
+            optional source build or snapshot.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -157,34 +136,13 @@ def sync(
 ) -> Optional[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Returns the initial sandbox snapshot synchronously.
-
-    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
-    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
-    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
-    different `plan`.
-
-    With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
-    malformed, 400 without a code if `snapshotId` is also set, and 404 with
-    `code: snapshot_not_found` if no `available` snapshot in the group has the
-    name. The 409 cases above apply to the resolved snapshot.
-
-    400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
-    or starts with `sbx-`.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    400 with `code: sandbox_group_limit_reached` if the owner has no default
-    sandbox group and is already at its sandbox group limit.
-
-    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
-    accepts. The message lists the accepted plans.
-
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above 2592000 (30 days).
+     Create a sandbox and return its initial state. The sandbox might still be starting when the response
+    is returned. To use a saved snapshot or custom image, provide `snapshotId`, `snapshotName`,
+    `buildId`, or `buildName`.
 
     Args:
-        body (SandboxPOST):
+        body (SandboxPOST): The sandbox to create, including its compute plan, network policy, and
+            optional source build or snapshot.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -207,34 +165,13 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Returns the initial sandbox snapshot synchronously.
-
-    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
-    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
-    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
-    different `plan`.
-
-    With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
-    malformed, 400 without a code if `snapshotId` is also set, and 404 with
-    `code: snapshot_not_found` if no `available` snapshot in the group has the
-    name. The 409 cases above apply to the resolved snapshot.
-
-    400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
-    or starts with `sbx-`.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    400 with `code: sandbox_group_limit_reached` if the owner has no default
-    sandbox group and is already at its sandbox group limit.
-
-    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
-    accepts. The message lists the accepted plans.
-
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above 2592000 (30 days).
+     Create a sandbox and return its initial state. The sandbox might still be starting when the response
+    is returned. To use a saved snapshot or custom image, provide `snapshotId`, `snapshotName`,
+    `buildId`, or `buildName`.
 
     Args:
-        body (SandboxPOST):
+        body (SandboxPOST): The sandbox to create, including its compute plan, network policy, and
+            optional source build or snapshot.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -260,34 +197,13 @@ async def asyncio(
 ) -> Optional[Union[Error, Sandbox]]:
     """Create sandbox
 
-     Create a sandbox. Returns the initial sandbox snapshot synchronously.
-
-    With `snapshotId`: 404 with `code: snapshot_not_found` if the snapshot does not
-    exist; 409 with `code: snapshot_not_available` if it is not `available`, or
-    `code: snapshot_plan_mismatch` if a `runtime` snapshot was requested with a
-    different `plan`.
-
-    With `snapshotName`: 400 with `code: invalid_snapshot_name` if the name is
-    malformed, 400 without a code if `snapshotId` is also set, and 404 with
-    `code: snapshot_not_found` if no `available` snapshot in the group has the
-    name. The 409 cases above apply to the resolved snapshot.
-
-    400 with `code: invalid_sandbox_name` if `name` is longer than 64 characters
-    or starts with `sbx-`.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    400 with `code: sandbox_group_limit_reached` if the owner has no default
-    sandbox group and is already at its sandbox group limit.
-
-    400 with `code: invalid_sandbox_plan` if `plan` is not one the API currently
-    accepts. The message lists the accepted plans.
-
-    400 with `code: invalid_timeout_seconds` if `timeoutSeconds` is below 0 or
-    above 2592000 (30 days).
+     Create a sandbox and return its initial state. The sandbox might still be starting when the response
+    is returned. To use a saved snapshot or custom image, provide `snapshotId`, `snapshotName`,
+    `buildId`, or `buildName`.
 
     Args:
-        body (SandboxPOST):
+        body (SandboxPOST): The sandbox to create, including its compute plan, network policy, and
+            optional source build or snapshot.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

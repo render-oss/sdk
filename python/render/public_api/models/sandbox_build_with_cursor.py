@@ -13,10 +13,10 @@ T = TypeVar("T", bound="SandboxBuildWithCursor")
 
 @_attrs_define
 class SandboxBuildWithCursor:
-    """A sandbox build with a cursor
+    """A sandbox build with a cursor for fetching the next page of results.
 
     Attributes:
-        build (SandboxBuild):
+        build (SandboxBuild): A build that converts a container image into an image that sandboxes can use.
         cursor (str):
     """
 

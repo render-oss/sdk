@@ -13,10 +13,10 @@ T = TypeVar("T", bound="SandboxSnapshotWithCursor")
 
 @_attrs_define
 class SandboxSnapshotWithCursor:
-    """A sandbox snapshot with a cursor
+    """A sandbox snapshot with a cursor for fetching the next page of results.
 
     Attributes:
-        snapshot (SandboxSnapshot):
+        snapshot (SandboxSnapshot): A saved filesystem or runtime state that can be used to create another sandbox.
         cursor (str):
     """
 

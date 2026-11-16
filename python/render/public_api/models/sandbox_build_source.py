@@ -9,11 +9,12 @@ T = TypeVar("T", bound="SandboxBuildSource")
 
 @_attrs_define
 class SandboxBuildSource:
-    """
+    """The source container image used for this build.
+
     Attributes:
-        repository (str):  Example: docker.io/library.
-        image (str):  Example: python.
-        reference (str):  Example: 3.13.
+        repository (str): The registry and repository path containing the source image. Example: docker.io/library.
+        image (str): The name of the source image. Example: python.
+        reference (str): The tag or digest identifying the source image version. Example: 3.13.
     """
 
     repository: str

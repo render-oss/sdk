@@ -104,17 +104,21 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Create sandbox group credential
 
-     Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800
-    bytes) of serialized current credentials, including configuration and
-    values. Three distinct prior configurations per credential are retained
-    by fingerprint, with a 1 MiB total storage limit including version
-    metadata and configurations. Limits are checked before saving. A
-    temporary synchronization conflicts return 429.
+     Configure a credential for injection into matching outbound HTTPS requests from sandboxes in this
+    group. Requires an admin. You assign the credential ID.
+
+    Each group supports up to 25 credentials. Current credential settings and secret values have a
+    combined serialized size limit of 200 KiB (204800 bytes). Render retains the current configuration
+    and three distinct prior configurations per credential, with a total storage limit of 1 MiB
+    including version metadata.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxCredentialCreate):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxCredentialCreate): The credential configuration to create, including request
+            matching and injection settings.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -144,17 +148,21 @@ def sync(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Create sandbox group credential
 
-     Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800
-    bytes) of serialized current credentials, including configuration and
-    values. Three distinct prior configurations per credential are retained
-    by fingerprint, with a 1 MiB total storage limit including version
-    metadata and configurations. Limits are checked before saving. A
-    temporary synchronization conflicts return 429.
+     Configure a credential for injection into matching outbound HTTPS requests from sandboxes in this
+    group. Requires an admin. You assign the credential ID.
+
+    Each group supports up to 25 credentials. Current credential settings and secret values have a
+    combined serialized size limit of 200 KiB (204800 bytes). Render retains the current configuration
+    and three distinct prior configurations per credential, with a total storage limit of 1 MiB
+    including version metadata.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxCredentialCreate):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxCredentialCreate): The credential configuration to create, including request
+            matching and injection settings.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -179,17 +187,21 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxCredential]]:
     """Create sandbox group credential
 
-     Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800
-    bytes) of serialized current credentials, including configuration and
-    values. Three distinct prior configurations per credential are retained
-    by fingerprint, with a 1 MiB total storage limit including version
-    metadata and configurations. Limits are checked before saving. A
-    temporary synchronization conflicts return 429.
+     Configure a credential for injection into matching outbound HTTPS requests from sandboxes in this
+    group. Requires an admin. You assign the credential ID.
+
+    Each group supports up to 25 credentials. Current credential settings and secret values have a
+    combined serialized size limit of 200 KiB (204800 bytes). Render retains the current configuration
+    and three distinct prior configurations per credential, with a total storage limit of 1 MiB
+    including version metadata.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxCredentialCreate):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxCredentialCreate): The credential configuration to create, including request
+            matching and injection settings.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -217,17 +229,21 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxCredential]]:
     """Create sandbox group credential
 
-     Admin-only. Creates an independent credential with a caller-supplied ID.
-    Each sandbox group supports at most 25 credentials and 200 KiB (204800
-    bytes) of serialized current credentials, including configuration and
-    values. Three distinct prior configurations per credential are retained
-    by fingerprint, with a 1 MiB total storage limit including version
-    metadata and configurations. Limits are checked before saving. A
-    temporary synchronization conflicts return 429.
+     Configure a credential for injection into matching outbound HTTPS requests from sandboxes in this
+    group. Requires an admin. You assign the credential ID.
+
+    Each group supports up to 25 credentials. Current credential settings and secret values have a
+    combined serialized size limit of 200 KiB (204800 bytes). Render retains the current configuration
+    and three distinct prior configurations per credential, with a total storage limit of 1 MiB
+    including version metadata.
+
+    The response confirms the configuration was saved. It does not confirm that credential injection is
+    active for a particular sandbox.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxCredentialCreate):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxCredentialCreate): The credential configuration to create, including request
+            matching and injection settings.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

@@ -13,10 +13,11 @@ T = TypeVar("T", bound="SandboxGroupWithCursor")
 
 @_attrs_define
 class SandboxGroupWithCursor:
-    """A sandbox group with a cursor
+    """A sandbox group with a cursor for fetching the next page of results.
 
     Attributes:
-        sandbox_group (SandboxGroup):
+        sandbox_group (SandboxGroup): A group of sandboxes in a workspace that share a region, concurrency limit, and
+            credentials.
         cursor (str):
     """
 

@@ -104,24 +104,16 @@ def sync_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Create sandbox build
 
-     Starts converting an OCI image into a sandbox image, and returns the
-    build without waiting for it. Poll the build until it `succeeded` or
-    `failed`, then pass its ID as `buildId` to create a sandbox. A request
-    for a name and image digest the group already has, or is building,
-    returns that build.
+     Start converting an OCI container image into an image that sandboxes can use. New builds run
+    asynchronously. Retrieve the build until its status is `succeeded` or `failed`. After it succeeds,
+    provide its ID as `buildId` when creating a sandbox.
 
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or a message if the image is invalid or its
-    registry can't serve it.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    429 if the group already has as many builds pending or running as its
-    limit allows. The message includes the limit.
+    If the group already has a pending, running, or succeeded build for the same name and image digest,
+    Render returns that build. Retrying a failed build starts a new build.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxBuildPOST):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxBuildPOST): The source container image and settings for the sandbox build.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -151,24 +143,16 @@ def sync(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Create sandbox build
 
-     Starts converting an OCI image into a sandbox image, and returns the
-    build without waiting for it. Poll the build until it `succeeded` or
-    `failed`, then pass its ID as `buildId` to create a sandbox. A request
-    for a name and image digest the group already has, or is building,
-    returns that build.
+     Start converting an OCI container image into an image that sandboxes can use. New builds run
+    asynchronously. Retrieve the build until its status is `succeeded` or `failed`. After it succeeds,
+    provide its ID as `buildId` when creating a sandbox.
 
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or a message if the image is invalid or its
-    registry can't serve it.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    429 if the group already has as many builds pending or running as its
-    limit allows. The message includes the limit.
+    If the group already has a pending, running, or succeeded build for the same name and image digest,
+    Render returns that build. Retrying a failed build starts a new build.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxBuildPOST):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxBuildPOST): The source container image and settings for the sandbox build.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -193,24 +177,16 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, SandboxBuild]]:
     """Create sandbox build
 
-     Starts converting an OCI image into a sandbox image, and returns the
-    build without waiting for it. Poll the build until it `succeeded` or
-    `failed`, then pass its ID as `buildId` to create a sandbox. A request
-    for a name and image digest the group already has, or is building,
-    returns that build.
+     Start converting an OCI container image into an image that sandboxes can use. New builds run
+    asynchronously. Retrieve the build until its status is `succeeded` or `failed`. After it succeeds,
+    provide its ID as `buildId` when creating a sandbox.
 
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or a message if the image is invalid or its
-    registry can't serve it.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    429 if the group already has as many builds pending or running as its
-    limit allows. The message includes the limit.
+    If the group already has a pending, running, or succeeded build for the same name and image digest,
+    Render returns that build. Retrying a failed build starts a new build.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxBuildPOST):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxBuildPOST): The source container image and settings for the sandbox build.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -238,24 +214,16 @@ async def asyncio(
 ) -> Optional[Union[Error, SandboxBuild]]:
     """Create sandbox build
 
-     Starts converting an OCI image into a sandbox image, and returns the
-    build without waiting for it. Poll the build until it `succeeded` or
-    `failed`, then pass its ID as `buildId` to create a sandbox. A request
-    for a name and image digest the group already has, or is building,
-    returns that build.
+     Start converting an OCI container image into an image that sandboxes can use. New builds run
+    asynchronously. Retrieve the build until its status is `succeeded` or `failed`. After it succeeds,
+    provide its ID as `buildId` when creating a sandbox.
 
-    400 with `code: invalid_sandbox_group_id` if `sandboxGroupId` is not a
-    well-formed `sbg-` ID, or a message if the image is invalid or its
-    registry can't serve it.
-
-    409 with `code: sandbox_group_suspended` if the sandbox group is suspended.
-
-    429 if the group already has as many builds pending or running as its
-    limit allows. The message includes the limit.
+    If the group already has a pending, running, or succeeded build for the same name and image digest,
+    Render returns that build. Retrying a failed build starts a new build.
 
     Args:
-        sandbox_group_id (str):  Example: sbg-cph1rs3idesc73a2b2mg.
-        body (SandboxBuildPOST):
+        sandbox_group_id (str): The ID of the sandbox group. Example: sbg-cph1rs3idesc73a2b2mg.
+        body (SandboxBuildPOST): The source container image and settings for the sandbox build.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.

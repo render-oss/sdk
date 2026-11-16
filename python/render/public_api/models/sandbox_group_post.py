@@ -11,12 +11,13 @@ T = TypeVar("T", bound="SandboxGroupPOST")
 
 @_attrs_define
 class SandboxGroupPOST:
-    """
+    """The sandbox group to create.
+
     Attributes:
-        owner_id (str): Workspace ID. Example: tea-cph1rs3idesc73a2b2mg.
-        name (str): Name, unique within the workspace. Example: CI agents.
-        region (Union[Unset, str]): Region for the group's sandboxes. Defaults to Render's default sandbox region.
-            Default: 'oregon'. Example: oregon.
+        owner_id (str): The ID of the workspace to create the sandbox group in. Example: tea-cph1rs3idesc73a2b2mg.
+        name (str): The sandbox group's name. Must be unique within the workspace. Example: CI agents.
+        region (Union[Unset, str]): The Render region where the group's sandboxes run. Defaults to `oregon`. Default:
+            'oregon'. Example: oregon.
     """
 
     owner_id: str

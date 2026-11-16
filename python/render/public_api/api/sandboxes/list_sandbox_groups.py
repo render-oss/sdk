@@ -109,9 +109,9 @@ def sync_detailed(
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace, newest first. The default
-    page size is 20 and the maximum is 100.
-    Use the last item's cursor to fetch the next page, until it is empty.
+     List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
+    of 100. To fetch the next page, pass the last result's cursor as `cursor`. Continue until the
+    response is empty.
 
     Args:
         owner_id (str):
@@ -148,9 +148,9 @@ def sync(
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace, newest first. The default
-    page size is 20 and the maximum is 100.
-    Use the last item's cursor to fetch the next page, until it is empty.
+     List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
+    of 100. To fetch the next page, pass the last result's cursor as `cursor`. Continue until the
+    response is empty.
 
     Args:
         owner_id (str):
@@ -182,9 +182,9 @@ async def asyncio_detailed(
 ) -> Response[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace, newest first. The default
-    page size is 20 and the maximum is 100.
-    Use the last item's cursor to fetch the next page, until it is empty.
+     List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
+    of 100. To fetch the next page, pass the last result's cursor as `cursor`. Continue until the
+    response is empty.
 
     Args:
         owner_id (str):
@@ -219,9 +219,9 @@ async def asyncio(
 ) -> Optional[Union[Error, list["SandboxGroupWithCursor"]]]:
     """List sandbox groups
 
-     List sandbox groups for a single workspace, newest first. The default
-    page size is 20 and the maximum is 100.
-    Use the last item's cursor to fetch the next page, until it is empty.
+     List sandbox groups in a workspace, newest first. Returns up to 20 groups by default, with a maximum
+    of 100. To fetch the next page, pass the last result's cursor as `cursor`. Continue until the
+    response is empty.
 
     Args:
         owner_id (str):
