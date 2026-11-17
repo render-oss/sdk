@@ -29,7 +29,9 @@ class SandboxGroup:
             2026-07-02T18:30:00Z.
         updated_at (datetime.datetime): The timestamp when the sandbox group was last updated, in ISO 8601 format.
             Example: 2026-07-02T18:30:00Z.
-        environment_id (None | str | Unset): The ID of the environment this sandbox group belongs to, if any.
+        environment_id (None | str | Unset): The ID of the environment that contains this group. Null if the group isn't
+            in a project. To move a group, add it to or remove it from an environment with
+            `/environments/{environmentId}/resources`.
     """
 
     id: str

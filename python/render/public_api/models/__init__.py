@@ -157,6 +157,8 @@ from .flow_run_error_details_code import FlowRunErrorDetailsCode
 from .flow_run_error_details_kind import FlowRunErrorDetailsKind
 from .flow_run_status import FlowRunStatus
 from .flow_run_step import FlowRunStep
+from .flow_run_step_attempt import FlowRunStepAttempt
+from .flow_run_step_attempt_details import FlowRunStepAttemptDetails
 from .flow_run_step_details import FlowRunStepDetails
 from .flow_run_step_status import FlowRunStepStatus
 from .flow_run_step_type import FlowRunStepType
@@ -637,6 +639,8 @@ __all__ = (
     "FlowRunErrorDetailsKind",
     "FlowRunStatus",
     "FlowRunStep",
+    "FlowRunStepAttempt",
+    "FlowRunStepAttemptDetails",
     "FlowRunStepDetails",
     "FlowRunStepsPage",
     "FlowRunStepStatus",

@@ -170,6 +170,8 @@ __all__ = [
     "FlowRunErrorDetailsKind",
     "FlowRunStatus",
     "FlowRunStep",
+    "FlowRunStepAttempt",
+    "FlowRunStepAttemptDetails",
     "FlowRunStepDetails",
     "FlowRunStepsPage",
     "FlowRunStepStatus",

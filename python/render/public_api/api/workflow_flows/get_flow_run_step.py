@@ -16,10 +16,13 @@ def _get_kwargs(
     step_seq: int,
     *,
     step_key: str | Unset = UNSET,
+    include_attempts: bool | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
     params["stepKey"] = step_key
+
+    params["includeAttempts"] = include_attempts
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -101,6 +104,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
     step_key: str | Unset = UNSET,
+    include_attempts: bool | Unset = UNSET,
 ) -> Response[Error | FlowRunStepDetails]:
     """Retrieve flow run step
 
@@ -111,6 +115,7 @@ def sync_detailed(
         flow_run_id (str):
         step_seq (int):
         step_key (str | Unset):
+        include_attempts (bool | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -124,6 +129,7 @@ def sync_detailed(
         flow_run_id=flow_run_id,
         step_seq=step_seq,
         step_key=step_key,
+        include_attempts=include_attempts,
     )
 
     response = client.get_httpx_client().request(
@@ -139,6 +145,7 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
     step_key: str | Unset = UNSET,
+    include_attempts: bool | Unset = UNSET,
 ) -> Error | FlowRunStepDetails | None:
     """Retrieve flow run step
 
@@ -149,6 +156,7 @@ def sync(
         flow_run_id (str):
         step_seq (int):
         step_key (str | Unset):
+        include_attempts (bool | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -163,6 +171,7 @@ def sync(
         step_seq=step_seq,
         client=client,
         step_key=step_key,
+        include_attempts=include_attempts,
     ).parsed
 
 
@@ -172,6 +181,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
     step_key: str | Unset = UNSET,
+    include_attempts: bool | Unset = UNSET,
 ) -> Response[Error | FlowRunStepDetails]:
     """Retrieve flow run step
 
@@ -182,6 +192,7 @@ async def asyncio_detailed(
         flow_run_id (str):
         step_seq (int):
         step_key (str | Unset):
+        include_attempts (bool | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -195,6 +206,7 @@ async def asyncio_detailed(
         flow_run_id=flow_run_id,
         step_seq=step_seq,
         step_key=step_key,
+        include_attempts=include_attempts,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -208,6 +220,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
     step_key: str | Unset = UNSET,
+    include_attempts: bool | Unset = UNSET,
 ) -> Error | FlowRunStepDetails | None:
     """Retrieve flow run step
 
@@ -218,6 +231,7 @@ async def asyncio(
         flow_run_id (str):
         step_seq (int):
         step_key (str | Unset):
+        include_attempts (bool | Unset):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -233,5 +247,6 @@ async def asyncio(
             step_seq=step_seq,
             client=client,
             step_key=step_key,
+            include_attempts=include_attempts,
         )
     ).parsed

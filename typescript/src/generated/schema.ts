@@ -1095,6 +1095,21 @@ export interface components {
             /** @description The flow run's attempts. A flow run gets a new attempt when it resumes after its process is interrupted; it replays completed steps instead of rerunning them. */
             attempts: components["schemas"]["FlowRunAttempt"][];
         };
+        FlowRunStepAttempt: {
+            /** Format: int64 */
+            attempt: number;
+            /** Format: int64 */
+            flowAttempt: number;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            completedAt: string;
+            /** Format: date-time */
+            retryAt?: string;
+        };
+        FlowRunStepAttemptDetails: components["schemas"]["FlowRunStepAttempt"] & {
+            error: string;
+        };
         objectMetadata: {
             /**
              * @description The object's key
@@ -1352,7 +1367,7 @@ export interface components {
             region: string;
             /** @description Whether this is the workspace's default sandbox group. Create requests that omit `sandboxGroupId` use this group. */
             isDefault: boolean;
-            /** @description The ID of the environment this sandbox group belongs to, if any. */
+            /** @description The ID of the environment that contains this group. Null if the group isn't in a project. To move a group, add it to or remove it from an environment with `/environments/{environmentId}/resources`. */
             environmentId?: string | null;
             /** @description The maximum number of active sandboxes allowed in this group, capped by Render's limit for the workspace. */
             concurrencyLimit: number;
@@ -1387,6 +1402,11 @@ export interface components {
              * @example oregon
              */
             region: string;
+            /**
+             * @description The ID of an environment in the workspace to create the group in. If you omit it, the group isn't in a project. Creating a group in a protected environment requires an admin.
+             * @example evm-cph1rs3idesc73a2b2mg
+             */
+            environmentId?: string;
         };
         /**
          * @description The state to capture. A `filesystem` snapshot captures the writable filesystem and can be restored to any plan. A `runtime` snapshot also captures memory and CPU state and must be restored to the source sandbox plan.

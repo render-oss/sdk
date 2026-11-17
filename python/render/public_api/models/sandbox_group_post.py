@@ -20,11 +20,15 @@ class SandboxGroupPOST:
         name (str): The sandbox group's name. Must be unique within the workspace. Example: CI agents.
         region (str | Unset): The Render region where the group's sandboxes run. Defaults to `oregon`. Default:
             'oregon'. Example: oregon.
+        environment_id (str | Unset): The ID of an environment in the workspace to create the group in. If you omit it,
+            the group isn't in a project. Creating a group in a protected environment requires an admin. Example: evm-
+            cph1rs3idesc73a2b2mg.
     """
 
     owner_id: str
     name: str
     region: str | Unset = "oregon"
+    environment_id: str | Unset = UNSET
     additional_properties: dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -33,6 +37,8 @@ class SandboxGroupPOST:
         name = self.name
 
         region = self.region
+
+        environment_id = self.environment_id
 
         field_dict: dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -44,6 +50,8 @@ class SandboxGroupPOST:
         )
         if region is not UNSET:
             field_dict["region"] = region
+        if environment_id is not UNSET:
+            field_dict["environmentId"] = environment_id
 
         return field_dict
 
@@ -56,10 +64,13 @@ class SandboxGroupPOST:
 
         region = d.pop("region", UNSET)
 
+        environment_id = d.pop("environmentId", UNSET)
+
         sandbox_group_post = cls(
             owner_id=owner_id,
             name=name,
             region=region,
+            environment_id=environment_id,
         )
 
         sandbox_group_post.additional_properties = d
