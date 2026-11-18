@@ -9,13 +9,21 @@ import type { DeterminismDetails, TaskErrorBody, WireStepError } from "../types.
 export class StepError extends Error {
   /** The `name` of the error the step threw, such as `"TypeError"`. */
   readonly errorName: string;
+  readonly stepName?: string;
+  readonly originalMessage: string;
   /** Extra fields the original error carried, if any. */
   readonly data?: unknown;
 
-  constructor(error: WireStepError) {
-    super(error.message);
+  constructor(error: WireStepError, stepName?: string) {
+    super(
+      stepName === undefined
+        ? error.message
+        : `Step '${stepName}' failed with ${error.name}: ${error.message}`,
+    );
     this.name = "StepError";
     this.errorName = error.name;
+    this.stepName = stepName;
+    this.originalMessage = error.message;
     if (error.stack) {
       this.stack = error.stack;
     }

@@ -361,7 +361,7 @@ export class DurableFlowContext implements FlowContext {
     }
     const recorded = this.match(ref, "inline", name, args);
     if (recorded?.completed_at) {
-      return this.outcome(recorded);
+      return this.outcome(recorded, name);
     }
 
     // Failed attempts from earlier workflow attempts count toward the limit.
@@ -380,7 +380,7 @@ export class DurableFlowContext implements FlowContext {
       if (!started.applied && started.step) {
         this.check(ref, started.step, "inline", name, args);
         if (started.step.completed_at) {
-          return this.outcome(started.step);
+          return this.outcome(started.step, name);
         }
       }
     }
@@ -415,7 +415,7 @@ export class DurableFlowContext implements FlowContext {
         }
         const wireError = StepError.serialize(error);
         if (attempt + 1 >= maxAttempts) {
-          return this.failInline(ref, {
+          return this.failInline(ref, name, {
             attempt,
             startedAt,
             endedAt: new Date().toISOString(),
@@ -443,7 +443,7 @@ export class DurableFlowContext implements FlowContext {
       } catch (error) {
         // Not retried: another attempt would repeat the step's side effects
         // and return a value that still can't be encoded.
-        return this.failInline(ref, {
+        return this.failInline(ref, name, {
           attempt,
           startedAt,
           endedAt: new Date().toISOString(),
@@ -452,6 +452,7 @@ export class DurableFlowContext implements FlowContext {
       }
       return this.completeInline(
         ref,
+        name,
         { completed_at: new Date().toISOString(), output: jsonPayload(output) },
         { output },
       );
@@ -475,7 +476,7 @@ export class DurableFlowContext implements FlowContext {
     );
     const now = new Date().toISOString();
     try {
-      await this.failInline(ref, {
+      await this.failInline(ref, name, {
         attempt,
         startedAt: now,
         endedAt: now,
@@ -491,9 +492,10 @@ export class DurableFlowContext implements FlowContext {
     throw error;
   }
 
-  private failInline(ref: StepKey, final: FinalAttempt): Promise<unknown> {
+  private failInline(ref: StepKey, name: string, final: FinalAttempt): Promise<unknown> {
     return this.completeInline(
       ref,
+      name,
       {
         completed_at: final.endedAt,
         final_attempt: {
@@ -512,6 +514,7 @@ export class DurableFlowContext implements FlowContext {
   /** Record a step's outcome. result is what a replay will see for it. */
   private async completeInline(
     ref: StepKey,
+    name: string,
     outcome: StepOutcome,
     result: Outcome,
   ): Promise<unknown> {
@@ -521,16 +524,16 @@ export class DurableFlowContext implements FlowContext {
       outcome,
     });
     // A losing write adopts the outcome that won.
-    return this.outcome(!completed.applied && completed.outcome ? completed.outcome : result);
+    return this.outcome(!completed.applied && completed.outcome ? completed.outcome : result, name);
   }
 
   /**
    * Return a recorded output or rethrow a recorded error. A first run goes
    * through the same encoding, so it sees exactly what a replay would.
    */
-  private outcome(record: Outcome): unknown {
+  private outcome(record: Outcome, name?: string): unknown {
     if (record.error) {
-      throw new StepError(record.error);
+      throw new StepError(record.error, name);
     }
     return decodeOutput(record.output);
   }

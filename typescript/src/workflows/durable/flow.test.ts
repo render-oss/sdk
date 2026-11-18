@@ -594,27 +594,163 @@ describe("workflow", () => {
       expect(server.inline("complete")[0]?.outcome.final_attempt?.attempt).toBe(2);
     });
 
+    it.each([0, 1])(
+      "names the failed step and final error after %s retries and replay",
+      async (maxRetries) => {
+        const message = "Card ending 4242 was declined by the issuer";
+        const charge = vi.fn(() => {
+          const error = new Error(
+            charge.mock.calls.length > maxRetries ? message : "temporary failure",
+          );
+          error.name =
+            charge.mock.calls.length > maxRetries ? "PaymentDeclinedError" : "TemporaryError";
+          throw error;
+        });
+        flow({ name: "wf" }, (ctx) =>
+          ctx.step("charge_card", charge, [], { retry: { maxRetries, waitDurationMs: 0 } }),
+        );
+        await serve("wf");
+
+        for (let execution = 0; execution < 2; execution++) {
+          const result = await server.execute();
+          expect(result.error).toBeInstanceOf(StepError);
+          expect(result.error).toMatchObject({
+            name: "StepError",
+            errorName: "PaymentDeclinedError",
+            stepName: "charge_card",
+            originalMessage: message,
+          });
+          expect(server.lastCallback().error?.details).toBe(
+            `Step 'charge_card' failed with PaymentDeclinedError: ${message}`,
+          );
+          expect(charge).toHaveBeenCalledTimes(maxRetries + 1);
+          expect(server.inline("start")).toHaveLength(1);
+          expect(server.inline("attempt")).toHaveLength(maxRetries);
+          expect(server.inline("complete")).toHaveLength(1);
+          expect(server.steps.get(0)?.error).toMatchObject({
+            name: "PaymentDeclinedError",
+            message,
+          });
+        }
+      },
+    );
+
+    it.each(["start", "complete"])("names a competing failure adopted at %s", async (boundary) => {
+      const work = vi.fn(() => "local result");
+      flow({ name: "wf" }, (ctx) => ctx.step("charge_card", work));
+      await serve("wf");
+      server.beforeInline = (kind) => {
+        if (kind !== boundary) return;
+        server.steps.set(0, {
+          step_key: { seq: 0 },
+          type: "inline",
+          task_name: "charge_card",
+          workflow_attempt: 0,
+          input: b64([]),
+          started_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+          error: { name: "PaymentDeclinedError", message: "declined by another attempt" },
+        });
+      };
+
+      for (let execution = 0; execution < 2; execution++) {
+        const result = await server.execute();
+        expect(result.error).toBeInstanceOf(StepError);
+        expect(server.lastCallback().error?.details).toBe(
+          "Step 'charge_card' failed with PaymentDeclinedError: declined by another attempt",
+        );
+        expect(work).toHaveBeenCalledTimes(boundary === "start" ? 0 : 1);
+        expect(server.inline("start")).toHaveLength(1);
+      }
+    });
+
+    it.each([
+      ["a class that doesn't set name", class PaymentDeclinedError extends Error {}, "Error"],
+      ["a subclass of a built-in error", class BadInput extends TypeError {}, "TypeError"],
+      [
+        "a class that sets name",
+        class Declined extends Error {
+          name = "PaymentDeclinedError";
+        },
+        "PaymentDeclinedError",
+      ],
+      ["a built-in error", TypeError, "TypeError"],
+      ["a plain Error", Error, "Error"],
+    ])("names the error type for %s", async (_, ErrorClass, expected) => {
+      flow({ name: "wf" }, (ctx) =>
+        ctx.step("charge_card", () => {
+          throw new ErrorClass("declined");
+        }),
+      );
+      await serve("wf");
+
+      const result = await server.execute();
+      expect(result.error).toMatchObject({ errorName: expected });
+      expect(server.lastCallback().error?.details).toBe(
+        `Step 'charge_card' failed with ${expected}: declined`,
+      );
+      expect(server.steps.get(0)?.error?.name).toBe(expected);
+    });
+
+    it("preserves error construction without a step name", () => {
+      const wire = {
+        name: "PaymentError",
+        message: "declined",
+        stack: "original stack",
+        data: '{"code":"card_declined"}',
+      };
+      expect(new StepError(wire)).toMatchObject({
+        name: "StepError",
+        errorName: "PaymentError",
+        stepName: undefined,
+        originalMessage: "declined",
+        message: "declined",
+        stack: wire.stack,
+        data: { code: "card_declined" },
+      });
+      expect(
+        StepError.fromTaskError({ details: "task failed", stack_trace: "task stack" }),
+      ).toMatchObject({
+        name: "StepError",
+        errorName: "TaskError",
+        stepName: undefined,
+        originalMessage: "task failed",
+        message: "task failed",
+        stack: "task stack",
+      });
+    });
+
     it("records an exhausted step's error and rethrows it on replay", async () => {
       let calls = 0;
       class PaymentError extends Error {
         code = "card_declined";
         name = "PaymentError";
       }
+      const original = new PaymentError("declined");
+      const recovered = vi.fn(() => "support notified");
       function charge(): never {
         calls++;
-        throw new PaymentError("declined");
+        throw original;
       }
       flow({ name: "wf" }, async (ctx) => {
         try {
           await ctx.step("charge", charge, [], { retry: { maxRetries: 1, waitDurationMs: 0 } });
         } catch (e) {
-          const err = e as StepError;
-          return [err instanceof StepError, err.errorName, err.message, (err.data as any)?.code];
+          expect(e).toBeInstanceOf(StepError);
+          if (!(e instanceof StepError)) throw e;
+          expect(e.data).toEqual({ code: "card_declined", name: "PaymentError" });
+          expect(e.stack).toBe(original.stack);
+          const recovery = await ctx.step("notify_support", recovered);
+          return [e.errorName, e.message, recovery];
         }
       });
       await serve("wf");
       await server.execute();
-      const expected = [true, "PaymentError", "declined", "card_declined"];
+      const expected = [
+        "PaymentError",
+        "Step 'charge' failed with PaymentError: declined",
+        "support notified",
+      ];
       expect(server.output()).toEqual(expected);
       expect(calls).toBe(2);
       // The last failure ends the step as its final attempt, after attempt 0.
@@ -630,6 +766,9 @@ describe("workflow", () => {
       await server.execute();
       expect(server.output()).toEqual(expected);
       expect(calls).toBe(2);
+      expect(recovered).toHaveBeenCalledTimes(1);
+      expect(server.inline("start")).toHaveLength(2);
+      expect(server.inline("complete")).toHaveLength(2);
     });
 
     it("continues attempt numbering from history after a crash", async () => {
@@ -669,7 +808,7 @@ describe("workflow", () => {
       expect(server.inline("start")).toHaveLength(0);
       expect(server.inline("attempt").map((a) => a.attempt)).toEqual([1]);
       expect(calls).toBe(2);
-      expect(server.output()).toBe("again");
+      expect(server.output()).toBe("Step 'flaky' failed with Error: again");
       expect(server.steps.get(0)?.workflow_attempt).toBe(1);
     });
 
@@ -1112,7 +1251,9 @@ describe("workflow", () => {
           } else {
             expect(result.error).toBeInstanceOf(StepError);
             expect(fallback).not.toHaveBeenCalled();
-            expect(server.lastCallback().error?.details).toBe("dependency unavailable");
+            expect(server.lastCallback().error?.details).toBe(
+              "Step 'failing' failed with Error: dependency unavailable",
+            );
             expect(server.lastCallback().error?.reason).toBeUndefined();
           }
         },

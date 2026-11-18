@@ -4,6 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- (Workflows) A failed inline step's `StepError` message includes the step name and original error type. `stepName` and `originalMessage` preserve the structured values, and the error type comes from the thrown error's `name`.
+
 ## [1.9.0] - 2026-11-16
 
 ### Added
