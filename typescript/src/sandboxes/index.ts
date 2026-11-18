@@ -18,12 +18,12 @@ import {
   SandboxSnapshotNotFoundError,
   SandboxSnapshotWaitTimeoutError,
   SandboxWaitTimeoutError,
-} from "../../errors.js";
-import type { components, paths } from "../../generated/schema.js";
+} from "../errors.js";
+import type { components, paths } from "../generated/schema.js";
 
-import { getApiError } from "../../utils/http.js";
-import { pollUntil, validateOptions } from "../../utils/poll-until.js";
-import { getUserAgent } from "../../version.js";
+import { getApiError } from "../utils/http.js";
+import { pollUntil, validateOptions } from "../utils/poll-until.js";
+import { getUserAgent } from "../version.js";
 import {
   downloadLimit,
   putFile,

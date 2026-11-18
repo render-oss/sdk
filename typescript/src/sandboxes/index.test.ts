@@ -30,8 +30,8 @@ import {
   SandboxWaitTimeoutError,
   ServerError,
   TimeoutError,
-} from "../../errors.js";
-import type { paths } from "../../generated/schema.js";
+} from "../errors.js";
+import type { paths } from "../generated/schema.js";
 import {
   type SandboxBuild,
   type SandboxCreateInput,

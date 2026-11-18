@@ -6,6 +6,7 @@ import { markImportFinished } from "./startup.js";
 export * from "./errors.js";
 // Experimental features - types only (instances accessed via render.experimental)
 export type { ExperimentalClient } from "./experimental/index.js";
+export { Render } from "./render.js";
 export {
   type Sandbox,
   type SandboxBuild,
@@ -62,8 +63,7 @@ export {
   type SandboxUploadData,
   type SandboxUploadOptions,
   type SandboxWaitOptions,
-} from "./experimental/sandboxes/index.js";
-export { Render } from "./render.js";
+} from "./sandboxes/index.js";
 export { getUserAgent, VERSION } from "./version.js";
 
 markImportFinished();

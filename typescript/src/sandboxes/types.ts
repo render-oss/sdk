@@ -1,4 +1,4 @@
-import type { components } from "../../generated/schema.js";
+import type { components } from "../generated/schema.js";
 
 /**
  * The plans the API offered when this SDK was released, for editor hints. The API can add plans

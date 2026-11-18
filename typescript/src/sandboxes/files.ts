@@ -12,10 +12,10 @@ import {
   RenderError,
   SandboxDownloadError,
   SandboxDownloadTooLargeError,
-} from "../../errors.js";
-import type { components } from "../../generated/schema.js";
-import { getApiError } from "../../utils/http.js";
-import { getUserAgent } from "../../version.js";
+} from "../errors.js";
+import type { components } from "../generated/schema.js";
+import { getApiError } from "../utils/http.js";
+import { getUserAgent } from "../version.js";
 import type { SandboxCopyFromResult, SandboxDownload, SandboxDownloadOptions } from "./index.js";
 
 export type DownloadLimit = { sandboxId: string; path: string; maxSizeBytes: number };

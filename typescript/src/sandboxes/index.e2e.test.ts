@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { ClientError, ServerError } from "../../errors.js";
-import { Render } from "../../render.js";
+import { ClientError, ServerError } from "../errors.js";
+import { Render } from "../render.js";
 import type { Sandbox, SandboxExecEvent, SandboxSnapshot } from "./index.js";
 
 const sbxIdRegex = /^sbx-/;

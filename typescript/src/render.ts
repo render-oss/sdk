@@ -1,8 +1,8 @@
 import type { Client } from "openapi-fetch";
 import { RenderError } from "./errors.js";
 import { ExperimentalClient } from "./experimental/experimental.js";
-import { SandboxesClient } from "./experimental/sandboxes/index.js";
 import type { paths } from "./generated/schema.js";
+import { SandboxesClient } from "./sandboxes/index.js";
 import { createApiClient } from "./utils/create-api-client.js";
 import { getBaseUrl } from "./utils/get-base-url.js";
 import { isLocalDev } from "./utils/is-local-dev.js";
