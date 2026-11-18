@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from render.client import Client
     from render.client.workflows import WorkflowsService
     from render.experimental import ExperimentalService
-    from render.experimental.sandbox.client import SandboxClient
+    from render.sandbox.client import SandboxClient
 
 
 class RenderAsync:

@@ -26,12 +26,12 @@ FILE_PAIRS = [
         SDK_ROOT / "render" / "experimental" / "object" / "client_sync.py",
     ),
     (
-        SDK_ROOT / "render" / "experimental" / "sandbox" / "api.py",
-        SDK_ROOT / "render" / "experimental" / "sandbox" / "api_sync.py",
+        SDK_ROOT / "render" / "sandbox" / "api.py",
+        SDK_ROOT / "render" / "sandbox" / "api_sync.py",
     ),
     (
-        SDK_ROOT / "render" / "experimental" / "sandbox" / "client.py",
-        SDK_ROOT / "render" / "experimental" / "sandbox" / "client_sync.py",
+        SDK_ROOT / "render" / "sandbox" / "client.py",
+        SDK_ROOT / "render" / "sandbox" / "client_sync.py",
     ),
 ]
 
@@ -56,8 +56,8 @@ SYNTAX_REPLACEMENTS = [
     ("aiter_lines", "iter_lines"),
     ("aread", "read"),
     (
-        "from render.experimental.sandbox.api import",
-        "from render.experimental.sandbox.api_sync import",
+        "from render.sandbox.api import",
+        "from render.sandbox.api_sync import",
     ),
     # Import path renames
     (

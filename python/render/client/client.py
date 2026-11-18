@@ -7,9 +7,9 @@ import os
 
 from render.client.workflows import WorkflowsService
 from render.experimental.experimental import ExperimentalService
-from render.experimental.sandbox.client import SandboxClient
 from render.public_api.client import AuthenticatedClient
 from render.public_api.client import Client as PublicApiClient
+from render.sandbox.client import SandboxClient
 from render.version import get_user_agent
 
 

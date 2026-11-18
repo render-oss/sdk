@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from render.client import Client
     from render.client.workflows_sync import SyncWorkflowsService
     from render.experimental.experimental_sync import SyncExperimentalService
-    from render.experimental.sandbox.client_sync import SyncSandboxClient
+    from render.sandbox.client_sync import SyncSandboxClient
 
 
 class Render:
@@ -55,7 +55,7 @@ class Render:
         from render.client import Client
         from render.client.workflows_sync import SyncWorkflowsService
         from render.experimental.experimental_sync import SyncExperimentalService
-        from render.experimental.sandbox.client_sync import SyncSandboxClient
+        from render.sandbox.client_sync import SyncSandboxClient
 
         self._client = Client(
             token=token, base_url=base_url, owner_id=owner_id, region=region

@@ -23,16 +23,16 @@ from render.experimental.object.client_sync import (
     SyncObjectClient,
     SyncScopedObjectClient,
 )
-from render.experimental.sandbox.api import SandboxApi
-from render.experimental.sandbox.api_sync import SyncSandboxApi
-from render.experimental.sandbox.client import (
+from render.sandbox.api import SandboxApi
+from render.sandbox.api_sync import SyncSandboxApi
+from render.sandbox.client import (
     BuildClient,
     CredentialClient,
     ImageClient,
     SandboxClient,
     SnapshotClient,
 )
-from render.experimental.sandbox.client_sync import (
+from render.sandbox.client_sync import (
     SyncBuildClient,
     SyncCredentialClient,
     SyncImageClient,
@@ -63,8 +63,8 @@ _ASYNC_SERVICE_MODULES = [
     "render.experimental.experimental",
     "render.experimental.object.api",
     "render.experimental.object.client",
-    "render.experimental.sandbox.api",
-    "render.experimental.sandbox.client",
+    "render.sandbox.api",
+    "render.sandbox.client",
 ]
 
 
