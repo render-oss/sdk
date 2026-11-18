@@ -1235,6 +1235,72 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Sets the environment a sandbox group belongs to.
+   *
+   * A group belongs to at most one environment, so setting a new one replaces the old one.
+   * Changing the environment of a group in a protected environment, or setting a protected
+   * environment, requires an admin.
+   *
+   * @param sandboxGroupId - The sandbox group.
+   * @param environmentId - The environment, or `null` to clear it.
+   * @returns The updated sandbox group.
+   * @throws `ClientError` if the group or environment does not exist, or a protected environment
+   *   is involved and the caller is not an admin.
+   * @throws `Error` if `environmentId` is empty.
+   */
+  async setGroupEnvironment(
+    sandboxGroupId: string,
+    environmentId: string | null,
+  ): Promise<SandboxGroup> {
+    if (environmentId === "") {
+      throw new Error("environmentId must not be empty; pass null to clear it");
+    }
+    if (environmentId !== null) {
+      await this.addGroupToEnvironment(sandboxGroupId, environmentId);
+      return this.getGroup(sandboxGroupId);
+    }
+
+    const group = await this.getGroup(sandboxGroupId);
+    if (group.environmentId == null) {
+      return group;
+    }
+
+    await this.removeGroupFromEnvironment(sandboxGroupId, group.environmentId);
+    return this.getGroup(sandboxGroupId);
+  }
+
+  private async addGroupToEnvironment(
+    sandboxGroupId: string,
+    environmentId: string,
+  ): Promise<void> {
+    const { error, response } = await this.apiClient.POST(
+      "/environments/{environmentId}/resources",
+      {
+        params: { path: { environmentId } },
+        body: { resourceIds: [sandboxGroupId] },
+      },
+    );
+    if (error !== undefined || !response.ok) {
+      throw getTypedApiError(error, response, "Failed to set sandbox group environment");
+    }
+  }
+
+  private async removeGroupFromEnvironment(
+    sandboxGroupId: string,
+    environmentId: string,
+  ): Promise<void> {
+    const { error, response } = await this.apiClient.DELETE(
+      "/environments/{environmentId}/resources",
+      {
+        params: { path: { environmentId }, query: { resourceIds: [sandboxGroupId] } },
+      },
+    );
+    if (error !== undefined || !response.ok) {
+      throw getTypedApiError(error, response, "Failed to clear sandbox group environment");
+    }
+  }
+
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
     const { error, response } = await this.apiClient.POST("/sandboxes/{sandboxId}/terminate", {
       params: {

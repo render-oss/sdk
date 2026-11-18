@@ -3764,6 +3764,225 @@ describe("sandbox group selection", () => {
   });
 });
 
+type GroupEnvironmentStub = {
+  environmentId: string | null;
+  groupStatus: number;
+  addStatus: number;
+  deleteStatus: number;
+};
+
+function groupEnvironmentApiClient(stub: GroupEnvironmentStub) {
+  let environmentId = stub.environmentId;
+  const requests: unknown[][] = [];
+  const respond = (status: number, data: unknown) => ({
+    data: status < 300 ? data : undefined,
+    error: status < 300 ? undefined : { message: "failed" },
+    response: new Response(null, { status }),
+  });
+  type Init = { params: { path: { environmentId?: string } } };
+
+  const client = {
+    GET: vi.fn(async (path: string, init: Init) => {
+      requests.push(["GET", path, init]);
+      return respond(stub.groupStatus, { id: "sbg-1", environmentId });
+    }),
+    POST: vi.fn(async (path: string, init: Init) => {
+      requests.push(["POST", path, init]);
+      environmentId =
+        stub.addStatus === 201 ? (init.params.path.environmentId ?? null) : environmentId;
+      return respond(stub.addStatus, {});
+    }),
+    DELETE: vi.fn(async (path: string, init: Init) => {
+      requests.push(["DELETE", path, init]);
+      environmentId = stub.deleteStatus === 204 ? null : environmentId;
+      return respond(stub.deleteStatus, undefined);
+    }),
+  } as unknown as Client<paths>;
+
+  return { client, requests };
+}
+
+async function settle(promise: Promise<{ environmentId?: string | null }>) {
+  try {
+    return { environmentId: (await promise).environmentId, errorStatus: undefined };
+  } catch (error) {
+    return { environmentId: undefined, errorStatus: (error as ClientError).statusCode };
+  }
+}
+
+const GET_GROUP = [
+  "GET",
+  "/sandbox-groups/{sandboxGroupId}",
+  { params: { path: { sandboxGroupId: "sbg-1" } } },
+];
+
+function addGroup(environmentId: string) {
+  return [
+    "POST",
+    "/environments/{environmentId}/resources",
+    { params: { path: { environmentId } }, body: { resourceIds: ["sbg-1"] } },
+  ];
+}
+
+function removeGroup(environmentId: string) {
+  return [
+    "DELETE",
+    "/environments/{environmentId}/resources",
+    { params: { path: { environmentId }, query: { resourceIds: ["sbg-1"] } } },
+  ];
+}
+
+describe("setGroupEnvironment", () => {
+  it.each([
+    {
+      name: "moves a group into an environment",
+      stub: {
+        environmentId: null,
+        groupStatus: 200,
+        addStatus: 201,
+        deleteStatus: 204,
+      },
+      environmentId: "evm-1",
+      want: {
+        requests: [addGroup("evm-1"), GET_GROUP],
+        environmentId: "evm-1",
+        errorStatus: undefined,
+      },
+    },
+    {
+      name: "moves a group to another environment",
+      stub: {
+        environmentId: "evm-1",
+        groupStatus: 200,
+        addStatus: 201,
+        deleteStatus: 204,
+      },
+      environmentId: "evm-2",
+      want: {
+        requests: [addGroup("evm-2"), GET_GROUP],
+        environmentId: "evm-2",
+        errorStatus: undefined,
+      },
+    },
+    {
+      name: "throws for an unknown group or environment",
+      stub: {
+        environmentId: null,
+        groupStatus: 200,
+        addStatus: 404,
+        deleteStatus: 204,
+      },
+      environmentId: "evm-1",
+      want: {
+        requests: [addGroup("evm-1")],
+        environmentId: undefined,
+        errorStatus: 404,
+      },
+    },
+    {
+      name: "throws for a protected environment without admin",
+      stub: {
+        environmentId: null,
+        groupStatus: 200,
+        addStatus: 403,
+        deleteStatus: 204,
+      },
+      environmentId: "evm-1",
+      want: {
+        requests: [addGroup("evm-1")],
+        environmentId: undefined,
+        errorStatus: 403,
+      },
+    },
+    {
+      name: "clears a group's environment",
+      stub: {
+        environmentId: "evm-1",
+        groupStatus: 200,
+        addStatus: 201,
+        deleteStatus: 204,
+      },
+      environmentId: null,
+      want: {
+        requests: [GET_GROUP, removeGroup("evm-1"), GET_GROUP],
+        environmentId: null,
+        errorStatus: undefined,
+      },
+    },
+    {
+      name: "returns a group that is not in an environment unchanged",
+      stub: {
+        environmentId: null,
+        groupStatus: 200,
+        addStatus: 201,
+        deleteStatus: 204,
+      },
+      environmentId: null,
+      want: {
+        requests: [GET_GROUP],
+        environmentId: null,
+        errorStatus: undefined,
+      },
+    },
+    {
+      name: "throws when clearing an unknown group",
+      stub: {
+        environmentId: null,
+        groupStatus: 404,
+        addStatus: 201,
+        deleteStatus: 204,
+      },
+      environmentId: null,
+      want: {
+        requests: [GET_GROUP],
+        environmentId: undefined,
+        errorStatus: 404,
+      },
+    },
+    {
+      name: "throws when clearing a protected environment without admin",
+      stub: {
+        environmentId: "evm-1",
+        groupStatus: 200,
+        addStatus: 201,
+        deleteStatus: 403,
+      },
+      environmentId: null,
+      want: {
+        requests: [GET_GROUP, removeGroup("evm-1")],
+        environmentId: undefined,
+        errorStatus: 403,
+      },
+    },
+  ])("$name", async ({ stub, environmentId, want }) => {
+    // arrange
+    const { client, requests } = groupEnvironmentApiClient(stub);
+
+    // act
+    const result = await settle(
+      new SandboxesClient(client).setGroupEnvironment("sbg-1", environmentId),
+    );
+
+    // assert
+    expect({ requests, ...result }).toStrictEqual(want);
+  });
+
+  it("rejects an empty environmentId without a request", async () => {
+    const { client, requests } = groupEnvironmentApiClient({
+      environmentId: null,
+      groupStatus: 200,
+      addStatus: 201,
+      deleteStatus: 204,
+    });
+
+    await expect(new SandboxesClient(client).setGroupEnvironment("sbg-1", "")).rejects.toThrow(
+      "pass null to clear it",
+    );
+
+    expect(requests).toStrictEqual([]);
+  });
+});
+
 describe("sandbox_group_suspended", () => {
   const calls: Array<{
     name: string;

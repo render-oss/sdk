@@ -80,6 +80,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/environments/{environmentId}/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add resources to environment
+         * @description Add resources to the environment with the provided ID.
+         */
+        post: operations["add-resources-to-environment"];
+        /**
+         * Remove resources from environment
+         * @description Remove resources from the environment with the provided ID.
+         */
+        delete: operations["remove-resources-from-environment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/task-runs": {
         parameters: {
             query?: never;
@@ -863,6 +887,28 @@ export interface components {
         keyValuePlan: "free" | "starter" | "standard" | "pro" | "pro_plus" | "custom" | "256mb" | "1g" | "5g" | "10g" | "20g" | "40g";
         /** @enum {string} */
         databaseStatus: "creating" | "available" | "unavailable" | "config_restart" | "suspended" | "maintenance_scheduled" | "maintenance_in_progress" | "recovery_failed" | "recovery_in_progress" | "unknown" | "updating_instance";
+        environmentResourcesPOSTInput: {
+            resourceIds: string[];
+        };
+        environment: {
+            id: string;
+            name: string;
+            projectId: string;
+            databasesIds: string[];
+            ipAllowList?: components["schemas"]["cidrBlockAndDescription"][];
+            redisIds: string[];
+            serviceIds: string[];
+            envGroupIds: string[];
+            protectedStatus: components["schemas"]["protectedStatus"];
+            networkIsolationEnabled: components["schemas"]["networkIsolationEnabled"];
+        };
+        /**
+         * @description Indicates whether an environment is `unprotected` or `protected`. Only admin users can perform destructive actions in `protected` environments.
+         * @enum {string}
+         */
+        protectedStatus: "unprotected" | "protected";
+        /** @description Indicates whether network connections across environments are allowed. */
+        networkIsolationEnabled: boolean;
         envGroup: components["schemas"]["envGroupMeta"] & {
             /** @description Omitted if the caller doesn't have the permission to read the environment group's secret values. */
             envVars?: components["schemas"]["envVar"][];
@@ -2180,6 +2226,66 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["keyValueConnectionInfo"];
                 };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "add-resources-to-environment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                environmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["environmentResourcesPOSTInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["environment"];
+                };
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "remove-resources-from-environment": {
+        parameters: {
+            query: {
+                resourceIds: string[];
+            };
+            header?: never;
+            path: {
+                environmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resources removed from environment */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             400: components["responses"]["400BadRequest"];
             401: components["responses"]["401Unauthorized"];

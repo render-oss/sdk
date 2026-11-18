@@ -1,6 +1,7 @@
 {
   "$comment": "REST paths the TypeScript SDK calls. Read by public-api-schema/generate-sdk.sh in renderinc/api to filter the generated schema. Keep sorted.",
   "paths": [
+    "/environments/{environmentId}/resources",
     "/flow-runs",
     "/flow-runs/{flowRunId}",
     "/key-value",
