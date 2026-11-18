@@ -978,6 +978,55 @@ func (s *SandboxClient) SetDefaultGroup(ctx context.Context, groupID string) (*S
 	return toSandboxGroup(*resp.JSON200), nil
 }
 
+// SetGroupEnvironment sets the environment a sandbox group belongs to and
+// returns the updated group. A group belongs to at most one environment, so
+// setting a new one replaces the old one.
+//
+// Changing the environment of a group in a protected environment, or setting a
+// protected environment, requires an admin. environmentID must not be empty; to
+// clear the environment, use ClearGroupEnvironment.
+func (s *SandboxClient) SetGroupEnvironment(ctx context.Context, groupID, environmentID string) (*SandboxGroup, error) {
+	if environmentID == "" {
+		return nil, errors.New("environment ID is required; to clear it, use ClearGroupEnvironment")
+	}
+
+	body := client.AddResourcesToEnvironmentJSONRequestBody{ResourceIds: []string{groupID}}
+	resp, err := s.client.internal.AddResourcesToEnvironmentWithResponse(ctx, environmentID, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set sandbox group environment: %w", err)
+	}
+	if resp.StatusCode() != 200 && resp.StatusCode() != 201 {
+		return nil, sandboxAPIError("set sandbox group environment", resp.StatusCode(), resp.Body)
+	}
+
+	return s.GetGroup(ctx, groupID)
+}
+
+// ClearGroupEnvironment clears a sandbox group's environment and returns the
+// updated group. A group with no environment is returned unchanged.
+//
+// Clearing a protected environment requires an admin.
+func (s *SandboxClient) ClearGroupEnvironment(ctx context.Context, groupID string) (*SandboxGroup, error) {
+	group, err := s.GetGroup(ctx, groupID)
+	if err != nil {
+		return nil, err
+	}
+	if group.EnvironmentID == nil {
+		return group, nil
+	}
+
+	params := &client.RemoveResourcesFromEnvironmentParams{ResourceIds: []string{groupID}}
+	resp, err := s.client.internal.RemoveResourcesFromEnvironmentWithResponse(ctx, *group.EnvironmentID, params)
+	if err != nil {
+		return nil, fmt.Errorf("failed to clear sandbox group environment: %w", err)
+	}
+	if resp.StatusCode() != 204 {
+		return nil, sandboxAPIError("clear sandbox group environment", resp.StatusCode(), resp.Body)
+	}
+
+	return s.GetGroup(ctx, groupID)
+}
+
 func toSandboxGroup(g sandboxes.SandboxGroup) *SandboxGroup {
 	return &SandboxGroup{ID: g.Id, OwnerID: g.OwnerId, Name: g.Name, Region: g.Region,
 		IsDefault: g.IsDefault, ConcurrencyLimit: g.ConcurrencyLimit,

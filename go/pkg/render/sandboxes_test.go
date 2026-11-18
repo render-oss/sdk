@@ -679,6 +679,372 @@ func TestSandboxGroupSetDefaultUnknownConflictIsNotTyped(t *testing.T) {
 	require.NotErrorIs(t, err, ErrSandboxGroupDefaultNotDeletable)
 }
 
+type groupEnvironmentStub struct {
+	environmentID string
+	groupStatus   int
+	addStatus     int
+	deleteStatus  int
+}
+
+type recordedRequest struct {
+	Method string
+	Path   string
+	Body   any
+}
+
+type groupEnvironmentOutcome struct {
+	Requests      []recordedRequest
+	EnvironmentID string
+	ErrorStatus   int
+}
+
+func TestSandboxGroupSetEnvironment(t *testing.T) {
+	tests := []struct {
+		name          string
+		stub          groupEnvironmentStub
+		environmentID string
+		want          groupEnvironmentOutcome
+	}{
+		{
+			name: "into an environment",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusOK,
+				addStatus:   http.StatusCreated,
+			},
+			environmentID: "evm-1",
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "POST",
+						Path:   "/v1/environments/evm-1/resources",
+						Body: map[string]any{
+							"resourceIds": []any{
+								"sbg-1",
+							},
+						},
+					},
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+				EnvironmentID: "evm-1",
+			},
+		},
+		{
+			name: "into an environment when the API answers 200",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusOK,
+				addStatus:   http.StatusOK,
+			},
+			environmentID: "evm-1",
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "POST",
+						Path:   "/v1/environments/evm-1/resources",
+						Body: map[string]any{
+							"resourceIds": []any{
+								"sbg-1",
+							},
+						},
+					},
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+				EnvironmentID: "evm-1",
+			},
+		},
+		{
+			name: "empty environment ID",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusOK,
+				addStatus:   http.StatusCreated,
+			},
+			environmentID: "",
+			want: groupEnvironmentOutcome{
+				Requests:    []recordedRequest{},
+				ErrorStatus: -1,
+			},
+		},
+		{
+			name: "to another environment",
+			stub: groupEnvironmentStub{
+				environmentID: "evm-1",
+				groupStatus:   http.StatusOK,
+				addStatus:     http.StatusCreated,
+			},
+			environmentID: "evm-2",
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "POST",
+						Path:   "/v1/environments/evm-2/resources",
+						Body: map[string]any{
+							"resourceIds": []any{
+								"sbg-1",
+							},
+						},
+					},
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+				EnvironmentID: "evm-2",
+			},
+		},
+		{
+			name: "unknown group or environment",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusOK,
+				addStatus:   http.StatusNotFound,
+			},
+			environmentID: "evm-1",
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "POST",
+						Path:   "/v1/environments/evm-1/resources",
+						Body: map[string]any{
+							"resourceIds": []any{
+								"sbg-1",
+							},
+						},
+					},
+				},
+				ErrorStatus: http.StatusNotFound,
+			},
+		},
+		{
+			name: "protected environment without admin",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusOK,
+				addStatus:   http.StatusForbidden,
+			},
+			environmentID: "evm-1",
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "POST",
+						Path:   "/v1/environments/evm-1/resources",
+						Body: map[string]any{
+							"resourceIds": []any{
+								"sbg-1",
+							},
+						},
+					},
+				},
+				ErrorStatus: http.StatusForbidden,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// arrange
+			client, requests := groupEnvironmentClient(t, tt.stub)
+
+			// act
+			group, err := client.SetGroupEnvironment(context.Background(), "sbg-1", tt.environmentID)
+
+			// assert
+			got := groupEnvironmentOutcome{
+				Requests:      *requests,
+				EnvironmentID: environmentOf(group),
+				ErrorStatus:   apiErrorStatus(err),
+			}
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestSandboxGroupClearEnvironment(t *testing.T) {
+	tests := []struct {
+		name string
+		stub groupEnvironmentStub
+		want groupEnvironmentOutcome
+	}{
+		{
+			name: "in an environment",
+			stub: groupEnvironmentStub{
+				environmentID: "evm-1",
+				groupStatus:   http.StatusOK,
+				deleteStatus:  http.StatusNoContent,
+			},
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+					{
+						Method: "DELETE",
+						Path:   "/v1/environments/evm-1/resources?resourceIds=sbg-1",
+					},
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+			},
+		},
+		{
+			name: "not in an environment",
+			stub: groupEnvironmentStub{
+				groupStatus:  http.StatusOK,
+				deleteStatus: http.StatusNoContent,
+			},
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+			},
+		},
+		{
+			name: "unknown group",
+			stub: groupEnvironmentStub{
+				groupStatus: http.StatusNotFound,
+			},
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+				},
+				ErrorStatus: http.StatusNotFound,
+			},
+		},
+		{
+			name: "protected environment without admin",
+			stub: groupEnvironmentStub{
+				environmentID: "evm-1",
+				groupStatus:   http.StatusOK,
+				deleteStatus:  http.StatusForbidden,
+			},
+			want: groupEnvironmentOutcome{
+				Requests: []recordedRequest{
+					{
+						Method: "GET",
+						Path:   "/v1/sandbox-groups/sbg-1",
+					},
+					{
+						Method: "DELETE",
+						Path:   "/v1/environments/evm-1/resources?resourceIds=sbg-1",
+					},
+				},
+				ErrorStatus: http.StatusForbidden,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// arrange
+			client, requests := groupEnvironmentClient(t, tt.stub)
+
+			// act
+			group, err := client.ClearGroupEnvironment(context.Background(), "sbg-1")
+
+			// assert
+			got := groupEnvironmentOutcome{
+				Requests:      *requests,
+				EnvironmentID: environmentOf(group),
+				ErrorStatus:   apiErrorStatus(err),
+			}
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func groupEnvironmentClient(t *testing.T, stub groupEnvironmentStub) (*SandboxClient, *[]recordedRequest) {
+	t.Helper()
+	environmentID := stub.environmentID
+	requests := []recordedRequest{}
+	record := func(r *http.Request) {
+		var body any
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		requests = append(requests, recordedRequest{
+			Method: r.Method,
+			Path:   r.URL.RequestURI(),
+			Body:   body,
+		})
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {
+		record(r)
+		if stub.groupStatus != http.StatusOK {
+			writeJSON(w, stub.groupStatus, `{"message":"sandbox group not found"}`)
+			return
+		}
+		writeJSON(w, http.StatusOK, groupInEnvironmentJSON(environmentID))
+	})
+	mux.HandleFunc("POST /v1/environments/{id}/resources", func(w http.ResponseWriter, r *http.Request) {
+		record(r)
+		if stub.addStatus >= http.StatusMultipleChoices {
+			writeJSON(w, stub.addStatus, `{"message":"add failed"}`)
+			return
+		}
+		environmentID = r.PathValue("id")
+		writeJSON(w, stub.addStatus, environmentJSON(environmentID))
+	})
+	mux.HandleFunc("DELETE /v1/environments/{id}/resources", func(w http.ResponseWriter, r *http.Request) {
+		record(r)
+		if stub.deleteStatus != http.StatusNoContent {
+			writeJSON(w, stub.deleteStatus, `{"message":"remove failed"}`)
+			return
+		}
+		environmentID = ""
+		w.WriteHeader(http.StatusNoContent)
+	})
+	server := httptest.NewServer(mux)
+	t.Cleanup(server.Close)
+
+	c, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	return c.Experimental.Sandboxes, &requests
+}
+
+func environmentJSON(environmentID string) string {
+	return fmt.Sprintf(`{"id":%q,"name":"production","projectId":"prj-1","protectedStatus":"unprotected",`+
+		`"networkIsolationEnabled":false,"serviceIds":[],"databasesIds":[],"redisIds":[],"envGroupIds":[]}`,
+		environmentID)
+}
+
+func groupInEnvironmentJSON(environmentID string) string {
+	environment := ""
+	if environmentID != "" {
+		environment = fmt.Sprintf(`,"environmentId":%q`, environmentID)
+	}
+	return `{"id":"sbg-1","ownerId":"tea-1","name":"agents","region":"oregon","isDefault":false,` +
+		`"concurrencyLimit":10,"createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z"` +
+		environment + `}`
+}
+
+func environmentOf(group *SandboxGroup) string {
+	if group == nil || group.EnvironmentID == nil {
+		return ""
+	}
+	return *group.EnvironmentID
+}
+
+func apiErrorStatus(err error) int {
+	if err == nil {
+		return 0
+	}
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		return -1
+	}
+	return apiErr.StatusCode
+}
+
 func firstExecError(ctx context.Context, s *SandboxClient) error {
 	for _, err := range s.Exec(ctx, "sbx-1", "echo hi") {
 		if err != nil {
