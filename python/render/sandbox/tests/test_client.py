@@ -51,6 +51,18 @@ SANDBOX_GROUP_JSON = {
     "updatedAt": "2026-07-02T18:30:00Z",
 }
 
+ENVIRONMENT_JSON = {
+    "id": "evm-1",
+    "name": "production",
+    "projectId": "prj-1",
+    "databasesIds": [],
+    "redisIds": [],
+    "serviceIds": [],
+    "envGroupIds": [],
+    "protectedStatus": "unprotected",
+    "networkIsolationEnabled": False,
+}
+
 
 def _sandbox_client(handler, *, default_owner_id="tea-test"):
     transport = httpx2.MockTransport(handler)
@@ -1455,6 +1467,320 @@ def test_sync_set_default_group_returns_the_default_group():
     client = _sync_sandbox_client(handler)
     assert client.set_default_group("sbg-abc").is_default is True
     assert captured[-1].url.path == "/v1/sandbox-groups/sbg-abc/set-default"
+
+
+GROUP_ENVIRONMENT_CASES = [
+    pytest.param(
+        {
+            "environment_id": None,
+            "group_status": 200,
+            "add_status": 201,
+            "delete_status": 204,
+        },
+        "evm-1",
+        {
+            "requests": [
+                {
+                    "method": "POST",
+                    "path": "/v1/environments/evm-1/resources",
+                    "body": {"resourceIds": ["sbg-abc"]},
+                },
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": "evm-1",
+            "error_status": None,
+        },
+        id="into an environment",
+    ),
+    pytest.param(
+        {
+            "environment_id": "evm-1",
+            "group_status": 200,
+            "add_status": 201,
+            "delete_status": 204,
+        },
+        "evm-2",
+        {
+            "requests": [
+                {
+                    "method": "POST",
+                    "path": "/v1/environments/evm-2/resources",
+                    "body": {"resourceIds": ["sbg-abc"]},
+                },
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": "evm-2",
+            "error_status": None,
+        },
+        id="to another environment",
+    ),
+    pytest.param(
+        {
+            "environment_id": None,
+            "group_status": 200,
+            "add_status": 404,
+            "delete_status": 204,
+        },
+        "evm-1",
+        {
+            "requests": [
+                {
+                    "method": "POST",
+                    "path": "/v1/environments/evm-1/resources",
+                    "body": {"resourceIds": ["sbg-abc"]},
+                },
+            ],
+            "environment_id": None,
+            "error_status": 404,
+        },
+        id="unknown group or environment",
+    ),
+    pytest.param(
+        {
+            "environment_id": None,
+            "group_status": 200,
+            "add_status": 403,
+            "delete_status": 204,
+        },
+        "evm-1",
+        {
+            "requests": [
+                {
+                    "method": "POST",
+                    "path": "/v1/environments/evm-1/resources",
+                    "body": {"resourceIds": ["sbg-abc"]},
+                },
+            ],
+            "environment_id": None,
+            "error_status": 403,
+        },
+        id="into a protected environment without admin",
+    ),
+    pytest.param(
+        {
+            "environment_id": "evm-1",
+            "group_status": 200,
+            "add_status": 201,
+            "delete_status": 204,
+        },
+        None,
+        {
+            "requests": [
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+                {
+                    "method": "DELETE",
+                    "path": "/v1/environments/evm-1/resources?resourceIds=sbg-abc",
+                    "body": None,
+                },
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": None,
+            "error_status": None,
+        },
+        id="clear",
+    ),
+    pytest.param(
+        {
+            "environment_id": None,
+            "group_status": 200,
+            "add_status": 201,
+            "delete_status": 204,
+        },
+        None,
+        {
+            "requests": [
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": None,
+            "error_status": None,
+        },
+        id="clear when not in an environment",
+    ),
+    pytest.param(
+        {
+            "environment_id": None,
+            "group_status": 404,
+            "add_status": 201,
+            "delete_status": 204,
+        },
+        None,
+        {
+            "requests": [
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": None,
+            "error_status": 404,
+        },
+        id="clear an unknown group",
+    ),
+    pytest.param(
+        {
+            "environment_id": "evm-1",
+            "group_status": 200,
+            "add_status": 201,
+            "delete_status": 403,
+        },
+        None,
+        {
+            "requests": [
+                {
+                    "method": "GET",
+                    "path": "/v1/sandbox-groups/sbg-abc",
+                    "body": None,
+                },
+                {
+                    "method": "DELETE",
+                    "path": "/v1/environments/evm-1/resources?resourceIds=sbg-abc",
+                    "body": None,
+                },
+            ],
+            "environment_id": None,
+            "error_status": 403,
+        },
+        id="clear from a protected environment without admin",
+    ),
+]
+
+
+def _group_environment_handler(stub, requests):
+    state = {"environment_id": stub["environment_id"]}
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(
+            {
+                "method": request.method,
+                "path": request.url.raw_path.decode(),
+                "body": json.loads(request.content) if request.content else None,
+            }
+        )
+
+        if request.method == "GET":
+            group = {**SANDBOX_GROUP_JSON, "environmentId": state["environment_id"]}
+            return httpx2.Response(stub["group_status"], json=group)
+        if request.method == "POST" and stub["add_status"] == 201:
+            state["environment_id"] = request.url.path.split("/")[3]
+            return httpx2.Response(201, json=ENVIRONMENT_JSON)
+        if request.method == "DELETE" and stub["delete_status"] == 204:
+            state["environment_id"] = None
+            return httpx2.Response(204)
+        status = (
+            stub["add_status"] if request.method == "POST" else stub["delete_status"]
+        )
+        return httpx2.Response(status, json={"message": "failed"})
+
+    return handler
+
+
+def _group_environment_outcome(requests, group, error):
+    return {
+        "requests": requests,
+        "environment_id": group.environment_id if group is not None else None,
+        "error_status": error.status_code if error is not None else None,
+    }
+
+
+async def _await_capturing_client_error(call):
+    try:
+        return await call, None
+    except ClientError as error:
+        return None, error
+
+
+def _call_capturing_client_error(call):
+    try:
+        return call(), None
+    except ClientError as error:
+        return None, error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("stub", "environment_id", "expected"), GROUP_ENVIRONMENT_CASES
+)
+async def test_set_group_environment(stub, environment_id, expected):
+    # arrange
+    requests = []
+    client = _sandbox_client(_group_environment_handler(stub, requests))
+
+    # act
+    group, error = await _await_capturing_client_error(
+        client.set_group_environment("sbg-abc", environment_id)
+    )
+
+    # assert
+    assert _group_environment_outcome(requests, group, error) == expected
+
+
+@pytest.mark.parametrize(
+    ("stub", "environment_id", "expected"), GROUP_ENVIRONMENT_CASES
+)
+def test_sync_set_group_environment(stub, environment_id, expected):
+    # arrange
+    requests = []
+    client = _sync_sandbox_client(_group_environment_handler(stub, requests))
+
+    # act
+    group, error = _call_capturing_client_error(
+        lambda: client.set_group_environment("sbg-abc", environment_id)
+    )
+
+    # assert
+    assert _group_environment_outcome(requests, group, error) == expected
+
+
+@pytest.mark.asyncio
+async def test_set_group_environment_rejects_an_empty_environment_id():
+    requests = []
+
+    async def handler(request):
+        requests.append(request)
+        return httpx2.Response(500)
+
+    client = _sandbox_client(handler)
+
+    with pytest.raises(ValueError, match="pass None to clear it"):
+        await client.set_group_environment("sbg-abc", "")
+
+    assert requests == []
+
+
+def test_sync_set_group_environment_rejects_an_empty_environment_id():
+    requests = []
+
+    def handler(request):
+        requests.append(request)
+        return httpx2.Response(500)
+
+    client = _sync_sandbox_client(handler)
+
+    with pytest.raises(ValueError, match="pass None to clear it"):
+        client.set_group_environment("sbg-abc", "")
+
+    assert requests == []
 
 
 def test_sync_create_in_a_suspended_group_raises_sandbox_group_suspended_error():

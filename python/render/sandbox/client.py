@@ -322,6 +322,44 @@ class SandboxClient:
         """
         return await self.api.set_default_group(sandbox_group_id)
 
+    async def set_group_environment(
+        self, sandbox_group_id: str, environment_id: str | None
+    ) -> SandboxGroup:
+        """Set the environment a sandbox group belongs to.
+
+        A group belongs to at most one environment, so setting a new one
+        replaces the old one. Changing the environment of a group in a protected
+        environment, or setting a protected environment, requires an admin.
+
+        Args:
+            sandbox_group_id: The sandbox group.
+            environment_id: The environment, or None to clear it.
+
+        Returns:
+            The updated sandbox group.
+
+        Raises:
+            ClientError: If the group or environment does not exist, or a
+                protected environment is involved and the caller is not an
+                admin.
+            ServerError: For 5xx server errors.
+            ValueError: If environment_id is empty.
+        """
+        if environment_id == "":
+            raise ValueError("environment_id must not be empty; pass None to clear it")
+        if environment_id is not None:
+            await self.api.add_group_to_environment(sandbox_group_id, environment_id)
+            return await self.api.get_group(sandbox_group_id)
+
+        group = await self.api.get_group(sandbox_group_id)
+        if group.environment_id is None:
+            return group
+
+        await self.api.remove_group_from_environment(
+            sandbox_group_id, group.environment_id
+        )
+        return await self.api.get_group(sandbox_group_id)
+
     async def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
         """Terminate a sandbox.
 

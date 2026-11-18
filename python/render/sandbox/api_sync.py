@@ -27,6 +27,10 @@ from render.client.util_sync import (
     handle_httpx_exception,
     request_errors,
 )
+from render.public_api.api.projects_environments import (
+    add_resources_to_environment,
+    remove_resources_from_environment,
+)
 from render.public_api.api.sandboxes import (
     create_sandbox,
     create_sandbox_build,
@@ -53,6 +57,9 @@ from render.public_api.api.sandboxes import (
     terminate_sandbox,
     update_sandbox_group,
     update_sandbox_group_credential,
+)
+from render.public_api.models.environment_resources_post_input import (
+    EnvironmentResourcesPOSTInput,
 )
 from render.public_api.models.error import Error
 from render.public_api.models.sandbox import Sandbox as GeneratedSandbox
@@ -641,6 +648,26 @@ class SyncSandboxApi:
                 "Failed to set default sandbox group: unexpected response type"
             )
         return _to_sandbox_group(response.parsed)
+
+    def add_group_to_environment(
+        self, sandbox_group_id: str, environment_id: str
+    ) -> None:
+        with request_errors("set sandbox group environment"):
+            response = add_resources_to_environment.sync_detailed(
+                environment_id,
+                client=self.client,
+                body=EnvironmentResourcesPOSTInput(resource_ids=[sandbox_group_id]),
+            )
+        _handle_sandbox_api_error(response, "set sandbox group environment")
+
+    def remove_group_from_environment(
+        self, sandbox_group_id: str, environment_id: str
+    ) -> None:
+        with request_errors("clear sandbox group environment"):
+            response = remove_resources_from_environment.sync_detailed(
+                environment_id, client=self.client, resource_ids=[sandbox_group_id]
+            )
+        _handle_sandbox_api_error(response, "clear sandbox group environment")
 
     def terminate(self, sandbox_id: str, owner_id: str) -> None:
         with request_errors("terminate sandbox"):
