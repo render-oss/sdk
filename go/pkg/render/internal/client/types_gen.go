@@ -19,6 +19,7 @@ import (
 	externalRef5 "github.com/render-oss/sdk/go/pkg/render/internal/client/envvar"
 	externalRef6 "github.com/render-oss/sdk/go/pkg/render/internal/client/events"
 	externalRef8 "github.com/render-oss/sdk/go/pkg/render/internal/client/eventtypes"
+	externalRef9 "github.com/render-oss/sdk/go/pkg/render/internal/client/hostedgit"
 	externalRef10 "github.com/render-oss/sdk/go/pkg/render/internal/client/jobs"
 	externalRef11 "github.com/render-oss/sdk/go/pkg/render/internal/client/logs"
 	externalRef12 "github.com/render-oss/sdk/go/pkg/render/internal/client/maintenance"
@@ -4197,6 +4198,21 @@ type ListFlowsParams struct {
 	WorkflowId *externalRef20.WorkflowIDFilterParam `form:"workflowId,omitempty" json:"workflowId,omitempty"`
 }
 
+// ListHostedReposParams defines parameters for ListHostedRepos.
+type ListHostedReposParams struct {
+	// OwnerId The ID of the workspace whose hosted repos to list
+	OwnerId externalRef9.HostedRepoOwnerIdParam `form:"ownerId" json:"ownerId"`
+
+	// Name Return only the hosted repo with this name
+	Name *externalRef9.HostedRepoNameParam `form:"name,omitempty" json:"name,omitempty"`
+
+	// Cursor The position in the result list to start from when fetching paginated results. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Cursor *CursorParam `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Limit The maximum number of items to return. For details, see [Pagination](https://api-docs.render.com/reference/pagination).
+	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
 // ListKeyValueParams defines parameters for ListKeyValue.
 type ListKeyValueParams struct {
 	// Name Filter by name
@@ -5724,6 +5740,9 @@ type AddResourcesToEnvironmentJSONRequestBody = EnvironmentResourcesPOSTInput
 
 // StartFlowRunJSONRequestBody defines body for StartFlowRun for application/json ContentType.
 type StartFlowRunJSONRequestBody = externalRef20.StartFlowRun
+
+// CreateHostedRepoJSONRequestBody defines body for CreateHostedRepo for application/json ContentType.
+type CreateHostedRepoJSONRequestBody = externalRef9.HostedRepoPOSTInput
 
 // CreateKeyValueJSONRequestBody defines body for CreateKeyValue for application/json ContentType.
 type CreateKeyValueJSONRequestBody = KeyValuePOSTInput

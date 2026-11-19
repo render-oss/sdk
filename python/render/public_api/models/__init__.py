@@ -181,6 +181,10 @@ from .git_credentials import GitCredentials
 from .header import Header
 from .header_input import HeaderInput
 from .header_with_cursor import HeaderWithCursor
+from .hosted_repo import HostedRepo
+from .hosted_repo_post_input import HostedRepoPOSTInput
+from .hosted_repo_state import HostedRepoState
+from .hosted_repo_with_cursor import HostedRepoWithCursor
 from .image import Image
 from .image_pull_failed import ImagePullFailed
 from .initial_deploy_hook_ended import InitialDeployHookEnded
@@ -661,6 +665,10 @@ __all__ = (
     "Header",
     "HeaderInput",
     "HeaderWithCursor",
+    "HostedRepo",
+    "HostedRepoPOSTInput",
+    "HostedRepoState",
+    "HostedRepoWithCursor",
     "Image",
     "ImagePullFailed",
     "InitialDeployHookEnded",
