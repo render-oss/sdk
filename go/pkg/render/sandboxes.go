@@ -885,10 +885,13 @@ func idleError(ctx context.Context, err error) error {
 	return err
 }
 
-// CreateSandboxGroupParams names a new group. Region defaults to Oregon.
+// CreateSandboxGroupParams names a new group. Region defaults to Oregon. EnvironmentID puts the group in
+// that environment; leave it empty for no environment. Creating a group in a protected environment
+// requires an admin.
 type CreateSandboxGroupParams struct {
-	Name   string
-	Region string
+	Name          string
+	Region        string
+	EnvironmentID string
 }
 
 // CreateGroup creates a group within the workspace's configured group count limit.
@@ -900,6 +903,9 @@ func (s *SandboxClient) CreateGroup(ctx context.Context, params CreateSandboxGro
 	body := sandboxes.SandboxGroupPOST{OwnerId: ownerID, Name: params.Name}
 	if params.Region != "" {
 		body.Region = &params.Region
+	}
+	if params.EnvironmentID != "" {
+		body.EnvironmentId = &params.EnvironmentID
 	}
 	resp, err := s.client.internal.CreateSandboxGroupWithResponse(ctx, body)
 	if err != nil {

@@ -607,6 +607,80 @@ func conflictClient(t *testing.T, code string) *SandboxClient {
 	return c.Experimental.Sandboxes
 }
 
+type groupCreateOutcome struct {
+	Body string
+	Err  error
+}
+
+func TestSandboxGroupCreate(t *testing.T) {
+	tests := []struct {
+		name   string
+		params CreateSandboxGroupParams
+		want   groupCreateOutcome
+	}{
+		{
+			name: "name only",
+			params: CreateSandboxGroupParams{
+				Name: "agents",
+			},
+			want: groupCreateOutcome{
+				Body: `{"name":"agents","ownerId":"tea-1"}`,
+			},
+		},
+		{
+			name: "with region",
+			params: CreateSandboxGroupParams{
+				Name:   "agents",
+				Region: "frankfurt",
+			},
+			want: groupCreateOutcome{
+				Body: `{"name":"agents","ownerId":"tea-1","region":"frankfurt"}`,
+			},
+		},
+		{
+			name: "with environment",
+			params: CreateSandboxGroupParams{
+				Name:          "agents",
+				EnvironmentID: "evm-1",
+			},
+			want: groupCreateOutcome{
+				Body: `{"environmentId":"evm-1","name":"agents","ownerId":"tea-1"}`,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// arrange
+			client, gotBody := recordingGroupCreateClient(t)
+
+			// act
+			_, err := client.CreateGroup(context.Background(), tt.params)
+
+			// assert
+			require.Equal(t, tt.want, groupCreateOutcome{Body: *gotBody, Err: err})
+		})
+	}
+}
+
+func recordingGroupCreateClient(t *testing.T) (*SandboxClient, *string) {
+	t.Helper()
+	var gotBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		var compact bytes.Buffer
+		_ = json.Compact(&compact, body)
+		gotBody = compact.String()
+
+		writeJSON(w, http.StatusCreated, groupInEnvironmentJSON(""))
+	}))
+	t.Cleanup(server.Close)
+
+	c, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	return c.Experimental.Sandboxes, &gotBody
+}
+
 func TestSandboxGroupDelete(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("DELETE /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {
