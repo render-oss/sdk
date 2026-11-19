@@ -1172,10 +1172,24 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Creates a sandbox group within the workspace's group count limit.
+   *
+   * Creating a group in a protected environment requires an admin.
+   *
+   * @param input.name - The group name.
+   * @param input.region - The region. Defaults to Oregon.
+   * @param input.ownerId - The workspace. Defaults to the client's workspace.
+   * @param input.environmentId - The environment. Omit it for no environment.
+   * @returns The new sandbox group.
+   * @throws `ClientError` if the API rejects the group, for example because the environment is
+   *   protected and the caller is not an admin.
+   */
   async createGroup(input: {
     name: string;
     region?: string;
     ownerId?: `tea-${string}`;
+    environmentId?: string;
   }): Promise<SandboxGroup> {
     const ownerId = this.resolveOwnerId(input.ownerId);
     return unwrap(

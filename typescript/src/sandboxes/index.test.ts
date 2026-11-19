@@ -3695,6 +3695,43 @@ describe("sandbox group selection", () => {
     });
   });
 
+  it.each([
+    {
+      name: "omits environmentId when none is given",
+      input: {
+        name: "agents",
+      },
+      body: {
+        ownerId: "tea-default",
+        name: "agents",
+        region: "oregon",
+      },
+    },
+    {
+      name: "sends environmentId when given",
+      input: {
+        name: "agents",
+        environmentId: "evm-1",
+      },
+      body: {
+        ownerId: "tea-default",
+        name: "agents",
+        region: "oregon",
+        environmentId: "evm-1",
+      },
+    },
+  ])("createGroup $name", async ({ input, body }) => {
+    // arrange
+    const post = mockApiClient("POST", { status: 201, data: { id: "sbg-1" } });
+    const client = new SandboxesClient(post, "tea-default");
+
+    // act
+    await client.createGroup(input);
+
+    // assert
+    expect(vi.mocked(post.POST).mock.calls).toStrictEqual([["/sandbox-groups", { body }]]);
+  });
+
   it("deletes a group when the API answers 204 with no body", async () => {
     const del = mockApiClient("DELETE", { status: 204 });
     await expect(new SandboxesClient(del).deleteGroup("sbg-1")).resolves.toBeUndefined();
