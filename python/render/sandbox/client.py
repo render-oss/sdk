@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import os
 import re
 import warnings
@@ -196,6 +198,11 @@ class SandboxClient:
                 interval_seconds=wait_settings.interval_seconds,
                 owner_id=resolved_owner_id,
             )
+        except asyncio.CancelledError:
+            # The caller never gets the id, so nobody else can terminate it.
+            with contextlib.suppress(Exception):
+                await self.terminate(sandbox.id, owner_id=resolved_owner_id)
+            raise
         except Exception as exc:
             raise SandboxCreateWaitError(
                 f"created sandbox {sandbox.id}, but it is not running: {exc}",

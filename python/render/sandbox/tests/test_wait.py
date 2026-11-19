@@ -521,6 +521,44 @@ async def test_create_with_wait_lets_cancellation_through():
         await task
 
 
+# A cancelled create never returns the id, so the caller can't terminate the
+# sandbox itself.
+@pytest.mark.asyncio
+async def test_create_with_wait_terminates_the_sandbox_when_cancelled():
+    requests: list[httpx2.Request] = []
+    polling = asyncio.Event()
+
+    async def handler(request):
+        requests.append(request)
+        if request.url.path.endswith("/terminate"):
+            return httpx2.Response(204)
+        if request.method == "POST":
+            return httpx2.Response(201, json=_sandbox_json("creating"))
+
+        # allow the main test to continue, then wait indefinitely
+        polling.set()
+        await asyncio.Event().wait()
+
+    internal = AuthenticatedClient(
+        base_url="https://api.test/v1",
+        token="test-token",
+        httpx_args={"transport": httpx2.MockTransport(handler)},
+    )
+    client = SandboxClient(internal, default_owner_id="tea-test")
+    task = asyncio.ensure_future(client.create(wait=True))
+
+    # Wait for polling.set, then cancel
+    await polling.wait()
+    task.cancel()
+
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    terminates = [r for r in requests if r.url.path.endswith("/terminate")]
+    assert [r.url.path for r in terminates] == ["/v1/sandboxes/sbx-abc/terminate"]
+    assert terminates[0].url.params["ownerId"] == "tea-test"
+
+
 @pytest.mark.asyncio
 async def test_a_wait_options_timeout_of_none_uses_the_sandbox_default(
     make_client, clock
