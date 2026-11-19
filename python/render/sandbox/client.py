@@ -287,11 +287,33 @@ class SandboxClient:
         return await self.api.list_groups(resolved_owner_id, cursor, limit)
 
     async def create_group(
-        self, name: str, *, owner_id: str | None = None, region: str | None = None
+        self,
+        name: str,
+        *,
+        owner_id: str | None = None,
+        region: str | None = None,
+        environment_id: str | None = None,
     ) -> SandboxGroup:
-        """Create a group within the workspace's configured group count limit."""
+        """Create a sandbox group within the workspace's group count limit.
+
+        Creating a group in a protected environment requires an admin.
+
+        Args:
+            name: The group name.
+            owner_id: The workspace. Defaults to the client's workspace.
+            region: The region. Defaults to Oregon.
+            environment_id: The environment, or None for no environment.
+
+        Returns:
+            The new sandbox group.
+
+        Raises:
+            ClientError: If the API rejects the group, for example because the
+                environment is protected and the caller is not an admin.
+            ServerError: For 5xx server errors.
+        """
         return await self.api.create_group(
-            self._resolve_owner_id(owner_id), name, region
+            self._resolve_owner_id(owner_id), name, region, environment_id
         )
 
     async def get_group(self, sandbox_group_id: str) -> SandboxGroup:

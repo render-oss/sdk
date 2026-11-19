@@ -588,10 +588,17 @@ class SyncSandboxApi:
         )
 
     def create_group(
-        self, owner_id: str, name: str, region: str | None
+        self,
+        owner_id: str,
+        name: str,
+        region: str | None,
+        environment_id: str | None,
     ) -> SandboxGroup:
         body = SandboxGroupPOST(
-            owner_id=owner_id, name=name, region=region if region is not None else UNSET
+            owner_id=owner_id,
+            name=name,
+            region=region if region is not None else UNSET,
+            environment_id=environment_id if environment_id is not None else UNSET,
         )
         with request_errors("create sandbox group"):
             response = create_sandbox_group.sync_detailed(client=self.client, body=body)

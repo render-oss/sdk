@@ -1325,6 +1325,81 @@ def test_sync_group_selection_and_management():
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("environment_id", "expected_body"),
+    [
+        (
+            None,
+            {
+                "ownerId": "tea-test",
+                "name": "agents",
+            },
+        ),
+        (
+            "evm-abc",
+            {
+                "ownerId": "tea-test",
+                "name": "agents",
+                "environmentId": "evm-abc",
+            },
+        ),
+    ],
+)
+async def test_create_group_sends_environment_id(environment_id, expected_body):
+    # arrange
+    captured = {}
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx2.Response(201, json=SANDBOX_GROUP_JSON)
+
+    client = _sandbox_client(handler)
+
+    # act
+    await client.create_group("agents", environment_id=environment_id)
+
+    # assert
+    assert captured["body"] == expected_body
+
+
+@pytest.mark.parametrize(
+    ("environment_id", "expected_body"),
+    [
+        (
+            None,
+            {
+                "ownerId": "tea-test",
+                "name": "agents",
+            },
+        ),
+        (
+            "evm-abc",
+            {
+                "ownerId": "tea-test",
+                "name": "agents",
+                "environmentId": "evm-abc",
+            },
+        ),
+    ],
+)
+def test_sync_create_group_sends_environment_id(environment_id, expected_body):
+    # arrange
+    captured = {}
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx2.Response(201, json=SANDBOX_GROUP_JSON)
+
+    client = _sync_sandbox_client(handler)
+
+    # act
+    client.create_group("agents", environment_id=environment_id)
+
+    # assert
+    assert captured["body"] == expected_body
+
+
+@pytest.mark.asyncio
 async def test_delete_group_sends_delete():
     captured = []
 
