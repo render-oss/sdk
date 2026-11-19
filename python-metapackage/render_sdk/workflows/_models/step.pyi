@@ -14,6 +14,7 @@ from render.workflows._models.step import (
     StepKey as StepKey,
     StepOutcome as StepOutcome,
     StepRecord as StepRecord,
+    StepResult as StepResult,
     StepStartRequest as StepStartRequest,
     StepStartResponse as StepStartResponse,
     StepSuccess as StepSuccess,

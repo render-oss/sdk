@@ -22,7 +22,7 @@ from render.client.errors import (
 )
 from render.workflows import _determinism
 from render.workflows._models.history import History
-from render.workflows._models.step import StepKey, StepRecord
+from render.workflows._models.step import StepKey, StepRecord, StepResult
 from render.workflows._models.task import DeterminismDetails, DeterminismKind
 from render.workflows._models.wire import UNSET, Unset
 from render.workflows._utils import clock, serializers
@@ -223,12 +223,17 @@ class DurableFlowContext(FlowContext):
                 self._failure.raise_if_set()
 
                 completion = error.to_step_completion()
-                if completion is not None:
+                outcome = (
                     self._journal.finish_attempt(completion)
+                    if completion is not None
+                    else None
+                )
 
                 # A recoverable failure reaches flow code only after its write.
                 self._failure.raise_if_set()
-                raise
+                if outcome is None:
+                    raise
+            return self._recorded_outcome(step_ctx, outcome)
 
     @contextmanager
     def start_step(
@@ -300,10 +305,25 @@ class DurableFlowContext(FlowContext):
         # Failed argument encoding raised above unless this was a replay.
         if encoded_args is None:
             raise TerminalFlowError("step input is missing after argument validation")
-        output, step_ctx = self._run_attempts(step_ctx, fn, encoded_args)
-        self._journal.complete(step_ctx, output)
+        output, step_ctx = self._run_attempts(step_ctx, recorded_step, fn, encoded_args)
+        if isinstance(output, StepResult):
+            return self._recorded_outcome(step_ctx, output)
+        outcome = self._journal.complete(step_ctx, output)
+        if outcome is not None:
+            return self._recorded_outcome(step_ctx, outcome)
         # Return the decoded output, so a first run sees what a replay would.
         return serializers.decode(output)
+
+    def _recorded_outcome(self, step_ctx: StepContext, outcome: StepResult) -> Any:
+        """Return or raise the outcome another worker recorded first."""
+        if outcome.error is not None:
+            raise raised_error(
+                step_ctx.name,
+                outcome.error,
+                session_id=self._metadata.flow_run_id,
+                step_key=step_ctx.step_key,
+            )
+        return serializers.decode(outcome.output) if outcome.output else None
 
     def _checked_args(
         self,
@@ -332,20 +352,31 @@ class DurableFlowContext(FlowContext):
     def _run_attempts(
         self,
         step_ctx: StepContext,
+        recorded_step: StepRecord | None,
         fn: Callable[..., Any],
         encoded_args: str,
-    ) -> tuple[str, StepContext]:
+    ) -> tuple[str | StepResult, StepContext]:
         """Run the step until it succeeds or runs out of retries.
 
-        Returns the encoded result and the step at the attempt that succeeded.
-        Local inline retries move the step to a new attempt, so the caller
-        must use the returned step, not the one it passed in.
+        Returns the encoded result and the step at the attempt that succeeded,
+        or the outcome another worker recorded for a step resumed past its
+        retries. Local inline retries move the step to a new attempt, so the
+        caller must use the returned step, not the one it passed in.
         """
         retry = step_ctx.retry
         max_retries = retry.max_retries if retry else 0
 
         if step_ctx.attempt > max_retries:
-            raise self._fail_resume_past_retries(step_ctx, max_retries)
+            if recorded_step is None:
+                raise TerminalFlowError(
+                    f"ctx.step({step_ctx.name}) has no recorded start"
+                )
+            return (
+                self._fail_resumed_past_retries(
+                    step_ctx, max_retries, recorded_step.started_at
+                ),
+                step_ctx,
+            )
 
         while True:
             started_at = clock.now()
@@ -392,14 +423,14 @@ class DurableFlowContext(FlowContext):
                     started_at=started_at,
                 ) from None
 
-    def _fail_resume_past_retries(
-        self, step_ctx: StepContext, max_retries: int
-    ) -> ExecutionError:
+    def _fail_resumed_past_retries(
+        self, step_ctx: StepContext, max_retries: int, started_at: datetime
+    ) -> StepResult:
         """Reuse the last recorded failure without executing another attempt."""
         prev_attempts = self._journal.attempts(step_ctx.step_key)
         if prev_attempts:
             final = prev_attempts[-1]
-            return raised_error(
+            raise raised_error(
                 step_ctx.name,
                 final.error,
                 session_id=self._metadata.flow_run_id,
@@ -407,10 +438,21 @@ class DurableFlowContext(FlowContext):
                 completion=final,
             )
 
-        return TerminalFlowError(
+        message = (
             f"ctx.step({step_ctx.name}) resumed at attempt {step_ctx.attempt}, "
             f"past its {max_retries} retries"
         )
+        outcome = self._journal.finish_attempt(
+            self._journal.create_failed_attempt(
+                replace(step_ctx, attempt=step_ctx.attempt - 1),
+                recorded_error(TerminalFlowError(message)),
+                started_at=started_at,
+                workflow_attempt=self._workflow_attempt,
+            )
+        )
+        if outcome is not None:
+            return outcome
+        raise TerminalFlowError(message)
 
     def _step_failure(
         self,

@@ -27,11 +27,14 @@ from render.client.errors import (
 from render.client.errors import TimeoutError as SdkTimeoutError
 from render.workflows._models.step import (
     StepAttemptResponse,
+    StepCompleteResponse,
     StepKey,
     StepOutcome,
+    StepResult,
     StepSuccess,
     StepType,
 )
+from render.workflows._models.step import StepError as WireStepError
 from render.workflows._models.task import (
     DeterminismDetails,
     DeterminismKind,
@@ -383,6 +386,57 @@ def test_inline_step_records_its_start_and_outcome(ctx, mock_client):
         "total": 30,
     }
     assert "final_attempt" not in complete["outcome"]
+
+
+def test_losing_completion_returns_the_recorded_output(ctx, mock_client):
+    mock_client.step_complete.return_value = StepCompleteResponse(
+        applied=False, outcome=StepResult(output='{"id": "ch-first"}')
+    )
+
+    assert ctx.step("charge", lambda: {"id": "ch-stale"}) == {"id": "ch-first"}
+    (step,) = ctx._journal._history.steps
+    assert step.output == '{"id": "ch-first"}'
+
+
+def test_losing_completion_raises_the_recorded_error(ctx, mock_client):
+    mock_client.step_complete.return_value = StepCompleteResponse(
+        applied=False,
+        outcome=StepResult(error=WireStepError(name="ValueError", message="first")),
+    )
+
+    with pytest.raises(StepError, match="first"):
+        ctx.step("charge", lambda: "stale")
+    assert ctx.run_failure is None
+
+
+def test_losing_failure_returns_the_recorded_output(ctx, mock_client):
+    mock_client.step_complete.return_value = StepCompleteResponse(
+        applied=False, outcome=StepResult(output='"recorded"')
+    )
+
+    assert ctx.step("charge", out_of_retries) == "recorded"
+    assert ctx.run_failure is None
+
+
+def test_step_complete_response_parses_the_recorded_outcome():
+    response = StepCompleteResponse.from_dict(
+        {
+            "applied": False,
+            "outcome": {"output": base64.b64encode(b'{"a": 1}').decode()},
+        }
+    )
+    assert response.outcome == StepResult(output='{"a": 1}')
+    assert StepCompleteResponse.from_dict({"applied": True}).outcome is None
+    empty = StepCompleteResponse.from_dict({"applied": False, "outcome": {}})
+    assert empty.outcome == StepResult()
+
+
+def test_losing_completion_without_an_outcome_fails_the_run(ctx, mock_client):
+    mock_client.step_complete.return_value = StepCompleteResponse(applied=False)
+
+    with pytest.raises(ExecutionError, match="no recorded outcome") as raised:
+        ctx.step("charge", lambda: "stale")
+    assert ctx.run_failure is raised.value
 
 
 def test_success_without_an_output_sends_only_its_completion_time():
@@ -2146,17 +2200,67 @@ def test_open_step_past_its_retries_records_a_catchable_failure(mock_client, sle
     assert ctx.step("fallback", lambda: "recovered") == "recovered"
 
 
-def test_interrupted_step_without_a_recorded_error_is_terminal(mock_client, sleeps):
-    ctx = replay_ctx(mock_client, [recorded_step(0, "flaky", [], done=False)])
+def test_interrupted_step_without_a_recorded_error_is_terminal(
+    mocker, mock_client, sleeps
+):
+    original_started_at = "2026-10-13T21:00:00Z"
+    replay_time = datetime(2026, 10, 14, 22, tzinfo=timezone.utc)
+    mocker.patch.object(clock, "now", return_value=replay_time)
+    ctx = replay_ctx(
+        mock_client,
+        [recorded_step(0, "flaky", [], done=False, started_at=original_started_at)],
+    )
+    mock_client.step_complete.return_value = StepCompleteResponse(applied=True)
 
     with pytest.raises(TerminalFlowError, match="past its 0 retries") as raised:
         ctx.step("flaky", must_not_run)
     assert ctx.run_failure is raised.value
-    assert requests(mock_client) == []
+    (complete,) = requests(mock_client)
+    final_attempt = complete["outcome"]["final_attempt"]
+    assert final_attempt["attempt"] == 0
+    assert parse_time(final_attempt["started_at"]) == parse_time(original_started_at)
+    assert parse_time(final_attempt["ended_at"]) == replay_time
+    assert "past its 0 retries" in final_error(complete)["message"]
+    (step,) = ctx._journal._history.steps
+    assert step.completed_at == replay_time
     sleeps.assert_not_called()
     with pytest.raises(TerminalFlowError) as later:
         ctx.step("fallback", must_not_run)
     assert later.value is raised.value
+
+
+def test_interrupted_step_adopts_a_competing_success(mock_client, sleeps):
+    ctx = replay_ctx(mock_client, [recorded_step(0, "flaky", [], done=False)])
+    mock_client.step_complete.return_value = StepCompleteResponse(
+        applied=False, outcome=StepResult(output='"winner"')
+    )
+
+    assert ctx.step("flaky", must_not_run) == "winner"
+    assert ctx.run_failure is None
+    (step,) = ctx._journal._history.steps
+    assert step.output == '"winner"'
+    assert step.error is None
+    mock_client.step_complete.assert_called_once()
+    sleeps.assert_not_called()
+
+
+def test_interrupted_step_adopts_a_competing_failure(mock_client, sleeps):
+    ctx = replay_ctx(mock_client, [recorded_step(0, "flaky", [], done=False)])
+    error = WireStepError(name="ValueError", message="winner error")
+    mock_client.step_complete.return_value = StepCompleteResponse(
+        applied=False, outcome=StepResult(error=error)
+    )
+
+    with pytest.raises(StepError, match="winner error"):
+        ctx.step("flaky", must_not_run)
+    assert ctx.run_failure is None
+    (step,) = ctx._journal._history.steps
+    assert step.output is None
+    assert step.error == error
+    mock_client.step_complete.assert_called_once()
+    sleeps.assert_not_called()
+    mock_client.step_complete.return_value = StepCompleteResponse(applied=True)
+    assert ctx.step("fallback", lambda: "recovered") == "recovered"
 
 
 def test_open_step_past_its_retries_stops_on_an_unacknowledged_failure(

@@ -115,6 +115,10 @@ describe("Exported symbols", () => {
     expectTypeOf<InstanceType<typeof TaskRunResult>>().toHaveProperty("taskRunId");
   });
 
+  it("TaskRunStatus covers every status the API returns", () => {
+    expectTypeOf<`${TaskRunStatus}`>().toEqualTypeOf<TaskRun["status"]>();
+  });
+
   it("FlowRunStatus covers every status the API returns", () => {
     expectTypeOf<`${FlowRunStatus}`>().toEqualTypeOf<FlowRun["status"]>();
   });
@@ -341,15 +345,23 @@ function testFlowRunStatus() {
 function testTaskRunStatus() {
   const pending: TaskRunStatus = TaskRunStatus.PENDING;
   const running: TaskRunStatus = TaskRunStatus.RUNNING;
+  const paused: TaskRunStatus = TaskRunStatus.PAUSED;
+  const suspended: TaskRunStatus = TaskRunStatus.SUSPENDED;
+  const sleeping: TaskRunStatus = TaskRunStatus.SLEEPING;
   const completed: TaskRunStatus = TaskRunStatus.COMPLETED;
   const succeeded: TaskRunStatus = TaskRunStatus.SUCCEEDED;
   const failed: TaskRunStatus = TaskRunStatus.FAILED;
+  const canceled: TaskRunStatus = TaskRunStatus.CANCELED;
 
   const pendingValue: "pending" = TaskRunStatus.PENDING;
   const runningValue: "running" = TaskRunStatus.RUNNING;
+  const pausedValue: "paused" = TaskRunStatus.PAUSED;
+  const suspendedValue: "suspended" = TaskRunStatus.SUSPENDED;
+  const sleepingValue: "sleeping" = TaskRunStatus.SLEEPING;
   const completedValue: "completed" = TaskRunStatus.COMPLETED;
   const succeededValue: "succeeded" = TaskRunStatus.SUCCEEDED;
   const failedValue: "failed" = TaskRunStatus.FAILED;
+  const canceledValue: "canceled" = TaskRunStatus.CANCELED;
 }
 
 function testTaskRegistration() {
@@ -840,10 +852,6 @@ async function testAsyncWorkflowPatterns() {
 type AssertEqual<T, U> = T extends U ? (U extends T ? true : false) : false;
 
 type TaskRunIdIsString = AssertEqual<TaskRun["id"], string>;
-type TaskRunStatusIsEnum = AssertEqual<
-  TaskRun["status"],
-  "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused"
->;
 type ObjectRegionType = AssertEqual<
   Region,
   "frankfurt" | "oregon" | "ohio" | "singapore" | "virginia"

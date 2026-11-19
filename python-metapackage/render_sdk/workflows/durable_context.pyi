@@ -24,6 +24,7 @@ from render.workflows.durable_context import (
     StepJournal as StepJournal,
     StepKey as StepKey,
     StepRecord as StepRecord,
+    StepResult as StepResult,
     TYPE_CHECKING as TYPE_CHECKING,
     TaskDefinition as TaskDefinition,
     TerminalFlowError as TerminalFlowError,

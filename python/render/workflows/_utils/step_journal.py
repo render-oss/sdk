@@ -24,10 +24,12 @@ from render.workflows._models.step import (
     StepAttemptRecord,
     StepAttemptRequest,
     StepCompleteRequest,
+    StepCompleteResponse,
     StepError,
     StepKey,
     StepOutcome,
     StepRecord,
+    StepResult,
     StepStartRequest,
     StepSuccess,
 )
@@ -190,26 +192,24 @@ class StepJournal:
             )
         )
 
-    def complete(self, step_ctx: StepContext, output: str) -> None:
-        """Complete the step with its encoded output."""
+    def complete(self, step_ctx: StepContext, output: str) -> StepResult | None:
+        """Complete the step with its encoded output. Returns the outcome
+        already recorded if this one lost, such as after a partition."""
         completed_at = self._completed_at(step_ctx)
         self._history.record_complete(
             step_ctx.step_key,
             completed_at=completed_at,
             output=output,
         )
-        self._send(
-            lambda: self._client.step_complete(
-                StepCompleteRequest(
-                    session_id=self._session_id,
-                    key=step_ctx.step_key,
-                    outcome=StepOutcome(
-                        completed_at=completed_at.isoformat(),
-                        result=StepSuccess(output=serializers.payload(output)),
-                    ),
-                )
-            )
+        request = StepCompleteRequest(
+            session_id=self._session_id,
+            key=step_ctx.step_key,
+            outcome=StepOutcome(
+                completed_at=completed_at.isoformat(),
+                result=StepSuccess(output=serializers.payload(output)),
+            ),
         )
+        return self._send_complete(request)
 
     def create_failed_attempt(
         self,
@@ -229,8 +229,9 @@ class StepJournal:
             ended_at=self._completed_at(step_ctx),
         )
 
-    def finish_attempt(self, attempt: StepAttemptRecord) -> None:
-        """Complete a step with this failure, preserving a replayed attempt's identity."""
+    def finish_attempt(self, attempt: StepAttemptRecord) -> StepResult | None:
+        """Complete a step with this failure, preserving a replayed attempt's
+        identity. Returns the outcome already recorded if this one lost."""
         outcome = StepOutcome(
             completed_at=attempt.ended_at.isoformat(),
             result=serializers.final_attempt(
@@ -251,13 +252,32 @@ class StepJournal:
         request = StepCompleteRequest(
             session_id=self._session_id, key=attempt.step_key, outcome=outcome
         )
-        self._send(lambda: self._client.step_complete(request))
+        return self._send_complete(request)
 
-    def _send(self, write: Callable[[], object]) -> None:
+    def _send_complete(self, request: StepCompleteRequest) -> StepResult | None:
+        """Send a completion. A losing one adopts the outcome that won."""
+        response = self._send(lambda: self._client.step_complete(request))
+        if not isinstance(response, StepCompleteResponse) or response.applied:
+            return None
+        outcome = response.outcome
+        if outcome is None:
+            raise self._failure.stop(
+                ExecutionError(
+                    f"step {request.key.seq} completion was not applied, "
+                    f"but the SDK server sent no recorded outcome",
+                    type="flow",
+                )
+            )
+        self._history.adopt_outcome(
+            request.key, output=outcome.output, error=outcome.error
+        )
+        return outcome
+
+    def _send(self, write: Callable[[], object]) -> object:
         """Send a step write, failing the run if the SDK server doesn't take
         it."""
         try:
-            write()
+            return write()
         except Exception as e:
             match e:
                 case ServerError() | SdkTimeoutError() | RateLimitError():

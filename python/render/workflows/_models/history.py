@@ -153,6 +153,15 @@ class History:
         # The SDK server only sends the attempts of open steps.
         self.step_attempts.pop(step_key, None)
 
+    def adopt_outcome(
+        self, step_key: StepKey, *, output: str | None, error: StepError | None
+    ) -> None:
+        """Replace a step's outcome with the one the SDK server kept."""
+        step = self.step(step_key)
+        if step is None or step.completed_at is None:
+            raise ValueError(f"step {step_key} has no recorded completion")
+        self.steps[step_key.seq] = replace(step, output=output, error=error)
+
 
 def _several_steps_per_seq(step_key: StepKey) -> FlowHistoryError:
     return FlowHistoryError(

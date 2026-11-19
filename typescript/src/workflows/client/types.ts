@@ -16,6 +16,9 @@ export type TaskData = Array<any>;
 export enum TaskRunStatus {
   PENDING = "pending",
   RUNNING = "running",
+  PAUSED = "paused",
+  SUSPENDED = "suspended",
+  SLEEPING = "sleeping",
   COMPLETED = "completed", // deprecated, use SUCCEEDED instead
   SUCCEEDED = "succeeded",
   FAILED = "failed",
@@ -90,11 +93,11 @@ export enum FlowRunStatus {
   PENDING = "pending",
   RUNNING = "running",
   PAUSED = "paused",
+  SUSPENDED = "suspended",
+  SLEEPING = "sleeping",
   SUCCEEDED = "succeeded",
   FAILED = "failed",
   CANCELED = "canceled",
-  SUSPENDED = "suspended",
-  SLEEPING = "sleeping",
 }
 
 /**

@@ -145,12 +145,37 @@ class StepCompleteRequest(Wire):
 
 
 @dataclass
+class StepResult(Wire):
+    """The outcome the SDK server already recorded for a step."""
+
+    # The step's JSON output, decoded from the wire's base64.
+    output: str | None = None
+    error: StepError | None = None
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> StepResult:
+        return cls(
+            output=parse_base64(d["output"]) if d.get("output") else None,
+            error=StepError.from_dict(d["error"]) if d.get("error") else None,
+        )
+
+
+@dataclass
 class StepCompleteResponse(Wire):
     applied: bool
+    # The outcome that won, when applied is false.
+    outcome: StepResult | None = None
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> StepCompleteResponse:
-        return cls(applied=bool(d["applied"]))
+        return cls(
+            applied=bool(d["applied"]),
+            outcome=(
+                StepResult.from_dict(d["outcome"])
+                if d.get("outcome") is not None
+                else None
+            ),
+        )
 
 
 class StepType(str, Enum):
