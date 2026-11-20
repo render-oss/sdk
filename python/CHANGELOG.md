@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.10.0] - 2026-11-19
+
+### Added
+
+- (Sandboxes) `create_group()` accepts `environment_id`, the ID of an environment to create the group in. Without it, the group isn't in a project. Creating a group in a protected environment requires the Admin role in the workspace.
+- (Sandboxes) `set_group_environment()` puts a sandbox group in a project environment or moves it to another one. Pass `environment_id=None` to take the group out of its environment.
+
+### Deprecated
+
+- (Sandboxes) `render.experimental.sandbox`. Import from `render.sandbox`. The old path still works.
+
+### Fixed
+
+- (Sandboxes) `sandboxes.create(wait=True)` terminates the new sandbox if the call is canceled while it waits for the sandbox to become ready. Before, the sandbox kept running and its ID was lost.
+- (Workflows) A durable step that loses its completion write uses the recorded outcome. An interrupted step that resumes after it used all its retries records a final failure.
+
 ## [1.9.0] - 2026-11-16
 
 ### Added

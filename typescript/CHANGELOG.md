@@ -4,7 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.10.0] - 2026-11-19
+
+### Added
+
+- (Sandboxes) `createGroup()` accepts `environmentId`, the ID of an environment to create the group in. Without it, the group isn't in a project. Creating a group in a protected environment requires the Admin role in the workspace.
+- (Sandboxes) `setGroupEnvironment()` puts a sandbox group in a project environment or moves it to another one. Pass `null` as the environment ID to take the group out of its environment.
 
 ### Changed
 
