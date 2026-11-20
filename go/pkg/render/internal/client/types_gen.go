@@ -5243,6 +5243,12 @@ type CreateSandboxSnapshotParams struct {
 	OwnerId *externalRef16.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
 }
 
+// SuspendSandboxParams defines parameters for SuspendSandbox.
+type SuspendSandboxParams struct {
+	// OwnerId The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID.
+	OwnerId *externalRef16.OwnerId `form:"ownerId,omitempty" json:"ownerId,omitempty"`
+}
+
 // TerminateSandboxParams defines parameters for TerminateSandbox.
 type TerminateSandboxParams struct {
 	// OwnerId The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID.

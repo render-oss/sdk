@@ -2369,6 +2369,13 @@ type ClientInterface interface {
 	// Corresponds with POST /sandboxes/{sandboxId}/snapshots (the `CreateSandboxSnapshot` operationId).
 	CreateSandboxSnapshot(ctx context.Context, sandboxId externalRef16.SandboxId, params *CreateSandboxSnapshotParams, body CreateSandboxSnapshotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// SuspendSandbox Suspend sandbox
+	//
+	// Suspend the running sandbox with the provided ID. Returns HTTP 202 after the sandbox starts suspending, or if it is already `suspending` or `suspended`. Retrieve the sandbox until its status is `suspended`. Open commands and connections end. The next connection resumes the sandbox.
+	//
+	// Corresponds with POST /sandboxes/{sandboxId}/suspend (the `SuspendSandbox` operationId).
+	SuspendSandbox(ctx context.Context, sandboxId externalRef16.SandboxId, params *SuspendSandboxParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// TerminateSandbox Terminate sandbox
 	//
 	// Terminate the sandbox with the provided ID. Returns HTTP 204 even if the sandbox is already terminated. You can also terminate a sandbox while it is starting (`creating`).
@@ -8109,6 +8116,23 @@ func (c *Client) CreateSandboxSnapshotWithBody(ctx context.Context, sandboxId ex
 // Corresponds with POST /sandboxes/{sandboxId}/snapshots (the `CreateSandboxSnapshot` operationId).
 func (c *Client) CreateSandboxSnapshot(ctx context.Context, sandboxId externalRef16.SandboxId, params *CreateSandboxSnapshotParams, body CreateSandboxSnapshotJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateSandboxSnapshotRequest(c.Server, sandboxId, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// SuspendSandbox Suspend sandbox
+//
+// Suspend the running sandbox with the provided ID. Returns HTTP 202 after the sandbox starts suspending, or if it is already `suspending` or `suspended`. Retrieve the sandbox until its status is `suspended`. Open commands and connections end. The next connection resumes the sandbox.
+//
+// Corresponds with POST /sandboxes/{sandboxId}/suspend (the `SuspendSandbox` operationId).
+func (c *Client) SuspendSandbox(ctx context.Context, sandboxId externalRef16.SandboxId, params *SuspendSandboxParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewSuspendSandboxRequest(c.Server, sandboxId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -22806,6 +22830,67 @@ func NewCreateSandboxSnapshotRequestWithBody(server string, sandboxId externalRe
 	return req, nil
 }
 
+// NewSuspendSandboxRequest constructs an http.Request for the SuspendSandbox method
+func NewSuspendSandboxRequest(server string, sandboxId externalRef16.SandboxId, params *SuspendSandboxParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "sandboxId", sandboxId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/sandboxes/%s/suspend", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.OwnerId != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "ownerId", *params.OwnerId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewTerminateSandboxRequest constructs an http.Request for the TerminateSandbox method
 func NewTerminateSandboxRequest(server string, sandboxId externalRef16.SandboxId, params *TerminateSandboxParams) (*http.Request, error) {
 	var err error
@@ -29658,6 +29743,15 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with POST /sandboxes/{sandboxId}/snapshots (the `CreateSandboxSnapshot` operationId).
 	CreateSandboxSnapshotWithResponse(ctx context.Context, sandboxId externalRef16.SandboxId, params *CreateSandboxSnapshotParams, body CreateSandboxSnapshotJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateSandboxSnapshotResponse, error)
+
+	// SuspendSandboxWithResponse Suspend sandbox
+	//
+	// Suspend the running sandbox with the provided ID. Returns HTTP 202 after the sandbox starts suspending, or if it is already `suspending` or `suspended`. Retrieve the sandbox until its status is `suspended`. Open commands and connections end. The next connection resumes the sandbox.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with POST /sandboxes/{sandboxId}/suspend (the `SuspendSandbox` operationId).
+	SuspendSandboxWithResponse(ctx context.Context, sandboxId externalRef16.SandboxId, params *SuspendSandboxParams, reqEditors ...RequestEditorFn) (*SuspendSandboxResponse, error)
 
 	// TerminateSandboxWithResponse Terminate sandbox
 	//
@@ -50301,6 +50395,106 @@ func (r CreateSandboxSnapshotResponse) ContentType() string {
 	return ""
 }
 
+// SuspendSandboxResponse429Headers the declared response headers of an HTTP 429 response for SuspendSandbox
+type SuspendSandboxResponse429Headers struct {
+	RateLimitLimit     *int
+	RateLimitRemaining *int
+	RateLimitReset     *int
+	RetryAfter         *int
+}
+
+type SuspendSandboxResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON400 the response for an HTTP 400 `application/json` response
+	JSON400 *N400BadRequest
+	// JSON401 the response for an HTTP 401 `application/json` response
+	JSON401 *N401Unauthorized
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *N403Forbidden
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *N404NotFound
+	// JSON409 the response for an HTTP 409 `application/json` response
+	JSON409 *Error
+	// JSON429 the response for an HTTP 429 `application/json` response
+	JSON429 *N429RateLimit
+	// JSON500 the response for an HTTP 500 `application/json` response
+	JSON500 *N500InternalServerError
+	// JSON503 the response for an HTTP 503 `application/json` response
+	JSON503 *N503ServiceUnavailable
+	// Headers429 the parsed response headers for an HTTP 429 response
+	Headers429 *SuspendSandboxResponse429Headers
+}
+
+// GetJSON400 returns the response for an HTTP 400 `application/json` response
+func (r SuspendSandboxResponse) GetJSON400() *N400BadRequest {
+	return r.JSON400
+}
+
+// GetJSON401 returns the response for an HTTP 401 `application/json` response
+func (r SuspendSandboxResponse) GetJSON401() *N401Unauthorized {
+	return r.JSON401
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r SuspendSandboxResponse) GetJSON403() *N403Forbidden {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r SuspendSandboxResponse) GetJSON404() *N404NotFound {
+	return r.JSON404
+}
+
+// GetJSON409 returns the response for an HTTP 409 `application/json` response
+func (r SuspendSandboxResponse) GetJSON409() *Error {
+	return r.JSON409
+}
+
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r SuspendSandboxResponse) GetJSON429() *N429RateLimit {
+	return r.JSON429
+}
+
+// GetJSON500 returns the response for an HTTP 500 `application/json` response
+func (r SuspendSandboxResponse) GetJSON500() *N500InternalServerError {
+	return r.JSON500
+}
+
+// GetJSON503 returns the response for an HTTP 503 `application/json` response
+func (r SuspendSandboxResponse) GetJSON503() *N503ServiceUnavailable {
+	return r.JSON503
+}
+
+// GetBody returns the raw response body bytes
+func (r SuspendSandboxResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r SuspendSandboxResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r SuspendSandboxResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r SuspendSandboxResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 // TerminateSandboxResponse429Headers the declared response headers of an HTTP 429 response for TerminateSandbox
 type TerminateSandboxResponse429Headers struct {
 	RateLimitLimit     *int
@@ -61955,6 +62149,21 @@ func (c *ClientWithResponses) CreateSandboxSnapshotWithResponse(ctx context.Cont
 		return nil, err
 	}
 	return ParseCreateSandboxSnapshotResponse(rsp)
+}
+
+// SuspendSandboxWithResponse Suspend sandbox
+//
+// Suspend the running sandbox with the provided ID. Returns HTTP 202 after the sandbox starts suspending, or if it is already `suspending` or `suspended`. Retrieve the sandbox until its status is `suspended`. Open commands and connections end. The next connection resumes the sandbox.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /sandboxes/{sandboxId}/suspend (the `SuspendSandbox` operationId).
+func (c *ClientWithResponses) SuspendSandboxWithResponse(ctx context.Context, sandboxId externalRef16.SandboxId, params *SuspendSandboxParams, reqEditors ...RequestEditorFn) (*SuspendSandboxResponse, error) {
+	rsp, err := c.SuspendSandbox(ctx, sandboxId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseSuspendSandboxResponse(rsp)
 }
 
 // TerminateSandboxWithResponse Terminate sandbox
@@ -84594,6 +84803,118 @@ func ParseCreateSandboxSnapshotResponse(rsp *http.Response) (*CreateSandboxSnaps
 	switch {
 	case rsp.StatusCode == 429:
 		var headers CreateSandboxSnapshotResponse429Headers
+		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitLimit = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Remaining"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Remaining", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitRemaining = &value
+		}
+		if values := rsp.Header.Values("RateLimit-Reset"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Reset", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RateLimitReset = &value
+		}
+		if values := rsp.Header.Values("Retry-After"); len(values) > 0 {
+			var value int
+			if err := runtime.BindStyledParameterWithOptions("simple", "Retry-After", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			}
+			headers.RetryAfter = &value
+		}
+		response.Headers429 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseSuspendSandboxResponse parses an HTTP response from a SuspendSandboxWithResponse call
+func ParseSuspendSandboxResponse(rsp *http.Response) (*SuspendSandboxResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &SuspendSandboxResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 202:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest N400BadRequest
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest N401Unauthorized
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest N403Forbidden
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest N404NotFound
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 429:
+		var dest N429RateLimit
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest N500InternalServerError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest N503ServiceUnavailable
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON503 = &dest
+
+	}
+
+	switch {
+	case rsp.StatusCode == 429:
+		var headers SuspendSandboxResponse429Headers
 		if values := rsp.Header.Values("RateLimit-Limit"); len(values) > 0 {
 			var value int
 			if err := runtime.BindStyledParameterWithOptions("simple", "RateLimit-Limit", values[0], &value, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: false, Type: "integer", Format: ""}); err != nil {
