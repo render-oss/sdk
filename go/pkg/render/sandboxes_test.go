@@ -76,7 +76,7 @@ func newSandboxTestClient(t *testing.T, proxy http.HandlerFunc) *SandboxClient {
 
 	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"), WithRegion("ohio"))
 	require.NoError(t, err)
-	return c.Experimental.Sandboxes
+	return c.Sandboxes
 }
 
 func TestSandboxAPI(t *testing.T) {
@@ -320,7 +320,7 @@ func TestSandboxNetworkPolicyCreate(t *testing.T) {
 			defer server.Close()
 			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 			require.NoError(t, err)
-			sandbox, err := client.Experimental.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: tt.policy})
+			sandbox, err := client.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: tt.policy})
 			if tt.policy != nil && tt.policy.Type == "allow-list" && len(tt.policy.Rules) == 0 {
 				require.ErrorContains(t, err, "networkPolicy.rules must list at least one rule")
 				return
@@ -359,7 +359,7 @@ func TestSandboxName(t *testing.T) {
 	defer server.Close()
 	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 	require.NoError(t, err)
-	sandboxes := client.Experimental.Sandboxes
+	sandboxes := client.Sandboxes
 	ctx := context.Background()
 
 	sandbox, err := sandboxes.Create(ctx, CreateSandboxParams{Name: "my-agent"})
@@ -410,7 +410,7 @@ func TestSnapshotCreateKind(t *testing.T) {
 			defer server.Close()
 			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 			require.NoError(t, err)
-			snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{Kind: tt.kind})
+			snapshot, err := client.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{Kind: tt.kind})
 			require.NoError(t, err)
 			require.Equal(t, "snp-1", snapshot.ID)
 			require.NotNil(t, snapshot.TTLSeconds)
@@ -450,7 +450,7 @@ func TestSnapshotCreateTTLSeconds(t *testing.T) {
 			client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 			require.NoError(t, err)
 
-			snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{TTLSeconds: tt.ttl})
+			snapshot, err := client.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{TTLSeconds: tt.ttl})
 
 			require.NoError(t, err)
 			require.Nil(t, snapshot.TTLSeconds, "the API sent no ttlSeconds")
@@ -470,7 +470,7 @@ func TestSnapshotTTLSecondsIsZeroWhenTheSnapshotNeverExpires(t *testing.T) {
 	client, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 	require.NoError(t, err)
 
-	snapshot, err := client.Experimental.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{})
+	snapshot, err := client.Sandboxes.Snapshots.Create(context.Background(), "sbx-1", CreateSnapshotParams{})
 
 	require.NoError(t, err)
 	require.NotNil(t, snapshot.TTLSeconds)
@@ -492,7 +492,7 @@ func TestSandboxRejectsInvalidNetworkPolicy(t *testing.T) {
 		{Type: "allow-list", Rules: []EgressRule{{Domain: "pypi.org", Protocol: "http"}}},
 		{Type: "unknown"}, {},
 	} {
-		_, err := client.Experimental.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: &policy})
+		_, err := client.Sandboxes.Create(context.Background(), CreateSandboxParams{NetworkPolicy: &policy})
 		require.Error(t, err)
 	}
 }
@@ -523,10 +523,10 @@ func TestSandboxNetworkPolicyRead(t *testing.T) {
 	want := NetworkPolicy{Type: "allow-list", Rules: []EgressRule{
 		{Domain: "example.com", Protocol: "https"}, {Domain: "legacy.example.com", Protocol: "http"},
 	}}
-	sandbox, err := client.Experimental.Sandboxes.FromID(context.Background(), "sbx-1")
+	sandbox, err := client.Sandboxes.FromID(context.Background(), "sbx-1")
 	require.NoError(t, err)
 	require.Equal(t, want, sandbox.NetworkPolicy)
-	page, err := client.Experimental.Sandboxes.List(context.Background(), nil)
+	page, err := client.Sandboxes.List(context.Background(), nil)
 	require.NoError(t, err)
 	require.Len(t, page.Sandboxes, 1)
 	require.Equal(t, want, page.Sandboxes[0].NetworkPolicy)
@@ -574,7 +574,7 @@ func TestSandboxGroupSelectionAndManagement(t *testing.T) {
 	defer srv.Close()
 	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
 	require.NoError(t, err)
-	s := c.Experimental.Sandboxes
+	s := c.Sandboxes
 	ctx := context.Background()
 	g, err := s.CreateGroup(ctx, CreateSandboxGroupParams{Name: "agents"})
 	require.NoError(t, err)
@@ -604,7 +604,7 @@ func conflictClient(t *testing.T, code string) *SandboxClient {
 	t.Cleanup(server.Close)
 	c, err := NewClient(WithBaseURL(server.URL), WithToken("t"), WithOwnerID("tea-1"))
 	require.NoError(t, err)
-	return c.Experimental.Sandboxes
+	return c.Sandboxes
 }
 
 type groupCreateOutcome struct {
@@ -678,7 +678,7 @@ func recordingGroupCreateClient(t *testing.T) (*SandboxClient, *string) {
 	c, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 	require.NoError(t, err)
 
-	return c.Experimental.Sandboxes, &gotBody
+	return c.Sandboxes, &gotBody
 }
 
 func TestSandboxGroupDelete(t *testing.T) {
@@ -691,7 +691,7 @@ func TestSandboxGroupDelete(t *testing.T) {
 	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
 	require.NoError(t, err)
 
-	require.NoError(t, c.Experimental.Sandboxes.DeleteGroup(context.Background(), "sbg-1"))
+	require.NoError(t, c.Sandboxes.DeleteGroup(context.Background(), "sbg-1"))
 }
 
 func TestSandboxGroupDeleteConflicts(t *testing.T) {
@@ -732,7 +732,7 @@ func TestSandboxGroupSetDefault(t *testing.T) {
 	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
 	require.NoError(t, err)
 
-	g, err := c.Experimental.Sandboxes.SetDefaultGroup(context.Background(), "sbg-1")
+	g, err := c.Sandboxes.SetDefaultGroup(context.Background(), "sbg-1")
 
 	require.NoError(t, err)
 	require.Equal(t, "sbg-1", g.ID)
@@ -1082,7 +1082,7 @@ func groupEnvironmentClient(t *testing.T, stub groupEnvironmentStub) (*SandboxCl
 	c, err := NewClient(WithToken("test"), WithBaseURL(server.URL), WithOwnerID("tea-1"))
 	require.NoError(t, err)
 
-	return c.Experimental.Sandboxes, &requests
+	return c.Sandboxes, &requests
 }
 
 func environmentJSON(environmentID string) string {

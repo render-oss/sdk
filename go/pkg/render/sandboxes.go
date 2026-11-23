@@ -249,6 +249,13 @@ type SandboxClient struct {
 	Images    *ImageClient
 }
 
+func newSandboxClient(c *Client) *SandboxClient {
+	sandboxes := &SandboxClient{client: c}
+	sandboxes.Snapshots = &SnapshotClient{sandboxes: sandboxes}
+	sandboxes.Images = &ImageClient{sandboxes: sandboxes}
+	return sandboxes
+}
+
 // SnapshotClient manages sandbox snapshots, via SandboxClient.Snapshots.
 type SnapshotClient struct {
 	sandboxes *SandboxClient

@@ -66,7 +66,7 @@ func TestAPIErrorCarriesStatusAndCode(t *testing.T) {
 			code:     "sandbox_group_suspended",
 			sentinel: ErrSandboxGroupSuspended,
 			call: func(c *Client) error {
-				_, err := c.Experimental.Sandboxes.Create(ctx, CreateSandboxParams{})
+				_, err := c.Sandboxes.Create(ctx, CreateSandboxParams{})
 				return err
 			},
 			want: apiErrorOutcome{
@@ -81,7 +81,7 @@ func TestAPIErrorCarriesStatusAndCode(t *testing.T) {
 			name: "sandbox call with an unmapped code",
 			code: "something_else",
 			call: func(c *Client) error {
-				return c.Experimental.Sandboxes.DeleteGroup(ctx, "sbg-1")
+				return c.Sandboxes.DeleteGroup(ctx, "sbg-1")
 			},
 			want: apiErrorOutcome{
 				StatusCode: 409,
@@ -220,7 +220,7 @@ func TestNotFoundErrorsAreAPIErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			c := statusRenderClient(t, http.StatusNotFound, tt.code, "not found")
-			err := tt.call(c.Experimental.Sandboxes)
+			err := tt.call(c.Sandboxes)
 
 			require.Equal(t, tt.want, outcomeOf(t, err, tt.sentinel))
 		})

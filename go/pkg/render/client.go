@@ -27,6 +27,7 @@ type Client struct {
 
 	// Service clients
 	Workflows    *WorkflowsService
+	Sandboxes    *SandboxClient
 	Experimental *ExperimentalService
 }
 
@@ -134,6 +135,7 @@ func NewClient(options ...ClientOption) (*Client, error) {
 	}
 
 	renderClient.Workflows = &WorkflowsService{client: renderClient}
+	renderClient.Sandboxes = newSandboxClient(renderClient)
 	renderClient.Experimental = newExperimentalService(renderClient)
 
 	return renderClient, nil
@@ -167,6 +169,7 @@ func NewSocketClient(unixSocketPath string) (*Client, error) {
 	}
 
 	renderClient.Workflows = &WorkflowsService{client: renderClient}
+	renderClient.Sandboxes = newSandboxClient(renderClient)
 	renderClient.Experimental = newExperimentalService(renderClient)
 	return renderClient, nil
 }

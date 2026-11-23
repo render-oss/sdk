@@ -21,10 +21,10 @@ empty.
 
 ## Sandbox network policies
 
-Create sandboxes through `client.Experimental.Sandboxes`. Use `render.NetworkPolicy` with egress rules:
+Create sandboxes through `client.Sandboxes`. Use `render.NetworkPolicy` with egress rules:
 
 ```go
-sandbox, err := client.Experimental.Sandboxes.Create(ctx, render.CreateSandboxParams{
+sandbox, err := client.Sandboxes.Create(ctx, render.CreateSandboxParams{
     NetworkPolicy: &render.NetworkPolicy{
         Type: "allow-list",
         Rules: []render.EgressRule{
@@ -43,10 +43,10 @@ rules in `sandbox.NetworkPolicy`.
 Give a sandbox a name to tell it apart, then filter by it:
 
 ```go
-sandbox, err := client.Experimental.Sandboxes.Create(ctx, render.CreateSandboxParams{
+sandbox, err := client.Sandboxes.Create(ctx, render.CreateSandboxParams{
     Name: "my-agent",
 })
-page, err := client.Experimental.Sandboxes.List(ctx, &render.ListSandboxesOptions{
+page, err := client.Sandboxes.List(ctx, &render.ListSandboxesOptions{
     Name: "my-agent",
 })
 ```

@@ -32,7 +32,7 @@ func newImageTestClient(t *testing.T, handler http.HandlerFunc) *SandboxClient {
 	t.Cleanup(srv.Close)
 	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
 	require.NoError(t, err)
-	return c.Experimental.Sandboxes
+	return c.Sandboxes
 }
 
 func writeJSON(w http.ResponseWriter, status int, body string) {
