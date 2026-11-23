@@ -11,6 +11,7 @@ from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
     from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST
+    from ..models.sandbox_port import SandboxPort
     from ..models.sandbox_post_env import SandboxPOSTEnv
     from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem
 
@@ -29,6 +30,8 @@ class SandboxPOST:
             unique; use the sandbox ID to identify a specific sandbox. Must not start with `sbx-`.
         network_policy (SandboxNetworkPolicyPOST | Unset): The outbound traffic policy to apply to the sandbox. Provide
             `type` or its deprecated alias `default`. If both are provided, they must match.
+        exposed_ports (list[SandboxPort] | Unset): Ports exposed through public HTTP/WebSocket ingress, not arbitrary
+            TCP forwarding. Each port may appear once, and at most 10 ports may be exposed.
         plan (SandboxPlan | str | Unset): The compute plan for the sandbox. See `sandboxPlan` for known values.
         timeout_seconds (int | Unset): The maximum time the sandbox can run continuously, in seconds. The sandbox
             terminates when this time elapses. If the sandbox is suspended and later resumed, this timeout restarts.
@@ -56,6 +59,7 @@ class SandboxPOST:
     sandbox_group_id: str | Unset = UNSET
     name: str | Unset = UNSET
     network_policy: SandboxNetworkPolicyPOST | Unset = UNSET
+    exposed_ports: list[SandboxPort] | Unset = UNSET
     plan: SandboxPlan | str | Unset = UNSET
     timeout_seconds: int | Unset = UNSET
     idle_timeout_seconds: int | Unset = UNSET
@@ -77,6 +81,13 @@ class SandboxPOST:
         network_policy: dict[str, Any] | Unset = UNSET
         if not isinstance(self.network_policy, Unset):
             network_policy = self.network_policy.to_dict()
+
+        exposed_ports: list[dict[str, Any]] | Unset = UNSET
+        if not isinstance(self.exposed_ports, Unset):
+            exposed_ports = []
+            for componentsschemassandbox_ports_item_data in self.exposed_ports:
+                componentsschemassandbox_ports_item = componentsschemassandbox_ports_item_data.to_dict()
+                exposed_ports.append(componentsschemassandbox_ports_item)
 
         plan: str | Unset
         if isinstance(self.plan, Unset):
@@ -122,6 +133,8 @@ class SandboxPOST:
             field_dict["name"] = name
         if network_policy is not UNSET:
             field_dict["networkPolicy"] = network_policy
+        if exposed_ports is not UNSET:
+            field_dict["exposed_ports"] = exposed_ports
         if plan is not UNSET:
             field_dict["plan"] = plan
         if timeout_seconds is not UNSET:
@@ -146,6 +159,7 @@ class SandboxPOST:
     @classmethod
     def from_dict(cls: type[T], src_dict: Mapping[str, Any]) -> T:
         from ..models.sandbox_network_policy_post import SandboxNetworkPolicyPOST  # noqa: PLC0415
+        from ..models.sandbox_port import SandboxPort  # noqa: PLC0415
         from ..models.sandbox_post_env import SandboxPOSTEnv  # noqa: PLC0415
         from ..models.sandbox_shared_filesystem import SandboxSharedFilesystem  # noqa: PLC0415
 
@@ -162,6 +176,15 @@ class SandboxPOST:
             network_policy = UNSET
         else:
             network_policy = SandboxNetworkPolicyPOST.from_dict(_network_policy)
+
+        _exposed_ports = d.pop("exposed_ports", UNSET)
+        exposed_ports: list[SandboxPort] | Unset = UNSET
+        if _exposed_ports is not UNSET:
+            exposed_ports = []
+            for componentsschemassandbox_ports_item_data in _exposed_ports:
+                componentsschemassandbox_ports_item = SandboxPort.from_dict(componentsschemassandbox_ports_item_data)
+
+                exposed_ports.append(componentsschemassandbox_ports_item)
 
         def _parse_plan(data: object) -> SandboxPlan | str | Unset:
             if isinstance(data, Unset):
@@ -211,6 +234,7 @@ class SandboxPOST:
             sandbox_group_id=sandbox_group_id,
             name=name,
             network_policy=network_policy,
+            exposed_ports=exposed_ports,
             plan=plan,
             timeout_seconds=timeout_seconds,
             idle_timeout_seconds=idle_timeout_seconds,

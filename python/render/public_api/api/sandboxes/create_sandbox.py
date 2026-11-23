@@ -6,7 +6,7 @@ import httpx2
 from ... import errors
 from ...client import AuthenticatedClient, Client
 from ...models.error import Error
-from ...models.sandbox import Sandbox
+from ...models.sandbox_detail_response import SandboxDetailResponse
 from ...models.sandbox_post import SandboxPOST
 from ...types import Response
 
@@ -30,9 +30,11 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Error | Sandbox | None:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Error | SandboxDetailResponse | None:
     if response.status_code == 201:
-        response_201 = Sandbox.from_dict(response.json())
+        response_201 = SandboxDetailResponse.from_dict(response.json())
 
         return response_201
 
@@ -82,7 +84,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Re
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Error | Sandbox]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[Error | SandboxDetailResponse]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -95,7 +99,7 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Response[Error | Sandbox]:
+) -> Response[Error | SandboxDetailResponse]:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -111,7 +115,7 @@ def sync_detailed(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error | Sandbox]
+        Response[Error | SandboxDetailResponse]
     """
 
     kwargs = _get_kwargs(
@@ -129,7 +133,7 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Error | Sandbox | None:
+) -> Error | SandboxDetailResponse | None:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -145,7 +149,7 @@ def sync(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error | Sandbox
+        Error | SandboxDetailResponse
     """
 
     return sync_detailed(
@@ -158,7 +162,7 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Response[Error | Sandbox]:
+) -> Response[Error | SandboxDetailResponse]:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -174,7 +178,7 @@ async def asyncio_detailed(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Error | Sandbox]
+        Response[Error | SandboxDetailResponse]
     """
 
     kwargs = _get_kwargs(
@@ -190,7 +194,7 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
     body: SandboxPOST,
-) -> Error | Sandbox | None:
+) -> Error | SandboxDetailResponse | None:
     """Create sandbox
 
      Create a sandbox and return its initial state. The sandbox might still be starting when the response
@@ -206,7 +210,7 @@ async def asyncio(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Error | Sandbox
+        Error | SandboxDetailResponse
     """
 
     return (

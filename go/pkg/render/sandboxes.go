@@ -343,7 +343,7 @@ func (s *SandboxClient) Create(ctx context.Context, params CreateSandboxParams) 
 	if resp.JSON201 == nil {
 		return nil, fmt.Errorf("unexpected response format")
 	}
-	return toSandbox(*resp.JSON201), nil
+	return toSandboxDetail(*resp.JSON201), nil
 }
 
 // FromID reconnects to an existing sandbox. Returns ErrSandboxNotFound if the
@@ -363,7 +363,7 @@ func (s *SandboxClient) FromID(ctx context.Context, sandboxID string) (*Sandbox,
 	if resp.JSON200 == nil {
 		return nil, fmt.Errorf("unexpected response format")
 	}
-	return toSandbox(*resp.JSON200), nil
+	return toSandboxDetail(*resp.JSON200), nil
 }
 
 // List lists sandboxes for the workspace. opts may be nil.
@@ -763,6 +763,25 @@ func toSandbox(m sandboxes.Sandbox) *Sandbox {
 		CreatedAt:      m.CreatedAt,
 		TerminatedAt:   m.TerminatedAt,
 	}
+}
+
+// toSandboxDetail converts the create and retrieve response. It adds
+// exposed ports to the list shape, which the SDK does not surface yet.
+func toSandboxDetail(m sandboxes.SandboxDetailResponse) *Sandbox {
+	return toSandbox(sandboxes.Sandbox{
+		CreatedAt:          m.CreatedAt,
+		Id:                 m.Id,
+		IdleTimeoutSeconds: m.IdleTimeoutSeconds,
+		Name:               m.Name,
+		NetworkPolicy:      m.NetworkPolicy,
+		Plan:               m.Plan,
+		Region:             m.Region,
+		SandboxGroupId:     m.SandboxGroupId,
+		SharedFilesystems:  m.SharedFilesystems,
+		Status:             m.Status,
+		TerminatedAt:       m.TerminatedAt,
+		TimeoutSeconds:     m.TimeoutSeconds,
+	})
 }
 
 func toSnapshot(m sandboxes.SandboxSnapshot) *Snapshot {

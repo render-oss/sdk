@@ -1345,6 +1345,19 @@ export interface components {
             rules?: components["schemas"]["sandboxEgressRule"][];
         };
         /**
+         * @description The transport protocol. Only TCP is supported.
+         * @enum {string}
+         */
+        sandboxPortProtocol: "tcp";
+        sandboxPortNumber: number;
+        /** @description A single port exposed through public HTTP/WebSocket ingress. */
+        sandboxPort: {
+            protocol: components["schemas"]["sandboxPortProtocol"];
+            port: components["schemas"]["sandboxPortNumber"];
+        };
+        /** @description Ports exposed through public HTTP/WebSocket ingress, not arbitrary TCP forwarding. Each port may appear once, and at most 10 ports may be exposed. */
+        sandboxPorts: components["schemas"]["sandboxPort"][];
+        /**
          * @description The ID of the sandbox snapshot.
          * @example snp-cph1rs3idesc73a2b2mg
          */
@@ -1368,6 +1381,8 @@ export interface components {
             /** @description A label for the sandbox, such as `my-agent`, up to 64 characters. Names do not have to be unique; use the sandbox ID to identify a specific sandbox. Must not start with `sbx-`. */
             name?: string;
             networkPolicy?: components["schemas"]["sandboxNetworkPolicyPOST"];
+            /** @description Ports to expose through public ingress when the sandbox starts. Defaults to none, including when creating a sandbox from a snapshot. Use the sandbox's ports endpoints to change them later. */
+            exposed_ports?: components["schemas"]["sandboxPorts"];
             /** @description The compute plan for the sandbox. See `sandboxPlan` for known values. */
             plan?: components["schemas"]["sandboxPlan"] | string;
             /**
@@ -1392,6 +1407,20 @@ export interface components {
             buildName?: string;
             /** @description Shared filesystems to mount in the sandbox. At most one is supported. */
             sharedFilesystems?: components["schemas"]["sandboxSharedFilesystem"][];
+        };
+        sandboxExposedPort: {
+            protocol: components["schemas"]["sandboxPortProtocol"];
+            port: number;
+            /**
+             * Format: uri
+             * @description The HTTPS URL for the exposed port.
+             */
+            url: string;
+        };
+        sandboxExposedPorts: components["schemas"]["sandboxExposedPort"][];
+        sandboxDetailResponse: components["schemas"]["sandbox"] & {
+            /** @description The exposed ports and their URLs, present when the workspace can use sandbox ingress. */
+            exposed_ports?: components["schemas"]["sandboxExposedPorts"];
         };
         /** @description A group of sandboxes in a workspace that share a region, concurrency limit, and credentials. */
         sandboxGroup: {
@@ -2806,7 +2835,7 @@ export interface operations {
                      *       "terminatedAt": null
                      *     }
                      */
-                    "application/json": components["schemas"]["sandbox"];
+                    "application/json": components["schemas"]["sandboxDetailResponse"];
                 };
             };
             /**
@@ -2982,7 +3011,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["sandbox"];
+                    "application/json": components["schemas"]["sandboxDetailResponse"];
                 };
             };
             401: components["responses"]["401Unauthorized"];

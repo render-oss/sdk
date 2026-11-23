@@ -87,6 +87,9 @@ from render.public_api.models.sandbox_credential_update import SandboxCredential
 from render.public_api.models.sandbox_credential_version import (
     SandboxCredentialVersion,
 )
+from render.public_api.models.sandbox_detail_response import (
+    SandboxDetailResponse,
+)
 from render.public_api.models.sandbox_egress_rule import SandboxEgressRule
 from render.public_api.models.sandbox_egress_rule_protocol import (
     SandboxEgressRuleProtocol,
@@ -251,7 +254,7 @@ def _to_network_policy_post(policy: NetworkPolicy | str) -> SandboxNetworkPolicy
     return body
 
 
-def _to_sandbox(model: GeneratedSandbox) -> Sandbox:
+def _to_sandbox(model: GeneratedSandbox | SandboxDetailResponse) -> Sandbox:
     return Sandbox(
         id=model.id,
         sandbox_group_id=_set_or_none(model.sandbox_group_id),
@@ -507,7 +510,7 @@ class SyncSandboxApi:
             _handle_image_api_error(response, image_ref, "create sandbox")
         else:
             _handle_sandbox_api_error(response, "create sandbox")
-        if not isinstance(response.parsed, GeneratedSandbox):
+        if not isinstance(response.parsed, SandboxDetailResponse):
             raise RenderError("Failed to create sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
 
@@ -519,7 +522,7 @@ class SyncSandboxApi:
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
         _handle_sandbox_api_error(response, "retrieve sandbox")
-        if not isinstance(response.parsed, GeneratedSandbox):
+        if not isinstance(response.parsed, SandboxDetailResponse):
             raise RenderError("Failed to retrieve sandbox: unexpected response type")
         return _to_sandbox(response.parsed)
 

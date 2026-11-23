@@ -376,8 +376,10 @@ from .sandbox_credential_injection_type import SandboxCredentialInjectionType
 from .sandbox_credential_restore import SandboxCredentialRestore
 from .sandbox_credential_update import SandboxCredentialUpdate
 from .sandbox_credential_version import SandboxCredentialVersion
+from .sandbox_detail_response import SandboxDetailResponse
 from .sandbox_egress_rule import SandboxEgressRule
 from .sandbox_egress_rule_protocol import SandboxEgressRuleProtocol
+from .sandbox_exposed_port import SandboxExposedPort
 from .sandbox_group import SandboxGroup
 from .sandbox_group_patch import SandboxGroupPATCH
 from .sandbox_group_post import SandboxGroupPOST
@@ -386,6 +388,10 @@ from .sandbox_network_policy import SandboxNetworkPolicy
 from .sandbox_network_policy_post import SandboxNetworkPolicyPOST
 from .sandbox_network_policy_type import SandboxNetworkPolicyType
 from .sandbox_plan import SandboxPlan
+from .sandbox_port import SandboxPort
+from .sandbox_port_limit_error import SandboxPortLimitError
+from .sandbox_port_limit_error_code import SandboxPortLimitErrorCode
+from .sandbox_port_protocol import SandboxPortProtocol
 from .sandbox_post import SandboxPOST
 from .sandbox_post_env import SandboxPOSTEnv
 from .sandbox_shared_filesystem import SandboxSharedFilesystem
@@ -860,8 +866,10 @@ __all__ = (
     "SandboxCredentialRestore",
     "SandboxCredentialUpdate",
     "SandboxCredentialVersion",
+    "SandboxDetailResponse",
     "SandboxEgressRule",
     "SandboxEgressRuleProtocol",
+    "SandboxExposedPort",
     "SandboxGroup",
     "SandboxGroupPATCH",
     "SandboxGroupPOST",
@@ -870,6 +878,10 @@ __all__ = (
     "SandboxNetworkPolicyPOST",
     "SandboxNetworkPolicyType",
     "SandboxPlan",
+    "SandboxPort",
+    "SandboxPortLimitError",
+    "SandboxPortLimitErrorCode",
+    "SandboxPortProtocol",
     "SandboxPOST",
     "SandboxPOSTEnv",
     "SandboxSharedFilesystem",

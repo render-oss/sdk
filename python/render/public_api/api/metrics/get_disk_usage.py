@@ -18,6 +18,9 @@ def _get_kwargs(
     resolution_seconds: float | Unset = 60.0,
     resource: str | Unset = UNSET,
     service: str | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {}
 
@@ -36,6 +39,12 @@ def _get_kwargs(
     params["resource"] = resource
 
     params["service"] = service
+
+    params["project"] = project
+
+    params["environment"] = environment
+
+    params["region"] = region
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
@@ -68,6 +77,11 @@ def _parse_response(
 
         return response_400
 
+    if response.status_code == 404:
+        response_404 = Error.from_dict(response.json())
+
+        return response_404
+
     if response.status_code == 500:
         response_500 = Error.from_dict(response.json())
 
@@ -98,6 +112,9 @@ def sync_detailed(
     resolution_seconds: float | Unset = 60.0,
     resource: str | Unset = UNSET,
     service: str | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
 ) -> Response[Error | list[TimeSeries]]:
     """Get disk usage
 
@@ -109,6 +126,9 @@ def sync_detailed(
         resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
         resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
         service (str | Unset):  Example: srv-xxxxx.
+        project (str | Unset):  Example: prj-xxxxx.
+        environment (str | Unset):  Example: evm-xxxxx.
+        region (str | Unset):  Example: oregon.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -124,6 +144,9 @@ def sync_detailed(
         resolution_seconds=resolution_seconds,
         resource=resource,
         service=service,
+        project=project,
+        environment=environment,
+        region=region,
     )
 
     response = client.get_httpx_client().request(
@@ -141,6 +164,9 @@ def sync(
     resolution_seconds: float | Unset = 60.0,
     resource: str | Unset = UNSET,
     service: str | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
 ) -> Error | list[TimeSeries] | None:
     """Get disk usage
 
@@ -152,6 +178,9 @@ def sync(
         resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
         resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
         service (str | Unset):  Example: srv-xxxxx.
+        project (str | Unset):  Example: prj-xxxxx.
+        environment (str | Unset):  Example: evm-xxxxx.
+        region (str | Unset):  Example: oregon.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -168,6 +197,9 @@ def sync(
         resolution_seconds=resolution_seconds,
         resource=resource,
         service=service,
+        project=project,
+        environment=environment,
+        region=region,
     ).parsed
 
 
@@ -179,6 +211,9 @@ async def asyncio_detailed(
     resolution_seconds: float | Unset = 60.0,
     resource: str | Unset = UNSET,
     service: str | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
 ) -> Response[Error | list[TimeSeries]]:
     """Get disk usage
 
@@ -190,6 +225,9 @@ async def asyncio_detailed(
         resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
         resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
         service (str | Unset):  Example: srv-xxxxx.
+        project (str | Unset):  Example: prj-xxxxx.
+        environment (str | Unset):  Example: evm-xxxxx.
+        region (str | Unset):  Example: oregon.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -205,6 +243,9 @@ async def asyncio_detailed(
         resolution_seconds=resolution_seconds,
         resource=resource,
         service=service,
+        project=project,
+        environment=environment,
+        region=region,
     )
 
     response = await client.get_async_httpx_client().request(**kwargs)
@@ -220,6 +261,9 @@ async def asyncio(
     resolution_seconds: float | Unset = 60.0,
     resource: str | Unset = UNSET,
     service: str | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
 ) -> Error | list[TimeSeries] | None:
     """Get disk usage
 
@@ -231,6 +275,9 @@ async def asyncio(
         resolution_seconds (float | Unset):  Default: 60.0. Example: 60.
         resource (str | Unset):  Example: srv-xxxxx,dpg-xxxxx,red-xxxxx.
         service (str | Unset):  Example: srv-xxxxx.
+        project (str | Unset):  Example: prj-xxxxx.
+        environment (str | Unset):  Example: evm-xxxxx.
+        region (str | Unset):  Example: oregon.
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -248,5 +295,8 @@ async def asyncio(
             resolution_seconds=resolution_seconds,
             resource=resource,
             service=service,
+            project=project,
+            environment=environment,
+            region=region,
         )
     ).parsed

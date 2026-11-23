@@ -45,6 +45,7 @@ from render.sandbox.api_sync import (
     SandboxCredentialRestore as SandboxCredentialRestore,
     SandboxCredentialUpdate as SandboxCredentialUpdate,
     SandboxCredentialVersion as SandboxCredentialVersion,
+    SandboxDetailResponse as SandboxDetailResponse,
     SandboxDownloadError as SandboxDownloadError,
     SandboxEgressRule as SandboxEgressRule,
     SandboxEgressRuleProtocol as SandboxEgressRuleProtocol,

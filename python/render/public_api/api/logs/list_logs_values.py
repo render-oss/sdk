@@ -19,7 +19,10 @@ def _get_kwargs(
     start_time: datetime.datetime | Unset = UNSET,
     end_time: datetime.datetime | Unset = UNSET,
     direction: LogDirection | Unset = UNSET,
-    resource: list[str],
+    resource: list[str] | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
     instance: list[str] | Unset = UNSET,
     host: list[str] | Unset = UNSET,
     status_code: list[str] | Unset = UNSET,
@@ -57,9 +60,17 @@ def _get_kwargs(
 
     params["direction"] = json_direction
 
-    json_resource = resource
+    json_resource: list[str] | Unset = UNSET
+    if not isinstance(resource, Unset):
+        json_resource = resource
 
     params["resource"] = json_resource
+
+    params["project"] = project
+
+    params["environment"] = environment
+
+    params["region"] = region
 
     json_instance: list[str] | Unset = UNSET
     if not isinstance(instance, Unset):
@@ -220,7 +231,10 @@ def sync_detailed(
     start_time: datetime.datetime | Unset = UNSET,
     end_time: datetime.datetime | Unset = UNSET,
     direction: LogDirection | Unset = UNSET,
-    resource: list[str],
+    resource: list[str] | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
     instance: list[str] | Unset = UNSET,
     host: list[str] | Unset = UNSET,
     status_code: list[str] | Unset = UNSET,
@@ -245,7 +259,10 @@ def sync_detailed(
         start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
         end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
         direction (LogDirection | Unset):
-        resource (list[str]):
+        resource (list[str] | Unset):
+        project (str | Unset):
+        environment (str | Unset):
+        region (str | Unset):
         instance (list[str] | Unset):
         host (list[str] | Unset):
         status_code (list[str] | Unset):
@@ -275,6 +292,9 @@ def sync_detailed(
         end_time=end_time,
         direction=direction,
         resource=resource,
+        project=project,
+        environment=environment,
+        region=region,
         instance=instance,
         host=host,
         status_code=status_code,
@@ -305,7 +325,10 @@ def sync(
     start_time: datetime.datetime | Unset = UNSET,
     end_time: datetime.datetime | Unset = UNSET,
     direction: LogDirection | Unset = UNSET,
-    resource: list[str],
+    resource: list[str] | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
     instance: list[str] | Unset = UNSET,
     host: list[str] | Unset = UNSET,
     status_code: list[str] | Unset = UNSET,
@@ -330,7 +353,10 @@ def sync(
         start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
         end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
         direction (LogDirection | Unset):
-        resource (list[str]):
+        resource (list[str] | Unset):
+        project (str | Unset):
+        environment (str | Unset):
+        region (str | Unset):
         instance (list[str] | Unset):
         host (list[str] | Unset):
         status_code (list[str] | Unset):
@@ -361,6 +387,9 @@ def sync(
         end_time=end_time,
         direction=direction,
         resource=resource,
+        project=project,
+        environment=environment,
+        region=region,
         instance=instance,
         host=host,
         status_code=status_code,
@@ -385,7 +414,10 @@ async def asyncio_detailed(
     start_time: datetime.datetime | Unset = UNSET,
     end_time: datetime.datetime | Unset = UNSET,
     direction: LogDirection | Unset = UNSET,
-    resource: list[str],
+    resource: list[str] | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
     instance: list[str] | Unset = UNSET,
     host: list[str] | Unset = UNSET,
     status_code: list[str] | Unset = UNSET,
@@ -410,7 +442,10 @@ async def asyncio_detailed(
         start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
         end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
         direction (LogDirection | Unset):
-        resource (list[str]):
+        resource (list[str] | Unset):
+        project (str | Unset):
+        environment (str | Unset):
+        region (str | Unset):
         instance (list[str] | Unset):
         host (list[str] | Unset):
         status_code (list[str] | Unset):
@@ -440,6 +475,9 @@ async def asyncio_detailed(
         end_time=end_time,
         direction=direction,
         resource=resource,
+        project=project,
+        environment=environment,
+        region=region,
         instance=instance,
         host=host,
         status_code=status_code,
@@ -468,7 +506,10 @@ async def asyncio(
     start_time: datetime.datetime | Unset = UNSET,
     end_time: datetime.datetime | Unset = UNSET,
     direction: LogDirection | Unset = UNSET,
-    resource: list[str],
+    resource: list[str] | Unset = UNSET,
+    project: str | Unset = UNSET,
+    environment: str | Unset = UNSET,
+    region: str | Unset = UNSET,
     instance: list[str] | Unset = UNSET,
     host: list[str] | Unset = UNSET,
     status_code: list[str] | Unset = UNSET,
@@ -493,7 +534,10 @@ async def asyncio(
         start_time (datetime.datetime | Unset):  Example: 2021-06-17T08:15:30Z.
         end_time (datetime.datetime | Unset):  Example: 2021-06-17T08:30:30Z.
         direction (LogDirection | Unset):
-        resource (list[str]):
+        resource (list[str] | Unset):
+        project (str | Unset):
+        environment (str | Unset):
+        region (str | Unset):
         instance (list[str] | Unset):
         host (list[str] | Unset):
         status_code (list[str] | Unset):
@@ -525,6 +569,9 @@ async def asyncio(
             end_time=end_time,
             direction=direction,
             resource=resource,
+            project=project,
+            environment=environment,
+            region=region,
             instance=instance,
             host=host,
             status_code=status_code,

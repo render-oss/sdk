@@ -6,7 +6,7 @@ from render.public_api.api.sandboxes.create_sandbox import (
     Error as Error,
     HTTPStatus as HTTPStatus,
     Response as Response,
-    Sandbox as Sandbox,
+    SandboxDetailResponse as SandboxDetailResponse,
     SandboxPOST as SandboxPOST,
     _build_response as _build_response,
     _get_kwargs as _get_kwargs,
