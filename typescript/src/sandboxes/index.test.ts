@@ -2883,6 +2883,86 @@ describe("SandboxesClient", () => {
         { type: "exit", exit_code: 0 },
       ]);
     });
+
+    const outputAndExit = [
+      'event: output\ndata: {"stream":"stdout","data":"a\\n"}\n\n',
+      'event: output\ndata: {"stream":"stderr","data":"warn\\n"}\n\n',
+      'event: output\ndata: {"stream":"stdout","data":"b\\n"}\n\n',
+      'event: exit\ndata: {"exit_code":3}\n\n',
+    ];
+
+    it("collects output and a non-zero exit code with result() on the returned promise", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(sseStream(outputAndExit), { status: 200 }),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      await expect(client.exec("sbx-123", "echo hi", "tea-test").result()).resolves.toEqual({
+        stdout: "a\nb\n",
+        stderr: "warn\n",
+        exitCode: 3,
+      });
+    });
+
+    it("collects output with result() on the awaited execution", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(sseStream(outputAndExit), { status: 200 }),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      const execution = await client.exec("sbx-123", "echo hi", "tea-test");
+      await expect(execution.result()).resolves.toEqual({
+        stdout: "a\nb\n",
+        stderr: "warn\n",
+        exitCode: 3,
+      });
+    });
+
+    it("rejects result() after the stream has been iterated", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(sseStream(outputAndExit), { status: 200 }),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      const execution = await client.exec("sbx-123", "echo hi", "tea-test");
+      for await (const event of execution) {
+        if (event.type === "output") break;
+      }
+
+      await expect(execution.result()).rejects.toThrow(
+        "Sandbox exec stream has already been read.",
+      );
+    });
+
+    it("rejects result() with the stream error", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(
+          sseStream(['event: error\ndata: {"status":408,"message":"exec timed out"}\n\n']),
+          { status: 200 },
+        ),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      await expect(client.exec("sbx-123", "echo hi", "tea-test").result()).rejects.toBeInstanceOf(
+        SandboxExecStreamError,
+      );
+    });
+
+    it("rejects result() when the exec request fails", async () => {
+      const apiClient = mockApiClientWithConnectResponse();
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response("sandbox not ready", { status: 409 }),
+      );
+      const client = new SandboxesClient(apiClient);
+
+      await expect(client.exec("sbx-123", "echo hi", "tea-test").result()).rejects.toThrow(
+        "Failed to execute sandbox command",
+      );
+    });
   });
 
   describe("waiting", () => {

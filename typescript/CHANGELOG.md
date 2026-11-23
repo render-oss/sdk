@@ -4,6 +4,12 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- (Sandboxes) `exec()` returns a `SandboxExecPromise`. Call `result()` on it to wait for the command to finish and get its `stdout`, `stderr`, and `exitCode`: `await sandboxes.exec(id, "ls").result()`. Awaiting it still gives the event stream, now a `SandboxExecution`, which also has `result()`. A stream can be read once, so `result()` throws after you iterate it.
+
 ## [1.10.0] - 2026-11-19
 
 ### Added

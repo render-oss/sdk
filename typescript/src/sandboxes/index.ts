@@ -116,6 +116,74 @@ export type SandboxExecEvent =
   | ({ type: "output" } & SandboxExecOutputEvent)
   | ({ type: "exit" } & SandboxExecExitEvent);
 
+/** The collected output of a finished exec. */
+export type SandboxExecResult = {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+};
+
+/**
+ * The event stream of a running exec. Iterate it to read events as they arrive, or call
+ * `result()` to wait for the command to finish. The stream can be read only once, so use one
+ * or the other.
+ */
+export type SandboxExecution = AsyncGenerator<SandboxExecEvent> & {
+  /**
+   * Reads the stream to the end and returns the collected stdout, stderr, and exit code. A
+   * non-zero exit code is returned, not thrown. Throws if the stream has already been read.
+   */
+  result(): Promise<SandboxExecResult>;
+};
+
+/**
+ * Returns `events` as a `SandboxExecution`. This is a real async generator with `result()`
+ * attached, not a class that implements `AsyncGenerator`. A class can't declare
+ * `[Symbol.asyncDispose]` under this package's ES2020 lib, and consumers whose lib includes it
+ * would then reject the class as an `AsyncGenerator`.
+ */
+function toSandboxExecution(events: AsyncGenerator<SandboxExecEvent>): SandboxExecution {
+  let started = false;
+  const stream = (async function* () {
+    started = true;
+    yield* events;
+  })();
+  return Object.assign(stream, {
+    async result(): Promise<SandboxExecResult> {
+      if (started) {
+        throw new RenderError("Sandbox exec stream has already been read.");
+      }
+      let stdout = "";
+      let stderr = "";
+      let exitCode: number | undefined;
+      for await (const event of stream) {
+        if (event.type === "output") {
+          if (event.stream === "stderr") {
+            stderr += event.data;
+          } else {
+            stdout += event.data;
+          }
+        } else {
+          exitCode = event.exit_code;
+        }
+      }
+      if (exitCode === undefined) {
+        throw new RenderError("Sandbox exec stream ended without a terminal event.");
+      }
+      return { stdout, stderr, exitCode };
+    },
+  });
+}
+
+/**
+ * Returned by `exec()`. Await it for the `SandboxExecution` event stream, or call `result()` to
+ * wait for the collected output.
+ */
+export type SandboxExecPromise = Promise<SandboxExecution> & {
+  /** Waits for the command to finish. See `SandboxExecution.result()`. */
+  result(): Promise<SandboxExecResult>;
+};
+
 type SandboxSourceInput =
   | {
       /**
@@ -1543,12 +1611,35 @@ export class SandboxesClient {
     );
   }
 
-  async exec(
+  /**
+   * Runs `command` with `bash -c` in the sandbox. The returned promise resolves to the event
+   * stream once the sandbox accepts the command, and rejects if it doesn't. A non-zero exit code
+   * arrives as an `exit` event, not an error.
+   *
+   * ```ts
+   * const { stdout, exitCode } = await sandboxes.exec(sandboxId, "ls -la").result();
+   *
+   * for await (const event of await sandboxes.exec(sandboxId, "tail -f app.log")) { ... }
+   * ```
+   */
+  exec(
     sandboxId: string,
     command: string,
     ownerId?: `tea-${string}`,
     signal?: AbortSignal,
-  ): Promise<AsyncGenerator<SandboxExecEvent>> {
+  ): SandboxExecPromise {
+    const promise = this.openExec(sandboxId, command, ownerId, signal);
+    return Object.assign(promise, {
+      result: () => promise.then((execution) => execution.result()),
+    });
+  }
+
+  private async openExec(
+    sandboxId: string,
+    command: string,
+    ownerId?: `tea-${string}`,
+    signal?: AbortSignal,
+  ): Promise<SandboxExecution> {
     if (signal?.aborted) {
       throw new AbortError();
     }
@@ -1577,7 +1668,7 @@ export class SandboxesClient {
       throw new RenderError("Sandbox exec stream response did not include a response body.");
     }
 
-    return this.iterExecEvents(response.body);
+    return toSandboxExecution(this.iterExecEvents(response.body));
   }
 
   private async *iterExecEvents(
