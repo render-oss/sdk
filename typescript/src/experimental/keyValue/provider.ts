@@ -7,7 +7,6 @@ import type {
   RespVersions,
   TypeMapping,
 } from "redis";
-import { createClient } from "redis";
 import { RenderError } from "../../errors";
 import type { KeyValueApi } from "./api";
 import { compareInstanceConfiguration } from "./compare";
@@ -84,6 +83,9 @@ export class KeyValueProvider {
     redisConfig?: RedisConfig<M, F, S, RESP, TYPE_MAPPING>,
   ): Promise<RedisClientType<RedisDefaultModules & M, F, S, RESP, TYPE_MAPPING>> {
     const url = await this.loadConnectionString(options);
+    // Load redis on first use; it dominates the SDK's import time. require(), not import():
+    // Jest rejects import() unless the user turns on VM modules.
+    const { createClient }: typeof import("redis") = require("redis");
 
     return createClient({ url, ...redisConfig });
   }

@@ -114,6 +114,16 @@
       "formatter": {
         "lineWidth": 80
       }
+    },
+    {
+      "includes": ["src/experimental/keyValue/provider.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noCommonJs": "off"
+          }
+        }
+      }
     }
   ]
 }
