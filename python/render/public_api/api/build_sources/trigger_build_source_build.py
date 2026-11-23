@@ -6,7 +6,7 @@ import httpx2
 
 from ... import errors
 from ...client import AuthenticatedClient, Client
-from ...models.build import Build
+from ...models.build_with_deploys import BuildWithDeploys
 from ...models.error import Error
 from ...models.trigger_build_source_build_body import TriggerBuildSourceBuildBody
 from ...types import UNSET, Response, Unset
@@ -35,9 +35,11 @@ def _get_kwargs(
     return _kwargs
 
 
-def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Build | Error | None:
+def _parse_response(
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> BuildWithDeploys | Error | None:
     if response.status_code == 201:
-        response_201 = Build.from_dict(response.json())
+        response_201 = BuildWithDeploys.from_dict(response.json())
 
         return response_201
 
@@ -82,7 +84,9 @@ def _parse_response(*, client: AuthenticatedClient | Client, response: httpx2.Re
         return None
 
 
-def _build_response(*, client: AuthenticatedClient | Client, response: httpx2.Response) -> Response[Build | Error]:
+def _build_response(
+    *, client: AuthenticatedClient | Client, response: httpx2.Response
+) -> Response[BuildWithDeploys | Error]:
     return Response(
         status_code=HTTPStatus(response.status_code),
         content=response.content,
@@ -96,12 +100,15 @@ def sync_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: TriggerBuildSourceBuildBody | Unset = UNSET,
-) -> Response[Build | Error]:
+) -> Response[BuildWithDeploys | Error]:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
-    branch, even if an up-to-date build already exists. Services linked to
-    the build source with autodeploy enabled are deployed with the result.
+    branch, even if an up-to-date build already exists.
+
+    By default, all services linked to the build source with autodeploy enabled
+    will be deployed. Use `deploy.serviceScope` to override this and choose specific
+    linked services.
 
     Updating a build source or its build-time environment (env vars,
     secret files, env groups) with the REST API does not build it. Call
@@ -118,7 +125,7 @@ def sync_detailed(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Build | Error]
+        Response[BuildWithDeploys | Error]
     """
 
     kwargs = _get_kwargs(
@@ -138,12 +145,15 @@ def sync(
     *,
     client: AuthenticatedClient | Client,
     body: TriggerBuildSourceBuildBody | Unset = UNSET,
-) -> Build | Error | None:
+) -> BuildWithDeploys | Error | None:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
-    branch, even if an up-to-date build already exists. Services linked to
-    the build source with autodeploy enabled are deployed with the result.
+    branch, even if an up-to-date build already exists.
+
+    By default, all services linked to the build source with autodeploy enabled
+    will be deployed. Use `deploy.serviceScope` to override this and choose specific
+    linked services.
 
     Updating a build source or its build-time environment (env vars,
     secret files, env groups) with the REST API does not build it. Call
@@ -160,7 +170,7 @@ def sync(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Build | Error
+        BuildWithDeploys | Error
     """
 
     return sync_detailed(
@@ -175,12 +185,15 @@ async def asyncio_detailed(
     *,
     client: AuthenticatedClient | Client,
     body: TriggerBuildSourceBuildBody | Unset = UNSET,
-) -> Response[Build | Error]:
+) -> Response[BuildWithDeploys | Error]:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
-    branch, even if an up-to-date build already exists. Services linked to
-    the build source with autodeploy enabled are deployed with the result.
+    branch, even if an up-to-date build already exists.
+
+    By default, all services linked to the build source with autodeploy enabled
+    will be deployed. Use `deploy.serviceScope` to override this and choose specific
+    linked services.
 
     Updating a build source or its build-time environment (env vars,
     secret files, env groups) with the REST API does not build it. Call
@@ -197,7 +210,7 @@ async def asyncio_detailed(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Response[Build | Error]
+        Response[BuildWithDeploys | Error]
     """
 
     kwargs = _get_kwargs(
@@ -215,12 +228,15 @@ async def asyncio(
     *,
     client: AuthenticatedClient | Client,
     body: TriggerBuildSourceBuildBody | Unset = UNSET,
-) -> Build | Error | None:
+) -> BuildWithDeploys | Error | None:
     """Trigger a build
 
      Start a new build of the build source at the current HEAD of its
-    branch, even if an up-to-date build already exists. Services linked to
-    the build source with autodeploy enabled are deployed with the result.
+    branch, even if an up-to-date build already exists.
+
+    By default, all services linked to the build source with autodeploy enabled
+    will be deployed. Use `deploy.serviceScope` to override this and choose specific
+    linked services.
 
     Updating a build source or its build-time environment (env vars,
     secret files, env groups) with the REST API does not build it. Call
@@ -237,7 +253,7 @@ async def asyncio(
         httpx2.TimeoutException: If the request takes longer than Client.timeout.
 
     Returns:
-        Build | Error
+        BuildWithDeploys | Error
     """
 
     return (

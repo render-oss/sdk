@@ -3985,7 +3985,8 @@ type ListBuildsInBuildSourceParams struct {
 // TriggerBuildSourceBuildJSONBody defines parameters for TriggerBuildSourceBuild.
 type TriggerBuildSourceBuildJSONBody struct {
 	// ClearCache If `clear`, Render clears the build source's build cache before building. This can be useful if you're experiencing issues with your build.
-	ClearCache *externalRef3.BuildClearCache `json:"clearCache,omitempty"`
+	ClearCache *externalRef3.BuildClearCache  `json:"clearCache,omitempty"`
+	Deploy     *externalRef3.BuildDeployInput `json:"deploy,omitempty"`
 }
 
 // GetEnvVarsForBuildSourceParams defines parameters for GetEnvVarsForBuildSource.

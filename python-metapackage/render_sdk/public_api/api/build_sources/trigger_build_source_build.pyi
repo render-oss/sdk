@@ -2,7 +2,7 @@
 from render.public_api.api.build_sources.trigger_build_source_build import (
     Any as Any,
     AuthenticatedClient as AuthenticatedClient,
-    Build as Build,
+    BuildWithDeploys as BuildWithDeploys,
     Client as Client,
     Error as Error,
     HTTPStatus as HTTPStatus,

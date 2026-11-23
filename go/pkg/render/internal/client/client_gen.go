@@ -277,8 +277,11 @@ type ClientInterface interface {
 	// TriggerBuildSourceBuildWithBody Trigger a build
 	//
 	// Start a new build of the build source at the current HEAD of its
-	// branch, even if an up-to-date build already exists. Services linked to
-	// the build source with autodeploy enabled are deployed with the result.
+	// branch, even if an up-to-date build already exists.
+	//
+	// By default, all services linked to the build source with autodeploy enabled
+	// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+	// linked services.
 	//
 	// Updating a build source or its build-time environment (env vars,
 	// secret files, env groups) with the REST API does not build it. Call
@@ -294,8 +297,11 @@ type ClientInterface interface {
 	// TriggerBuildSourceBuild Trigger a build
 	//
 	// Start a new build of the build source at the current HEAD of its
-	// branch, even if an up-to-date build already exists. Services linked to
-	// the build source with autodeploy enabled are deployed with the result.
+	// branch, even if an up-to-date build already exists.
+	//
+	// By default, all services linked to the build source with autodeploy enabled
+	// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+	// linked services.
 	//
 	// Updating a build source or its build-time environment (env vars,
 	// secret files, env groups) with the REST API does not build it. Call
@@ -3612,8 +3618,11 @@ func (c *Client) ListBuildsInBuildSource(ctx context.Context, buildSourceId exte
 // TriggerBuildSourceBuildWithBody Trigger a build
 //
 // Start a new build of the build source at the current HEAD of its
-// branch, even if an up-to-date build already exists. Services linked to
-// the build source with autodeploy enabled are deployed with the result.
+// branch, even if an up-to-date build already exists.
+//
+// By default, all services linked to the build source with autodeploy enabled
+// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+// linked services.
 //
 // Updating a build source or its build-time environment (env vars,
 // secret files, env groups) with the REST API does not build it. Call
@@ -3639,8 +3648,11 @@ func (c *Client) TriggerBuildSourceBuildWithBody(ctx context.Context, buildSourc
 // TriggerBuildSourceBuild Trigger a build
 //
 // Start a new build of the build source at the current HEAD of its
-// branch, even if an up-to-date build already exists. Services linked to
-// the build source with autodeploy enabled are deployed with the result.
+// branch, even if an up-to-date build already exists.
+//
+// By default, all services linked to the build source with autodeploy enabled
+// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+// linked services.
 //
 // Updating a build source or its build-time environment (env vars,
 // secret files, env groups) with the REST API does not build it. Call
@@ -28477,8 +28489,11 @@ type ClientWithResponsesInterface interface {
 	// TriggerBuildSourceBuildWithBodyWithResponse Trigger a build
 	//
 	// Start a new build of the build source at the current HEAD of its
-	// branch, even if an up-to-date build already exists. Services linked to
-	// the build source with autodeploy enabled are deployed with the result.
+	// branch, even if an up-to-date build already exists.
+	//
+	// By default, all services linked to the build source with autodeploy enabled
+	// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+	// linked services.
 	//
 	// Updating a build source or its build-time environment (env vars,
 	// secret files, env groups) with the REST API does not build it. Call
@@ -28494,8 +28509,11 @@ type ClientWithResponsesInterface interface {
 	// TriggerBuildSourceBuildWithResponse Trigger a build
 	//
 	// Start a new build of the build source at the current HEAD of its
-	// branch, even if an up-to-date build already exists. Services linked to
-	// the build source with autodeploy enabled are deployed with the result.
+	// branch, even if an up-to-date build already exists.
+	//
+	// By default, all services linked to the build source with autodeploy enabled
+	// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+	// linked services.
 	//
 	// Updating a build source or its build-time environment (env vars,
 	// secret files, env groups) with the REST API does not build it. Call
@@ -33077,7 +33095,7 @@ type TriggerBuildSourceBuildResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON201 the response for an HTTP 201 `application/json` response
-	JSON201 *externalRef3.Build
+	JSON201 *externalRef3.BuildWithDeploys
 	// JSON400 the response for an HTTP 400 `application/json` response
 	JSON400 *N400BadRequest
 	// JSON401 the response for an HTTP 401 `application/json` response
@@ -33097,7 +33115,7 @@ type TriggerBuildSourceBuildResponse struct {
 }
 
 // GetJSON201 returns the response for an HTTP 201 `application/json` response
-func (r TriggerBuildSourceBuildResponse) GetJSON201() *externalRef3.Build {
+func (r TriggerBuildSourceBuildResponse) GetJSON201() *externalRef3.BuildWithDeploys {
 	return r.JSON201
 }
 
@@ -59965,8 +59983,11 @@ func (c *ClientWithResponses) ListBuildsInBuildSourceWithResponse(ctx context.Co
 // TriggerBuildSourceBuildWithBodyWithResponse Trigger a build
 //
 // Start a new build of the build source at the current HEAD of its
-// branch, even if an up-to-date build already exists. Services linked to
-// the build source with autodeploy enabled are deployed with the result.
+// branch, even if an up-to-date build already exists.
+//
+// By default, all services linked to the build source with autodeploy enabled
+// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+// linked services.
 //
 // Updating a build source or its build-time environment (env vars,
 // secret files, env groups) with the REST API does not build it. Call
@@ -59988,8 +60009,11 @@ func (c *ClientWithResponses) TriggerBuildSourceBuildWithBodyWithResponse(ctx co
 // TriggerBuildSourceBuildWithResponse Trigger a build
 //
 // Start a new build of the build source at the current HEAD of its
-// branch, even if an up-to-date build already exists. Services linked to
-// the build source with autodeploy enabled are deployed with the result.
+// branch, even if an up-to-date build already exists.
+//
+// By default, all services linked to the build source with autodeploy enabled
+// will be deployed. Use `deploy.serviceScope` to override this and choose specific
+// linked services.
 //
 // Updating a build source or its build-time environment (env vars,
 // secret files, env groups) with the REST API does not build it. Call
@@ -66779,7 +66803,7 @@ func ParseTriggerBuildSourceBuildResponse(rsp *http.Response) (*TriggerBuildSour
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 201:
-		var dest externalRef3.Build
+		var dest externalRef3.BuildWithDeploys
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

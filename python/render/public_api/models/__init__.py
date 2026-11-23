@@ -34,8 +34,11 @@ from .build import Build
 from .build_clear_cache import BuildClearCache
 from .build_config import BuildConfig
 from .build_config_update import BuildConfigUpdate
+from .build_deploy import BuildDeploy
 from .build_deploy_end_reason import BuildDeployEndReason
 from .build_deploy_end_reason_id import BuildDeployEndReasonID
+from .build_deploy_input import BuildDeployInput
+from .build_deploy_service_scope import BuildDeployServiceScope
 from .build_deploy_trigger import BuildDeployTrigger
 from .build_ended import BuildEnded
 from .build_filter import BuildFilter
@@ -43,6 +46,8 @@ from .build_plan import BuildPlan
 from .build_run import BuildRun
 from .build_run_runtime import BuildRunRuntime
 from .build_run_status import BuildRunStatus
+from .build_skipped_service import BuildSkippedService
+from .build_skipped_service_reason import BuildSkippedServiceReason
 from .build_source import BuildSource
 from .build_source_git import BuildSourceGit
 from .build_source_git_region import BuildSourceGitRegion
@@ -58,6 +63,7 @@ from .build_source_service_link import BuildSourceServiceLink
 from .build_source_with_cursor import BuildSourceWithCursor
 from .build_started import BuildStarted
 from .build_with_cursor import BuildWithCursor
+from .build_with_deploys import BuildWithDeploys
 from .cache import Cache
 from .cache_profile import CacheProfile
 from .cidr_block_and_description import CidrBlockAndDescription
@@ -526,8 +532,11 @@ __all__ = (
     "BuildClearCache",
     "BuildConfig",
     "BuildConfigUpdate",
+    "BuildDeploy",
     "BuildDeployEndReason",
     "BuildDeployEndReasonID",
+    "BuildDeployInput",
+    "BuildDeployServiceScope",
     "BuildDeployTrigger",
     "BuildEnded",
     "BuildFilter",
@@ -535,6 +544,8 @@ __all__ = (
     "BuildRun",
     "BuildRunRuntime",
     "BuildRunStatus",
+    "BuildSkippedService",
+    "BuildSkippedServiceReason",
     "BuildSource",
     "BuildSourceGit",
     "BuildSourceGitRegion",
@@ -550,6 +561,7 @@ __all__ = (
     "BuildSourceWithCursor",
     "BuildStarted",
     "BuildWithCursor",
+    "BuildWithDeploys",
     "Cache",
     "CacheProfile",
     "CidrBlockAndDescription",

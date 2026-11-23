@@ -964,6 +964,7 @@ export interface components {
             flowRun: components["schemas"]["FlowRun"];
             cursor: components["schemas"]["cursor"];
         };
+        buildSourceId: string;
         /** @example mrn-cph1rs3idesc73a2b2mg */
         maintenanceRunId: string;
         /** @enum {string} */
@@ -979,6 +980,63 @@ export interface components {
              */
             pendingMaintenanceBy?: string;
             state: components["schemas"]["maintenanceState"];
+        };
+        buildId: string;
+        /** @description The Render build run that produced this build. Present when the build source is currently build-based. Mutually exclusive with `image`. */
+        buildRun: {
+            id: string;
+            /** @enum {string} */
+            status?: "created" | "inProgress" | "succeeded" | "failed" | "canceled" | "unknown";
+            /** Format: date-time */
+            buildStartedAt?: string;
+            /** Format: date-time */
+            buildFinishedAt?: string;
+            /** @enum {string} */
+            runtime?: "docker" | "elixir" | "go" | "node" | "python" | "ruby" | "rust";
+            commitId?: string;
+            commitUrl?: string;
+        };
+        /** @description Present when the build source is currently image-based. Mutually exclusive with `buildRun`. */
+        "schemas-image": {
+            imageVersionId?: string;
+            SHA?: string;
+            ref?: string;
+            imageUrl?: string;
+            registryCredentialId?: string;
+        };
+        build: {
+            id: components["schemas"]["buildId"];
+            buildSourceId: components["schemas"]["buildSourceId"];
+            buildRun?: components["schemas"]["buildRun"];
+            image?: components["schemas"]["schemas-image"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            assetsDeletedAt?: string;
+        };
+        buildDeploy: {
+            serviceId: string;
+            deployId: string;
+        };
+        /**
+         * @description Why the service did not get a deploy:
+         *
+         *     - `suspended`: the service is suspended.
+         *     - `deploys_shut_off`: Render has temporarily paused deploys for the service's plan tier.
+         * @enum {string}
+         */
+        buildSkippedServiceReason: "suspended" | "deploys_shut_off";
+        buildSkippedService: {
+            serviceId: string;
+            reason: components["schemas"]["buildSkippedServiceReason"];
+        };
+        buildWithDeploys: components["schemas"]["build"] & {
+            /** @description The deploys that the build started, one for each service. */
+            deploys: components["schemas"]["buildDeploy"][];
+            /** @description Services in `deploy.serviceScope` that did not get a deploy, with the reason for each. The build still runs for the other services. For `autodeploy_only`, suspended services are not listed. */
+            skippedServices: components["schemas"]["buildSkippedService"][];
         };
         /** @enum {string} */
         TaskRunStatus: "pending" | "running" | "completed" | "succeeded" | "failed" | "canceled" | "paused" | "suspended" | "sleeping";
