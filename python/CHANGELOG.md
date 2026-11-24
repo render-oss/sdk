@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.11.0] - 2026-11-24
+
+### Added
+
+- (Sandboxes) `suspend()` starts suspending a running sandbox, on the async and sync clients. It returns once the suspension starts, and also when the sandbox is already `suspending` or `suspended`. It does not wait for `suspended`; retrieve the sandbox with `from_id()` until it is. A sandbox that is not running raises `ClientError` with code `sandbox_not_running`.
+- (REST API) `expose_sandbox_port`, `list_sandbox_ports`, `retrieve_sandbox_port`, and `hide_sandbox_port` manage the ports that a sandbox exposes.
+- (REST API) The logs and metrics functions accept `environment`, `project`, and `region` filters. On `list_logs`, `subscribe_logs`, and `list_logs_values`, `resource` is now optional.
+- (REST API) `trigger_build_source_build` accepts `deploy`, a `BuildDeployInput`. Use its `service_scope` and `service_ids` to deploy only some of the services linked to the build source.
+
+### Changed
+
+- **Breaking:** (REST API) `trigger_build_source_build` returns a `BuildWithDeploys` instead of a `Build`. It has the fields of `Build`, plus `deploys` and `skipped_services`. Code that checks `isinstance(result, Build)` must check `BuildWithDeploys`.
+
 ## [1.10.0] - 2026-11-19
 
 ### Added

@@ -4,11 +4,16 @@ All notable changes to the `@renderinc/sdk` TypeScript SDK will be documented in
 
 This project follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.11.0] - 2026-11-24
 
 ### Added
 
+- (Sandboxes) `suspend()` starts suspending a running sandbox. It returns once the suspension starts, and also when the sandbox is already `suspending` or `suspended`. It does not wait for `suspended`; retrieve the sandbox with `get()` until it is. A sandbox that is not running throws a `ClientError` with code `sandbox_not_running`.
 - (Sandboxes) `exec()` returns a `SandboxExecPromise`. Call `result()` on it to wait for the command to finish and get its `stdout`, `stderr`, and `exitCode`: `await sandboxes.exec(id, "ls").result()`. Awaiting it still gives the event stream, now a `SandboxExecution`, which also has `result()`. A stream can be read once, so `result()` throws after you iterate it.
+
+### Changed
+
+- (Key Value) Importing `@renderinc/sdk` no longer loads `redis`. `keyValue.newClient()` loads it on first use. This makes the SDK import 8 to 10 times faster.
 
 ## [1.10.0] - 2026-11-19
 
