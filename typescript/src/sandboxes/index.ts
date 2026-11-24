@@ -290,6 +290,7 @@ export type SandboxCreateInput = SandboxSourceInput & {
   wait?: boolean | SandboxWaitOptions;
 };
 
+/** A sandbox's state when the call returned. Call `get()` for its current status. */
 export type Sandbox = components["schemas"]["sandbox"];
 
 /** Options for `waitUntilRunning` and `snapshots.waitUntilAvailable`. */
@@ -1078,6 +1079,7 @@ export class SandboxCredentialsClient {
   }
 }
 
+/** Creates and operates sandboxes. Reach it as `render.sandboxes`. */
 export class SandboxesClient {
   public readonly snapshots: SandboxSnapshotsClient;
   public readonly images: SandboxImagesClient;
@@ -1127,6 +1129,12 @@ export class SandboxesClient {
     });
   }
 
+  /**
+   * Retrieves a sandbox by ID.
+   *
+   * @throws ClientError with `statusCode` 404 if the sandbox does not exist or has been
+   * terminated.
+   */
   async get(sandboxId: string, ownerId?: `tea-${string}`, signal?: AbortSignal) {
     return unwrap(
       await this.apiClient.GET("/sandboxes/{sandboxId}", {
@@ -1140,6 +1148,18 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Creates a sandbox and returns its initial state. Set `wait` to resolve only once it is
+   * `running`.
+   *
+   * @throws SandboxSnapshotNotFoundError if the snapshot does not resolve.
+   * @throws SandboxSnapshotNotReadyError if the snapshot is not available.
+   * @throws SandboxSnapshotPlanMismatchError if `plan` does not match a runtime snapshot's plan.
+   * @throws SandboxImageNotFoundError if the sandbox group has no such image.
+   * @throws SandboxImageNotReadyError if the image has no available builds.
+   * @throws SandboxGroupSuspendedError if the sandbox group is suspended.
+   * @throws SandboxCreateWaitError if `wait` is set and the sandbox does not reach `running`.
+   */
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
     const wait = resolveCreateWait(input.wait, DEFAULT_SANDBOX_WAIT_TIMEOUT_MS);
     const ownerId = this.resolveOwnerId(input.ownerId);
@@ -1186,6 +1206,10 @@ export class SandboxesClient {
     }
   }
 
+  /**
+   * Lists the workspace's sandboxes, paginated by cursor. Pass the last entry's `cursor` to get
+   * the next page.
+   */
   async list({
     ownerId,
     cursor,
@@ -1196,8 +1220,10 @@ export class SandboxesClient {
   }: {
     ownerId?: `tea-${string}`;
     cursor?: string;
+    /** The API caps this at 100. */
     limit?: number;
     sandboxGroupId?: string;
+    /** Filter by status. */
     status?: components["schemas"]["sandboxStatus"][];
     /** Return only sandboxes with exactly this name. Names aren't unique, so this can match several. */
     name?: string;
@@ -1383,6 +1409,11 @@ export class SandboxesClient {
     }
   }
 
+  /**
+   * Terminates a sandbox. Resolves if the sandbox is already terminated.
+   *
+   * @throws ClientError with `statusCode` 404 if the sandbox ID cannot be found.
+   */
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
     const { error, response } = await this.apiClient.POST("/sandboxes/{sandboxId}/terminate", {
       params: {
