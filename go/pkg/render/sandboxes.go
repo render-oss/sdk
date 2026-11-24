@@ -480,6 +480,29 @@ func (s *SandboxClient) Terminate(ctx context.Context, sandboxID string) error {
 	return nil
 }
 
+// Suspend starts suspending a running sandbox. It returns nil once the
+// suspension starts, and also if the sandbox is already suspending or
+// suspended. Call FromID until the sandbox's status is "suspended". Open
+// commands and connections end. The next connection resumes the sandbox.
+//
+// A sandbox that is not running returns an *APIError with StatusCode 409 and
+// Code "sandbox_not_running". A sandbox ID that was never valid returns
+// ErrSandboxNotFound.
+func (s *SandboxClient) Suspend(ctx context.Context, sandboxID string) error {
+	ownerID, err := s.ownerID()
+	if err != nil {
+		return err
+	}
+	resp, err := s.client.internal.SuspendSandboxWithResponse(ctx, sandboxID, &client.SuspendSandboxParams{OwnerId: &ownerID})
+	if err != nil {
+		return fmt.Errorf("failed to make suspend sandbox request: %w", err)
+	}
+	if resp.StatusCode() >= 300 {
+		return sandboxHTTPError(sandboxID, resp.StatusCode(), resp.Body, "suspend sandbox")
+	}
+	return nil
+}
+
 // Exec runs command with bash -c in the sandbox and streams its output: zero
 // or more SandboxExecOutput events, then one SandboxExecExit. A non-zero exit
 // code arrives as a SandboxExecExit, not an error. A terminal error reported

@@ -365,6 +365,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sandboxes/{sandboxId}/suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox. */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend sandbox
+         * @description Suspend the running sandbox with the provided ID. Returns HTTP 202 after the sandbox starts suspending, or if it is already `suspending` or `suspended`. Retrieve the sandbox until its status is `suspended`. Open commands and connections end. The next connection resumes the sandbox.
+         */
+        post: operations["suspend-sandbox"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sandboxes/{sandboxId}/snapshots": {
         parameters: {
             query?: never;
@@ -3105,6 +3128,50 @@ export interface operations {
             401: components["responses"]["401Unauthorized"];
             403: components["responses"]["403Forbidden"];
             404: components["responses"]["404NotFound"];
+            429: components["responses"]["429RateLimit"];
+            500: components["responses"]["500InternalServerError"];
+            503: components["responses"]["503ServiceUnavailable"];
+        };
+    };
+    "suspend-sandbox": {
+        parameters: {
+            query?: {
+                /** @description The ID of the workspace the sandbox belongs to. If provided, it must match the sandbox's workspace. If omitted, Render determines the workspace from the sandbox ID. */
+                ownerId?: components["parameters"]["ownerId"];
+            };
+            header?: never;
+            path: {
+                /** @description The ID of the sandbox. */
+                sandboxId: components["parameters"]["sandboxId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The sandbox is suspending or is already suspended. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["400BadRequest"];
+            401: components["responses"]["401Unauthorized"];
+            403: components["responses"]["403Forbidden"];
+            404: components["responses"]["404NotFound"];
+            /**
+             * @description The current state of the resource conflicts with this request.
+             *
+             *     - `sandbox_not_running`: The sandbox is not `running`, `suspending`, or `suspended`.
+             */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["error"];
+                };
+            };
             429: components["responses"]["429RateLimit"];
             500: components["responses"]["500InternalServerError"];
             503: components["responses"]["503ServiceUnavailable"];

@@ -208,6 +208,12 @@ describe("SandboxesClient", () => {
         call: (c) => c.terminate("sbx-123"),
       },
       {
+        name: "suspend",
+        method: "POST",
+        context: "Failed to suspend sandbox",
+        call: (c) => c.suspend("sbx-123"),
+      },
+      {
         name: "upload",
         method: "POST",
         context: "Failed to get file connect token",
@@ -438,6 +444,37 @@ describe("SandboxesClient", () => {
           path: { sandboxId: "sbx-123" },
           query: { ownerId: "tea-test" },
         },
+      });
+    });
+  });
+
+  describe("suspend", () => {
+    it("suspends a sandbox when the API answers 202 with no body", async () => {
+      const apiClient = mockApiClient("POST", { status: 202 });
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      await expect(client.suspend("sbx-123", "tea-test")).resolves.toBeUndefined();
+      expect(apiClient.POST).toHaveBeenCalledWith("/sandboxes/{sandboxId}/suspend", {
+        params: {
+          path: { sandboxId: "sbx-123" },
+          query: { ownerId: "tea-test" },
+        },
+      });
+    });
+
+    it("throws a ClientError with the sandbox_not_running code for a 409", async () => {
+      const apiClient = mockApiClient("POST", {
+        status: 409,
+        error: { code: "sandbox_not_running", message: "sandbox is not running" },
+      });
+      const client = new SandboxesClient(apiClient, "tea-default");
+
+      const error = await client.suspend("sbx-123").catch((err) => err);
+      expect(error).toBeInstanceOf(ClientError);
+      expect(error).toMatchObject({
+        statusCode: 409,
+        code: "sandbox_not_running",
+        message: "Failed to suspend sandbox: sandbox is not running",
       });
     });
   });

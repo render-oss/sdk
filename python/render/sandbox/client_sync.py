@@ -398,6 +398,20 @@ class SyncSandboxClient:
         resolved_owner_id = self._resolve_owner_id(owner_id)
         self.api.terminate(sandbox_id, resolved_owner_id)
 
+    def suspend(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
+        """Start suspending a running sandbox.
+
+        Returns once the suspension starts, and also if the sandbox is already
+        suspending or suspended. Retrieve the sandbox with from_id() until its
+        status is suspended. Open commands and connections end. The next
+        connection resumes the sandbox.
+
+        Raises ClientError with code sandbox_not_running if the sandbox is not
+        running, and SandboxNotFoundError if the sandbox id was never valid.
+        """
+        resolved_owner_id = self._resolve_owner_id(owner_id)
+        self.api.suspend(sandbox_id, resolved_owner_id)
+
     def copy_to(
         self,
         sandbox_id: str,

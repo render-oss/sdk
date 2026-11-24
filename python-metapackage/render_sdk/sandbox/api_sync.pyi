@@ -171,6 +171,7 @@ from render.sandbox.api_sync import (
     run_blocking as run_blocking,
     set_default_sandbox_group as set_default_sandbox_group,
     stat_path as stat_path,
+    suspend_sandbox as suspend_sandbox,
     terminate_sandbox as terminate_sandbox,
     update_sandbox_group as update_sandbox_group,
     update_sandbox_group_credential as update_sandbox_group_credential,

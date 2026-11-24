@@ -171,6 +171,7 @@ from render.sandbox.api import (
     retrieve_sandbox_group_credential as retrieve_sandbox_group_credential,
     retrieve_sandbox_snapshot as retrieve_sandbox_snapshot,
     set_default_sandbox_group as set_default_sandbox_group,
+    suspend_sandbox as suspend_sandbox,
     terminate_sandbox as terminate_sandbox,
     update_sandbox_group as update_sandbox_group,
     update_sandbox_group_credential as update_sandbox_group_credential,

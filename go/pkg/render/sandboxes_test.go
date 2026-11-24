@@ -681,6 +681,33 @@ func recordingGroupCreateClient(t *testing.T) (*SandboxClient, *string) {
 	return c.Sandboxes, &gotBody
 }
 
+func TestSandboxSuspend(t *testing.T) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /v1/sandboxes/sbx-1/suspend", func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "tea-1", r.URL.Query().Get("ownerId"))
+		w.WriteHeader(http.StatusAccepted)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	c, err := NewClient(WithBaseURL(srv.URL), WithToken("t"), WithOwnerID("tea-1"))
+	require.NoError(t, err)
+
+	require.NoError(t, c.Sandboxes.Suspend(context.Background(), "sbx-1"))
+}
+
+func TestSandboxSuspendNotRunning(t *testing.T) {
+	c := statusRenderClient(t, http.StatusConflict, "sandbox_not_running", "sandbox is not running")
+
+	err := c.Sandboxes.Suspend(context.Background(), "sbx-1")
+
+	var apiErr *APIError
+	require.ErrorAs(t, err, &apiErr)
+	require.Equal(t, http.StatusConflict, apiErr.StatusCode)
+	require.Equal(t, "sandbox_not_running", apiErr.Code)
+	require.Equal(t, "sandbox is not running", apiErr.Message)
+	require.ErrorContains(t, err, "suspend sandbox failed with status 409")
+}
+
 func TestSandboxGroupDelete(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("DELETE /v1/sandbox-groups/sbg-1", func(w http.ResponseWriter, r *http.Request) {

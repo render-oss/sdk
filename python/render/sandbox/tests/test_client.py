@@ -673,6 +673,64 @@ async def test_terminate_raises_not_found_on_404():
         await client.terminate("sbx-missing")
 
 
+@pytest.mark.asyncio
+async def test_suspend_posts_to_suspend_and_returns_none():
+    captured = {}
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        captured["method"] = request.method
+        captured["path"] = request.url.path
+        captured["query"] = dict(request.url.params)
+        return httpx2.Response(202)
+
+    client = _sandbox_client(handler)
+    result = await client.suspend("sbx-abc")
+
+    assert captured["method"] == "POST"
+    assert captured["path"] == "/v1/sandboxes/sbx-abc/suspend"
+    assert captured["query"]["ownerId"] == "tea-test"
+    assert result is None
+
+
+def test_sync_suspend_posts_to_suspend_and_returns_none():
+    captured = {}
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        captured["path"] = request.url.path
+        return httpx2.Response(202)
+
+    client = _sync_sandbox_client(handler)
+    assert client.suspend("sbx-abc") is None
+    assert captured["path"] == "/v1/sandboxes/sbx-abc/suspend"
+
+
+@pytest.mark.asyncio
+async def test_suspend_raises_client_error_with_code_when_sandbox_not_running():
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            409,
+            json={"message": "sandbox is not running", "code": "sandbox_not_running"},
+        )
+
+    client = _sandbox_client(handler)
+    with pytest.raises(ClientError, match="sandbox is not running") as excinfo:
+        await client.suspend("sbx-abc")
+
+    assert type(excinfo.value) is ClientError
+    assert excinfo.value.code == "sandbox_not_running"
+    assert excinfo.value.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_suspend_raises_not_found_on_404():
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(404, json={"message": "not found"})
+
+    client = _sandbox_client(handler)
+    with pytest.raises(SandboxNotFoundError):
+        await client.suspend("sbx-missing")
+
+
 CONNECT_JSON = {
     "executionId": "exc-1",
     "token": "run-token-xyz",

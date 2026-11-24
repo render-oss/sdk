@@ -25,6 +25,7 @@
     "/sandboxes/{sandboxId}/files/{operation}/token",
     "/sandboxes/{sandboxId}/runs/{operation}/token",
     "/sandboxes/{sandboxId}/snapshots",
+    "/sandboxes/{sandboxId}/suspend",
     "/sandboxes/{sandboxId}/terminate",
     "/task-runs",
     "/task-runs/{taskRunId}"

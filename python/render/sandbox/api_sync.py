@@ -54,6 +54,7 @@ from render.public_api.api.sandboxes import (
     retrieve_sandbox_group_credential,
     retrieve_sandbox_snapshot,
     set_default_sandbox_group,
+    suspend_sandbox,
     terminate_sandbox,
     update_sandbox_group,
     update_sandbox_group_credential,
@@ -687,6 +688,15 @@ class SyncSandboxApi:
         if response.status_code == 404:
             raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
         _handle_sandbox_api_error(response, "terminate sandbox")
+
+    def suspend(self, sandbox_id: str, owner_id: str) -> None:
+        with request_errors("suspend sandbox"):
+            response = suspend_sandbox.sync_detailed(
+                sandbox_id, client=self.client, owner_id=owner_id
+            )
+        if response.status_code == 404:
+            raise SandboxNotFoundError(f"sandbox {sandbox_id} not found")
+        _handle_sandbox_api_error(response, "suspend sandbox")
 
     def create_snapshot(
         self,

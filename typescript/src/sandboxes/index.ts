@@ -1395,6 +1395,27 @@ export class SandboxesClient {
     }
   }
 
+  /**
+   * Starts suspending a running sandbox. Resolves once the suspension starts, and also if the
+   * sandbox is already `suspending` or `suspended`. Retrieve the sandbox with `get()` until its
+   * status is `suspended`. Open commands and connections end. The next connection resumes the
+   * sandbox.
+   *
+   * Throws a `ClientError` with code `sandbox_not_running` and status 409 if the sandbox is not
+   * running.
+   */
+  async suspend(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
+    const { error, response } = await this.apiClient.POST("/sandboxes/{sandboxId}/suspend", {
+      params: {
+        path: { sandboxId },
+        query: { ownerId: this.resolveOwnerId(ownerId) },
+      },
+    });
+    if (error !== undefined || !response.ok) {
+      throw getTypedApiError(error, response, "Failed to suspend sandbox");
+    }
+  }
+
   async upload(
     sandboxId: string,
     path: string,

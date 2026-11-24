@@ -160,6 +160,12 @@ func TestNotFoundErrorsAreAPIErrors(t *testing.T) {
 			want:     sandboxNotFound,
 		},
 		{
+			name:     "Suspend",
+			sentinel: ErrSandboxNotFound,
+			call:     func(s *SandboxClient) error { return s.Suspend(ctx, "sbx-1") },
+			want:     sandboxNotFound,
+		},
+		{
 			name:     "Snapshots.Create",
 			sentinel: ErrSandboxNotFound,
 			call: func(s *SandboxClient) error {
