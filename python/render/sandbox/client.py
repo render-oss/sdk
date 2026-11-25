@@ -860,7 +860,7 @@ class CredentialClient:
         paths: Sequence[str] | None = None,
         enabled: bool | None = None,
     ) -> Credential:
-        """Create a credential in a sandbox group.
+        """Creates a credential in a sandbox group.
 
         credential_id is a URL-safe name, case sensitive and unique within the
         group. domain is the exact public hostname it applies to, like
@@ -869,8 +869,11 @@ class CredentialClient:
         ``["POST"]``, and paths, like ``["/v1/**"]``, narrow which requests
         match; omit them to match any. enabled defaults to True.
 
-        A group holds at most 25 credentials. Raises a ClientError with
-        status_code 409 if the group already has credential_id.
+        A group holds at most 25 credentials.
+
+        Raises:
+            ClientError: With status_code 409 if the group already has
+                credential_id.
         """
         return await self._sandboxes.api.create_credential(
             sandbox_group_id,
@@ -884,15 +887,16 @@ class CredentialClient:
         )
 
     async def from_id(self, *, sandbox_group_id: str, credential_id: str) -> Credential:
-        """Fetch a credential by id.
+        """Retrieves a credential by ID.
 
-        Raises CredentialNotFoundError if the credential or the sandbox group
-        does not exist.
+        Raises:
+            CredentialNotFoundError: The credential or the sandbox group does
+                not exist.
         """
         return await self._sandboxes.api.get_credential(sandbox_group_id, credential_id)
 
     async def list(self, *, sandbox_group_id: str) -> _CredentialList:
-        """List every credential in a sandbox group, sorted by id."""
+        """Lists every credential in a sandbox group, sorted by ID."""
         return await self._sandboxes.api.list_credentials(sandbox_group_id)
 
     async def update(
@@ -907,15 +911,16 @@ class CredentialClient:
         paths: Sequence[str] | None = None,
         enabled: bool | None = None,
     ) -> Credential:
-        """Change a credential.
+        """Changes a credential.
 
         Arguments left as None keep their current value. An empty methods or
         paths list clears that filter, so the credential matches any method
         or path. Changing domain or value needs an admin. Passing value
         always creates a new version, even when the value is unchanged.
 
-        Raises CredentialNotFoundError if the credential or the sandbox group
-        does not exist.
+        Raises:
+            CredentialNotFoundError: The credential or the sandbox group does
+                not exist.
         """
         return await self._sandboxes.api.update_credential(
             sandbox_group_id,
@@ -929,7 +934,7 @@ class CredentialClient:
         )
 
     async def delete(self, *, sandbox_group_id: str, credential_id: str) -> None:
-        """Delete a credential and its versions.
+        """Deletes a credential and its versions.
 
         Deleting a credential that does not exist succeeds.
         """
@@ -938,13 +943,14 @@ class CredentialClient:
     async def list_versions(
         self, *, sandbox_group_id: str, credential_id: str
     ) -> _CredentialVersionList:
-        """List the versions of a credential, newest first.
+        """Lists the versions of a credential, newest first.
 
         The API keeps the current configuration and the three most recently
         active earlier ones, with every version that used them.
 
-        Raises CredentialNotFoundError if the credential or the sandbox group
-        does not exist.
+        Raises:
+            CredentialNotFoundError: The credential or the sandbox group does
+                not exist.
         """
         return await self._sandboxes.api.list_credential_versions(
             sandbox_group_id, credential_id
@@ -953,11 +959,13 @@ class CredentialClient:
     async def restore(
         self, *, sandbox_group_id: str, credential_id: str, version_id: int
     ) -> Credential:
-        """Make an earlier version's configuration and value current again.
+        """Makes an earlier version's configuration and value current again.
 
         Creates a new version whose restored_from_version_id is version_id.
-        Raises CredentialNotFoundError if the credential, the sandbox group
-        or the version does not exist.
+
+        Raises:
+            CredentialNotFoundError: The credential, the sandbox group or the
+                version does not exist.
         """
         return await self._sandboxes.api.restore_credential(
             sandbox_group_id, credential_id, version_id
