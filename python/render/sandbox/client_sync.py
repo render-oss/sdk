@@ -526,7 +526,7 @@ class SyncSnapshotClient:
         owner_id: str | None = None,
         wait: bool | SandboxWaitOptions = False,
     ) -> Snapshot:
-        """Capture a snapshot of a running sandbox.
+        """Captures a snapshot of a running sandbox.
 
         kind is filesystem (the writable filesystem) or runtime (also memory and
         CPU state). name is case sensitive and can be reused within a sandbox
@@ -534,19 +534,25 @@ class SyncSnapshotClient:
         last use; each sandbox you create from it starts the time again. Set
         ttl_seconds to 0 to keep the snapshot until you delete it. Omit it for
         Render's default snapshot lifetime. The snapshot is returned in
-        status creating; call wait_until_available to wait for it. Raises
-        SandboxNotFoundError if the sandbox does not exist, and a ClientError
-        with code sandbox_not_running if it is not running.
+        status creating; call wait_until_available to wait for it.
 
         wait returns the snapshot only once it is available, as
         wait_until_available does. True uses the default wait; a
-        SandboxWaitOptions sets its timeout and interval. Bad options raise
-        ValueError before the create request. If the wait fails, create raises
-        SnapshotCreateWaitError with the new snapshot's ids.
+        SandboxWaitOptions sets its timeout and interval.
 
         To bound the wait, set SandboxWaitOptions(timeout_seconds=...). Don't
         wrap create(wait=...) in asyncio.wait_for: its timeout cancels the task,
-        and a cancelled create loses the new snapshot's ids.
+        and a cancelled create loses the new snapshot's IDs.
+
+        Raises:
+            SandboxNotFoundError: The sandbox does not exist.
+            ClientError: With code sandbox_not_running if the sandbox is not
+                running.
+            ValueError: The wait options are invalid. Raised before the create
+                request.
+            SnapshotCreateWaitError: wait is set and the wait fails, including
+                on a request error during the wait, which becomes its cause. It
+                carries the new snapshot's IDs.
         """
         wait_settings = _wait.resolve_create_wait(
             wait, _wait.DEFAULT_SNAPSHOT_TIMEOUT_SECONDS
@@ -586,10 +592,11 @@ class SyncSnapshotClient:
         snapshot_id: str,
         owner_id: str | None = None,
     ) -> Snapshot:
-        """Fetch a snapshot by id.
+        """Retrieves a snapshot by ID.
 
-        Raises SnapshotNotFoundError if the snapshot does not exist, was
-        deleted, has expired, or belongs to another sandbox group.
+        Raises:
+            SnapshotNotFoundError: The snapshot does not exist, was deleted, has
+                expired, or belongs to another sandbox group.
         """
         return self._sandboxes.api.get_snapshot(
             sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
@@ -604,14 +611,19 @@ class SyncSnapshotClient:
         interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
         owner_id: str | None = None,
     ) -> Snapshot:
-        """Wait until the snapshot is available, so sandboxes can start from it.
+        """Waits until the snapshot is available, so sandboxes can start from it.
 
         Checks the status every interval_seconds, doubling the delay after each
         check up to 2 seconds. timeout_seconds bounds the whole wait, including
-        status checks. Raises SnapshotFailedError, with the API's reason, as
-        soon as the capture fails, and SnapshotWaitTimeoutError after
-        timeout_seconds. Errors from a status check, such as
-        SnapshotNotFoundError, propagate unchanged.
+        status checks.
+
+        Raises:
+            SnapshotFailedError: The capture fails. It carries the API's reason.
+            SnapshotWaitTimeoutError: The snapshot is not available after
+                timeout_seconds.
+            SnapshotNotFoundError: A status check finds no snapshot, for example
+                because it was deleted.
+            ValueError: timeout_seconds or interval_seconds is invalid.
         """
         resolved_owner_id = self._sandboxes._optional_owner_id(owner_id)
 
@@ -642,7 +654,7 @@ class SyncSnapshotClient:
         limit: int | None = None,
         owner_id: str | None = None,
     ) -> SnapshotList:
-        """List snapshots of one sandbox group, newest first.
+        """Lists the snapshots in a sandbox group, newest first.
 
         Deleted and expired snapshots are omitted. status filters by snapshot
         status, one or a sequence of them (each one of creating, available,
@@ -660,11 +672,13 @@ class SyncSnapshotClient:
         snapshot_id: str,
         owner_id: str | None = None,
     ) -> None:
-        """Delete a snapshot.
+        """Deletes a snapshot.
 
-        Idempotent for an already-deleted or expired snapshot (the API returns
-        204). Raises SnapshotNotFoundError if the snapshot never existed, and
-        SnapshotNotReadyError if it is still creating.
+        Deleting an already-deleted or expired snapshot succeeds.
+
+        Raises:
+            SnapshotNotFoundError: The snapshot never existed.
+            SnapshotNotReadyError: The snapshot is still creating.
         """
         self._sandboxes.api.delete_snapshot(
             sandbox_group_id, snapshot_id, self._sandboxes._optional_owner_id(owner_id)
