@@ -699,7 +699,7 @@ class SyncImageClient:
         source: str,
         registry_credentials: RegistryCredentials | Mapping[str, str] | None = None,
     ) -> Image:
-        """Start importing an OCI image so sandboxes can start from it.
+        """Starts importing an OCI image so sandboxes can start from it.
 
         source is an image by tag or digest, like
         ``ghcr.io/acme/agent-runtime:v1``. It must be linux/amd64. name
@@ -711,27 +711,30 @@ class SyncImageClient:
         The image is returned before the import finishes; call
         wait_until_ready to wait for it. Importing a name and digest the group
         already has, or is importing, returns that image instead of starting
-        another. Raises RateLimitError when the group has too many imports in
-        progress.
+        another.
+
+        Raises:
+            RateLimitError: The group has too many imports in progress.
         """
         return self._sandboxes.api.import_image(
             sandbox_group_id, name, source, registry_credentials
         )
 
     def from_id(self, *, sandbox_group_id: str, image_id: str) -> Image:
-        """Fetch an image by id.
+        """Retrieves an image by ID.
 
-        Raises ImageNotFoundError if the image does not exist or belongs to
-        another sandbox group.
+        Raises:
+            ImageNotFoundError: The image does not exist or belongs to another
+                sandbox group.
         """
         return self._sandboxes.api.get_image(sandbox_group_id, image_id)
 
     def delete(self, *, sandbox_group_id: str, image_id: str) -> None:
-        """Delete an image.
+        """Deletes an image. Deleting an image that was already deleted succeeds.
 
-        Deleting an image that was already deleted succeeds. Raises
-        ImageNotFoundError if the image does not exist, and ImageInUseError
-        while sandboxes or snapshots still use it.
+        Raises:
+            ImageNotFoundError: The image does not exist.
+            ImageInUseError: Sandboxes or snapshots still use the image.
         """
         self._sandboxes.api.delete_image(sandbox_group_id, image_id)
 
@@ -744,7 +747,7 @@ class SyncImageClient:
         cursor: str | None = None,
         limit: int | None = None,
     ) -> ImageList:
-        """List images of one sandbox group, newest first.
+        """Lists the images in a sandbox group, newest first.
 
         Each version of a name is its own image. name returns only versions of
         that image. status filters by import status, one or a sequence of them
@@ -764,14 +767,19 @@ class SyncImageClient:
         timeout_seconds: float = _wait.DEFAULT_IMAGE_TIMEOUT_SECONDS,
         interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
     ) -> Image:
-        """Wait until the image has succeeded, so sandboxes can start from it.
+        """Waits until the image has succeeded, so sandboxes can start from it.
 
         Checks the status every interval_seconds, doubling the delay after each
         check up to 2 seconds. timeout_seconds bounds the whole wait, including
-        status checks. Raises ImageFailedError, with the API's reason, as soon
-        as the import fails, and ImageWaitTimeoutError after timeout_seconds.
-        Errors from a status check, such as ImageNotFoundError, propagate
-        unchanged.
+        status checks.
+
+        Raises:
+            ImageFailedError: The import fails. It carries the API's reason.
+            ImageWaitTimeoutError: The image has not succeeded after
+                timeout_seconds.
+            ImageNotFoundError: A status check finds no image, for example
+                because it was deleted.
+            ValueError: timeout_seconds or interval_seconds is invalid.
         """
 
         def timeout_error(last: Image | None) -> ImageWaitTimeoutError:
