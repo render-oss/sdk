@@ -859,6 +859,12 @@ export class SandboxImagesClient {
     );
   }
 
+  /**
+   * Retrieves an image.
+   *
+   * @throws SandboxImageNotFoundError if the image does not exist or belongs to another sandbox
+   * group.
+   */
   async get(
     { sandboxGroupId, imageId }: SandboxImageGetInput,
     signal?: AbortSignal,
@@ -1482,6 +1488,14 @@ export class SandboxesClient {
     }
   }
 
+  /**
+   * Writes `data` to a file at `path` in the sandbox. To send a local file without holding it in
+   * memory, use `copyTo`.
+   *
+   * @throws SandboxEndedError if the sandbox is `terminated` or `errored`.
+   * @throws SandboxGroupSuspendedError if the sandbox group is suspended.
+   * @throws AbortError if `options.signal` aborts.
+   */
   async upload(
     sandboxId: string,
     path: string,
@@ -1518,6 +1532,16 @@ export class SandboxesClient {
     }
   }
 
+  /**
+   * Reads a sandbox file into memory. To save a large file to disk without holding it in memory,
+   * use `copyFrom`.
+   *
+   * @throws SandboxDownloadTooLargeError if the file is larger than `maxSizeBytes`, 256 MiB by
+   * default.
+   * @throws SandboxEndedError if the sandbox is `terminated` or `errored`.
+   * @throws SandboxGroupSuspendedError if the sandbox group is suspended.
+   * @throws AbortError if the signal aborts.
+   */
   async download(
     sandboxId: string,
     path: string,
