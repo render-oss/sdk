@@ -1272,6 +1272,10 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Lists the sandbox groups the workspace owns, paginated by cursor. Pass the last entry's
+   * `cursor` to get the next page.
+   */
   async listGroups({
     ownerId,
     cursor,
@@ -1320,6 +1324,11 @@ export class SandboxesClient {
     );
   }
 
+  /**
+   * Retrieves a sandbox group by ID.
+   *
+   * @throws ClientError with `statusCode` 404 if the sandbox group does not exist.
+   */
   async getGroup(sandboxGroupId: string): Promise<SandboxGroup> {
     return unwrap(
       await this.apiClient.GET("/sandbox-groups/{sandboxGroupId}", {
