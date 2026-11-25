@@ -20,6 +20,7 @@ import {
   SandboxImageNotFoundError,
   SandboxImageNotReadyError,
   SandboxImageWaitTimeoutError,
+  SandboxNotFoundError,
   SandboxNotRunningError,
   SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
@@ -266,6 +267,48 @@ describe("SandboxesClient", () => {
           expect(fetchMock).not.toHaveBeenCalled();
         });
       }
+    }
+  });
+
+  describe("calls on a sandbox that does not exist", () => {
+    const calls: {
+      name: string;
+      method: "GET" | "POST";
+      context: string;
+      call: (client: SandboxesClient) => Promise<unknown>;
+    }[] = [
+      {
+        name: "get",
+        method: "GET",
+        context: "Failed to get sandbox",
+        call: (c) => c.get("sbx-123"),
+      },
+      {
+        name: "terminate",
+        method: "POST",
+        context: "Failed to terminate sandbox",
+        call: (c) => c.terminate("sbx-123"),
+      },
+      {
+        name: "suspend",
+        method: "POST",
+        context: "Failed to suspend sandbox",
+        call: (c) => c.suspend("sbx-123"),
+      },
+    ];
+
+    for (const { name, method, context, call } of calls) {
+      it(`${name} throws SandboxNotFoundError for a 404`, async () => {
+        const client = new SandboxesClient(
+          mockApiClient(method, { status: 404, error: { message: "not found" } }),
+          "tea-default",
+        );
+
+        const error = await call(client).catch((err) => err);
+
+        expect(error).toBeInstanceOf(SandboxNotFoundError);
+        expect(error).toMatchObject({ statusCode: 404, message: `${context}: not found` });
+      });
     }
   });
 

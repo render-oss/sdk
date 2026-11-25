@@ -51,6 +51,15 @@ export class SandboxSnapshotNotFoundError extends ClientError {
   }
 }
 
+/** The sandbox does not exist or has been terminated. */
+export class SandboxNotFoundError extends ClientError {
+  constructor(message: string, statusCode: number, response?: any, code?: string) {
+    super(message, statusCode, response, code);
+    this.name = "SandboxNotFoundError";
+    Object.setPrototypeOf(this, SandboxNotFoundError.prototype);
+  }
+}
+
 /**
  * The sandbox has ended (`terminated` or `errored`), for example because it passed its timeout.
  * It can't run commands or transfer files, so retrying won't help.

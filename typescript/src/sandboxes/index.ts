@@ -12,6 +12,7 @@ import {
   SandboxEndedError,
   SandboxImageFailedError,
   SandboxImageWaitTimeoutError,
+  SandboxNotFoundError,
   SandboxNotRunningError,
   SandboxSnapshotCreateWaitError,
   SandboxSnapshotFailedError,
@@ -762,7 +763,7 @@ export class SandboxSnapshotsClient {
         ...(signal ? { signal } : {}),
       }),
       "Failed to get snapshot",
-      getSnapshotApiError,
+      snapshotNotFound,
     );
   }
 
@@ -829,7 +830,7 @@ export class SandboxSnapshotsClient {
       },
     );
     if (error !== undefined || !response.ok) {
-      throw getSnapshotApiError(error, response, "Failed to delete snapshot");
+      throw getTypedApiError(error, response, "Failed to delete snapshot", snapshotNotFound);
     }
   }
 }
@@ -1023,7 +1024,7 @@ export class SandboxCredentialsClient {
         params: { path: { sandboxGroupId, credentialId } },
       }),
       `Failed to get credential ${credentialId}`,
-      getCredentialApiError,
+      credentialNotFound,
     );
   }
 
@@ -1062,7 +1063,7 @@ export class SandboxCredentialsClient {
         body,
       }),
       `Failed to update credential ${credentialId}`,
-      getCredentialApiError,
+      credentialNotFound,
     );
   }
 
@@ -1093,7 +1094,7 @@ export class SandboxCredentialsClient {
         { params: { path: { sandboxGroupId, credentialId } } },
       ),
       `Failed to list versions of credential ${credentialId}`,
-      getCredentialApiError,
+      credentialNotFound,
     );
   }
 
@@ -1113,7 +1114,7 @@ export class SandboxCredentialsClient {
         { params: { path: { sandboxGroupId, credentialId } }, body: { versionId } },
       ),
       `Failed to restore credential ${credentialId} to version ${versionId}`,
-      getCredentialApiError,
+      credentialNotFound,
     );
   }
 }
@@ -1178,8 +1179,7 @@ export class SandboxesClient {
   /**
    * Retrieves a sandbox by ID.
    *
-   * @throws ClientError with `statusCode` 404 if the sandbox does not exist or has been
-   * terminated.
+   * @throws SandboxNotFoundError if the sandbox does not exist or has been terminated.
    */
   async get(sandboxId: string, ownerId?: `tea-${string}`, signal?: AbortSignal) {
     return unwrap(
@@ -1191,6 +1191,7 @@ export class SandboxesClient {
         ...(signal ? { signal } : {}),
       }),
       "Failed to get sandbox",
+      sandboxNotFound,
     );
   }
 
@@ -1395,7 +1396,6 @@ export class SandboxesClient {
         params: { path: { sandboxGroupId } },
       }),
       "Failed to set default sandbox group",
-      getTypedApiError,
     );
   }
 
@@ -1468,7 +1468,7 @@ export class SandboxesClient {
   /**
    * Terminates a sandbox. Resolves if the sandbox is already terminated.
    *
-   * @throws ClientError with `statusCode` 404 if the sandbox ID cannot be found.
+   * @throws SandboxNotFoundError if the sandbox ID cannot be found.
    */
   async terminate(sandboxId: string, ownerId?: `tea-${string}`): Promise<void> {
     const { error, response } = await this.apiClient.POST("/sandboxes/{sandboxId}/terminate", {
@@ -1478,7 +1478,7 @@ export class SandboxesClient {
       },
     });
     if (error !== undefined || !response.ok) {
-      throw getTypedApiError(error, response, "Failed to terminate sandbox");
+      throw getTypedApiError(error, response, "Failed to terminate sandbox", sandboxNotFound);
     }
   }
 
@@ -1499,7 +1499,7 @@ export class SandboxesClient {
       },
     });
     if (error !== undefined || !response.ok) {
-      throw getTypedApiError(error, response, "Failed to suspend sandbox");
+      throw getTypedApiError(error, response, "Failed to suspend sandbox", sandboxNotFound);
     }
   }
 
@@ -1934,15 +1934,33 @@ async function getResponseError(response: Response, context: string): Promise<Er
 function unwrap<T>(
   { data, error, response }: { data?: T; error?: unknown; response: Response },
   context: string,
-  toError: (error: unknown, response: Response, context: string) => Error = getTypedApiError,
+  createNotFoundError?: NotFoundErrorFactory,
 ): T {
   if (error !== undefined || !response.ok || data === undefined) {
-    throw toError(error, response, context);
+    throw getTypedApiError(error, response, context, createNotFoundError);
   }
   return data;
 }
 
-function getTypedApiError(error: unknown, response: Response, context: string): Error {
+type NotFoundErrorFactory = (apiError: ClientError) => ClientError;
+
+const sandboxNotFound: NotFoundErrorFactory = (e) =>
+  new SandboxNotFoundError(e.message, e.statusCode, e.response, e.code);
+const snapshotNotFound: NotFoundErrorFactory = (e) =>
+  new SandboxSnapshotNotFoundError(e.message, e.statusCode, e.response, e.code);
+const credentialNotFound: NotFoundErrorFactory = (e) =>
+  new SandboxCredentialNotFoundError(e.message, e.statusCode, e.response, e.code);
+
+/**
+ * Pass `createNotFoundError` only when the path's last resource is what a 404 means is gone. The
+ * API sends a credential 404 without a code, and the same 404 for a missing sandbox group.
+ */
+function getTypedApiError(
+  error: unknown,
+  response: Response,
+  context: string,
+  createNotFoundError?: NotFoundErrorFactory,
+): Error {
   const body = error as { message?: unknown; code?: unknown } | null | undefined;
   const message =
     typeof body?.message === "string"
@@ -1951,35 +1969,9 @@ function getTypedApiError(error: unknown, response: Response, context: string): 
         ? JSON.stringify(error)
         : response.statusText;
   const code = typeof body?.code === "string" ? body.code : undefined;
-  return getApiError(message, response, context, code);
-}
-
-/**
- * The API sends a credential 404 without a code, and the same 404 for a missing sandbox group, so
- * only calls whose path names a credential use this.
- */
-function getCredentialApiError(error: unknown, response: Response, context: string): Error {
-  const apiError = getTypedApiError(error, response, context);
-  if (apiError instanceof ClientError && apiError.statusCode === 404) {
-    return new SandboxCredentialNotFoundError(
-      apiError.message,
-      apiError.statusCode,
-      apiError.response,
-      apiError.code,
-    );
-  }
-  return apiError;
-}
-
-function getSnapshotApiError(error: unknown, response: Response, context: string): Error {
-  const apiError = getTypedApiError(error, response, context);
-  if (apiError instanceof ClientError && apiError.statusCode === 404) {
-    return new SandboxSnapshotNotFoundError(
-      apiError.message,
-      apiError.statusCode,
-      apiError.response,
-      apiError.code,
-    );
+  const apiError = getApiError(message, response, context, code);
+  if (createNotFoundError && apiError instanceof ClientError && apiError.statusCode === 404) {
+    return createNotFoundError(apiError);
   }
   return apiError;
 }
