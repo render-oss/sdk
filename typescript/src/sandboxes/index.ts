@@ -677,12 +677,22 @@ function resolveCreateWait(
   return resolved;
 }
 
+/** Snapshots of sandboxes. Reach it as `render.sandboxes.snapshots`. */
 export class SandboxSnapshotsClient {
   constructor(
     private readonly apiClient: Client<paths>,
     private readonly defaultOwnerId?: string,
   ) {}
 
+  /**
+   * Captures a snapshot of a running sandbox. Returns the snapshot while it is still `creating`,
+   * unless `wait` is set.
+   *
+   * @throws ClientError with `statusCode` 404 if the sandbox does not exist.
+   * @throws ClientError with code `sandbox_not_running` if the sandbox is not running.
+   * @throws SandboxSnapshotCreateWaitError if `wait` is set and the wait fails. It carries the new
+   * snapshot's IDs.
+   */
   async create({
     sandboxId,
     kind,
@@ -730,6 +740,12 @@ export class SandboxSnapshotsClient {
     }
   }
 
+  /**
+   * Retrieves a snapshot.
+   *
+   * @throws SandboxSnapshotNotFoundError if the snapshot does not exist, was deleted, has expired,
+   * or belongs to another sandbox group.
+   */
   async get(
     { sandboxGroupId, snapshotId, ownerId }: SandboxSnapshotGetInput,
     signal?: AbortSignal,
@@ -770,6 +786,10 @@ export class SandboxSnapshotsClient {
     });
   }
 
+  /**
+   * Lists the snapshots in a sandbox group, newest first, paginated by cursor. Pass the last
+   * entry's `cursor` to get the next page. Deleted and expired snapshots are omitted.
+   */
   async list({
     sandboxGroupId,
     status,
@@ -789,6 +809,12 @@ export class SandboxSnapshotsClient {
     );
   }
 
+  /**
+   * Deletes a snapshot. Deleting an already-deleted or expired snapshot succeeds.
+   *
+   * @throws SandboxSnapshotNotFoundError if the snapshot never existed.
+   * @throws SandboxSnapshotNotReadyError if the snapshot is still `creating`.
+   */
   async delete({ sandboxGroupId, snapshotId, ownerId }: SandboxSnapshotDeleteInput): Promise<void> {
     const { error, response } = await this.apiClient.DELETE(
       "/sandbox-groups/{sandboxGroupId}/snapshots/{snapshotId}",
