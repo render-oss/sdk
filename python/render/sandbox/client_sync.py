@@ -300,7 +300,7 @@ class SyncSandboxClient:
         cursor: str | None = None,
         limit: int | None = None,
     ) -> SandboxGroupList:
-        """List the sandbox groups a workspace owns.
+        """Lists the sandbox groups a workspace owns.
 
         Omit cursor and limit to return all groups. When paging, continue
         until the page is empty. next_cursor carries the last entry's cursor,
@@ -317,78 +317,76 @@ class SyncSandboxClient:
         region: str | None = None,
         environment_id: str | None = None,
     ) -> SandboxGroup:
-        """Create a sandbox group within the workspace's group count limit.
+        """Creates a sandbox group within the workspace's group count limit.
 
         Creating a group in a protected environment requires an admin.
 
         Args:
-            name: The group name.
             owner_id: The workspace. Defaults to the client's workspace.
             region: The region. Defaults to Oregon.
             environment_id: The environment, or None for no environment.
 
-        Returns:
-            The new sandbox group.
-
         Raises:
-            ClientError: If the API rejects the group, for example because the
+            ClientError: The API rejects the group, for example because the
                 environment is protected and the caller is not an admin.
-            ServerError: For 5xx server errors.
         """
         return self.api.create_group(
             self._resolve_owner_id(owner_id), name, region, environment_id
         )
 
     def get_group(self, sandbox_group_id: str) -> SandboxGroup:
-        """Retrieve a sandbox group by ID."""
+        """Retrieves a sandbox group by ID."""
         return self.api.get_group(sandbox_group_id)
 
     def update_group(
         self, sandbox_group_id: str, *, concurrency_limit: int
     ) -> SandboxGroup:
-        """Set concurrency and return the effective limit after Render's cap."""
+        """Sets the group's concurrency limit and returns the group.
+
+        The returned limit is the effective one, after Render's cap.
+        """
         return self.api.update_group(sandbox_group_id, concurrency_limit)
 
     def delete_group(self, sandbox_group_id: str) -> None:
-        """Delete a group, terminating its sandboxes.
+        """Deletes a group and terminates its sandboxes.
 
-        Its snapshots and credentials are deleted shortly after. Raises
-        SandboxGroupDefaultNotDeletableError for the workspace's default group;
-        make another group the default first with set_default_group. Raises
-        SandboxGroupSuspendedError for a suspended group.
+        Its snapshots and credentials are deleted shortly after.
+
+        Raises:
+            SandboxGroupDefaultNotDeletableError: The group is the workspace's
+                default. Make another group the default first with
+                set_default_group.
+            SandboxGroupSuspendedError: The group is suspended.
         """
         self.api.delete_group(sandbox_group_id)
 
     def set_default_group(self, sandbox_group_id: str) -> SandboxGroup:
-        """Make a group the workspace's default.
+        """Makes a group the workspace's default.
 
-        Setting the current default returns it unchanged. Raises
-        SandboxGroupSuspendedError for a suspended group.
+        Setting the current default returns it unchanged.
+
+        Raises:
+            SandboxGroupSuspendedError: The group is suspended.
         """
         return self.api.set_default_group(sandbox_group_id)
 
     def set_group_environment(
         self, sandbox_group_id: str, environment_id: str | None
     ) -> SandboxGroup:
-        """Set the environment a sandbox group belongs to.
+        """Sets the environment a sandbox group belongs to.
 
         A group belongs to at most one environment, so setting a new one
         replaces the old one. Changing the environment of a group in a protected
         environment, or setting a protected environment, requires an admin.
 
         Args:
-            sandbox_group_id: The sandbox group.
             environment_id: The environment, or None to clear it.
 
-        Returns:
-            The updated sandbox group.
-
         Raises:
-            ClientError: If the group or environment does not exist, or a
+            ClientError: The group or environment does not exist, or a
                 protected environment is involved and the caller is not an
                 admin.
-            ServerError: For 5xx server errors.
-            ValueError: If environment_id is empty.
+            ValueError: environment_id is empty.
         """
         if environment_id == "":
             raise ValueError("environment_id must not be empty; pass None to clear it")
