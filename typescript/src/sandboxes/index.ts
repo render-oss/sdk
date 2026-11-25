@@ -677,7 +677,10 @@ function resolveCreateWait(
   return resolved;
 }
 
-/** Snapshots of sandboxes. Reach it as `render.sandboxes.snapshots`. */
+/**
+ * Snapshots of sandboxes. Reach it as `render.sandboxes.snapshots`. Errors work as on
+ * `SandboxesClient`.
+ */
 export class SandboxSnapshotsClient {
   constructor(
     private readonly apiClient: Client<paths>,
@@ -690,8 +693,8 @@ export class SandboxSnapshotsClient {
    *
    * @throws ClientError with `statusCode` 404 if the sandbox does not exist.
    * @throws ClientError with code `sandbox_not_running` if the sandbox is not running.
-   * @throws SandboxSnapshotCreateWaitError if `wait` is set and the wait fails. It carries the new
-   * snapshot's IDs.
+   * @throws SandboxSnapshotCreateWaitError if `wait` is set and the wait fails, including on a
+   * request error during the wait, which becomes its `cause`. It carries the new snapshot's IDs.
    */
   async create({
     sandboxId,
@@ -831,6 +834,10 @@ export class SandboxSnapshotsClient {
   }
 }
 
+/**
+ * Images that sandboxes start from. Reach it as `render.sandboxes.images`. Errors work as on
+ * `SandboxesClient`.
+ */
 export class SandboxImagesClient {
   constructor(private readonly apiClient: Client<paths>) {}
 
@@ -969,7 +976,7 @@ export class SandboxBuildsClient {
 /**
  * Credentials that Render adds to requests from a sandbox group's sandboxes, via
  * `sandboxes.credentials`. Creating, deleting and restoring a credential, and changing its domain
- * or value, need an admin of the workspace.
+ * or value, need an admin of the workspace. Errors work as on `SandboxesClient`.
  */
 export class SandboxCredentialsClient {
   constructor(private readonly apiClient: Client<paths>) {}
@@ -1111,7 +1118,14 @@ export class SandboxCredentialsClient {
   }
 }
 
-/** Creates and operates sandboxes. Reach it as `render.sandboxes`. */
+/**
+ * Creates and operates sandboxes. Reach it as `render.sandboxes`.
+ *
+ * Every method throws `ClientError` for a 4xx response and `ServerError` for a 5xx one; method
+ * comments name only the more specific errors. A method that needs the workspace throws
+ * `RenderError` if you omit `ownerId` and the client has no default: pass `ownerId` to
+ * `new Render()` or set `RENDER_WORKSPACE_ID`.
+ */
 export class SandboxesClient {
   public readonly snapshots: SandboxSnapshotsClient;
   public readonly images: SandboxImagesClient;
@@ -1190,7 +1204,8 @@ export class SandboxesClient {
    * @throws SandboxImageNotFoundError if the sandbox group has no such image.
    * @throws SandboxImageNotReadyError if the image has no available builds.
    * @throws SandboxGroupSuspendedError if the sandbox group is suspended.
-   * @throws SandboxCreateWaitError if `wait` is set and the sandbox does not reach `running`.
+   * @throws SandboxCreateWaitError if `wait` is set and the sandbox does not reach `running`,
+   * including on a request error during the wait, which becomes its `cause`.
    */
   async create(input: SandboxCreateInput = {}): Promise<Sandbox> {
     const wait = resolveCreateWait(input.wait, DEFAULT_SANDBOX_WAIT_TIMEOUT_MS);
