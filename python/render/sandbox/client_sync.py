@@ -103,7 +103,7 @@ class SyncSandboxClient:
         sandbox_group_id: str | None = None,
         wait: bool | SandboxWaitOptions = False,
     ) -> Sandbox:
-        """Create a sandbox and return its initial state.
+        """Creates a sandbox and returns its initial state.
 
         All parameters are optional. Unspecified fields fall back to the
         workspace defaults enforced by the API (plan 1c-2g, 24-hour lifetime,
@@ -114,7 +114,7 @@ class SyncSandboxClient:
         determines placement; region is accepted for compatibility and ignored.
 
         name is a label for the sandbox, like ``my-agent``. Names aren't
-        unique, so use the sandbox id to address it. At most 64 characters,
+        unique, so use the sandbox ID to address it. At most 64 characters,
         and it can't start with ``sbx-``.
 
         network_policy is a NetworkPolicy, or a policy type string as a
@@ -125,29 +125,37 @@ class SyncSandboxClient:
         snapshot_id starts the sandbox from that snapshot; snapshot_name starts
         it from the available snapshot that name currently resolves to in the
         sandbox group. The two parameters are mutually exclusive. For a runtime
-        snapshot, plan must match the snapshot's plan. Raises
-        SnapshotNotFoundError if the snapshot ID or name does not resolve,
-        SnapshotNotReadyError if it is not available, and
-        SnapshotPlanMismatchError on a runtime plan mismatch.
+        snapshot, plan must match the snapshot's plan.
 
         image starts the sandbox from an image imported with images.import_
         instead of the base image. An image ID (``sbb-`` and 20 characters,
         like ``sbb-cph1rs3idesc73a2b2mg``) pins that version; any other value
         is a name and uses the newest succeeded version with that name in the
         sandbox group. image is mutually exclusive with the snapshot
-        parameters. Raises ImageNotFoundError if the group has no image with
-        the ID or name, and ImageNotReadyError if it has not succeeded.
-        build_id and build_name are deprecated aliases for image.
+        parameters. build_id and build_name are deprecated aliases for image.
 
         wait returns the sandbox only once it is running, as wait_until_running
         does. True uses the default wait; a SandboxWaitOptions sets its timeout
-        and interval. The wait starts after the create request returns. If it
-        fails, create raises SandboxCreateWaitError with the new sandbox's id,
-        so you can terminate it.
+        and interval. The wait starts after the create request returns.
 
         To bound the wait, set SandboxWaitOptions(timeout_seconds=...). Don't
         wrap create(wait=...) in asyncio.wait_for: its timeout cancels the task,
-        and a cancelled create loses the new sandbox's id.
+        and a cancelled create loses the new sandbox's ID.
+
+        Raises:
+            SnapshotNotFoundError: The snapshot ID or name does not resolve.
+            SnapshotNotReadyError: The snapshot is not available.
+            SnapshotPlanMismatchError: plan does not match a runtime snapshot's
+                plan.
+            ImageNotFoundError: The group has no image with that ID or name.
+            ImageNotReadyError: The image has not succeeded.
+            SandboxGroupSuspendedError: The sandbox group is suspended.
+            ValueError: Mutually exclusive parameters are combined, such as an
+                image and a snapshot, or the wait options are invalid. Raised
+                before the create request.
+            SandboxCreateWaitError: wait is set and the wait fails, including on
+                a request error during the wait, which becomes its cause. It
+                carries the new sandbox's ID, so you can terminate it.
         """
         if snapshot_id is not None and snapshot_name is not None:
             raise ValueError("snapshot_id and snapshot_name are mutually exclusive")
@@ -220,15 +228,20 @@ class SyncSandboxClient:
         interval_seconds: float = _wait.DEFAULT_INTERVAL_SECONDS,
         owner_id: str | None = None,
     ) -> Sandbox:
-        """Wait until the sandbox is running, so it can run commands, and return it.
+        """Waits until the sandbox is running, so it can run commands, and returns it.
 
         Checks the status every interval_seconds, doubling the delay after each
         check up to 2 seconds. timeout_seconds bounds the whole wait, including
-        status checks. Raises SandboxNotRunningError as soon as the sandbox is
-        errored, terminated, suspending, or suspended, and
-        SandboxWaitTimeoutError after timeout_seconds. Neither terminates the
-        sandbox. Errors from a status check, such as SandboxNotFoundError,
-        propagate unchanged.
+        status checks. Neither SandboxNotRunningError nor SandboxWaitTimeoutError
+        terminates the sandbox.
+
+        Raises:
+            SandboxNotRunningError: The sandbox is errored, terminated,
+                suspending, or suspended.
+            SandboxWaitTimeoutError: The sandbox is not running after
+                timeout_seconds.
+            SandboxNotFoundError: A status check finds no sandbox.
+            ValueError: timeout_seconds or interval_seconds is invalid.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
 
@@ -249,10 +262,11 @@ class SyncSandboxClient:
         )
 
     def from_id(self, sandbox_id: str, *, owner_id: str | None = None) -> Sandbox:
-        """Reconnect to an existing sandbox by id.
+        """Reconnects to an existing sandbox by ID.
 
-        Raises SandboxNotFoundError if the sandbox does not exist or has been
-        terminated.
+        Raises:
+            SandboxNotFoundError: The sandbox does not exist or has been
+                terminated.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return self.api.get(sandbox_id, resolved_owner_id)
@@ -267,7 +281,7 @@ class SyncSandboxClient:
         sandbox_group_id: str | None = None,
         name: str | None = None,
     ) -> SandboxList:
-        """List sandboxes for a workspace.
+        """Lists the sandboxes in a workspace.
 
         status filters by sandbox status, one or a sequence of them (each one
         of creating, running, suspended, resuming, errored, terminated). limit
@@ -390,24 +404,26 @@ class SyncSandboxClient:
         return self.api.get_group(sandbox_group_id)
 
     def terminate(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
-        """Terminate a sandbox.
+        """Terminates a sandbox. Succeeds if the sandbox is already terminated.
 
-        Idempotent for an already-terminated sandbox (the API returns 204).
-        Raises SandboxNotFoundError if the sandbox id was never valid.
+        Raises:
+            SandboxNotFoundError: The sandbox ID was never valid.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         self.api.terminate(sandbox_id, resolved_owner_id)
 
     def suspend(self, sandbox_id: str, *, owner_id: str | None = None) -> None:
-        """Start suspending a running sandbox.
+        """Starts suspending a running sandbox.
 
         Returns once the suspension starts, and also if the sandbox is already
         suspending or suspended. Retrieve the sandbox with from_id() until its
         status is suspended. Open commands and connections end. The next
         connection resumes the sandbox.
 
-        Raises ClientError with code sandbox_not_running if the sandbox is not
-        running, and SandboxNotFoundError if the sandbox id was never valid.
+        Raises:
+            ClientError: With code sandbox_not_running if the sandbox is not
+                running.
+            SandboxNotFoundError: The sandbox ID was never valid.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         self.api.suspend(sandbox_id, resolved_owner_id)
@@ -420,7 +436,7 @@ class SyncSandboxClient:
         *,
         owner_id: str | None = None,
     ) -> None:
-        """Copy a local file or directory into the sandbox at remote_path.
+        """Copies a local file or directory into the sandbox at remote_path.
 
         A relative remote_path resolves under the sandbox's home directory and
         an absolute one addresses the filesystem, as scp does. The path is
@@ -430,8 +446,12 @@ class SyncSandboxClient:
         A file is uploaded as raw bytes. A directory is streamed as an archive
         that the sandbox extracts at remote_path: names are relative to
         local_path, symlinks are stored rather than followed, and sockets,
-        fifos and other special files are skipped. Passing one of those special
-        files as local_path raises ValueError.
+        fifos and other special files are skipped.
+
+        Raises:
+            SandboxNotFoundError: The sandbox does not exist.
+            SandboxEndedError: The sandbox is terminated or errored.
+            ValueError: local_path is a socket, fifo, or other special file.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         self.api.upload(sandbox_id, local_path, remote_path, resolved_owner_id)
@@ -443,12 +463,18 @@ class SyncSandboxClient:
         *,
         owner_id: str | None = None,
     ) -> Iterator[SandboxExecEvent]:
-        """Run a command in a sandbox and stream its output.
+        """Runs a command in a sandbox and streams its output.
 
         command is passed to ``bash -c`` in the sandbox. Yields
         SandboxExecOutput chunks as they arrive and a final SandboxExecExit.
         A non-zero exit code is reported via SandboxExecExit, not an exception.
-        Raises SandboxExecStreamError if the sandbox reports a terminal error.
+
+        Raises:
+            SandboxNotFoundError: The sandbox does not exist.
+            SandboxEndedError: The sandbox is terminated or errored.
+            SandboxExecStreamError: The sandbox reports a terminal error.
+            SandboxExecError: The stream has a malformed or unknown event, or
+                ends without an exit event.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return self.api.exec_stream(sandbox_id, command, resolved_owner_id)
@@ -461,16 +487,21 @@ class SyncSandboxClient:
         *,
         owner_id: str | None = None,
     ) -> str:
-        """Copy a file or directory out of a sandbox, returning the path written.
+        """Copies a file or directory out of a sandbox and returns the path written.
 
         A directory is extracted under local_path. A file is written to
         local_path, or into it under the name the sandbox suggests when
         local_path is an existing directory. remote_path is cleaned before it
         is sent, since the API rejects a path carrying "." , ".." or redundant
-        separators. Raises SandboxFileNotFoundError if the sandbox has no such
-        path. Raises SandboxDownloadError if the response is unsafe or the download
-        cannot be written or extracted locally. Directory extraction is not atomic
-        and may leave partial contents after a failure.
+        separators. Directory extraction is not atomic and may leave partial
+        contents after a failure.
+
+        Raises:
+            SandboxNotFoundError: The sandbox does not exist.
+            SandboxEndedError: The sandbox is terminated or errored.
+            SandboxFileNotFoundError: The sandbox has no such path.
+            SandboxDownloadError: The response is unsafe, or the download
+                cannot be written or extracted locally.
         """
         resolved_owner_id = self._resolve_owner_id(owner_id)
         return self.api.download_file(
